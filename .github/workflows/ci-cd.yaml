@@ -18,10 +18,10 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore WHMapper
       
       - name: Build app
-        run: dotnet build -c Release --no-restore
+        run: dotnet build WHMapper -c Release --no-restore
 
         
 
