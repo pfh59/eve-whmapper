@@ -1,0 +1,37 @@
+﻿<MudContainer Class="mt-16">
+    @*<MudTable @Items="@Signatures" Dense=true Hover=true Bordered=true Striped=true Loading="@(Signatures==null)">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Signatures</MudText>
+            <MudSpacer />
+            <MudIconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" />
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh Style="text-align:center">Id</MudTh>
+            <MudTh Style="text-align:center">Group</MudTh>
+            <MudTh Style="text-align:center">Type</MudTh>
+            <MudTh Style="text-align:center">Destination</MudTh>
+            <MudTh Style="text-align:center">Created</MudTh>
+            <MudTh Style="text-align:center">Created By</MudTh>
+            <MudTh Style="text-align:center">Updated</MudTh>
+            <MudTh Style="text-align:center">Updated By</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="Group">@context.Group</MudTd>
+            <MudTd DataLabel="Group">@context.Type</MudTd>
+            <MudTd DataLabel="Group">@context.Destination</MudTd>
+            <MudTd DataLabel="Group">@context.Created</MudTd>
+            <MudTd DataLabel="Group">@context.CreatedBy</MudTd>
+            <MudTd DataLabel="Group">@context.Updated</MudTd>
+            <MudTd DataLabel="Group">@context.UpdatedBy</MudTd>
+            <MudTd Style="text-align:center">
+                <MudIconButton Color="Color.Warning" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
+                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>*@
+</MudContainer>

@@ -1,0 +1,47 @@
+﻿<MudPaper Class="pa-5" Outlined="true">
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem xs="1">
+            <MudText Typo="Typo.body2">Name:</MudText>
+        </MudItem>
+        <MudItem xs="0">
+            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.Name : String.Empty)</MudText>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem xs="1">
+            <MudText Typo="Typo.body2">Security:</MudText>
+        </MudItem>
+        <MudItem xs="0">
+            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.SecurityStatus : String.Empty)</MudText>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem xs="1">
+            <MudText Typo="Typo.body2">Class:</MudText>
+        </MudItem>
+        <MudItem xs="0">
+            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.Class : String.Empty)</MudText>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem xs="1">
+            <MudText Typo="Typo.body2">Effect:</MudText>
+        </MudItem>
+        <MudItem xs="0">
+            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.Effect : "No Effects")</MudText>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem xs="1">
+            <MudText Typo="Typo.body2">Statics:</MudText>
+        </MudItem>
+        <MudItem xs="0">
+            <MudText Typo="Typo.body2">@((CurrentSystemNode != null && CurrentSystemNode.Statics!=null) ? String.Join(" ", CurrentSystemNode.Statics) : String.Empty)</MudText>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+

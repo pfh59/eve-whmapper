@@ -1,0 +1,41 @@
+﻿@inject AuthenticationStateProvider AuthState
+
+<AuthorizeView>
+    <Authorized>
+        <MudMenu FullWidth="true">
+            <ActivatorContent>
+                <MudChip Icon="@Icons.Material.Filled.Person">@Username</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem>Profile</MudMenuItem>
+                <MudNavLink Href="/logout">Logout</MudNavLink>
+            </ChildContent>
+        </MudMenu>
+    </Authorized>
+    <NotAuthorized>
+        <MudMenu FullWidth="true">
+            <ActivatorContent>
+                <MudChip Icon="@Icons.Material.Filled.Person">Account</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <MudNavLink Href="login?redirectUri=/">Login</MudNavLink>
+            </ChildContent>
+        </MudMenu>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private string Username = "Anonymous";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var state = await AuthState.GetAuthenticationStateAsync();
+
+        if (!String.IsNullOrEmpty(state.User.Identity.Name))
+            Username = state.User.Identity.Name;
+
+        await base.OnInitializedAsync();
+    }
+}

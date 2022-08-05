@@ -1,0 +1,23 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider IsDarkMode="true" DefaultScrollbar="false" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudText Typo="Typo.h5" Class="ml-3">Wormhole Mapper</MudText>
+        <MudSpacer />
+        <AccessControl />
+    </MudAppBar>
+    <MudMainContent>
+        <AuthorizeView>
+            <Authorized>
+                <WHMapper.Pages.Mapper.Overview />
+            </Authorized>
+            <NotAuthorized>
+            </NotAuthorized>
+        </AuthorizeView>
+
+    </MudMainContent>
+</MudLayout>

@@ -1,0 +1,17 @@
+﻿@using Blazor.Diagrams.Components.Renderers;
+@using WHMapper.Models.Custom.Node;
+
+
+<div class="default-node @(Node.Group != null ? "grouped" : "") @(Node.Selected ? "selected" : "")">
+    <MudCard>
+        <MudCardContent>
+            <MudText>@Node.Class</MudText>
+            <MudText>@Node.Name</MudText>
+        </MudCardContent>
+    </MudCard>
+
+    @foreach (var port in Node.Ports)
+    {
+        <PortRenderer Port="port"></PortRenderer>
+    }
+</div>

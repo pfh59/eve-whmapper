@@ -1,0 +1,23 @@
+﻿@page "/whmapper"
+@using Blazor.Diagrams.Core;
+@using Blazor.Diagrams.Core.Geometry;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Components;
+@using Blazor.Diagrams.Algorithms;
+
+
+<MudGrid>
+    <MudItem xs="12">
+        <div style="width:90vw; height: 50vh" class="rounded">
+            <CascadingValue Value="Diagram">
+                <DiagramCanvas></DiagramCanvas>
+            </CascadingValue>
+        </div>
+    </MudItem>
+    <MudItem xs="3">
+        <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
+    </MudItem>
+    <MudItem xs="9">
+        <WHMapper.Pages.Mapper.Signatures.Overview/>
+    </MudItem>
+</MudGrid>
