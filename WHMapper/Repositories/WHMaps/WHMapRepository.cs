@@ -96,6 +96,40 @@ namespace WHMapper.Repositories.WHMaps
             return system;
 
         }
+
+        public async Task<WHSystemLink?> AddWHSystemLink(int idWHMap, WHSystem whSystemSrc, WHSystem whSystemDest)
+        {
+            var map = await this.GetById(idWHMap);
+            if (map == null)
+                return null;
+
+
+
+            var sysLink = new WHSystemLink(whSystemSrc.Id, whSystemDest.Id);
+            _dbContext.DbWHSystemLinks.Add(sysLink);
+            map.WHSystemLinks.Add(sysLink);
+
+
+            await this.Update(idWHMap, map);
+
+            return sysLink;
+        }
+        public async Task<WHSystemLink?> RemoveWHSystemLink(int idWHMap, int idWHSystemLink)
+        {
+            var map = await this.GetById(idWHMap);
+            if (map == null)
+                return null;
+
+            var systemLink = map.WHSystemLinks.Where(x => x.Id == idWHSystemLink).FirstOrDefault();
+            if (systemLink == null)
+                return null;
+
+            _dbContext.DbWHSystemLinks.Remove(systemLink);
+            _dbContext.SaveChanges();
+
+            return systemLink;
+        }
+
     }
 }
 

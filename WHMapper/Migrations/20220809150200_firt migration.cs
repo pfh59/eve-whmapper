@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace WHMapper.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class firtmigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -20,6 +20,27 @@ namespace WHMapper.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Maps", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SystemLinks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdWHSystemFrom = table.Column<int>(type: "integer", nullable: false),
+                    IdWHSystemTo = table.Column<int>(type: "integer", nullable: false),
+                    WHMapId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SystemLinks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SystemLinks_Maps_WHMapId",
+                        column: x => x.WHMapId,
+                        principalTable: "Maps",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -50,6 +71,17 @@ namespace WHMapper.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_SystemLinks_IdWHSystemFrom_IdWHSystemTo",
+                table: "SystemLinks",
+                columns: new[] { "IdWHSystemFrom", "IdWHSystemTo" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SystemLinks_WHMapId",
+                table: "SystemLinks",
+                column: "WHMapId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Systems_Name",
                 table: "Systems",
                 column: "Name",
@@ -63,6 +95,9 @@ namespace WHMapper.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "SystemLinks");
+
             migrationBuilder.DropTable(
                 name: "Systems");
 

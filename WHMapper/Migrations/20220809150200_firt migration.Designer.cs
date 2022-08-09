@@ -12,8 +12,8 @@ using WHMapper.Data;
 namespace WHMapper.Migrations
 {
     [DbContext(typeof(WHMapperContext))]
-    [Migration("20220803155844_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20220809150200_firt migration")]
+    partial class firtmigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -74,6 +74,33 @@ namespace WHMapper.Migrations
                     b.ToTable("Systems", (string)null);
                 });
 
+            modelBuilder.Entity("WHMapper.Models.Db.WHSystemLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdWHSystemFrom")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdWHSystemTo")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("WHMapId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WHMapId");
+
+                    b.HasIndex("IdWHSystemFrom", "IdWHSystemTo")
+                        .IsUnique();
+
+                    b.ToTable("SystemLinks", (string)null);
+                });
+
             modelBuilder.Entity("WHMapper.Models.Db.WHSystem", b =>
                 {
                     b.HasOne("WHMapper.Models.Db.WHMap", null)
@@ -82,8 +109,18 @@ namespace WHMapper.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("WHMapper.Models.Db.WHSystemLink", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHMap", null)
+                        .WithMany("WHSystemLinks")
+                        .HasForeignKey("WHMapId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("WHMapper.Models.Db.WHMap", b =>
                 {
+                    b.Navigation("WHSystemLinks");
+
                     b.Navigation("WHSystems");
                 });
 #pragma warning restore 612, 618

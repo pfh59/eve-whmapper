@@ -7,6 +7,9 @@ namespace WHMapper.Repositories.WHMaps
     {
         public Task<WHSystem?> AddWHSystem(int idWHMap, WHSystem whSystem);
         public Task<WHSystem?> RemoveWHSystem(int idWHMap, int idWHSystem);
+
+        public Task<WHSystemLink?> AddWHSystemLink(int idWHMap, WHSystem whSystemSrc,WHSystem whSystemDest);
+        public Task<WHSystemLink?> RemoveWHSystemLink(int idWHMap, int idWHSystemLink);
     }
 }
 
