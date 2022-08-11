@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  DONET_VERSION: '6.0.x'
+  DOTNET_VERSION: '6.0.x'
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup .NET6 🦴
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: ${{env.DONET_VERSION}}
+          dotnet-version: ${{env.DOTNET_VERSION}}
 
       - name: Start Posgresql 
         run: |
@@ -30,7 +30,7 @@ jobs:
           time: '5s'
 
       - name: Restore dependencies 
-        run: dotnet restore WHMapper
+        run: dotnet restore 
       
       - name: Build app 🚀
         run: dotnet build WHMapper -c Release --no-restore
@@ -38,7 +38,7 @@ jobs:
       - name: Run automated test 🧪
         env:
           ConnectionStrings_DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
-        run: dotnet test WHMapper.Tests -c Release --no-build
+        run: dotnet test WHMapper.Tests -c Release
       
       - name: Publish app 
         run: dotnet publish WHMapper -c release -o ./out

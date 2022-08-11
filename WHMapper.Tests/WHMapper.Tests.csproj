@@ -36,9 +36,13 @@
     <None Remove="appsettings.json" />
     <None Remove="appsettings.Development.json" />
     <None Remove="Microsoft.Extensions.Configuration" />
+    <None Remove="Orders\" />
+    <None Remove="Attributes\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Db\" />
+    <Folder Include="Orderers\" />
+    <Folder Include="Attributes\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.json" Condition="'$(ExcludeConfigFilesFromBuildOutput)'!='true'">
