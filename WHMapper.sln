@@ -5,7 +5,7 @@ VisualStudioVersion = 25.0.1700.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WHMapper", "WHMapper\WHMapper.csproj", "{42856DAF-BBD6-4651-8BD9-D6D29C9692CB}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{21ED69F2-1894-427E-8918-2F67C0023A79}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WHMapper.Tests", "WHMapper.Tests\WHMapper.Tests.csproj", "{0E3C0404-014F-4859-82B6-B5C90145277E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{42856DAF-BBD6-4651-8BD9-D6D29C9692CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42856DAF-BBD6-4651-8BD9-D6D29C9692CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42856DAF-BBD6-4651-8BD9-D6D29C9692CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{21ED69F2-1894-427E-8918-2F67C0023A79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{21ED69F2-1894-427E-8918-2F67C0023A79}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{21ED69F2-1894-427E-8918-2F67C0023A79}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{21ED69F2-1894-427E-8918-2F67C0023A79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E3C0404-014F-4859-82B6-B5C90145277E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E3C0404-014F-4859-82B6-B5C90145277E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E3C0404-014F-4859-82B6-B5C90145277E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E3C0404-014F-4859-82B6-B5C90145277E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

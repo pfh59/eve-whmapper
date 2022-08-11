@@ -63,6 +63,12 @@ namespace WHMapper.Repositories.WHSystems
             await _dbContext.SaveChangesAsync();
             return item;
         }
+
+        public async Task<WHSystem?> GetByName(string name)
+        {
+            return await _dbContext.DbWHSystems.FirstOrDefaultAsync(x => x.Name == name);
+        }
+
     }
 }
 

@@ -14,6 +14,7 @@ namespace WHMapper.Models.Db
 
 
         public ICollection<WHSystem> WHSystems { get; } = new HashSet<WHSystem>();
+        public ICollection<WHSystemLink> WHSystemLinks { get; } = new HashSet<WHSystemLink>();
 
         public WHMap(string name)
         {
