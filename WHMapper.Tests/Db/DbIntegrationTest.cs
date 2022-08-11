@@ -17,7 +17,7 @@ public class DbIntegrationTest
                 .Build();
 
             var optionBuilder = new DbContextOptionsBuilder<WHMapperContext>();
-            optionBuilder.UseNpgsql(configuration["DefaultConnection"]);
+            optionBuilder.UseNpgsql(configuration["ConnectionStrings:DefaultConnection"]);
 
             var context = new WHMapperContext(optionBuilder.Options);
 
