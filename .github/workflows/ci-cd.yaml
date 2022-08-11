@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  DONET_VERSION: '6.0.x'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,16 +15,33 @@ jobs:
       - name: Check out code 
         uses: actions/checkout@v3
       
-      - name: Setup .NET6
+      - name: Setup .NET6 🦴
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: ${{env.DONET_VERSION}}
 
-      - name: Restore dependencies
+      - name: Start Posgresql 
+        run: |
+          docker -d run --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=whmappertest -p 5432:5432 -d postgres
+
+      - name: Sleep for 5 seconds 
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '5s'
+
+      - name: Restore dependencies 
         run: dotnet restore WHMapper
       
-      - name: Build app
+      - name: Build app 🚀
         run: dotnet build WHMapper -c Release --no-restore
+
+      - name: Run automated test 🧪
+        env:
+          ConnectionStrings_DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
+        run: dotnet test WHMapper -c Release --no-build
+      
+      - name: Publish app 
+        run: dotnet publish WHMapper -c release -o ./out
 
         
 

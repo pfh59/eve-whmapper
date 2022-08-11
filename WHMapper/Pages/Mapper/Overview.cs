@@ -21,6 +21,7 @@ namespace WHMapper.Pages.Mapper
 
         private EveLocation _currentLocation = null;
         private EveSystemNodeModel _currentSystemNode = null;
+        private int _currentWHSystemId = 0;
         private EveSystemNodeModel _selectedSystemNode = null;
         private PeriodicTimer _timer; 
         private Task _timerTask;
@@ -29,8 +30,8 @@ namespace WHMapper.Pages.Mapper
         [Inject]
         IWHMapRepository DbWHMaps { get; set; }
 
-        //[Inject]
-        //IWHSystemRepository DbWHSystems { get; set; }
+        [Inject]
+        IWHSystemRepository DbWHSystems { get; set; }
 
         [Inject]
         IEveAPIServices EveServices { get; set; }
@@ -159,8 +160,9 @@ namespace WHMapper.Pages.Mapper
                     //WHSystem newHWSys = new WHSystem(newSystemNode.Name);
                     //_selectedWHMap?.WHSystems.Add(newHWSys);
 
-                    await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystemNode.Name, newSystemNode.SecurityStatus));
-;
+                    WHSystem newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystemNode.Name, newSystemNode.SecurityStatus));
+                    
+
                     if (_currentSystemNode != null)
                     {
                         Diagram.Links.Add(new LinkModel(_currentSystemNode, newSystemNode)
@@ -168,15 +170,22 @@ namespace WHMapper.Pages.Mapper
                             SourceMarker = LinkMarker.Circle,
                             TargetMarker = LinkMarker.Circle,
                         });
+
+
+                       
+                        await DbWHMaps.AddWHSystemLink(_selectedWHMap.Id, _currentWHSystemId, newWHSystem.Id);
+
                         //Diagram.Links.Add(new LinkModel(_currentSystemNode.GetPort(PortAlignment.Right), newSolarNode.GetPort(PortAlignment.Left)));
                         //Diagram.ReconnectLinksToClosestPorts();
                     }
                     _currentSystemNode = newSystemNode;
+                    _currentWHSystemId = newWHSystem.Id;
                     StateHasChanged();
                 }
                 else
                 {
                     _currentSystemNode = (EveSystemNodeModel)Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase));
+                    _currentWHSystemId = (await DbWHSystems.GetByName(newSystem.Name)).Id;
                 }
             }
         }

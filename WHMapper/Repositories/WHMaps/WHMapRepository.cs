@@ -45,7 +45,10 @@ namespace WHMapper.Repositories.WHMaps
             if(_dbContext.DbWHMaps.Count()==0)
                 return await _dbContext.DbWHMaps.ToListAsync();
             else
-                return await _dbContext.DbWHMaps.Include(x => x.WHSystems).OrderBy(x => x.Name).ToListAsync();
+                return await _dbContext.DbWHMaps
+                        .Include(x => x.WHSystems)
+                        .Include(x => x.WHSystemLinks)
+                        .OrderBy(x => x.Name).ToListAsync();
         }
 
         protected override async Task<WHMap?> AGetById(int id)
@@ -95,6 +98,40 @@ namespace WHMapper.Repositories.WHMaps
 
             return system;
 
+        }
+
+        public async Task<WHSystemLink?> AddWHSystemLink(int idWHMap, int idWHSystemFrom, int idWHSystemTo)
+        {
+            var map = await this.GetById(idWHMap);
+            if (map == null)
+                return null;
+
+
+            WHSystemLink whLink = new WHSystemLink(idWHSystemFrom, idWHSystemTo);
+
+            _dbContext.DbWHSystemLinks.Add(whLink);
+            map.WHSystemLinks.Add(whLink);
+
+
+            await this.Update(idWHMap, map);
+
+            return whLink;
+        }
+
+        public async Task<WHSystemLink?> RemoveWHSystemLink(int idWHMap, int idWHSystemLink)
+        {
+            var map = await this.GetById(idWHMap);
+            if (map == null)
+                return null;
+
+            var whLink = map.WHSystemLinks.Where(x => x.Id == idWHSystemLink).FirstOrDefault();
+            if (whLink == null)
+                return null;
+
+            _dbContext.DbWHSystemLinks.Remove(whLink);
+            _dbContext.SaveChanges();
+
+            return whLink;
         }
     }
 }
