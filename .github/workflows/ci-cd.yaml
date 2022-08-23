@@ -38,7 +38,7 @@ jobs:
       - name: SonarCloud Scan 🚩
         uses: sonarsource/sonarcloud-github-action@master
         with:
-          projectBaseDir: my-custom-directory
+          projectBaseDir: WHMapper
           args: >
             -Dsonar.organization=pfh59
             -Dsonar.projectKey=eve-whmapper
