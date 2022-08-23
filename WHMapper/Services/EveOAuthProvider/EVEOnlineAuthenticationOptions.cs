@@ -12,9 +12,6 @@ namespace WHMapper.Services.EveOAuthProvider
 
             AuthorizationEndpoint = EVEOnlineAuthenticationDefaults.AuthorizationEndpoint;
             TokenEndpoint = EVEOnlineAuthenticationDefaults.TokenEndpoint;
-            //UserInformationEndpoint = EVEOnlineAuthenticationDefaults.UserInformationEndpoint;
-
-            //Server = EVEOnlineAuthenticationServer.Tranquility;
         }
 
 

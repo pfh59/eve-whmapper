@@ -35,8 +35,11 @@ public class DbIntegrationTest
     public async Task DeleteAndCreateDatabse()
     {
         //Delete all to make a fresh Db
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
+        bool dbDeleted = await _context.Database.EnsureDeletedAsync();
+        Assert.True(dbDeleted);
+        bool dbCreated = await _context.Database.EnsureCreatedAsync();
+        Assert.True(dbCreated);
+
     }
 
     [Fact, TestPriority(99)]

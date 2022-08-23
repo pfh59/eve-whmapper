@@ -8,9 +8,9 @@ namespace WHMapper.Models.Custom.Node
     {
         public String Name { get; private set; }
         public float SecurityStatus { get; private set; }
-        public String Class { get; private set; }
-        public String Effect { get; private set; }
-        public IEnumerable<String> Statics { get; private set; }
+        public String? Class { get; private set; }
+        public String? Effect { get; private set; }
+        public IEnumerable<String>? Statics { get; private set; }
 
         public EveSystemNodeModel(string name, float securityStatus, string whClass, string whEffects, IEnumerable<string> whStatics) : base(shape: Shapes.Rectangle)
         {

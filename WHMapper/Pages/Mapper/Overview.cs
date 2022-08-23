@@ -19,13 +19,13 @@ namespace WHMapper.Pages.Mapper
     {
         protected Diagram Diagram { get; private set; }
 
-        private EveLocation _currentLocation = null;
-        private EveSystemNodeModel _currentSystemNode = null;
+        private EveLocation? _currentLocation = null;
+        private EveSystemNodeModel? _currentSystemNode = null;
         private int _currentWHSystemId = 0;
-        private EveSystemNodeModel _selectedSystemNode = null;
-        private PeriodicTimer _timer; 
-        private Task _timerTask;
-        private CancellationTokenSource _cts;
+        private EveSystemNodeModel? _selectedSystemNode = null;
+        private PeriodicTimer? _timer; 
+
+        private CancellationTokenSource? _cts;
 
         [Inject]
         IWHMapRepository DbWHMaps { get; set; }
@@ -122,18 +122,20 @@ namespace WHMapper.Pages.Mapper
                 }
 
 
-                 _cts = new CancellationTokenSource();
-                _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
-                _timerTask = HandleTimerAsync(_timer, _cts.Token);
+
+                HandleTimerAsync(/*_timer, _cts.Token*/);
             }
 
         }
 
-        private async Task HandleTimerAsync(PeriodicTimer timer, CancellationToken cancel = default)   
+        private async Task HandleTimerAsync(/*PeriodicTimer timer, CancellationToken cancel = default*/)   
         {
+            _cts = new CancellationTokenSource();
+            _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
+
             try
             {
-                while (await timer.WaitForNextTickAsync(cancel))
+                while (await _timer.WaitForNextTickAsync(_cts.Token))
                 {
                     await GetCharacterPositionInSpace();
                 }
@@ -218,13 +220,15 @@ namespace WHMapper.Pages.Mapper
 
 
 
-        public void Cancel() => _cts.Cancel();
+        public void Cancel() => _cts?.Cancel();
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
-            _timer.Dispose();
             Cancel();
+            _timer?.Dispose();
+            
             GC.SuppressFinalize(this);
+            return new ValueTask();
         }
     }
 }
