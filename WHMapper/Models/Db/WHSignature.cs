@@ -20,8 +20,11 @@ namespace WHMapper.Models.Db
     public class WHSignature
     {
         [Key]
-       // [StringLength(7, ErrorMessage = "Bad Signature Format")]
-        public string Id { get;  set; }
+        public int Id { get;  set; }
+
+        [Required]
+        [StringLength(7, ErrorMessage = "Bad Signature Format")]
+        public string Name { get; set; }
 
         [Required]
         public WHSignatureGroup Group { get; set; } = WHSignatureGroup.Unknow;
@@ -36,9 +39,9 @@ namespace WHMapper.Models.Db
         public string? UpdatedBy { get;  set; }
 
 
-        public WHSignature(string id)
+        public WHSignature(string name)
         {
-            Id = id;
+            Name = name;
         }
     }
 }

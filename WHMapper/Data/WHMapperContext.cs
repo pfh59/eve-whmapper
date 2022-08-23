@@ -33,7 +33,7 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHSystemLink>().HasOne<WHMap>().WithMany(x => x.WHSystemLinks).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<WHSignature>().ToTable("Signatures");
-            modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.Id }).IsUnique(true);
+            modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.Name }).IsUnique(true);
             modelBuilder.Entity<WHSignature>().HasOne<WHSystem>().WithMany(x => x.WHSignatures).OnDelete(DeleteBehavior.Cascade);
         }
     }

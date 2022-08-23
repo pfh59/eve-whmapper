@@ -122,34 +122,34 @@ public class DbIntegrationTest
         //ADD WHMAP
         var result = await repo.Create(new WHSignature("FooBar"));
         Assert.NotNull(result);
-        Assert.Equal("FooBar", result?.Id);
+        Assert.Equal("FooBar", result?.Name);
         Assert.Equal(WHSignatureGroup.Unknow, result?.Group);
 
         //GetALL
         var results = (await repo.GetAll())?.ToArray();
         Assert.NotNull(results);
         Assert.Single(results);
-        Assert.Equal("FooBar", results?[0].Id);
+        Assert.Equal("FooBar", results?[0].Name);
         Assert.Equal(WHSignatureGroup.Unknow, results?[0].Group);
 
         //GetByName
-        var result2 = await repo.GetById("FooBar");
+        var result2 = await repo.GetById(1);
         Assert.NotNull(result2);
-        Assert.Equal("FooBar", result2?.Id);
+        Assert.Equal("FooBar", result2?.Name);
         Assert.Equal(WHSignatureGroup.Unknow, result2?.Group);
 
-        //update
-        result2.Id = "FooBar Updated";
+        //update, name characters max 7
+        result2.Name = "FooBarU";
         result2.Group = WHSignatureGroup.Wormhole;
         var result4 = await repo.Update(result2.Id, result2);
         Assert.NotNull(result2);
-        Assert.Equal("FooBar Updated", result2?.Id);
+        Assert.Equal("FooBarU", result2?.Name);
         Assert.Equal(WHSignatureGroup.Wormhole, result2?.Group);
 
-        //Delete WHMAP
+        //Delete WHMAP, name characters max 7
         var result5 = await repo.DeleteById(result2.Id);
         Assert.NotNull(result5);
-        Assert.Equal("FooBar Updated", result5?.Id);
+        Assert.Equal("FooBarU", result5?.Name);
         Assert.Equal(WHSignatureGroup.Wormhole, result5?.Group);
     }
 }

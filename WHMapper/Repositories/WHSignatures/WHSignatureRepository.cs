@@ -6,13 +6,13 @@ using WHMapper.Models.Db;
 namespace WHMapper.Repositories.WHSignatures
 {
 
-    public class WHSignatureRepository : ADefaultRepository<WHMapperContext, WHSignature, string>, IWHSignatureRepository
+    public class WHSignatureRepository : ADefaultRepository<WHMapperContext, WHSignature, int>, IWHSignatureRepository
     {
         public WHSignatureRepository(WHMapperContext context) : base(context)
         {
         }
 
-        
+
         protected override async Task<WHSignature?> ACreate(WHSignature item)
         {
             try
@@ -22,13 +22,13 @@ namespace WHMapper.Repositories.WHSignatures
 
                 return item;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
         }
 
-        protected override async Task<WHSignature?> ADeleteById(string id)
+        protected override async Task<WHSignature?> ADeleteById(int id)
         {
             var item = await AGetById(id);
 
@@ -50,13 +50,13 @@ namespace WHMapper.Repositories.WHSignatures
                         .ToListAsync();
         }
 
-        protected override async Task<WHSignature?> AGetById(string id)
+        protected override async Task<WHSignature?> AGetById(int id)
         {
             return await _dbContext.WHSignatures
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        protected override async Task<WHSignature?> AUpdate(string id, WHSignature item)
+        protected override async Task<WHSignature?> AUpdate(int id, WHSignature item)
         {
             if (id != item.Id)
                 return null;
@@ -64,6 +64,11 @@ namespace WHMapper.Repositories.WHSignatures
             _dbContext.Entry(item).State = EntityState.Modified;
             await _dbContext.SaveChangesAsync();
             return item;
+        }
+
+        public async Task<WHSignature?> GetByName(string name)
+        {
+            return await _dbContext.WHSignatures.FirstOrDefaultAsync(x => x.Name == name);
         }
     }
     

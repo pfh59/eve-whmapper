@@ -14,9 +14,14 @@ namespace WHMapper.Services.Anoik
         private JsonDocument _json;
         private JsonElement _jsonSystems;
 
+        private HttpClient _client;
+
         public AnoikServices()
         {
 
+
+
+            /*
             WebClient MyWebClient = new WebClient();
             byte[] BytesFile = MyWebClient.DownloadData(_anoikjson);
 
@@ -24,11 +29,35 @@ namespace WHMapper.Services.Anoik
 
 
             _json = JsonDocument.Parse(iStream);
-            _jsonSystems = _json.RootElement.GetProperty("systems");
+            _jsonSystems = _json.RootElement.GetProperty("systems");*/
         }
+
+
+        private async Task Init()
+        {
+            _client = new HttpClient();
+
+            HttpResponseMessage response = await _client.GetAsync(_anoikjson);
+            response.EnsureSuccessStatusCode();
+
+            Stream anoikStream = await response.Content.ReadAsStreamAsync();
+                           
+
+            _json = JsonDocument.Parse(anoikStream);
+            _jsonSystems = _json.RootElement.GetProperty("systems");
+
+
+            // Above three lines can be replaced with new helper method below
+            // string responseBody = await client.GetStringAsync(uri);
+        }
+
+
 
         public async Task<string> GetSystemClass(string systemName)
         {
+            if (_json == null)
+                await Init();
+
             var sys = _jsonSystems.GetProperty(systemName);
             var whClass = sys.GetProperty("wormholeClass");
 
@@ -38,6 +67,9 @@ namespace WHMapper.Services.Anoik
 
         public async Task<string> GetSystemEffects(string systemName)
         {
+            if (_json == null)
+                await Init();
+
             var sys = _jsonSystems.GetProperty(systemName);
             var whEffect = sys.GetProperty("effectName");
             return whEffect.GetString();
@@ -45,6 +77,9 @@ namespace WHMapper.Services.Anoik
 
         public async Task<IEnumerable<string>> GetSystemStatics(string systemName)
         {
+            if (_json == null)
+                await Init();
+
             var sys = _jsonSystems.GetProperty(systemName);
             var statics = sys.GetProperty("statics").EnumerateArray();
 
