@@ -41,6 +41,7 @@ namespace WHMapper.Models.Custom.Node
             }
             Title = name;
         }
+
     }
 }
 

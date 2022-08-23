@@ -8,7 +8,7 @@
             </ActivatorContent>
             <ChildContent>
                 <MudMenuItem>Profile</MudMenuItem>
-                <MudNavLink Href="/logout">Logout</MudNavLink>
+                <MudNavLink Href="logout">Logout</MudNavLink>
             </ChildContent>
         </MudMenu>
     </Authorized>
@@ -33,7 +33,7 @@
 
         var state = await AuthState.GetAuthenticationStateAsync();
 
-        if (!String.IsNullOrEmpty(state.User.Identity.Name))
+        if (!String.IsNullOrEmpty(state?.User?.Identity?.Name))
             Username = state.User.Identity.Name;
 
         await base.OnInitializedAsync();

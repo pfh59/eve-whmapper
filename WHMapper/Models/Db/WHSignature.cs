@@ -1,19 +1,44 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
+
 namespace WHMapper.Models.Db
 {
+
+    public enum WHSignatureGroup
+    {
+        Unknow,
+        Combat,
+        Wormhole,
+        Data,
+        Relic,
+        Ore,
+        Gas,
+        Ghost
+
+    }
+
     public class WHSignature
     {
-        public string Id { get; private set; }
-        public string Group { get; private set; }
-        public string Destination { get; private set; }
-        public DateTime Created { get; private set; }
-        public string CreatedBy { get; private set; }
-        public string Updated { get; private set; }
-        public DateTime UpdatedBy { get; private set; }
+        [Key]
+       // [StringLength(7, ErrorMessage = "Bad Signature Format")]
+        public string Id { get;  set; }
+
+        [Required]
+        public WHSignatureGroup Group { get; set; } = WHSignatureGroup.Unknow;
+
+        public string? Type { get;  set; }
+
+        [Required]
+        public DateTime Created { get; set; } = DateTime.UtcNow;
+        public string? CreatedBy { get;  set; }
+        [Required]
+        public DateTime Updated { get;  set; } = DateTime.UtcNow;
+        public string? UpdatedBy { get;  set; }
 
 
-        public WHSignature()
+        public WHSignature(string id)
         {
+            Id = id;
         }
     }
 }

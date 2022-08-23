@@ -1,13 +1,17 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 using WHMapper.Data;
 using WHMapper.Models.DTO;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHSystems;
+using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveOAuthProvider;
@@ -41,6 +45,7 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
 
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = EVEOnlineAuthenticationDefaults.AuthenticationScheme;
+    //options.DefaultAuthenticateScheme = "bearer";
 
 
 })
@@ -58,9 +63,32 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
 
     options.SaveTokens = true;
 });
+/*
+.AddJwtBearer("bearer", options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateAudience = false,
+        ValidateIssuer = false,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("the server key used to sign the JWT token is here, use more than 16 chars")),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero //the default for this setting is 5 minutes
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+                context.Response.Headers.Add("Token-Expired", "true");
+            }
+            return Task.CompletedTask;
+        }
+    };
+});*/
 
-
-IConfigurationSection eveapiConf = builder.Configuration.GetSection("EveAPI");
+IConfigurationSection? eveapiConf = builder.Configuration.GetSection("EveAPI");
 builder.Services.AddHttpClient("EveAPI", client =>
 {
     client.BaseAddress = new Uri($"https://{eveapiConf["Domain"]}");
@@ -82,7 +110,8 @@ builder.Services.AddTransient<IEveAPIServices, EveAPIServices>(sp =>
 builder.Services.AddScoped<IAnoikServices, AnoikServices>();
 
 builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
-builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
+builder.Services.AddScoped<IWHSignature, WHSystemRepository>();
+builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
 
 var app = builder.Build();
 

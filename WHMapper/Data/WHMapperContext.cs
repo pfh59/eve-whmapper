@@ -9,7 +9,8 @@ namespace WHMapper.Data
         public DbSet<WHMap> DbWHMaps { get; set; }
 		public DbSet<WHSystem> DbWHSystems { get; set; }
         public DbSet<WHSystemLink> DbWHSystemLinks { get; set; }
-
+        public DbSet<WHSignature> WHSignatures { get; set; }
+       
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
@@ -30,6 +31,10 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHSystemLink>().ToTable("SystemLinks");
             modelBuilder.Entity<WHSystemLink>().HasIndex(x => new { x.IdWHSystemFrom, x.IdWHSystemTo }).IsUnique(true);
             modelBuilder.Entity<WHSystemLink>().HasOne<WHMap>().WithMany(x => x.WHSystemLinks).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WHSignature>().ToTable("Signatures");
+            modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.Id }).IsUnique(true);
+            modelBuilder.Entity<WHSignature>().HasOne<WHSystem>().WithMany(x => x.WHSignatures).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

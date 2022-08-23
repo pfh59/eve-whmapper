@@ -43,21 +43,23 @@
     <None Remove="Repositories\WHMappers\" />
     <None Remove="Repositories\WHSystems\" />
     <None Remove="Repositories\WHSystems\IWHSystemcs" />
+    <None Remove="Microsoft.AspNetCore.Authentication.JwtBearer" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MudBlazor" Version="6.0.11" />
-    <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.6" />
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.21.0" />
+    <PackageReference Include="MudBlazor" Version="6.0.14" />
+    <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.7" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.22.0" />
     <PackageReference Include="Z.Blazor.Diagrams" Version="2.1.6" />
     <PackageReference Include="Z.Blazor.Diagrams.Algorithms" Version="0.1.0" />
     <PackageReference Include="Z.Blazor.Diagrams.Core" Version="2.1.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.7" />
-    <PackageReference Include="Npgsql" Version="6.0.5" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.7">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
+    <PackageReference Include="Npgsql" Version="6.0.6" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.8">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.8" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />

@@ -5,7 +5,7 @@ using WHMapper.Models.Db;
 
 namespace WHMapper.Repositories.WHSystems
 {
-    public class WHSystemRepository : ADefaultRepository<WHMapperContext,WHSystem,int>, IWHSystemRepository
+    public class WHSystemRepository : ADefaultRepository<WHMapperContext,WHSystem,int>, IWHSignature
     {
         public WHSystemRepository(WHMapperContext context) : base (context)
         {
@@ -45,12 +45,15 @@ namespace WHMapper.Repositories.WHSystems
             if(_dbContext.DbWHSystems.Count()==0)
                 return await _dbContext.DbWHSystems.ToListAsync();
             else
-                return await _dbContext.DbWHSystems.OrderBy(x => x.Name).ToListAsync();
+                return await _dbContext.DbWHSystems.OrderBy(x => x.Name)
+                        .Include(x=>x.WHSignatures)
+                        .ToListAsync();
         }
 
         protected override async Task<WHSystem?> AGetById(int id)
         {
             return await _dbContext.DbWHSystems
+                .Include(x => x.WHSignatures)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 

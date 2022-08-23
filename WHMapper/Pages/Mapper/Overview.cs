@@ -31,7 +31,7 @@ namespace WHMapper.Pages.Mapper
         IWHMapRepository DbWHMaps { get; set; }
 
         [Inject]
-        IWHSystemRepository DbWHSystems { get; set; }
+        IWHSignature DbWHSystems { get; set; }
 
         [Inject]
         IEveAPIServices EveServices { get; set; }
@@ -95,18 +95,34 @@ namespace WHMapper.Pages.Mapper
                      foreach (WHSystem dbWHSys in _selectedWHMap.WHSystems)
                      {
 
-                        //todo add to specifique fonction to optimize code
-                        var whClass = await AnoikServices.GetSystemClass(dbWHSys.Name);
-                        var whEffect = await AnoikServices.GetSystemEffects(dbWHSys.Name);
-                        var whStatics = await AnoikServices.GetSystemStatics(dbWHSys.Name);
+                        Diagram.Nodes.Add(await DefineEveSystemNodeModel(dbWHSys.Name, dbWHSys.SecurityStatus));
 
-                        Diagram.Nodes.Add(new EveSystemNodeModel(dbWHSys.Name, dbWHSys.SecurityStatus, whClass, whEffect, whStatics));
-                         
-                     }
+                    }
+                    StateHasChanged();
+                }
+
+                if (_selectedWHMap.WHSystemLinks.Count > 0)
+                {
+                    foreach (WHSystemLink dbWHSysLink in _selectedWHMap.WHSystemLinks)
+                    {
+                        var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
+                        var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
+
+                        var newSystemNodeFrom = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase));
+                        var newSystemNodeTo =  Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase));
+
+                        Diagram.Links.Add(new LinkModel(newSystemNodeFrom, newSystemNodeTo)
+                        {
+                            SourceMarker = LinkMarker.Circle,
+                            TargetMarker = LinkMarker.Circle,
+                        });
+
+                    }
+                    StateHasChanged();
                 }
 
 
-                _cts = new CancellationTokenSource();
+                 _cts = new CancellationTokenSource();
                 _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
                 _timerTask = HandleTimerAsync(_timer, _cts.Token);
             }
@@ -128,6 +144,24 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
+        private async Task<EveSystemNodeModel> DefineEveSystemNodeModel(string name,float securityStatus)
+        {
+            if (securityStatus <= -0.9)
+            {
+
+                var whClass = await AnoikServices.GetSystemClass(name);
+                var whEffect = await AnoikServices.GetSystemEffects(name);
+                var whStatics = await AnoikServices.GetSystemStatics(name);
+                return new EveSystemNodeModel(name, securityStatus, whClass, whEffect, whStatics);
+
+            }
+            else
+            {
+                return new EveSystemNodeModel(name, securityStatus);
+            }
+        }
+
+
         private async Task GetCharacterPositionInSpace()
         {
             EveLocation el = await EveServices.LocationServices.GetLocation();
@@ -141,19 +175,7 @@ namespace WHMapper.Pages.Mapper
                 if (Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase)) == null)
                 {
 
-                    EveSystemNodeModel newSystemNode = null;
-                    if (newSystem.SecurityStatus <= -0.9)
-                    {
-
-                        var whClass = await AnoikServices.GetSystemClass(newSystem.Name);
-                        var whEffect = await AnoikServices.GetSystemEffects(newSystem.Name);
-                        var whStatics = await AnoikServices.GetSystemStatics(newSystem.Name);
-                        newSystemNode = new EveSystemNodeModel(newSystem.Name, newSystem.SecurityStatus, whClass, whEffect, whStatics);
-                    }
-                    else
-                    {
-                        newSystemNode = new EveSystemNodeModel(newSystem.Name, newSystem.SecurityStatus);
-                    }
+                    EveSystemNodeModel newSystemNode = await DefineEveSystemNodeModel(newSystem.Name,newSystem.SecurityStatus);
 
                     // New WH System Discover, need to add to Diagram,Db,Botify to other people
                     Diagram.Nodes.Add(newSystemNode);
@@ -180,12 +202,15 @@ namespace WHMapper.Pages.Mapper
                     }
                     _currentSystemNode = newSystemNode;
                     _currentWHSystemId = newWHSystem.Id;
+                    _selectedSystemNode = _currentSystemNode;
                     StateHasChanged();
                 }
                 else
                 {
                     _currentSystemNode = (EveSystemNodeModel)Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase));
                     _currentWHSystemId = (await DbWHSystems.GetByName(newSystem.Name)).Id;
+                    _selectedSystemNode = _currentSystemNode;
+                    StateHasChanged();
                 }
             }
         }
@@ -198,7 +223,7 @@ namespace WHMapper.Pages.Mapper
         public async ValueTask DisposeAsync()
         {
             _timer.Dispose();
-            await _timerTask;
+            Cancel();
             GC.SuppressFinalize(this);
         }
     }

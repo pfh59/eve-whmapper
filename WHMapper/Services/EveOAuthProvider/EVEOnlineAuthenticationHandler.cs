@@ -95,9 +95,6 @@ namespace WHMapper.Services.EveOAuthProvider
             DateTimeOffset offset = DateTimeOffset.FromUnixTimeSeconds(unixTime);
             return offset.ToString("o", CultureInfo.InvariantCulture);
         }
-
-
-
     }
     
 }

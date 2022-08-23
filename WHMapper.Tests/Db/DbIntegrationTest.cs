@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHMaps;
+using WHMapper.Repositories.WHSignatures;
+using WHMapper.Repositories.WHSystems;
 using WHMapper.Tests.Attributes;
 
 namespace WHMapper.Tests.Db;
@@ -41,33 +43,113 @@ public class DbIntegrationTest
     public async Task CRUD_WHMAP()
     {
         //Create IWHMapRepository
-        IWHMapRepository repoWHMAP = new WHMapRepository(_context);
+        IWHMapRepository repo = new WHMapRepository(_context);
 
         //ADD WHMAP
-        var result = await repoWHMAP.Create(new WHMap("FooBar"));
+        var result = await repo.Create(new WHMap("FooBar"));
         Assert.NotNull(result);
         Assert.Equal("FooBar", result?.Name);
 
         //GetALL
-        var results = (await repoWHMAP.GetAll())?.ToArray();
+        var results = (await repo.GetAll())?.ToArray();
         Assert.NotNull(results);
         Assert.Single(results);
         Assert.Equal("FooBar", results?[0].Name);
 
         //GetByName
-        var result2 = await repoWHMAP.GetById(1);
+        var result2 = await repo.GetById(1);
         Assert.NotNull(result2);
         Assert.Equal("FooBar", result2?.Name);
 
         //update
         result2.Name = "FooBar Updated";
-        var result4 = await repoWHMAP.Update(result2.Id, result2);
+        var result4 = await repo.Update(result2.Id, result2);
         Assert.NotNull(result2);
         Assert.Equal("FooBar Updated", result2?.Name);
 
         //Delete WHMAP
-        var result5 = await repoWHMAP.DeleteById(result2.Id);
+        var result5 = await repo.DeleteById(result2.Id);
         Assert.NotNull(result5);
         Assert.Equal("FooBar Updated", result5?.Name);
+    }
+
+    [Fact, TestPriority(99)]
+    public async Task CRUD_WHSystem()
+    {
+        //Create IWHMapRepository
+        IWHSignature repo = new WHSystemRepository(_context);
+
+        //ADD WHMAP
+        var result = await repo.Create(new WHSystem("FooBar",1));
+        Assert.NotNull(result);
+        Assert.Equal("FooBar", result?.Name);
+        Assert.Equal(1, result?.SecurityStatus);
+
+        //GetALL
+        var results = (await repo.GetAll())?.ToArray();
+        Assert.NotNull(results);
+        Assert.Single(results);
+        Assert.Equal("FooBar", results?[0].Name);
+        Assert.Equal(1, results?[0].SecurityStatus);
+
+        //GetByName
+        var result2 = await repo.GetById(1);
+        Assert.NotNull(result2);
+        Assert.Equal("FooBar", result2?.Name);
+        Assert.Equal(1, result2?.SecurityStatus);
+
+        //update
+        result2.Name = "FooBar Updated";
+        result2.SecurityStatus = 0.5F;
+        var result4 = await repo.Update(result2.Id, result2);
+        Assert.NotNull(result2);
+        Assert.Equal("FooBar Updated", result2?.Name);
+        Assert.Equal(0.5F, result2?.SecurityStatus);
+
+        //Delete WHMAP
+        var result5 = await repo.DeleteById(result2.Id);
+        Assert.NotNull(result5);
+        Assert.Equal("FooBar Updated", result5?.Name);
+        Assert.Equal(0.5F, result2?.SecurityStatus);
+    }
+
+    [Fact, TestPriority(98)]
+    public async Task CRUD_WHSignature()
+    {
+        //Create IWHMapRepository
+        IWHSignatureRepository repo = new WHSignatureRepository(_context);
+
+        //ADD WHMAP
+        var result = await repo.Create(new WHSignature("FooBar"));
+        Assert.NotNull(result);
+        Assert.Equal("FooBar", result?.Id);
+        Assert.Equal(WHSignatureGroup.Unknow, result?.Group);
+
+        //GetALL
+        var results = (await repo.GetAll())?.ToArray();
+        Assert.NotNull(results);
+        Assert.Single(results);
+        Assert.Equal("FooBar", results?[0].Id);
+        Assert.Equal(WHSignatureGroup.Unknow, results?[0].Group);
+
+        //GetByName
+        var result2 = await repo.GetById("FooBar");
+        Assert.NotNull(result2);
+        Assert.Equal("FooBar", result2?.Id);
+        Assert.Equal(WHSignatureGroup.Unknow, result2?.Group);
+
+        //update
+        result2.Id = "FooBar Updated";
+        result2.Group = WHSignatureGroup.Wormhole;
+        var result4 = await repo.Update(result2.Id, result2);
+        Assert.NotNull(result2);
+        Assert.Equal("FooBar Updated", result2?.Id);
+        Assert.Equal(WHSignatureGroup.Wormhole, result2?.Group);
+
+        //Delete WHMAP
+        var result5 = await repo.DeleteById(result2.Id);
+        Assert.NotNull(result5);
+        Assert.Equal("FooBar Updated", result5?.Id);
+        Assert.Equal(WHSignatureGroup.Wormhole, result5?.Group);
     }
 }

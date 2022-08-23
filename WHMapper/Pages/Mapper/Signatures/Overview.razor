@@ -1,5 +1,5 @@
 ﻿<MudContainer Class="mt-16">
-    @*<MudTable @Items="@Signatures" Dense=true Hover=true Bordered=true Striped=true Loading="@(Signatures==null)">
+    <MudTable Items="@Signatures" Dense=true Hover=true Bordered=true Striped=true Loading="@(Signatures==null)"  LoadingProgressColor="Color.Info">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Signatures</MudText>
             <MudSpacer />
@@ -9,7 +9,6 @@
             <MudTh Style="text-align:center">Id</MudTh>
             <MudTh Style="text-align:center">Group</MudTh>
             <MudTh Style="text-align:center">Type</MudTh>
-            <MudTh Style="text-align:center">Destination</MudTh>
             <MudTh Style="text-align:center">Created</MudTh>
             <MudTh Style="text-align:center">Created By</MudTh>
             <MudTh Style="text-align:center">Updated</MudTh>
@@ -19,12 +18,11 @@
         <RowTemplate>
             <MudTd DataLabel="Id">@context.Id</MudTd>
             <MudTd DataLabel="Group">@context.Group</MudTd>
-            <MudTd DataLabel="Group">@context.Type</MudTd>
-            <MudTd DataLabel="Group">@context.Destination</MudTd>
-            <MudTd DataLabel="Group">@context.Created</MudTd>
-            <MudTd DataLabel="Group">@context.CreatedBy</MudTd>
-            <MudTd DataLabel="Group">@context.Updated</MudTd>
-            <MudTd DataLabel="Group">@context.UpdatedBy</MudTd>
+            <MudTd DataLabel="Type">@context.Type</MudTd>
+            <MudTd DataLabel="Created">@context.Created</MudTd>
+            <MudTd DataLabel="Created By">@context.CreatedBy</MudTd>
+            <MudTd DataLabel="Updated">@context.Updated</MudTd>
+            <MudTd DataLabel="Updated By">@context.UpdatedBy</MudTd>
             <MudTd Style="text-align:center">
                 <MudIconButton Color="Color.Warning" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
                 <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
@@ -33,5 +31,5 @@
         <PagerContent>
             <MudTablePager />
         </PagerContent>
-    </MudTable>*@
+    </MudTable>
 </MudContainer>

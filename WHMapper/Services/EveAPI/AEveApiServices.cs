@@ -33,7 +33,7 @@ namespace WHMapper.Services.EveAPI
         }
 
 
-        public async Task<T> Execute<T>(RequestSecurity security, RequestMethod method, string uri, object body = null)
+        public async Task<T> Execute<T>(RequestSecurity security, RequestMethod method, string uri, object? body = null)
         {
             _httpClient.DefaultRequestHeaders.Clear();
             //Add bearer token
