@@ -12,17 +12,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code 
-        uses: actions/checkout@v3
+      - name: Setup JDK 11 🦴
+        uses: actions/setup-java@v1
         with:
-          # Disabling shallow clone is recommended for improving relevancy of reporting
-          fetch-depth: 0
-      
+          java-version: 1.11
+
       - name: Setup .NET6 🦴
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: ${{env.DOTNET_VERSION}}
 
+      - name: Check out code 
+        uses: actions/checkout@v3
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+    
       - name: Start Posgresql 
         run: |
           docker run --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=whmappertest -p 5432:5432 -d postgres
@@ -35,17 +40,29 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore 
 
-      - name: SonarCloud Scan 🚩
-        uses: sonarsource/sonarcloud-github-action@master
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
         with:
-          args: >
-            -Dsonar.organization=pfh59
-            -Dsonar.projectKey=eve-whmapper
-            -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.verbose=true
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Install SonarCloud scanners
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+      - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          dotnet build WHMapper -c Release --no-restore
+          dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
       
      #- name: Build app 🚀
      #   run: dotnet build WHMapper -c Release --no-restore
