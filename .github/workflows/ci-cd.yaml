@@ -35,8 +35,14 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore 
 
-      - name: SonarCloud Scan
+      - name: SonarCloud Scan 🚩
         uses: sonarsource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: my-custom-directory
+          args: >
+            -Dsonar.organization=pfh59
+            -Dsonar.projectKey=eve-whmapper
+            -Dsonar.verbose=true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
