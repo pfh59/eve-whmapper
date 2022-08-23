@@ -42,22 +42,21 @@ jobs:
             -Dsonar.organization=pfh59
             -Dsonar.projectKey=eve-whmapper
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.sources=lib/
             -Dsonar.verbose=true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
-      - name: Build app 🚀
-        run: dotnet build WHMapper -c Release --no-restore
+     #- name: Build app 🚀
+     #   run: dotnet build WHMapper -c Release --no-restore
 
       #- name: Run automated test 🧪
       #  env:
       #    ConnectionStrings_DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
       #  run: dotnet test WHMapper.Tests -c Release
       
-      - name: Publish app 📑
-        run: dotnet publish WHMapper -c release -o ./out
+      #- name: Publish app 📑
+      #  run: dotnet publish WHMapper -c release -o ./out
 
         
 
