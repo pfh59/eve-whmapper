@@ -59,9 +59,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          ConnectionStrings_DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
         run: |
           dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
           dotnet build WHMapper -c Release --no-restore
+          dotnet test WHMapper.Tests -c Release
+          dotnet publish WHMapper -c release -o ./out
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
       
      #- name: Build app 🚀
