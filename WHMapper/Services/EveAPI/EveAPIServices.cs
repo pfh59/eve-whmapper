@@ -7,26 +7,23 @@ namespace WHMapper.Services.EveAPI
 {
     public class EveAPIServices : IEveAPIServices
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
 
         public ILocationServices LocationServices { get; private set; }
         public IUniverseServices UniverseServices { get; private set; }
 
 
-        public EveAPIServices(HttpClient httpClient, TokenProvider tokenProvider)
+        public EveAPIServices(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
 
-            
+            var eveAPIClient = _httpClientFactory.CreateClient();
 
-            LocationServices = new LocationServices(_httpClient, _tokenProvider.AccessToken, _tokenProvider.CharacterId);
-            UniverseServices = new UniverseServices(_httpClient, _tokenProvider.AccessToken);
+            LocationServices = new LocationServices(eveAPIClient, _tokenProvider);
+            UniverseServices = new UniverseServices(eveAPIClient, _tokenProvider);
         }
-
-
-
     }
 }
 

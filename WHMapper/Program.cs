@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +14,21 @@ using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveOAuthProvider;
+using static System.Net.WebRequestMethods;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using WHMapper.Services.EveJwtAuthenticationStateProvider;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
+using Microsoft.Extensions.Options;
+using WHMapper.Services.WHColor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,9 +42,6 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 
-
-
-
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -38,20 +49,17 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 
-// Add authentication services
+
 IConfigurationSection evessoConf = builder.Configuration.GetSection("EveSSO");
 AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication(options =>
 {
-
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = EVEOnlineAuthenticationDefaults.AuthenticationScheme;
-    //options.DefaultAuthenticateScheme = "bearer";
-
-
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, options =>
 {
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.ClientId = evessoConf["ClientId"];
     options.ClientSecret = evessoConf["Secret"];
     options.CallbackPath = new PathString("/callback");
@@ -60,58 +68,27 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
     options.Scope.Add("esi-location.read_ship_type.v1");
     options.Scope.Add("esi-ui.open_window.v1");
     options.Scope.Add("esi-ui.write_waypoint.v1");
-
     options.SaveTokens = true;
+    options.UsePkce = true;
 });
-/*
-.AddJwtBearer("bearer", options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateAudience = false,
-        ValidateIssuer = false,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("the server key used to sign the JWT token is here, use more than 16 chars")),
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero //the default for this setting is 5 minutes
-    };
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-            {
-                context.Response.Headers.Add("Token-Expired", "true");
-            }
-            return Task.CompletedTask;
-        }
-    };
-});*/
 
-IConfigurationSection? eveapiConf = builder.Configuration.GetSection("EveAPI");
-builder.Services.AddHttpClient("EveAPI", client =>
-{
-    client.BaseAddress = new Uri($"https://{eveapiConf["Domain"]}");
-});
+
+
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
 
 builder.Services.AddScoped<TokenProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, EveJWTAuthenticationStateProvider>();
 
-builder.Services.AddTransient<IEveAPIServices, EveAPIServices>(sp =>
-{
-    var tokenProvider = sp.GetRequiredService<TokenProvider>();
-    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-    var httpClient = httpClientFactory.CreateClient("EveAPI");
+builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();
 
-
-    return new EveAPIServices(httpClient, tokenProvider);
-});
-
-
-builder.Services.AddScoped<IAnoikServices, AnoikServices>();
+builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
 
 builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
-builder.Services.AddScoped<IWHSignature, WHSystemRepository>();
+builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
 builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
+
+builder.Services.AddSingleton<IWHColorHelper, WHColorHelper>();
 
 var app = builder.Build();
 

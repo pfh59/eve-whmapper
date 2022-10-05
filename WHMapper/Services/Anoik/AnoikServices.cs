@@ -11,87 +11,108 @@ namespace WHMapper.Services.Anoik
     public class AnoikServices : IAnoikServices
     {
         private const string _anoikjson = "http://anoik.is/static/static.json";
-        private JsonDocument _json;
+        private JsonDocument? _json;
         private JsonElement _jsonSystems;
+        private JsonElement _jsonEffects;
+        private JsonElement _jsonWormholes;
+        
 
-        private HttpClient _client;
+        //private HttpClient _client;
 
         public AnoikServices()
         {
-
-
-
-            /*
-            WebClient MyWebClient = new WebClient();
-            byte[] BytesFile = MyWebClient.DownloadData(_anoikjson);
-
-            MemoryStream iStream = new MemoryStream(BytesFile);
-
-
-            _json = JsonDocument.Parse(iStream);
-            _jsonSystems = _json.RootElement.GetProperty("systems");*/
+            Init();
         }
 
 
         private async Task Init()
         {
-            _client = new HttpClient();
+            var _client = new HttpClient();
 
             HttpResponseMessage response = await _client.GetAsync(_anoikjson);
             response.EnsureSuccessStatusCode();
 
             Stream anoikStream = await response.Content.ReadAsStreamAsync();
-                           
+
 
             _json = JsonDocument.Parse(anoikStream);
             _jsonSystems = _json.RootElement.GetProperty("systems");
-
-
-            // Above three lines can be replaced with new helper method below
-            // string responseBody = await client.GetStringAsync(uri);
+            _jsonEffects = _json.RootElement.GetProperty("effects");
+            _jsonWormholes = _json.RootElement.GetProperty("wormholes");
         }
 
 
 
-        public async Task<string> GetSystemClass(string systemName)
+        public Task<string> GetSystemClass(string systemName)
         {
-            if (_json == null)
-                await Init();
-
             var sys = _jsonSystems.GetProperty(systemName);
             var whClass = sys.GetProperty("wormholeClass");
 
 
-            return whClass.GetString();
+            return Task.FromResult(whClass.GetString().ToUpper());
         }
 
-        public async Task<string> GetSystemEffects(string systemName)
+        public Task<string> GetSystemEffects(string systemName)
         {
-            if (_json == null)
-                await Init();
-
             var sys = _jsonSystems.GetProperty(systemName);
             var whEffect = sys.GetProperty("effectName");
-            return whEffect.GetString();
+            return Task.FromResult(whEffect.GetString());
         }
 
-        public async Task<IEnumerable<string>> GetSystemStatics(string systemName)
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetSystemStatics(string systemName)
         {
-            if (_json == null)
-                await Init();
-
             var sys = _jsonSystems.GetProperty(systemName);
             var statics = sys.GetProperty("statics").EnumerateArray();
 
-            var res = new List<string>();
+            var res = new Dictionary<string,string>();
 
             while (statics.MoveNext())
             {
-                res.Add(statics.Current.GetString());
+                var whStaticType = statics.Current.GetString();
+                var whStaticDest = await GetWHClassFromWHType(whStaticType);
+                res.Add(whStaticType, whStaticDest);
             }
 
             return res;
 
         }
+
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetSystemEffectsInfos(string effectName, string systemClass)
+        {
+            int classlvl = -1;
+
+            if (!string.IsNullOrWhiteSpace(systemClass) && systemClass.ToUpper().Contains('C'))
+            {
+                int.TryParse(systemClass.ToUpper().Split('C')[1], out classlvl);
+            }
+            if (classlvl > 6)
+                classlvl = 6;
+
+            if (_json == null)
+                await Init();
+
+            var effects = _jsonEffects.GetProperty(effectName);
+            var res = new Dictionary<string, string>();
+
+            foreach (var jsonProperty in effects.EnumerateObject())
+            {
+                var effectLevel = jsonProperty.Value.EnumerateArray().ElementAt(classlvl - 1);
+                res.Add(jsonProperty.Name, effectLevel.GetString());
+            }
+
+            return res;
+        }
+
+
+
+        private Task<string> GetWHClassFromWHType(string whType)
+        {
+            var whInfos = _jsonWormholes.GetProperty(whType);
+
+            var whDest = whInfos.GetProperty("dest");
+
+            return Task.FromResult(whDest.GetString().ToLower().ToUpper());
+        }
     }
 }
+

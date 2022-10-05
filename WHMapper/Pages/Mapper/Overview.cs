@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSystems;
+using System;
 
 namespace WHMapper.Pages.Mapper
 {
@@ -28,116 +29,171 @@ namespace WHMapper.Pages.Mapper
         private CancellationTokenSource? _cts;
 
         [Inject]
-        IWHMapRepository DbWHMaps { get; set; }
+        AuthenticationStateProvider? AuthState { get; set; }
 
         [Inject]
-        IWHSignature DbWHSystems { get; set; }
+        IWHMapRepository? DbWHMaps { get; set; }
 
         [Inject]
-        IEveAPIServices EveServices { get; set; }
+        IWHSystemRepository? DbWHSystems { get; set; }
 
         [Inject]
-        IAnoikServices AnoikServices { get; set; }
+        IEveAPIServices? EveServices { get; set; }
+
+        [Inject]
+        IAnoikServices? AnoikServices { get; set; }
 
 
-        private IEnumerable<WHMap>? WHMaps { get; set; }
+        private IEnumerable<WHMap>? WHMaps { get; set; } = new List<WHMap>();
         private WHMap _selectedWHMap = null;
+
+        private int _selectedWHMapIndex = 0;
+        private int SelectedWHMapIndex
+        {
+            get
+            {
+                return _selectedWHMapIndex;
+            }
+            set
+            {
+                if (_selectedWHMapIndex != value)
+                {
+                    _selectedWHMapIndex = value;
+                    _selectedWHMap = WHMaps?.ElementAtOrDefault(value);
+                }
+            }
+        }
 
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-
-            var options = new DiagramOptions
-            {
-                DefaultNodeComponent = null, // Default component for nodes
-                AllowMultiSelection = false, // Whether to allow multi selection using CTRL
-                Links = new DiagramLinkOptions
-                {
-                },
-                Zoom = new DiagramZoomOptions
-                {
-                    Minimum = 0.25, // Minimum zoom value
-                    Inverse = false, // Whether to inverse the direction of the zoom when using the wheel
-                },
-
-            };
-
-            Diagram = new Diagram(options);
-            Diagram.SelectionChanged += (item) =>
-            {
-                if (item.GetType() == typeof(EveSystemNodeModel))
-                {
-                    _selectedSystemNode = (EveSystemNodeModel)item;
-                }
-                StateHasChanged();
-            };
-
-            Diagram.RegisterModelComponent<EveSystemNodeModel, EveSystemNode>();
-
         }
+
+        
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
 
             if(firstRender)
             {
-
-                WHMaps = await DbWHMaps.GetAll();
-                if (WHMaps == null || WHMaps.Count() == 0)
-                    _selectedWHMap = await DbWHMaps.Create(new WHMap("Default Maps"));
-                else
-                    _selectedWHMap = WHMaps.FirstOrDefault();
-
-
-                //todo init maps if system registered
-                if (_selectedWHMap.WHSystems.Count > 0)
+                var options = new DiagramOptions
                 {
-                     foreach (WHSystem dbWHSys in _selectedWHMap.WHSystems)
-                     {
-
-                        Diagram.Nodes.Add(await DefineEveSystemNodeModel(dbWHSys.Name, dbWHSys.SecurityStatus));
-
-                    }
-                    StateHasChanged();
-                }
-
-                if (_selectedWHMap.WHSystemLinks.Count > 0)
-                {
-                    foreach (WHSystemLink dbWHSysLink in _selectedWHMap.WHSystemLinks)
+                    DefaultNodeComponent = null, // Default component for nodes
+                    AllowMultiSelection = false, // Whether to allow multi selection using CTRL
+                    Links = new DiagramLinkOptions
                     {
-                        var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
-                        var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
+                    },
 
-                        var newSystemNodeFrom = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase));
-                        var newSystemNodeTo =  Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase));
+                    /*Zoom = new DiagramZoomOptions
+                    {
+                        Minimum = 0.25, // Minimum zoom value
+                        Inverse = false, // Whether to inverse the direction of the zoom when using the wheel
+                    },*/
 
-                        Diagram.Links.Add(new LinkModel(newSystemNodeFrom, newSystemNodeTo)
-                        {
-                            SourceMarker = LinkMarker.Circle,
-                            TargetMarker = LinkMarker.Circle,
-                        });
+                };
 
+                Diagram = new Diagram(options);
+                Diagram.SelectionChanged += (item) =>
+                {
+                    if (item.GetType() == typeof(EveSystemNodeModel))
+                    {
+                        _selectedSystemNode = (EveSystemNodeModel)item;
                     }
-                    StateHasChanged();
-                }
+                    //StateHasChanged();
+                };
 
+                Diagram.Nodes.Removed += async (item) =>
+                {
+                    if (item.GetType() == typeof(EveSystemNodeModel))
+                    {
+                        await DbWHMaps.RemoveWHSystemByName(_selectedWHMap.Id, ((EveSystemNodeModel)item).Name);
+                    };
+                };
 
+                Diagram.Links.Removed += async (item) =>
+                {
+                    
+                    if (item.GetType() == typeof(LinkModel))
+                    {
+                        var whSrc = await DbWHSystems.GetByName(((EveSystemNodeModel)((LinkModel)item).SourceNode).Name);
+                        var whDst = await DbWHSystems.GetByName(((EveSystemNodeModel)((LinkModel)item).TargetNode).Name);
 
-                HandleTimerAsync(/*_timer, _cts.Token*/);
+                        await DbWHMaps.RemoveWHSystemLink(_selectedWHMap.Id, whSrc.Id, whDst.Id);
+                    };
+                };
+
+                Diagram.Options.Zoom.Enabled = false;
+                Diagram.RegisterModelComponent<EveSystemNodeModel, EveSystemNode>();
+                
+                await Restore();
+                HandleTimerAsync();
             }
 
         }
 
-        private async Task HandleTimerAsync(/*PeriodicTimer timer, CancellationToken cancel = default*/)   
+
+
+        private async Task Restore()
+        {
+            
+            WHMaps = await DbWHMaps?.GetAll();
+            if (WHMaps == null || WHMaps.Count() == 0)
+            {
+                _selectedWHMap = await DbWHMaps.Create(new WHMap("Default Maps"));
+                if(_selectedWHMap!=null)
+                    WHMaps = await DbWHMaps?.GetAll();
+
+            }
+            _selectedWHMap = WHMaps.FirstOrDefault();
+
+            if (_selectedWHMap.WHSystems.Count > 0)
+            {
+                foreach (WHSystem dbWHSys in _selectedWHMap.WHSystems)
+                {
+
+                    Diagram.Nodes.Add(await DefineEveSystemNodeModel(dbWHSys.Name, dbWHSys.SecurityStatus));
+
+                }
+                StateHasChanged();
+            }
+
+            if (_selectedWHMap.WHSystemLinks.Count > 0)
+            {
+                foreach (WHSystemLink dbWHSysLink in _selectedWHMap.WHSystemLinks)
+                {
+                    var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
+                    var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
+
+                    var newSystemNodeFrom = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase));
+                    var newSystemNodeTo = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase));
+
+                    Diagram.Links.Add(new LinkModel(newSystemNodeFrom, newSystemNodeTo)
+                    {
+                        SourceMarker = LinkMarker.Circle,
+                        TargetMarker = LinkMarker.Circle,
+                    });
+
+                }
+                StateHasChanged();
+            }
+
+        }
+
+        private async Task HandleTimerAsync()   
         {
             _cts = new CancellationTokenSource();
-            _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
+            _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000));
 
             try
             {
                 while (await _timer.WaitForNextTickAsync(_cts.Token))
                 {
-                    await GetCharacterPositionInSpace();
+                    var state = await AuthState.GetAuthenticationStateAsync();
+
+                    if (!String.IsNullOrEmpty(state?.User?.Identity?.Name))
+                        await GetCharacterPositionInSpace();
+                    else
+                        _cts.Cancel();
                 }
             }
             catch (Exception ex)
@@ -151,10 +207,12 @@ namespace WHMapper.Pages.Mapper
             if (securityStatus <= -0.9)
             {
 
-                var whClass = await AnoikServices.GetSystemClass(name);
-                var whEffect = await AnoikServices.GetSystemEffects(name);
-                var whStatics = await AnoikServices.GetSystemStatics(name);
-                return new EveSystemNodeModel(name, securityStatus, whClass, whEffect, whStatics);
+                var whClass = await AnoikServices?.GetSystemClass(name);
+                var whEffect = await AnoikServices?.GetSystemEffects(name);
+                var whStatics = await AnoikServices?.GetSystemStatics(name);
+                var whEffectsInfos = await AnoikServices?.GetSystemEffectsInfos(whEffect, whClass);
+                
+                return new EveSystemNodeModel(name, securityStatus, whClass, whEffect, whEffectsInfos,whStatics);
 
             }
             else
@@ -167,12 +225,11 @@ namespace WHMapper.Pages.Mapper
         private async Task GetCharacterPositionInSpace()
         {
             EveLocation el = await EveServices.LocationServices.GetLocation();
-            if ((_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) && el!=null)
+            if (el != null && (_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) )
             {
                 _currentLocation = el;
                 SolarSystem newSystem = await EveServices.UniverseServices.GetSystem(_currentLocation.SolarSystemId);
-                //Star newStar = await EveOnlineServices.UniverseServices.GetStar(newSystem.StarId);
-
+               
                 
                 if (Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase)) == null)
                 {
@@ -181,8 +238,7 @@ namespace WHMapper.Pages.Mapper
 
                     // New WH System Discover, need to add to Diagram,Db,Botify to other people
                     Diagram.Nodes.Add(newSystemNode);
-                    //WHSystem newHWSys = new WHSystem(newSystemNode.Name);
-                    //_selectedWHMap?.WHSystems.Add(newHWSys);
+
 
                     WHSystem newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystemNode.Name, newSystemNode.SecurityStatus));
                     
@@ -199,8 +255,6 @@ namespace WHMapper.Pages.Mapper
                        
                         await DbWHMaps.AddWHSystemLink(_selectedWHMap.Id, _currentWHSystemId, newWHSystem.Id);
 
-                        //Diagram.Links.Add(new LinkModel(_currentSystemNode.GetPort(PortAlignment.Right), newSolarNode.GetPort(PortAlignment.Left)));
-                        //Diagram.ReconnectLinksToClosestPorts();
                     }
                     _currentSystemNode = newSystemNode;
                     _currentWHSystemId = newWHSystem.Id;

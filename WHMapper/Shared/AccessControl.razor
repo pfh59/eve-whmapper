@@ -30,7 +30,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         var state = await AuthState.GetAuthenticationStateAsync();
 
         if (!String.IsNullOrEmpty(state?.User?.Identity?.Name))

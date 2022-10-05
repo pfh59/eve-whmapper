@@ -9,7 +9,7 @@ namespace WHMapper.Data
         public DbSet<WHMap>? DbWHMaps { get; set; }
 		public DbSet<WHSystem>? DbWHSystems { get; set; }
         public DbSet<WHSystemLink>? DbWHSystemLinks { get; set; }
-        public DbSet<WHSignature>? WHSignatures { get; set; }
+        public DbSet<WHSignature>? DbWHSignatures { get; set; }
        
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)

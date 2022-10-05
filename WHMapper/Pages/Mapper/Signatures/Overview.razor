@@ -1,35 +1,46 @@
-﻿<MudContainer Class="mt-16">
-    <MudTable Items="@Signatures" Dense=true Hover=true Bordered=true Striped=true Loading="@(Signatures==null)"  LoadingProgressColor="Color.Info">
-        <ToolBarContent>
-            <MudText Typo="Typo.h6">Signatures</MudText>
-            <MudSpacer />
-            <MudIconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" />
-        </ToolBarContent>
+﻿<MudCard Outlined="true" style="height:99%;width:99%;">
+    <MudTable Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true Loading="@(Signatures==null)" LoadingProgressColor="Color.Info" RowsPerPage="5"
+              CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="true" SelectedItem="_selectedSignature"
+              RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit">
         <HeaderContent>
-            <MudTh Style="text-align:center">Id</MudTh>
+            <MudTh Style="text-align:center">Name</MudTh>
             <MudTh Style="text-align:center">Group</MudTh>
             <MudTh Style="text-align:center">Type</MudTh>
             <MudTh Style="text-align:center">Created</MudTh>
-            <MudTh Style="text-align:center">Created By</MudTh>
             <MudTh Style="text-align:center">Updated</MudTh>
-            <MudTh Style="text-align:center">Updated By</MudTh>
-            <MudTh></MudTh>
+            <MudTh Style="text-align:right">
+                <MudIconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNode==null || _isEditingSignature==true)" />
+            </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="Id">@context.Name</MudTd>
             <MudTd DataLabel="Group">@context.Group</MudTd>
             <MudTd DataLabel="Type">@context.Type</MudTd>
             <MudTd DataLabel="Created">@context.Created</MudTd>
-            <MudTd DataLabel="Created By">@context.CreatedBy</MudTd>
             <MudTd DataLabel="Updated">@context.Updated</MudTd>
-            <MudTd DataLabel="Updated By">@context.UpdatedBy</MudTd>
             <MudTd Style="text-align:center">
-                <MudIconButton Color="Color.Warning" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
-                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Small" OnClick="@((e) => DeleteSignature(@context.Id))" Disabled="@(_isEditingSignature==true)"/>
             </MudTd>
         </RowTemplate>
+        <RowEditingTemplate>
+            <MudTd DataLabel="Id">@context.Name</MudTd>
+            <MudTd DataLabel="Group">
+                <MudSelect @bind-Value="@context.Group" Required="true">
+                    @foreach (WHMapper.Models.Db.WHSignatureGroup item in Enum.GetValues(typeof(WHMapper.Models.Db.WHSignatureGroup)))
+                    {
+                        <MudSelectItem Value="@item">@GetDisplayText(item)</MudSelectItem>
+                    }
+                </MudSelect>
+  
+            </MudTd>
+            <MudTd DataLabel="Type">
+                <MudTextField @bind-Value="@context.Type" />
+            </MudTd>
+            <MudTd DataLabel="Created">@context.Created</MudTd>
+            <MudTd DataLabel="Updated">@context.Updated</MudTd>
+        </RowEditingTemplate>
         <PagerContent>
             <MudTablePager />
         </PagerContent>
     </MudTable>
-</MudContainer>
+</MudCard>

@@ -1,0 +1,13 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudForm @bind-IsValid="@_success" @ref="@_form">
+            <MudTextField T="string" Variant="Variant.Outlined" @bind-Value="@_scanResult"
+                          Label="Scan Result" Lines="10" Required="true"
+                          RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true" />
+        </MudForm>
+</DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_success==false)">Update Signatures</MudButton>
+    </DialogActions>
+</MudDialog>

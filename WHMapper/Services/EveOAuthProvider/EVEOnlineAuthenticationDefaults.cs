@@ -38,8 +38,9 @@ namespace WHMapper.Services.EveOAuthProvider
         /// <summary>
         /// Default value for <see cref="OAuthOptions.UserInformationEndpoint"/>.
         /// </summary>
-        [Obsolete("This endpoint is no longer used by the EVEOnline provider.")]
-        public static readonly string UserInformationEndpoint = "https://login.eveonline.com/oauth/verify";
+        //[Obsolete("This endpoint is no longer used by the EVEOnline provider.")]
+        //public static readonly string UserInformationEndpoint = "https://login.eveonline.com/oauth/verify";
+
 
         public const string Scopes = "urn:eveonline:scopes";
     }

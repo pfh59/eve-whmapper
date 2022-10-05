@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Security.Cryptography.Xml;
 using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 
 namespace WHMapper.Repositories.WHSystems
 {
-    public class WHSystemRepository : ADefaultRepository<WHMapperContext,WHSystem,int>, IWHSignature
+    public class WHSystemRepository : ADefaultRepository<WHMapperContext, WHSystem, int>, IWHSystemRepository
     {
-        public WHSystemRepository(WHMapperContext context) : base (context)
+        public WHSystemRepository(WHMapperContext context) : base(context)
         {
         }
 
@@ -20,7 +21,7 @@ namespace WHMapper.Repositories.WHSystems
 
                 return item;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -41,18 +42,18 @@ namespace WHMapper.Repositories.WHSystems
 
         protected override async Task<IEnumerable<WHSystem>?> AGetAll()
         {
-            
-            if(_dbContext.DbWHSystems.Count()==0)
+
+            if (_dbContext?.DbWHSystems?.Count() == 0)
                 return await _dbContext.DbWHSystems.ToListAsync();
             else
-                return await _dbContext.DbWHSystems.OrderBy(x => x.Name)
-                        .Include(x=>x.WHSignatures)
-                        .ToListAsync();
+                return await _dbContext?.DbWHSystems?.OrderBy(x => x.Name)
+                        ?.Include(x => x.WHSignatures)
+                        ?.ToListAsync();
         }
 
         protected override async Task<WHSystem?> AGetById(int id)
         {
-            return await _dbContext.DbWHSystems
+            return await _dbContext?.DbWHSystems
                 .Include(x => x.WHSignatures)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
@@ -69,7 +70,58 @@ namespace WHMapper.Repositories.WHSystems
 
         public async Task<WHSystem?> GetByName(string name)
         {
-            return await _dbContext.DbWHSystems.FirstOrDefaultAsync(x => x.Name == name);
+            return await _dbContext?.DbWHSystems?.Include(x => x.WHSignatures)?.FirstOrDefaultAsync(x => x.Name == name);
+        }
+
+        public async Task<WHSignature?> AddWHSignature(int idWHSystem, WHSignature whSignature)
+        {
+            var system = await this.GetById(idWHSystem);
+            if (system == null)
+                return null;
+
+            _dbContext?.DbWHSignatures?.Add(whSignature);
+            system.WHSignatures.Add(whSignature);
+
+
+            await this.Update(idWHSystem, system);
+
+            return whSignature;
+        }
+
+        public async Task<IEnumerable<WHSignature?>> AddWHSignatures(int idWHSystem, IEnumerable<WHSignature> whSignatures)
+        {
+            var system = await this.GetById(idWHSystem);
+            if (system == null)
+                return null;
+
+            var sigArray = whSignatures.ToArray();
+            await _dbContext?.DbWHSignatures?.AddRangeAsync(sigArray);
+
+            foreach (var sig in sigArray)
+                system.WHSignatures.Add(sig);
+
+
+            await this.Update(idWHSystem, system);
+
+            return whSignatures;
+        }
+
+
+        public async Task<WHSignature?> RemoveWHSignature(int idWHSystem, int idWHSignature)
+        {
+            var system = await this.GetById(idWHSystem);
+            if (system == null)
+                return null;
+
+            var sig = system.WHSignatures.Where(x => x.Id == idWHSignature).FirstOrDefault();
+            if (sig == null)
+                return null;
+
+            _dbContext?.DbWHSignatures?.Remove(sig);
+            await _dbContext?.SaveChangesAsync();
+
+            return sig;
+
         }
 
     }

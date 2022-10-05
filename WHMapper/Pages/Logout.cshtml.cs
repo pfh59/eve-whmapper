@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -20,8 +21,11 @@ namespace WHMapper.Pages
         public async Task OnGet()
         {
             _logger.LogInformation("User logged out.");
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignOutAsync(new AuthenticationProperties { RedirectUri = "/" });
+            await HttpContext.SignOutAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme);
+            
+            
             //await HttpContext.SignOutAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme,new AuthenticationProperties { RedirectUri = "/" });
         }
 

@@ -20,7 +20,14 @@ namespace WHMapper.Services.EveOAuthProvider
             [NotNull] ISystemClock clock)
             : base(options, logger, encoder, clock)
                 {
+         
                 }
+
+        protected override Task<OAuthTokenResponse> ExchangeCodeAsync(OAuthCodeExchangeContext context)
+        {
+            return base.ExchangeCodeAsync(context);
+        }
+
 
         protected override Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
@@ -41,7 +48,7 @@ namespace WHMapper.Services.EveOAuthProvider
             return base.CreateTicketAsync(identity, properties, tokens);
         }
 
-        protected virtual IEnumerable<Claim> ExtractClaimsFromToken([NotNull] string token)
+        public static  IEnumerable<Claim> ExtractClaimsFromToken([NotNull] string token)
         {
             try
             {
@@ -54,15 +61,15 @@ namespace WHMapper.Services.EveOAuthProvider
 
                 var claims = new List<Claim>(securityToken.Claims);
 
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, securityToken.Subject.Replace("CHARACTER:EVE:", string.Empty, StringComparison.OrdinalIgnoreCase), ClaimValueTypes.String, ClaimsIssuer));
-                claims.Add(new Claim(ClaimTypes.Name, nameClaim.Value, ClaimValueTypes.String, ClaimsIssuer));
-                claims.Add(new Claim(ClaimTypes.Expiration, UnixTimeStampToDateTime(expClaim.Value), ClaimValueTypes.DateTime, ClaimsIssuer));
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, securityToken.Subject.Replace("CHARACTER:EVE:", string.Empty, StringComparison.OrdinalIgnoreCase), ClaimValueTypes.String, EVEOnlineAuthenticationDefaults.Issuer));
+                claims.Add(new Claim(ClaimTypes.Name, nameClaim.Value, ClaimValueTypes.String, EVEOnlineAuthenticationDefaults.Issuer));
+                claims.Add(new Claim(ClaimTypes.Expiration, UnixTimeStampToDateTime(expClaim.Value), ClaimValueTypes.DateTime, EVEOnlineAuthenticationDefaults.Issuer));
 
                 var scopes = claims.Where(x => string.Equals(x.Type, "scp", StringComparison.OrdinalIgnoreCase)).ToList();
 
                 if (scopes.Count > 0)
                 {
-                    claims.Add(new Claim(EVEOnlineAuthenticationDefaults.Scopes, string.Join(' ', scopes.Select(x => x.Value)), ClaimValueTypes.String, ClaimsIssuer));
+                    claims.Add(new Claim(EVEOnlineAuthenticationDefaults.Scopes, string.Join(' ', scopes.Select(x => x.Value)), ClaimValueTypes.String, EVEOnlineAuthenticationDefaults.Issuer));
                 }
 
                 return claims;
@@ -73,7 +80,7 @@ namespace WHMapper.Services.EveOAuthProvider
             }
         }
 
-        private static Claim ExtractClaim([NotNull] JsonWebToken token, [NotNull] string claim)
+        public static Claim ExtractClaim([NotNull] JsonWebToken token, [NotNull] string claim)
         {
             var extractedClaim = token.Claims.FirstOrDefault(x => string.Equals(x.Type, claim, StringComparison.OrdinalIgnoreCase));
 
@@ -85,7 +92,7 @@ namespace WHMapper.Services.EveOAuthProvider
             return extractedClaim;
         }
 
-        private static string UnixTimeStampToDateTime(string unixTimeStamp)
+        public static string UnixTimeStampToDateTime(string unixTimeStamp)
         {
             if (!long.TryParse(unixTimeStamp, NumberStyles.Integer, CultureInfo.InvariantCulture, out long unixTime))
             {
@@ -95,6 +102,7 @@ namespace WHMapper.Services.EveOAuthProvider
             DateTimeOffset offset = DateTimeOffset.FromUnixTimeSeconds(unixTime);
             return offset.ToString("o", CultureInfo.InvariantCulture);
         }
+
     }
     
 }

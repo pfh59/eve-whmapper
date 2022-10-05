@@ -1,4 +1,5 @@
-﻿using WHMapper.Models.DTO.EveAPI.Location;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Location;
 using WHMapper.Models.DTO.ResponseMessage;
 
 namespace WHMapper.Services.EveAPI.Location
@@ -7,9 +8,9 @@ namespace WHMapper.Services.EveAPI.Location
     {
         private readonly string _characterId;
 
-        public LocationServices(HttpClient httpClient,string token,string characterId) : base(httpClient, token)
+        public LocationServices(HttpClient httpClient, TokenProvider _tokenProvider) : base(httpClient, _tokenProvider)
         {
-            _characterId = characterId;
+            _characterId = _tokenProvider.CharacterId;
         }
 
         public async Task<EveLocation> GetLocation()

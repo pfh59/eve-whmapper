@@ -6,16 +6,24 @@
 @using Blazor.Diagrams.Algorithms;
 
 
+
 <MudGrid>
     <MudItem xs="12">
-        <div style="width:90vw; height: 50vh" class="rounded">
-            <CascadingValue Value="Diagram">
-                <DiagramCanvas></DiagramCanvas>
-            </CascadingValue>
-        </div>
+        <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8" PanelClass="pa-6">
+            @foreach (var item in WHMaps)
+            {
+                <div style="width:99vw; height: 50vh" Class="Rounded">
+                    <MudTabPanel Text="@item.Name" Tag="@item.Id">
+                        <CascadingValue Value="Diagram">
+                            <DiagramCanvas></DiagramCanvas>
+                        </CascadingValue>
+                    </MudTabPanel>
+                </div>
+                    }
+            </MudDynamicTabs>
     </MudItem>
     <MudItem xs="3">
-        <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
+        <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode"/>
     </MudItem>
     <MudItem xs="9">
         <WHMapper.Pages.Mapper.Signatures.Overview CurrentSystemNode="@_selectedSystemNode"/>

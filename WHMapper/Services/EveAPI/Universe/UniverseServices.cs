@@ -1,4 +1,5 @@
-﻿using WHMapper.Models.DTO.EveAPI.Universe;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Universe;
 
@@ -6,7 +7,7 @@ namespace WHMapper.Services.EveAPI.Universe
 {
     internal class UniverseServices : AEveApiServices, IUniverseServices
     {
-        public UniverseServices(HttpClient httpClient, string token) : base(httpClient, token)
+        public UniverseServices(HttpClient httpClient, TokenProvider _tokenProvider) : base(httpClient, _tokenProvider)
         {
         }
 

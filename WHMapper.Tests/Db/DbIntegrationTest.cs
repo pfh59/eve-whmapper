@@ -80,7 +80,7 @@ public class DbIntegrationTest
     public async Task CRUD_WHSystem()
     {
         //Create IWHMapRepository
-        IWHSignature repo = new WHSystemRepository(_context);
+        IWHSystemRepository repo = new WHSystemRepository(_context);
 
         //ADD WHMAP
         var result = await repo.Create(new WHSystem("FooBar",1));

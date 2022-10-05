@@ -2,12 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHMaps
 {
-    public class WHMapRepository : ADefaultRepository<WHMapperContext,WHMap,int>,IWHMapRepository
+    public class WHMapRepository : ADefaultRepository<WHMapperContext, WHMap, int>, IWHMapRepository
     {
-        public WHMapRepository(WHMapperContext context) : base (context)
+        public WHMapRepository(WHMapperContext context) : base(context)
         {
         }
 
@@ -20,7 +21,7 @@ namespace WHMapper.Repositories.WHMaps
 
                 return item;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -41,8 +42,8 @@ namespace WHMapper.Repositories.WHMaps
 
         protected override async Task<IEnumerable<WHMap>?> AGetAll()
         {
-            
-            if(_dbContext.DbWHMaps.Count()==0)
+
+            if (_dbContext.DbWHMaps.Count() == 0)
                 return await _dbContext.DbWHMaps.ToListAsync();
             else
                 return await _dbContext.DbWHMaps
@@ -53,8 +54,7 @@ namespace WHMapper.Repositories.WHMaps
 
         protected override async Task<WHMap?> AGetById(int id)
         {
-            return await _dbContext.DbWHMaps
-                .FirstOrDefaultAsync(x => x.Id == id);
+            return await _dbContext.DbWHMaps.FindAsync(id);
         }
 
         protected override async Task<WHMap?> AUpdate(int id, WHMap item)
@@ -78,7 +78,7 @@ namespace WHMapper.Repositories.WHMaps
             map.WHSystems.Add(whSystem);
 
 
-            await this.Update(idWHMap,map);
+            await this.Update(idWHMap, map);
 
             return whSystem;
         }
@@ -94,11 +94,31 @@ namespace WHMapper.Repositories.WHMaps
                 return null;
 
             _dbContext.DbWHSystems.Remove(system);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return system;
 
         }
+
+        public async Task<WHSystem?> RemoveWHSystemByName(int idWHMap, string whSystemname)
+        {
+
+            var map = await this.GetById(idWHMap);
+            if (map == null)
+                return null;
+
+            var system = map.WHSystems.Where(x => x.Name == whSystemname).FirstOrDefault();
+            if (system == null)
+                return null;
+
+            _dbContext.DbWHSystems.Remove(system);
+            await _dbContext.SaveChangesAsync();
+
+            return system;
+
+        }
+
+
 
         public async Task<WHSystemLink?> AddWHSystemLink(int idWHMap, int idWHSystemFrom, int idWHSystemTo)
         {
@@ -129,7 +149,23 @@ namespace WHMapper.Repositories.WHMaps
                 return null;
 
             _dbContext.DbWHSystemLinks.Remove(whLink);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
+
+            return whLink;
+        }
+
+        public async Task<WHSystemLink?> RemoveWHSystemLink(int idWHMap, int idWHSystemFrom, int idWHSystemTo)
+        {
+            var map = await this.GetById(idWHMap);
+            if (map == null)
+                return null;
+
+            var whLink = map.WHSystemLinks.Where(x => x.IdWHSystemFrom == idWHSystemFrom && x.IdWHSystemTo== idWHSystemTo).FirstOrDefault();
+            if (whLink == null)
+                return null;
+
+            _dbContext.DbWHSystemLinks.Remove(whLink);
+            await _dbContext.SaveChangesAsync();
 
             return whLink;
         }

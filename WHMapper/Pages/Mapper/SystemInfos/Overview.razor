@@ -1,10 +1,10 @@
-﻿<MudPaper Class="pa-5" Outlined="true">
+﻿<MudCard Class="pa-5" Outlined="true" style="height:99%;width:99%;">
     <MudGrid Justify="Justify.SpaceBetween">
         <MudItem xs="1">
             <MudText Typo="Typo.body2">Name:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.Name : String.Empty)</MudText>
+            <MudText Typo="Typo.body2">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Name) ? CurrentSystemNode.Name : String.Empty)</MudText>
         </MudItem>
     </MudGrid>
 
@@ -13,7 +13,7 @@
             <MudText Typo="Typo.body2">Security:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.SecurityStatus : String.Empty)</MudText>
+            <MudText Typo="Typo.body2" Style="@($"color:{_secColor};")">@(CurrentSystemNode != null  ? CurrentSystemNode.SecurityStatus : String.Empty)</MudText>
         </MudItem>
     </MudGrid>
 
@@ -22,26 +22,47 @@
             <MudText Typo="Typo.body2">Class:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.Class : String.Empty)</MudText>
+            <MudText Typo="Typo.body2" Style="@($"color:{_systemColor};")">@(CurrentSystemNode!=null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Class) ? CurrentSystemNode.Class : String.Empty)</MudText>
         </MudItem>
     </MudGrid>
 
-    <MudGrid Justify="Justify.SpaceBetween">
+    <MudGrid Justify="Justify.SpaceBetween" Class="@(_showWHInfos ? "visible" : "invisible")">
         <MudItem xs="1">
             <MudText Typo="Typo.body2">Effect:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2">@(CurrentSystemNode != null ? CurrentSystemNode.Effect : "No Effects")</MudText>
+            <MudText Typo="Typo.body2" Class="d-inline-flex">@(CurrentSystemNode != null &&  !String.IsNullOrWhiteSpace(CurrentSystemNode?.Effect) ? CurrentSystemNode.Effect : "No Effects")</MudText>
+            <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
+                <ChildContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")"/>
+                </ChildContent>
+                <TooltipContent>
+                    <MudCard>
+                        <MudCardContent>
+                            @foreach (var effectInfo in CurrentSystemNode?.EffectsInfos)
+                            {
+                                <MudText Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </TooltipContent>
+            </MudTooltip>
         </MudItem>
     </MudGrid>
 
-    <MudGrid Justify="Justify.SpaceBetween">
+    <MudGrid Justify="Justify.SpaceBetween" Class="@(_showWHInfos ? "visible" : "invisible")">
         <MudItem xs="1">
             <MudText Typo="Typo.body2">Statics:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2">@((CurrentSystemNode != null && CurrentSystemNode.Statics!=null) ? String.Join(" ", CurrentSystemNode.Statics) : String.Empty)</MudText>
+            @if (CurrentSystemNode != null && CurrentSystemNode.Statics != null && CurrentSystemNode.Statics.Count() > 0)
+            {
+                foreach (var item in CurrentSystemNode.Statics)
+                {
+                    <MudText Typo="Typo.body2" Class="d-inline-flex">@item.Key</MudText>
+                    <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(item.Value)};")">@item.Value</MudText>
+                }
+            }
         </MudItem>
     </MudGrid>
-</MudPaper>
-
+</MudCard>

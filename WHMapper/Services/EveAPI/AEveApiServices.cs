@@ -1,7 +1,9 @@
 ﻿using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using WHMapper.Models.DTO;
 
 namespace WHMapper.Services.EveAPI
 {
@@ -22,14 +24,15 @@ namespace WHMapper.Services.EveAPI
     public abstract class AEveApiServices
     {
         private readonly HttpClient _httpClient;
-        private readonly string _token;
+        private readonly TokenProvider _tokenProvider;
 
-        public AEveApiServices(HttpClient httpClient, string token)
+        public AEveApiServices(HttpClient httpClient, TokenProvider tokenProvider)
         {
-            httpClient.DefaultRequestHeaders.Clear();
-
             _httpClient = httpClient;
-            _token = token;
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.BaseAddress = new Uri(EveAPIServiceDefaults.ESIUrl);
+
+            _tokenProvider = tokenProvider;
         }
 
 
@@ -39,10 +42,10 @@ namespace WHMapper.Services.EveAPI
             //Add bearer token
             if (security == RequestSecurity.Authenticated)
             {
-                if (_token == null)
+                if (_tokenProvider == null || string.IsNullOrEmpty(_tokenProvider.AccessToken))
                     throw new ArgumentException("SSO authentication requested");
 
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
             }
 
             //Serialize post body data
@@ -71,10 +74,11 @@ namespace WHMapper.Services.EveAPI
                     break;
             }
 
-            string result = response.Content.ReadAsStringAsync().Result;
+           
 
             if (response.StatusCode != HttpStatusCode.NoContent && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created || response.StatusCode == HttpStatusCode.Accepted))
             {
+                string result = response.Content.ReadAsStringAsync().Result;
                 return JsonSerializer.Deserialize<T>(result);
             }
             else

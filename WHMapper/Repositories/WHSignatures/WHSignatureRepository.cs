@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using static MudBlazor.CategoryTypes;
 
 
 namespace WHMapper.Repositories.WHSignatures
@@ -17,7 +18,7 @@ namespace WHMapper.Repositories.WHSignatures
         {
             try
             {
-                await _dbContext.WHSignatures.AddAsync(item);
+                await _dbContext.DbWHSignatures.AddAsync(item);
                 await _dbContext.SaveChangesAsync();
 
                 return item;
@@ -35,7 +36,7 @@ namespace WHMapper.Repositories.WHSignatures
             if (item == null)
                 return null;
 
-            _dbContext.WHSignatures.Remove(item);
+            _dbContext.DbWHSignatures.Remove(item);
             await _dbContext.SaveChangesAsync();
 
             return item;
@@ -43,17 +44,16 @@ namespace WHMapper.Repositories.WHSignatures
 
         protected override async Task<IEnumerable<WHSignature>?> AGetAll()
         {
-            if (_dbContext.WHSignatures.Count() == 0)
-                return await _dbContext.WHSignatures.ToListAsync();
+            if (_dbContext.DbWHSignatures.Count() == 0)
+                return await _dbContext.DbWHSignatures.ToListAsync();
             else
-                return await _dbContext.WHSignatures.OrderBy(x => x.Id)
+                return await _dbContext.DbWHSignatures.OrderBy(x => x.Id)
                         .ToListAsync();
         }
 
         protected override async Task<WHSignature?> AGetById(int id)
         {
-            return await _dbContext.WHSignatures
-                .FirstOrDefaultAsync(x => x.Id == id);
+            return await _dbContext.DbWHSignatures.FindAsync(id);
         }
 
         protected override async Task<WHSignature?> AUpdate(int id, WHSignature item)
@@ -68,7 +68,25 @@ namespace WHMapper.Repositories.WHSignatures
 
         public async Task<WHSignature?> GetByName(string name)
         {
-            return await _dbContext.WHSignatures.FirstOrDefaultAsync(x => x.Name == name);
+            return await _dbContext.DbWHSignatures.FirstOrDefaultAsync(x => x.Name == name);
+        }
+
+        public async Task<IEnumerable<WHSignature?>> Update(IEnumerable<WHSignature> whSignatures)
+        {
+            try
+            {
+                foreach (var sig in whSignatures)
+                {
+                    _dbContext.Entry(sig).State = EntityState.Modified;
+                }
+
+                await _dbContext.SaveChangesAsync();
+                return whSignatures;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
     
