@@ -1,0 +1,27 @@
+﻿@using Blazor.Diagrams.Core.Geometry;
+
+@{
+    var result = Link.PathGeneratorResult;
+    if (result == null)
+        return;
+
+    var d = result.FullPath.ToString();
+}
+
+
+@if (Link.Selected)
+{
+    <path d="@d" fill="none" stroke-width="10" stroke-opacity="0.8" stroke="@Link.SelectedColor" />
+}
+
+
+@if (Link.IsEoL)
+{
+    <path d="@d" fill="none" stroke-width="8" stroke="@Link.EolColor" />
+}
+else
+{
+    <path d="@d" fill="none" stroke-width="8" stroke="grey" />
+}
+
+<path d="@d" fill="none" stroke-width="4" stroke="@Link.Color" />

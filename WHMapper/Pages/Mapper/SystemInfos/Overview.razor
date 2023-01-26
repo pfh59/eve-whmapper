@@ -1,4 +1,4 @@
-﻿<MudCard Class="pa-5" Outlined="true" style="height:99%;width:99%;">
+﻿<MudCard Class="@(CurrentSystemNode == null ? "invisible pa-5" : "visible pa-5")" Outlined="true" style="height:99%;width:99%;">
     <MudGrid Justify="Justify.SpaceBetween">
         <MudItem xs="1">
             <MudText Typo="Typo.body2">Name:</MudText>
@@ -31,22 +31,26 @@
             <MudText Typo="Typo.body2">Effect:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2" Class="d-inline-flex">@(CurrentSystemNode != null &&  !String.IsNullOrWhiteSpace(CurrentSystemNode?.Effect) ? CurrentSystemNode.Effect : "No Effects")</MudText>
-            <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
-                <ChildContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")"/>
-                </ChildContent>
-                <TooltipContent>
-                    <MudCard>
-                        <MudCardContent>
-                            @foreach (var effectInfo in CurrentSystemNode?.EffectsInfos)
-                            {
-                                <MudText Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
-                            }
-                        </MudCardContent>
-                    </MudCard>
-                </TooltipContent>
-            </MudTooltip>
+            <MudText Typo="Typo.body2" Class="d-inline-flex">@(CurrentSystemNode != null &&  !String.IsNullOrWhiteSpace(CurrentSystemNode?.Effect) ? CurrentSystemNode.Effect : "No Effect")</MudText>
+            @if (CurrentSystemNode?.EffectsInfos != null)
+            {
+                <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
+                    <ChildContent>
+                        <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")"/>
+                    </ChildContent>
+                    <TooltipContent>
+                        <MudCard>
+                            <MudCardContent>
+                            
+                                @foreach (var effectInfo in CurrentSystemNode?.EffectsInfos)
+                                    {
+                                    <MudText Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
+                                    }
+                            </MudCardContent>
+                        </MudCard>
+                    </TooltipContent>
+                </MudTooltip>
+            }
         </MudItem>
     </MudGrid>
 

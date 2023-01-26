@@ -7,7 +7,9 @@
 
 
 
-<MudGrid>
+
+
+<MudGrid Class="@(_loading ? "invisible" : "visible")">
     <MudItem xs="12">
         <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8" PanelClass="pa-6">
             @foreach (var item in WHMaps)
@@ -19,13 +21,16 @@
                         </CascadingValue>
                     </MudTabPanel>
                 </div>
-                    }
-            </MudDynamicTabs>
+            }
+        </MudDynamicTabs>
     </MudItem>
     <MudItem xs="3">
-        <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode"/>
+        <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
     </MudItem>
     <MudItem xs="9">
-        <WHMapper.Pages.Mapper.Signatures.Overview CurrentSystemNode="@_selectedSystemNode"/>
+        <WHMapper.Pages.Mapper.Signatures.Overview CurrentSystemNode="@_selectedSystemNode" />
     </MudItem>
 </MudGrid>
+<MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
+</MudOverlay>

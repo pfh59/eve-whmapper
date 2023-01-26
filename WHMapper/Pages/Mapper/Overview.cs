@@ -13,18 +13,24 @@ using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSystems;
 using System;
+using MudBlazor;
+using Blazor.Diagrams.Core.Options;
+using Blazor.Diagrams.Options;
+using Blazor.Diagrams;
 
 namespace WHMapper.Pages.Mapper
 {
     public partial class Overview : ComponentBase
     {
-        protected Diagram Diagram { get; private set; }
+        protected BlazorDiagram Diagram { get; private set; }
 
         private EveLocation? _currentLocation = null;
         private EveSystemNodeModel? _currentSystemNode = null;
         private int _currentWHSystemId = 0;
         private EveSystemNodeModel? _selectedSystemNode = null;
-        private PeriodicTimer? _timer; 
+        private PeriodicTimer? _timer;
+
+        private static SemaphoreSlim semSlim = new SemaphoreSlim(1, 1);
 
         private CancellationTokenSource? _cts;
 
@@ -43,9 +49,12 @@ namespace WHMapper.Pages.Mapper
         [Inject]
         IAnoikServices? AnoikServices { get; set; }
 
+        [Inject]
+        public ISnackbar? Snackbar { get; set; }
+
 
         private IEnumerable<WHMap>? WHMaps { get; set; } = new List<WHMap>();
-        private WHMap _selectedWHMap = null;
+        private WHMap? _selectedWHMap = null;
 
         private int _selectedWHMapIndex = 0;
         private int SelectedWHMapIndex
@@ -64,8 +73,11 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
+        private bool _loading = true;
+
         protected override async Task OnInitializedAsync()
         {
+            _loading = true;
             await base.OnInitializedAsync();
         }
 
@@ -76,13 +88,15 @@ namespace WHMapper.Pages.Mapper
 
             if(firstRender)
             {
-                var options = new DiagramOptions
+
+                var options = new BlazorDiagramOptions
                 {
-                    DefaultNodeComponent = null, // Default component for nodes
                     AllowMultiSelection = false, // Whether to allow multi selection using CTRL
-                    Links = new DiagramLinkOptions
+                    /*Links = new DiagramLinkOptions
                     {
-                    },
+                        DefaultColor = "grey",
+                        DefaultSelectedColor = "white"
+                    },*/
 
                     /*Zoom = new DiagramZoomOptions
                     {
@@ -92,47 +106,116 @@ namespace WHMapper.Pages.Mapper
 
                 };
 
-                Diagram = new Diagram(options);
+                Diagram = new BlazorDiagram(options);
                 Diagram.SelectionChanged += (item) =>
                 {
                     if (item.GetType() == typeof(EveSystemNodeModel))
                     {
-                        _selectedSystemNode = (EveSystemNodeModel)item;
+                        if (((EveSystemNodeModel)item).Selected)
+                            _selectedSystemNode = (EveSystemNodeModel)item;
+                        else
+                            _selectedSystemNode = null;
+
+                        StateHasChanged();
                     }
-                    //StateHasChanged();
                 };
+
 
                 Diagram.Nodes.Removed += async (item) =>
                 {
                     if (item.GetType() == typeof(EveSystemNodeModel))
                     {
-                        await DbWHMaps.RemoveWHSystemByName(_selectedWHMap.Id, ((EveSystemNodeModel)item).Name);
-                    };
-                };
+                        try
+                        {
+                            Cancel();
+                            await semSlim.WaitAsync();
+                            if (await DbWHMaps?.RemoveWHSystem(_selectedWHMap.Id, ((EveSystemNodeModel)item).IdWH) == null)
+                            {
+                                Snackbar?.Add("Remove wormhole node db error", Severity.Error);
+                            }
 
+                        }
+                        finally
+                        {
+                            semSlim.Release();
+                            HandleTimerAsync();
+                        }
+                    }
+                };
+        
                 Diagram.Links.Removed += async (item) =>
                 {
-                    
                     if (item.GetType() == typeof(LinkModel))
                     {
-                        var whSrc = await DbWHSystems.GetByName(((EveSystemNodeModel)((LinkModel)item).SourceNode).Name);
-                        var whDst = await DbWHSystems.GetByName(((EveSystemNodeModel)((LinkModel)item).TargetNode).Name);
+                        try
+                        {
+                            Cancel();
+                            await semSlim.WaitAsync();
 
-                        await DbWHMaps.RemoveWHSystemLink(_selectedWHMap.Id, whSrc.Id, whDst.Id);
-                    };
+                            if (await DbWHMaps?.RemoveWHSystemLink(_selectedWHMap.Id,
+                                ((EveSystemNodeModel)((LinkModel)item).Source.Model).IdWH,
+                                ((EveSystemNodeModel)((LinkModel)item).Target.Model).IdWH) == null)
+                            {
+                                Snackbar?.Add("Remove wormhole link db error", Severity.Error);
+                            }
+
+                        }
+                        finally
+                        {
+                            semSlim.Release();
+                            HandleTimerAsync();
+                        }
+                    }
+                };
+
+                Diagram.PointerUp += async (item, mouseEvent) =>
+                {
+                    if(item!=null && (item.GetType() == typeof(EveSystemNodeModel)))
+                    {
+                        try
+                        {
+                            Cancel();
+                            await semSlim.WaitAsync();
+                            var wh = await DbWHSystems?.GetById(((EveSystemNodeModel)item).IdWH);
+                            if(wh!=null)
+                            {
+                                wh.PosX = ((EveSystemNodeModel)item).Position.X;
+                                wh.PosY = ((EveSystemNodeModel)item).Position.Y;
+
+                                if(await DbWHSystems?.Update(((EveSystemNodeModel)item).IdWH,wh)==null)
+                                {
+                                    Snackbar?.Add("Update wormhole node position db error", Severity.Error);
+                                }
+                            }
+                            else
+                            {
+                                Snackbar?.Add("Unable to find moved wormhole node dd error", Severity.Error);
+                            }
+                            
+                        }
+                        finally
+                        {
+                            semSlim.Release();
+                            HandleTimerAsync();
+                        }
+                    }
                 };
 
                 Diagram.Options.Zoom.Enabled = false;
-                Diagram.RegisterModelComponent<EveSystemNodeModel, EveSystemNode>();
-                
+                Diagram.RegisterComponent<EveSystemNodeModel, EveSystemNode>();
+                Diagram.RegisterComponent<EveSystemLinkModel, EveSystemLink>();
+
+
                 await Restore();
                 HandleTimerAsync();
+
+                _loading = false;
+                StateHasChanged();
             }
 
         }
 
-
-
+   
         private async Task Restore()
         {
             
@@ -150,11 +233,11 @@ namespace WHMapper.Pages.Mapper
             {
                 foreach (WHSystem dbWHSys in _selectedWHMap.WHSystems)
                 {
-
-                    Diagram.Nodes.Add(await DefineEveSystemNodeModel(dbWHSys.Name, dbWHSys.SecurityStatus));
+                    EveSystemNodeModel whSysNode = await DefineEveSystemNodeModel(dbWHSys);
+                    Diagram.Nodes.Add(whSysNode);
 
                 }
-                StateHasChanged();
+              
             }
 
             if (_selectedWHMap.WHSystemLinks.Count > 0)
@@ -164,23 +247,31 @@ namespace WHMapper.Pages.Mapper
                     var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
                     var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
 
-                    var newSystemNodeFrom = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase));
-                    var newSystemNodeTo = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase));
+                    EveSystemNodeModel newSystemNodeFrom = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
+                    EveSystemNodeModel newSystemNodeTo = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
 
+                    Diagram.Links.Add(new EveSystemLinkModel(newSystemNodeFrom, newSystemNodeTo));
+
+                    /*
                     Diagram.Links.Add(new LinkModel(newSystemNodeFrom, newSystemNodeTo)
                     {
-                        SourceMarker = LinkMarker.Circle,
-                        TargetMarker = LinkMarker.Circle,
-                    });
+                        Router = Routers.Normal,
+                        PathGenerator = PathGenerators.Smooth
+                    });*/
 
                 }
-                StateHasChanged();
+                
             }
-
+            StateHasChanged();
         }
 
         private async Task HandleTimerAsync()   
         {
+            _currentLocation = null;
+            _currentSystemNode = null;
+            _selectedSystemNode = null;
+
+
             _cts = new CancellationTokenSource();
             _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000));
 
@@ -202,76 +293,105 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-        private async Task<EveSystemNodeModel> DefineEveSystemNodeModel(string name,float securityStatus)
+        private async Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh)
         {
-            if (securityStatus <= -0.9)
+            EveSystemNodeModel res = null;
+            if (wh == null)
+                throw new ArgumentNullException();
+
+            if (wh.SecurityStatus <= -0.9)
             {
 
-                var whClass = await AnoikServices?.GetSystemClass(name);
-                var whEffect = await AnoikServices?.GetSystemEffects(name);
-                var whStatics = await AnoikServices?.GetSystemStatics(name);
-                var whEffectsInfos = await AnoikServices?.GetSystemEffectsInfos(whEffect, whClass);
-                
-                return new EveSystemNodeModel(name, securityStatus, whClass, whEffect, whEffectsInfos,whStatics);
+                string whClass = await AnoikServices.GetSystemClass(wh.Name);
+                string whEffect = await AnoikServices.GetSystemEffects(wh.Name);
+                IEnumerable<KeyValuePair<string, string>> whStatics = await AnoikServices.GetSystemStatics(wh.Name);
+                IEnumerable<KeyValuePair<string, string>> whEffectsInfos = null;
+                if (!String.IsNullOrWhiteSpace(whEffect))
+                {
+                    whEffectsInfos = await AnoikServices.GetSystemEffectsInfos(whEffect, whClass);
+                }
+
+                res = new EveSystemNodeModel(wh, whClass, whEffect, whEffectsInfos, whStatics);
 
             }
             else
             {
-                return new EveSystemNodeModel(name, securityStatus);
+                res = new EveSystemNodeModel(wh);
             }
-        }
 
+            res.SetPosition(wh.PosX, wh.PosY);
+            return res;
+
+        }
+       
 
         private async Task GetCharacterPositionInSpace()
         {
-            EveLocation el = await EveServices.LocationServices.GetLocation();
-            if (el != null && (_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) )
+            await semSlim.WaitAsync();
+            try
             {
-                _currentLocation = el;
-                SolarSystem newSystem = await EveServices.UniverseServices.GetSystem(_currentLocation.SolarSystemId);
+
+                EveLocation el = await EveServices.LocationServices.GetLocation();
+                if (el != null && (_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) )
+                {
+                    _currentLocation = el;
+                    var newSystem = await EveServices.UniverseServices.GetSystem(_currentLocation.SolarSystemId);
                
                 
-                if (Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase)) == null)
-                {
-
-                    EveSystemNodeModel newSystemNode = await DefineEveSystemNodeModel(newSystem.Name,newSystem.SecurityStatus);
-
-                    // New WH System Discover, need to add to Diagram,Db,Botify to other people
-                    Diagram.Nodes.Add(newSystemNode);
-
-
-                    WHSystem newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystemNode.Name, newSystemNode.SecurityStatus));
-                    
-
-                    if (_currentSystemNode != null)
+                    if (Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase)) == null)
                     {
-                        Diagram.Links.Add(new LinkModel(_currentSystemNode, newSystemNode)
+
+                        WHSystem? newWHSystem = await DbWHMaps?.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystem.Name, newSystem.SecurityStatus));
+
+                        if(newWHSystem!=null)
                         {
-                            SourceMarker = LinkMarker.Circle,
-                            TargetMarker = LinkMarker.Circle,
-                        });
+
+                            var newSystemNode = await DefineEveSystemNodeModel(newWHSystem);
+                            Diagram.Nodes.Add(newSystemNode);
 
 
-                       
-                        await DbWHMaps.AddWHSystemLink(_selectedWHMap.Id, _currentWHSystemId, newWHSystem.Id);
+                            if (_currentSystemNode != null)
+                            {
+                                var lk = await DbWHMaps.AddWHSystemLink(_selectedWHMap.Id, _currentWHSystemId, newWHSystem.Id);
 
+                                if (lk != null)
+                                {
+                                    newSystemNode.SetPosition(_currentSystemNode.Position.X + 10, _currentSystemNode.Position.Y + 10);
+                                    Diagram.Links.Add(new EveSystemLinkModel(_currentSystemNode, newSystemNode));
+                                    /*{
+                                        Router = Routers.Normal,
+                                        PathGenerator = PathGenerators.Smooth,
+                                       
+                                    });*/
+
+                                }
+                                else//add snack error  link added
+                                {
+                                    Snackbar?.Add("Add Wormhole Link db error", Severity.Error);
+                                }
+                            }
+                            _currentSystemNode = newSystemNode;
+                            _currentWHSystemId = newWHSystem.Id;
+                            _selectedSystemNode = _currentSystemNode;
+                        }
+                        else
+                        {
+                            Snackbar?.Add("Add Wormhole db error", Severity.Error);
+                        }
                     }
-                    _currentSystemNode = newSystemNode;
-                    _currentWHSystemId = newWHSystem.Id;
-                    _selectedSystemNode = _currentSystemNode;
-                    StateHasChanged();
-                }
-                else
-                {
-                    _currentSystemNode = (EveSystemNodeModel)Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase));
-                    _currentWHSystemId = (await DbWHSystems.GetByName(newSystem.Name)).Id;
-                    _selectedSystemNode = _currentSystemNode;
-                    StateHasChanged();
+                    else
+                    {
+                        _currentSystemNode = (EveSystemNodeModel)Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase));
+                        _currentWHSystemId = (await DbWHSystems.GetByName(newSystem.Name)).Id;
+                        _selectedSystemNode = _currentSystemNode;
+                    }
                 }
             }
+            finally
+            {
+                semSlim.Release();
+            }
         }
-
-
 
 
         public void Cancel() => _cts?.Cancel();

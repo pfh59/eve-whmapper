@@ -26,7 +26,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Inject]
         public ISnackbar Snackbar { get; set; }
 
-        private IEnumerable<WHSignature>? Signatures { get; set; } = new List<WHSignature>();
+        private IEnumerable<WHSignature>? Signatures { get; set; }
 
         [Parameter]
         public EveSystemNodeModel? CurrentSystemNode { get; set; }
@@ -116,6 +116,10 @@ namespace WHMapper.Pages.Mapper.Signatures
                 _currentSystemNodeId = currentSystem?.Id;
 
                 Signatures = currentSystem?.WHSignatures.ToList();
+            }
+            else
+            {
+                Signatures = null;
             }
         }
 

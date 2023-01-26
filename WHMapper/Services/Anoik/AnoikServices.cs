@@ -21,7 +21,7 @@ namespace WHMapper.Services.Anoik
 
         public AnoikServices()
         {
-            Init();
+            Task.Run(() => Init()).Wait();
         }
 
 
@@ -56,7 +56,8 @@ namespace WHMapper.Services.Anoik
         {
             var sys = _jsonSystems.GetProperty(systemName);
             var whEffect = sys.GetProperty("effectName");
-            return Task.FromResult(whEffect.GetString());
+
+            return Task.FromResult((whEffect.ValueKind==JsonValueKind.Null) ? String.Empty : whEffect.GetString());
         }
 
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetSystemStatics(string systemName)
