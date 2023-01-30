@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Services.WHColor
 {
@@ -26,6 +27,11 @@ namespace WHMapper.Services.WHColor
         private const string _sec10 = "#28c0bf";
 
 
+        private const string _isEOL = "#d747d6";
+        private const string _normal = "#3C3F41";
+        private const string _critical = "#e28a0d";
+        private const string _verge = "#a52521";
+        private const string _selectedLinkColor= "white";
 
         public string GetSecurityStatusColor(float secStatus)
         {
@@ -54,7 +60,6 @@ namespace WHMapper.Services.WHColor
 
             return string.Empty;
         }
-
 
         public string GetSystemTypeColor(string systemType)
         {
@@ -98,6 +103,37 @@ namespace WHMapper.Services.WHColor
 
             return String.Empty;
         }
+
+
+        #region System Link Color
+        public string GetLinkEOLColor()
+        {
+            return _isEOL;
+        }
+
+
+        public string GetLinkStatusColor(SystemLinkMassStatus status)
+        {
+            switch (status)
+            {
+                case SystemLinkMassStatus.Normal:
+                    return _normal;
+                case SystemLinkMassStatus.Critical:
+                    return _critical;
+                case SystemLinkMassStatus.Verge:
+                    return _verge;
+            }
+
+            return _normal;
+        }
+
+        public string GetLinkSelectedColor()
+        {
+            return _selectedLinkColor;
+        }
+        #endregion
+
+
     }
 }
 

@@ -3,37 +3,50 @@ using System.ComponentModel.DataAnnotations;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Extensions;
 using WHMapper.Models.Db;
+using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Custom.Node
 {
 
     public class EveSystemLinkModel : LinkModel
     {
-        public string? EolColor
+        private WHSystemLink _whLink;
+
+        public int Id
         {
             get
             {
-                return "#d747d6";
+                return _whLink.Id;
+
             }
-             
         }
 
-        
-        public bool IsEoL { get; set; }
 
+        public bool IsEoL
+        {
+            get
+            {
+                return _whLink.IsEndOfLifeConnection;
+            }
+            set
+            {
 
-        private SystemLinkSize _size;
+                _whLink.IsEndOfLifeConnection = value;
+
+            }
+        }
+
         public SystemLinkSize Size
         {
             get
             {
-                return _size;
+                return _whLink.Size;
             }
             set
             {
-                _size = value;
+                _whLink.Size = value;
                 this.Labels.Clear();
-                switch (_size)
+                switch (_whLink.Size)
                 {
                     case SystemLinkSize.Small:
                         this.Labels.Add(new LinkLabelModel(this, "S"));
@@ -52,46 +65,25 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
-        private SystemLinkMassStatus _massStatus;
+
         public SystemLinkMassStatus MassStatus
         {
             get
             {
-                return _massStatus;
+                return _whLink.MassStatus;
             }
             set
             {
-                _massStatus = value;
-                switch (_massStatus)
-                {
-                    case SystemLinkMassStatus.Normal:
-                        this.Color = "#3C3F41";
-                        break;
-                    case SystemLinkMassStatus.Critical:
-                        this.Color = "#e28a0d";
-
-                        break;
-                    case SystemLinkMassStatus.Verge:
-                        this.Color = "#a52521";                                               
-                        break;
-
-                }
+                _whLink.MassStatus = value;
             }
-        } 
-
-        public EveSystemLinkModel(EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
-            : this (sourcePort, targetPort, false,SystemLinkSize.Large,SystemLinkMassStatus.Normal) { }
-
-        public EveSystemLinkModel(EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort,bool isEol, SystemLinkSize size, SystemLinkMassStatus mass):
-            base(sourcePort, targetPort)
-        {
-            SelectedColor = "white";
-            IsEoL = isEol;
-            Size = size;
-            MassStatus = mass;
-            
         }
 
+
+    public EveSystemLinkModel(WHSystemLink whLink,EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
+            : base (sourcePort, targetPort)
+        {
+            _whLink = whLink;
+        }
 
     }
 }

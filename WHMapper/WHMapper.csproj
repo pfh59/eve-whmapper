@@ -52,6 +52,8 @@
     <None Remove="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
     <None Remove="Models\DTO\EveAPI\SSO\" />
     <None Remove="Services\WHColor\" />
+    <None Remove="Models\Db\Enums\" />
+    <None Remove="Repositories\WHSystemLinks\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.0.15" />
@@ -98,5 +100,7 @@
     <Folder Include="Services\EveJwtAuthenticationStateProvider\" />
     <Folder Include="Models\DTO\EveAPI\SSO\" />
     <Folder Include="Services\WHColor\" />
+    <Folder Include="Models\Db\Enums\" />
+    <Folder Include="Repositories\WHSystemLinks\" />
   </ItemGroup>
 </Project>
