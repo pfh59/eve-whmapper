@@ -1,4 +1,6 @@
-﻿<MudCard Outlined="true" style="height:99%;width:99%;" Class="@(CurrentSystemNode == null ? "invisible pa-5" : "visible pa-5")">
+﻿
+
+<MudCard Outlined="true" style="height:99%;width:99%;" Class="@(CurrentSystemNode == null ? "invisible pa-5" : "visible pa-5")">
     <MudTable Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true Loading="@(Signatures==null)" LoadingProgressColor="Color.Info" RowsPerPage="5"
               CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="true" SelectedItem="_selectedSignature"
               RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit">
@@ -26,7 +28,7 @@
             <MudTd DataLabel="Id">@context.Name</MudTd>
             <MudTd DataLabel="Group">
                 <MudSelect @bind-Value="@context.Group" Required="true">
-                    @foreach (WHMapper.Models.Db.WHSignatureGroup item in Enum.GetValues(typeof(WHMapper.Models.Db.WHSignatureGroup)))
+                    @foreach (WHMapper.Models.Db.Enums.WHSignatureGroup item in Enum.GetValues(typeof(WHMapper.Models.Db.Enums.WHSignatureGroup)))
                     {
                         <MudSelectItem Value="@item">@GetDisplayText(item)</MudSelectItem>
                     }

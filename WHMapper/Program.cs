@@ -29,13 +29,14 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 using Microsoft.Extensions.Options;
 using WHMapper.Services.WHColor;
+using WHMapper.Repositories.WHSystemLinks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
 builder.Services.AddDbContext<WHMapperContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
 
 
 builder.Services.AddRazorPages();
@@ -87,6 +88,7 @@ builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
 builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
 builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
 builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
+builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
 
 builder.Services.AddSingleton<IWHColorHelper, WHColorHelper>();
 

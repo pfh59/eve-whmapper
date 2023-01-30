@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Severity = MudBlazor.Severity;
 using Microsoft.AspNetCore.Hosting.Server;
 using WHMapper.Repositories.WHSignatures;
+using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {

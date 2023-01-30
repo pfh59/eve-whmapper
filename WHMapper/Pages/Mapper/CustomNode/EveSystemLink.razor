@@ -9,19 +9,20 @@
 }
 
 
+
 @if (Link.Selected)
 {
-    <path d="@d" fill="none" stroke-width="10" stroke-opacity="0.8" stroke="@Link.SelectedColor" />
+    <path d="@d" fill="none" stroke-width="10" stroke-opacity="0.8" stroke="@WHColorHelper?.GetLinkSelectedColor()" />
 }
 
 
 @if (Link.IsEoL)
 {
-    <path d="@d" fill="none" stroke-width="8" stroke="@Link.EolColor" />
+    <path d="@d" fill="none" stroke-width="8" stroke="@WHColorHelper?.GetLinkEOLColor()"></path>
 }
 else
 {
     <path d="@d" fill="none" stroke-width="8" stroke="grey" />
 }
 
-<path d="@d" fill="none" stroke-width="4" stroke="@Link.Color" />
+<path d="@d" fill="none" stroke-width="4" stroke="@WHColorHelper?.GetLinkStatusColor(Link.MassStatus)" />

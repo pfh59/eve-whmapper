@@ -1,21 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Db
 {
-
-    public enum WHSignatureGroup
-    {
-        Unknow,
-        Combat,
-        Wormhole,
-        Data,
-        Relic,
-        Ore,
-        Gas,
-        Ghost
-
-    }
 
     public class WHSignature
     {

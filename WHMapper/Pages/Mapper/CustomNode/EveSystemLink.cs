@@ -10,6 +10,11 @@ namespace WHMapper.Pages.Mapper.CustomNode
 {
     public partial class EveSystemLink : ComponentBase
     {
+        public string? _eolColor;
+
+        [Inject]
+        public IWHColorHelper? WHColorHelper { get; set; }
+
         private EveSystemLinkModel _link;
         [ParameterAttribute]
         public EveSystemLinkModel Link
@@ -21,7 +26,10 @@ namespace WHMapper.Pages.Mapper.CustomNode
             set
             {
                 _link = value;
-                
+                if (_link != null)
+                {
+                    _eolColor = WHColorHelper?.GetLinkEOLColor();
+                }
             }
         }
     }

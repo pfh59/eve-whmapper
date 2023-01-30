@@ -17,17 +17,23 @@ using MudBlazor;
 using Blazor.Diagrams.Core.Options;
 using Blazor.Diagrams.Options;
 using Blazor.Diagrams;
+using WHMapper.Models.Db.Enums;
+using System.Threading.Tasks;
+using WHMapper.Repositories.WHSystemLinks;
 
 namespace WHMapper.Pages.Mapper
 {
     public partial class Overview : ComponentBase
     {
         protected BlazorDiagram Diagram { get; private set; }
+        private MudMenu ClickRightMenu { get; set; }
+           
 
         private EveLocation? _currentLocation = null;
         private EveSystemNodeModel? _currentSystemNode = null;
         private int _currentWHSystemId = 0;
         private EveSystemNodeModel? _selectedSystemNode = null;
+        private EveSystemLinkModel? _selectedSystemLink = null;
         private PeriodicTimer? _timer;
 
         private static SemaphoreSlim semSlim = new SemaphoreSlim(1, 1);
@@ -42,6 +48,9 @@ namespace WHMapper.Pages.Mapper
 
         [Inject]
         IWHSystemRepository? DbWHSystems { get; set; }
+
+        [Inject]
+        IWHSystemLinkRepository? DbWHSystemLinks { get; set; }
 
         [Inject]
         IEveAPIServices? EveServices { get; set; }
@@ -88,6 +97,7 @@ namespace WHMapper.Pages.Mapper
 
             if(firstRender)
             {
+                
 
                 var options = new BlazorDiagramOptions
                 {
@@ -105,17 +115,32 @@ namespace WHMapper.Pages.Mapper
                     },*/
 
                 };
+                
 
                 Diagram = new BlazorDiagram(options);
                 Diagram.SelectionChanged += (item) =>
                 {
                     if (item.GetType() == typeof(EveSystemNodeModel))
                     {
+                        
                         if (((EveSystemNodeModel)item).Selected)
                             _selectedSystemNode = (EveSystemNodeModel)item;
                         else
                             _selectedSystemNode = null;
 
+                        _selectedSystemLink = null;
+                        StateHasChanged();
+                    }
+
+                    if (item.GetType() == typeof(EveSystemLinkModel))
+                    {
+                        
+                        if (((EveSystemLinkModel)item).Selected)
+                            _selectedSystemLink = (EveSystemLinkModel)item;
+                        else
+                            _selectedSystemLink = null;
+
+                        _selectedSystemNode = null;
                         StateHasChanged();
                     }
                 };
@@ -142,7 +167,7 @@ namespace WHMapper.Pages.Mapper
                         }
                     }
                 };
-        
+
                 Diagram.Links.Removed += async (item) =>
                 {
                     if (item.GetType() == typeof(LinkModel))
@@ -167,36 +192,39 @@ namespace WHMapper.Pages.Mapper
                         }
                     }
                 };
-
-                Diagram.PointerUp += async (item, mouseEvent) =>
+                
+                Diagram.PointerUp += async (item, pointerEvent) =>
                 {
-                    if(item!=null && (item.GetType() == typeof(EveSystemNodeModel)))
+                    if (item != null)
                     {
-                        try
+                        if (item.GetType() == typeof(EveSystemNodeModel))
                         {
-                            Cancel();
-                            await semSlim.WaitAsync();
-                            var wh = await DbWHSystems?.GetById(((EveSystemNodeModel)item).IdWH);
-                            if(wh!=null)
+                            try
                             {
-                                wh.PosX = ((EveSystemNodeModel)item).Position.X;
-                                wh.PosY = ((EveSystemNodeModel)item).Position.Y;
-
-                                if(await DbWHSystems?.Update(((EveSystemNodeModel)item).IdWH,wh)==null)
+                                Cancel();
+                                await semSlim.WaitAsync();
+                                var wh = await DbWHSystems?.GetById(((EveSystemNodeModel)item).IdWH);
+                                if (wh != null)
                                 {
-                                    Snackbar?.Add("Update wormhole node position db error", Severity.Error);
+                                    wh.PosX = ((EveSystemNodeModel)item).Position.X;
+                                    wh.PosY = ((EveSystemNodeModel)item).Position.Y;
+
+                                    if (await DbWHSystems?.Update(((EveSystemNodeModel)item).IdWH, wh) == null)
+                                    {
+                                        Snackbar?.Add("Update wormhole node position db error", Severity.Error);
+                                    }
                                 }
+                                else
+                                {
+                                    Snackbar?.Add("Unable to find moved wormhole node dd error", Severity.Error);
+                                }
+
                             }
-                            else
+                            finally
                             {
-                                Snackbar?.Add("Unable to find moved wormhole node dd error", Severity.Error);
+                                semSlim.Release();
+                                HandleTimerAsync();
                             }
-                            
-                        }
-                        finally
-                        {
-                            semSlim.Release();
-                            HandleTimerAsync();
                         }
                     }
                 };
@@ -215,7 +243,6 @@ namespace WHMapper.Pages.Mapper
 
         }
 
-   
         private async Task Restore()
         {
             
@@ -250,7 +277,7 @@ namespace WHMapper.Pages.Mapper
                     EveSystemNodeModel newSystemNodeFrom = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
                     EveSystemNodeModel newSystemNodeTo = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
 
-                    Diagram.Links.Add(new EveSystemLinkModel(newSystemNodeFrom, newSystemNodeTo));
+                    Diagram.Links.Add(new EveSystemLinkModel(dbWHSysLink,newSystemNodeFrom, newSystemNodeTo));
 
                     /*
                     Diagram.Links.Add(new LinkModel(newSystemNodeFrom, newSystemNodeTo)
@@ -324,7 +351,6 @@ namespace WHMapper.Pages.Mapper
 
         }
        
-
         private async Task GetCharacterPositionInSpace()
         {
             await semSlim.WaitAsync();
@@ -357,7 +383,7 @@ namespace WHMapper.Pages.Mapper
                                 if (lk != null)
                                 {
                                     newSystemNode.SetPosition(_currentSystemNode.Position.X + 10, _currentSystemNode.Position.Y + 10);
-                                    Diagram.Links.Add(new EveSystemLinkModel(_currentSystemNode, newSystemNode));
+                                    Diagram.Links.Add(new EveSystemLinkModel(lk,_currentSystemNode, newSystemNode));
                                     /*{
                                         Router = Routers.Normal,
                                         PathGenerator = PathGenerators.Smooth,
@@ -393,7 +419,6 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-
         public void Cancel() => _cts?.Cancel();
 
         public ValueTask DisposeAsync()
@@ -404,6 +429,134 @@ namespace WHMapper.Pages.Mapper
             GC.SuppressFinalize(this);
             return new ValueTask();
         }
+
+        #region Menu Actions
+        public async Task<bool> ToggleSlectedSystemLinkEOL()
+        {
+            try
+            {
+                if (_selectedSystemLink != null)
+                {
+                    Cancel();
+                    await semSlim.WaitAsync();
+                    WHSystemLink? link = await DbWHSystemLinks?.GetById(_selectedSystemLink.Id);
+                    if (link != null)
+                    {
+                        link.IsEndOfLifeConnection = !link.IsEndOfLifeConnection;
+                        link = await DbWHSystemLinks?.Update(_selectedSystemLink.Id, link);
+                        _selectedSystemLink.IsEoL = link.IsEndOfLifeConnection;
+
+                        _selectedSystemLink.Refresh();
+                        return true;
+
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                semSlim.Release();
+                HandleTimerAsync();
+            }
+        }
+
+        public async Task<bool> SetSelectedSystemLinkStatus(SystemLinkMassStatus massStatus)
+        {
+            try
+            {
+                if (_selectedSystemLink != null)
+                {
+                    Cancel();
+                    await semSlim.WaitAsync();
+                    WHSystemLink? link = await DbWHSystemLinks?.GetById(_selectedSystemLink.Id);
+                    if (link != null)
+                    {
+                        link.MassStatus = massStatus;
+                        link = await DbWHSystemLinks?.Update(_selectedSystemLink.Id, link);
+                        _selectedSystemLink.MassStatus = link.MassStatus;
+                        ClickRightMenu.CloseMenu();
+                        _selectedSystemLink.Refresh();
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
+            finally
+            {
+                semSlim.Release();
+                HandleTimerAsync();
+            }
+
+        }
+
+        public async Task<bool> SetSelectedSystemLinkSize(SystemLinkSize size)
+        {
+            try
+            {
+                if (_selectedSystemLink != null)
+                {
+                    Cancel();
+                    await semSlim.WaitAsync();
+                    WHSystemLink? link = await DbWHSystemLinks?.GetById(_selectedSystemLink.Id);
+                    if (link != null)
+                    {
+                        link.Size = size;
+                        link = await DbWHSystemLinks?.Update(_selectedSystemLink.Id, link);
+                        _selectedSystemLink.Size = link.Size;
+                        ClickRightMenu.CloseMenu();
+                        _selectedSystemLink.Refresh();
+                        return true;
+
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                semSlim.Release();
+                HandleTimerAsync();
+            }
+
+        }
+
+        #endregion
     }
 }
 
