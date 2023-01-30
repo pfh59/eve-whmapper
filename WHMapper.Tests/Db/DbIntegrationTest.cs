@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystems;
