@@ -180,6 +180,7 @@ DocProject/Help/html
 
 # Click-Once directory
 publish/
+app/
 
 # Publish Web Output
 *.[Pp]ublish.xml
