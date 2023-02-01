@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - "main"
 
 env:
   DOTNET_VERSION: '6.0.x'
@@ -81,26 +84,29 @@ jobs:
           ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
         run: dotnet test WHMapper.Tests -c Release
       
-      - name: Publish app 📑
-        run: dotnet publish WHMapper -c release -o ./WHMapper/app/publish
+      #- name: Publish app 📑
+      #  run: dotnet publish WHMapper -c release -o ./WHMapper/app/publish
 
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: github.event_name != 'pull_request'
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          
       - name: Log in to the Container registry
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push Docker image
+      - name: Build and push 📑
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
