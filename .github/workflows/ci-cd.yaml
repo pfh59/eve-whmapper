@@ -102,7 +102,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./WHMapper/
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
