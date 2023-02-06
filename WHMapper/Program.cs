@@ -30,6 +30,7 @@ using System.Net.Http;
 using Microsoft.Extensions.Options;
 using WHMapper.Services.WHColor;
 using WHMapper.Repositories.WHSystemLinks;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,32 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
     options.UsePkce = true;
 });
 
+
+
+
+using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var db = serviceScope.ServiceProvider.GetRequiredService<WHMapperContext>().Database;
+
+    logger.LogInformation("Migrating database...");
+
+    while (!db.CanConnect())
+    {
+        logger.LogInformation("Database not ready yet; waiting...");
+        Thread.Sleep(1000);
+    }
+
+    try
+    {
+        serviceScope.ServiceProvider.GetRequiredService<WHMapperContext>().Database.Migrate();
+        logger.LogInformation("Database migrated successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
 
 
 builder.Services.AddHttpClient();
