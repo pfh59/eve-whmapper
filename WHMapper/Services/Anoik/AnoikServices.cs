@@ -16,6 +16,9 @@ namespace WHMapper.Services.Anoik
         private JsonElement _jsonEffects;
         private JsonElement _jsonWormholes;
         
+
+        //private HttpClient _client;
+
         public AnoikServices()
         {
             Task.Run(() => Init()).Wait();
