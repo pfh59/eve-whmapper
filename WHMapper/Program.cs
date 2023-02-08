@@ -64,7 +64,7 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.ClientId = evessoConf["ClientId"];
     options.ClientSecret = evessoConf["Secret"];
-    options.CallbackPath = new PathString("/callback");
+    options.CallbackPath = new PathString("/sso/callback");
     options.Scope.Clear();
     options.Scope.Add("esi-location.read_location.v1");
     options.Scope.Add("esi-location.read_ship_type.v1");
