@@ -31,8 +31,6 @@ using Microsoft.Extensions.Options;
 using WHMapper.Services.WHColor;
 using WHMapper.Repositories.WHSystemLinks;
 using System;
-using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,13 +43,6 @@ builder.Services.AddDbContext<WHMapperContext>(options =>
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
-
-
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-});
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
@@ -73,7 +64,7 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.ClientId = evessoConf["ClientId"];
     options.ClientSecret = evessoConf["Secret"];
-    options.CallbackPath = new PathString("/sso/callback");
+    options.CallbackPath = new PathString("/callback");
     options.Scope.Clear();
     options.Scope.Add("esi-location.read_location.v1");
     options.Scope.Add("esi-location.read_ship_type.v1");
