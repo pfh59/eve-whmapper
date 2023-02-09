@@ -10,6 +10,8 @@ namespace WHMapper.Services.Anoik
 {
     public class AnoikServices : IAnoikServices
     {
+        private readonly ILogger _logger;
+
         private const string _anoikjson = "http://anoik.is/static/static.json";
         private JsonDocument? _json;
         private JsonElement _jsonSystems;
@@ -17,28 +19,32 @@ namespace WHMapper.Services.Anoik
         private JsonElement _jsonWormholes;
         
 
-        //private HttpClient _client;
 
-        public AnoikServices()
+        public AnoikServices(ILogger<AnoikServices> logger)
         {
+            _logger = logger;
             Task.Run(() => Init()).Wait();
+            _logger.LogInformation("AnoikServices Initialization");
         }
 
 
         private async Task Init()
         {
-            var _client = new HttpClient();
+          
+            /*var _client = new HttpClient();
 
             HttpResponseMessage response = await _client.GetAsync(_anoikjson);
             response.EnsureSuccessStatusCode();
 
             Stream anoikStream = await response.Content.ReadAsStreamAsync();
+            */
+            string jsonText = File.ReadAllText(@"./Resources/Anoik/Static.json");
 
-
-            _json = JsonDocument.Parse(anoikStream);
+            _json = JsonDocument.Parse(jsonText);
             _jsonSystems = _json.RootElement.GetProperty("systems");
             _jsonEffects = _json.RootElement.GetProperty("effects");
             _jsonWormholes = _json.RootElement.GetProperty("wormholes");
+            
         }
 
 

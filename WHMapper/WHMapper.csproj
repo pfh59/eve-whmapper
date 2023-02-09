@@ -54,6 +54,8 @@
     <None Remove="Services\WHColor\" />
     <None Remove="Models\Db\Enums\" />
     <None Remove="Repositories\WHSystemLinks\" />
+    <None Remove="Resources\" />
+    <None Remove="Resources\Anoik\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.0.15" />
@@ -102,5 +104,7 @@
     <Folder Include="Services\WHColor\" />
     <Folder Include="Models\Db\Enums\" />
     <Folder Include="Repositories\WHSystemLinks\" />
+    <Folder Include="Resources\" />
+    <Folder Include="Resources\Anoik\" />
   </ItemGroup>
 </Project>

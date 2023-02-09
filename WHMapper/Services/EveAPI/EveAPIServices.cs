@@ -9,16 +9,19 @@ namespace WHMapper.Services.EveAPI
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
+        private readonly ILogger _logger;
 
         public ILocationServices LocationServices { get; private set; }
         public IUniverseServices UniverseServices { get; private set; }
 
 
-        public EveAPIServices(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
+        public EveAPIServices(ILogger<EveAPIServices> logger,IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
+            _logger = logger;
 
+            _logger.LogInformation("Init EveAPIServices");
             var eveAPIClient = _httpClientFactory.CreateClient();
 
             LocationServices = new LocationServices(eveAPIClient, _tokenProvider);
