@@ -12,7 +12,7 @@ namespace WHMapper.Services.Anoik
     {
         private readonly ILogger _logger;
 
-        private const string _anoikjson = "http://anoik.is/static/static.json";
+        private const string _anoikjson = @"./Resources/Anoik/static.json";
         private JsonDocument? _json;
         private JsonElement _jsonSystems;
         private JsonElement _jsonEffects;
@@ -23,28 +23,14 @@ namespace WHMapper.Services.Anoik
         public AnoikServices(ILogger<AnoikServices> logger)
         {
             _logger = logger;
-            Task.Run(() => Init()).Wait();
-            _logger.LogInformation("AnoikServices Initialization");
-        }
-
-
-        private async Task Init()
-        {
-          
-            /*var _client = new HttpClient();
-
-            HttpResponseMessage response = await _client.GetAsync(_anoikjson);
-            response.EnsureSuccessStatusCode();
-
-            Stream anoikStream = await response.Content.ReadAsStreamAsync();
-            */
-            string jsonText = File.ReadAllText(@"./Resources/Anoik/Static.json");
+            string jsonText = File.ReadAllText(_anoikjson);
 
             _json = JsonDocument.Parse(jsonText);
             _jsonSystems = _json.RootElement.GetProperty("systems");
             _jsonEffects = _json.RootElement.GetProperty("effects");
             _jsonWormholes = _json.RootElement.GetProperty("wormholes");
-            
+
+            _logger.LogInformation("AnoikServices Initialization");
         }
 
 
@@ -53,7 +39,6 @@ namespace WHMapper.Services.Anoik
         {
             var sys = _jsonSystems.GetProperty(systemName);
             var whClass = sys.GetProperty("wormholeClass");
-
 
             return Task.FromResult(whClass.GetString().ToUpper());
         }
@@ -81,7 +66,6 @@ namespace WHMapper.Services.Anoik
             }
 
             return res;
-
         }
 
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetSystemEffectsInfos(string effectName, string systemClass)
@@ -94,9 +78,6 @@ namespace WHMapper.Services.Anoik
             }
             if (classlvl > 6)
                 classlvl = 6;
-
-            if (_json == null)
-                await Init();
 
             var effects = _jsonEffects.GetProperty(effectName);
             var res = new Dictionary<string, string>();
