@@ -128,17 +128,21 @@ builder.Services.AddSingleton<IWHColorHelper, WHColorHelper>();
 
 var app = builder.Build();
 
+if (!app.Environment.IsProduction())
+{
+    app.Use((context, next) =>
+    {
+        context.Request.Scheme = "https";
+        return next(context);
+    });
+}
+app.UseForwardedHeaders();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseForwardedHeaders();
     app.UseHsts();
-}
-else
-{
-    app.UseForwardedHeaders();
 }
 
 app.UseHttpsRedirection();
@@ -152,6 +156,12 @@ app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+
+app.Use((context, next) =>
+{
+    context.Request.Scheme = "https";
+    return next();
+});
 
 app.Run();
 
