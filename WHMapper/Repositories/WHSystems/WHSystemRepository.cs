@@ -24,8 +24,12 @@ namespace WHMapper.Repositories.WHSystems
             }
             catch (Exception ex)
             {
-                semSlim.Release();
+                
                 return null;
+            }
+            finally
+            {
+                semSlim.Release();
             }
         }
 
