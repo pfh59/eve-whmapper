@@ -5,9 +5,6 @@ namespace WHMapper.Models.DTO
     {
         public string AccessToken { get; set; } = String.Empty;
         public string RefreshToken { get; set; } = String.Empty;
-        public string CharacterId { get; set; } = String.Empty;
-
-
     }
 }
 

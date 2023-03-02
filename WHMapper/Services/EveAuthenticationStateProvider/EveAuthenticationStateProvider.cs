@@ -19,9 +19,10 @@ using WHMapper.Services.EveOAuthProvider;
 namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 {
 
-    public class EveJWTAuthenticationStateProvider : AuthenticationStateProvider
+    public class EveAuthenticationStateProvider : AuthenticationStateProvider
     {
-       
+        private const string revokendpoint = "https://login.eveonline.com/v2/oauth/revoke";
+
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokkenInfo;
         private readonly IConfiguration _configurationManager;
@@ -32,7 +33,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
        
 
-        public EveJWTAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo) : base()
+        public EveAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo) : base()
         {
             _configurationManager = configurationManager;
              _httpClientFactory = httpClientFactory;
@@ -43,7 +44,6 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
             if (_httpClient == null)
             {
-
                 _httpClient = _httpClientFactory.CreateClient();
                 _httpClient.BaseAddress = new Uri("https://login.eveonline.com");
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", _clientKey);
@@ -61,7 +61,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 return anonymousState;
 
 
-            if (await IsTokenExpired())
+            if (await IsTokenExpired())//auto renew token
             {
                 EveToken newEveToken = await RenewToken();
 
@@ -84,7 +84,6 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             var securityToken = SecurityTokenHandle.ReadJsonWebToken(_tokkenInfo.AccessToken);
             var expiry = EVEOnlineAuthenticationHandler.ExtractClaim(securityToken, "exp");
 
-            //◊= securityToken.Claims.Where(claim => claim.Type.Equals("exp")).FirstOrDefault();
             if (expiry == null)
                 return Task.FromResult(true);
 
@@ -100,9 +99,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
         private async Task<EveToken?> RenewToken()
         {
             var body = $"grant_type=refresh_token&refresh_token={Uri.EscapeDataString(_tokkenInfo.RefreshToken)}";
-
             HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-
 
 
             var response = await _httpClient.PostAsync(EVEOnlineAuthenticationDefaults.TokenEndpoint, postBody);
@@ -117,6 +114,10 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 return JsonSerializer.Deserialize<EveToken>(result);
             } 
         }
+
+
     }
 }
+
+
 

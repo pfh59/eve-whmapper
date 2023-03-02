@@ -39,15 +39,12 @@
                         <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")"/>
                     </ChildContent>
                     <TooltipContent>
-                        <MudCard>
-                            <MudCardContent>
-                            
-                                @foreach (var effectInfo in CurrentSystemNode?.EffectsInfos)
-                                    {
-                                    <MudText Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
-                                    }
-                            </MudCardContent>
-                        </MudCard>
+                        <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
+                            @foreach (var effectInfo in CurrentSystemNode?.EffectsInfos)
+                            {
+                                <MudText class="ma-1" Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
+                            }
+                        </MudPaper>
                     </TooltipContent>
                 </MudTooltip>
             }

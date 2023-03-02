@@ -4,6 +4,8 @@ using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Extensions;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
+using static MudBlazor.CategoryTypes;
+using WHMapper.Services.WHColor;
 
 namespace WHMapper.Models.Custom.Node
 {
@@ -32,7 +34,7 @@ namespace WHMapper.Models.Custom.Node
             {
 
                 _whLink.IsEndOfLifeConnection = value;
-
+                //SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
             }
         }
 
@@ -45,23 +47,7 @@ namespace WHMapper.Models.Custom.Node
             set
             {
                 _whLink.Size = value;
-                this.Labels.Clear();
-                switch (_whLink.Size)
-                {
-                    case SystemLinkSize.Small:
-                        this.Labels.Add(new LinkLabelModel(this, "S"));
-                        break;
-                    case SystemLinkSize.Medium:
-                        this.Labels.Add(new LinkLabelModel(this, "M"));
-                        break;
-                    //case SystemLinkSize.Large:
-                    //    this.Labels.Add(new LinkLabelModel(this, "L"));
-                    //    break;
-                    case SystemLinkSize.XLarge:
-                        this.Labels.Add(new LinkLabelModel(this, "XL"));
-                        break;
-                }
-
+                SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
             }
         }
 
@@ -75,14 +61,61 @@ namespace WHMapper.Models.Custom.Node
             set
             {
                 _whLink.MassStatus = value;
+                //Color = GetLinkStatusColor(_whLink.MassStatus);
+                //SelectedColor = GetLinkStatusColor(_whLink.MassStatus);
             }
         }
 
+        private void SetLabel(bool isEol,SystemLinkSize size)
+        {
+            this.Labels.Clear();
+            switch (size)
+            {
+                case SystemLinkSize.Small:
+                    this.Labels.Add(new LinkLabelModel(this, "S"));
+                    break;
+                case SystemLinkSize.Medium:
+                    this.Labels.Add(new LinkLabelModel(this, "M"));
+                    break;
+                //case SystemLinkSize.Large:
+                //    this.Labels.Add(new LinkLabelModel(this, "L"));
+                //    break;
+                case SystemLinkSize.XLarge:
+                    this.Labels.Add(new LinkLabelModel(this, "XL"));
+                    break;
+            }
+            /*
+            if(isEol)
+            {
+                this.Labels.Add(new LinkLabelModel(this, "EOL"));
+            }*/
+        }
 
-    public EveSystemLinkModel(WHSystemLink whLink,EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
+        /*
+        private string GetLinkStatusColor(SystemLinkMassStatus status)
+        {
+            switch (status)
+            {
+                case SystemLinkMassStatus.Normal:
+                    return "#3C3F41";
+                case SystemLinkMassStatus.Critical:
+                    return "#e28a0d";
+                case SystemLinkMassStatus.Verge:
+                    return "#a52521";
+            }
+
+            return "#3C3F41";
+        }*/
+
+
+        public EveSystemLinkModel(WHSystemLink whLink,EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
             : base (sourcePort, targetPort)
         {
             _whLink = whLink;
+            //Color = GetLinkStatusColor(_whLink.MassStatus);
+            //SelectedColor = GetLinkStatusColor(_whLink.MassStatus);
+            SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
+            
         }
 
     }

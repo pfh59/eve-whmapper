@@ -1,10 +1,14 @@
-﻿using WHMapper.Models.DTO;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI.Location;
 using WHMapper.Services.EveAPI.Universe;
-
+using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveAPI
 {
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class EveAPIServices : IEveAPIServices
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -15,7 +19,7 @@ namespace WHMapper.Services.EveAPI
         public IUniverseServices UniverseServices { get; private set; }
 
 
-        public EveAPIServices(ILogger<EveAPIServices> logger,IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
+        public EveAPIServices(ILogger<EveAPIServices> logger,IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
@@ -24,7 +28,7 @@ namespace WHMapper.Services.EveAPI
             _logger.LogInformation("Init EveAPIServices");
             var eveAPIClient = _httpClientFactory.CreateClient();
 
-            LocationServices = new LocationServices(eveAPIClient, _tokenProvider);
+            LocationServices = new LocationServices(eveAPIClient, _tokenProvider, userService);
             UniverseServices = new UniverseServices(eveAPIClient, _tokenProvider);
         }
     }

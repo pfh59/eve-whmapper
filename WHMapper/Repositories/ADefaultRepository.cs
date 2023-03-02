@@ -22,13 +22,17 @@ namespace WHMapper.Repositories
         protected abstract Task<T?> AUpdate(U id, T item);
         protected abstract Task<T?> ADeleteById(U id);
 
+
+        protected static SemaphoreSlim semSlim = new SemaphoreSlim(1, 1);
+
         public ADefaultRepository(C dbContext)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext; 
         }
 
         public async Task<T?> Create(T item)
         {
+
             return await ACreate(item);
         }
 

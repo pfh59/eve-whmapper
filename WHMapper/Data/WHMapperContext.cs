@@ -18,7 +18,6 @@ namespace WHMapper.Data
         }
 
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<WHMap>().ToTable("Maps");

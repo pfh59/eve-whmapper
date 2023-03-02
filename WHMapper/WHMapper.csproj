@@ -45,7 +45,6 @@
     <None Remove="Repositories\WHSystems\IWHSystemcs" />
     <None Remove="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <None Remove="FluentValidation" />
-    <None Remove="Services\EveJwtAuthenticationStateProvider\" />
     <None Remove="ESI.NET" />
     <None Remove="Microsoft.IdentityModel.Protocols" />
     <None Remove="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
@@ -56,6 +55,8 @@
     <None Remove="Repositories\WHSystemLinks\" />
     <None Remove="Resources\" />
     <None Remove="Resources\Anoik\" />
+    <None Remove="Microsoft.AspNetCore.SignalR.Client" />
+    <None Remove="Services\EveRefreshService\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.0.15" />
@@ -75,6 +76,7 @@
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.23.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.14" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
@@ -99,7 +101,6 @@
     <Folder Include="Repositories\" />
     <Folder Include="Repositories\WHMaps\" />
     <Folder Include="Repositories\WHSystems\" />
-    <Folder Include="Services\EveJwtAuthenticationStateProvider\" />
     <Folder Include="Models\DTO\EveAPI\SSO\" />
     <Folder Include="Services\WHColor\" />
     <Folder Include="Models\Db\Enums\" />

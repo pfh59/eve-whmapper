@@ -32,18 +32,48 @@ using WHMapper.Services.WHColor;
 using WHMapper.Repositories.WHSystemLinks;
 using System;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
+using WHMapper.Hubs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
+using WHMapper.Services.EveJwkExtensions;
+using System.Net;
+using WHMapper.Services.EveOnlineUserInfosProvider;
+using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
 builder.Services.AddDbContext<WHMapperContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))/*, ServiceLifetime.Transient*/);
 
+builder.Services.AddSignalR();
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 10000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
+
+//signalR  compression
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "application/octet-stream" });
+});
+
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -60,15 +90,13 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 
 
 IConfigurationSection evessoConf = builder.Configuration.GetSection("EveSSO");
-AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication(options =>
+AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = EVEOnlineAuthenticationDefaults.AuthenticationScheme;
+    options.SlidingExpiration = true;
 })
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.ClientId = evessoConf["ClientId"];
     options.ClientSecret = evessoConf["Secret"];
     options.CallbackPath = new PathString("/sso/callback");
@@ -79,8 +107,8 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
     options.Scope.Add("esi-ui.write_waypoint.v1");
     options.SaveTokens = true;
     options.UsePkce = true;
-});
-
+})
+.AddEveOnlineJwtBearer();//validate hub tokken
 
 
 
@@ -109,26 +137,29 @@ using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
 }
 
 
-builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<TokenProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider, EveJWTAuthenticationStateProvider>();
 
+builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStateProvider>();
+
+builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
 builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();
-
 builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
 
+#region DB Acess Repo
 builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
 builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
 builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
 builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
+#endregion
 
 builder.Services.AddSingleton<IWHColorHelper, WHColorHelper>();
 
 var app = builder.Build();
 
-if (!app.Environment.IsProduction())
+if (app.Environment.IsProduction())
 {
     app.Use((context, next) =>
     {
@@ -155,13 +186,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapBlazorHub();
+app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR
 app.MapFallbackToPage("/_Host");
-
-app.Use((context, next) =>
-{
-    context.Request.Scheme = "https";
-    return next();
-});
 
 app.Run();
 

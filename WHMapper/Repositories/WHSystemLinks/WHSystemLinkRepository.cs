@@ -14,6 +14,7 @@ namespace WHMapper.Repositories.WHSystemLinks
 
         protected override async Task<WHSystemLink?> ACreate(WHSystemLink item)
         {
+            await semSlim.WaitAsync();
             try
             {
                 await _dbContext.DbWHSystemLinks.AddAsync(item);
@@ -25,6 +26,10 @@ namespace WHMapper.Repositories.WHSystemLinks
             {
                 return null;
             }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         protected override async Task<WHSystemLink?> ADeleteById(int id)
@@ -34,30 +39,62 @@ namespace WHMapper.Repositories.WHSystemLinks
             if (item == null)
                 return null;
 
-            _dbContext.DbWHSystemLinks.Remove(item);
-            await _dbContext.SaveChangesAsync();
+            await semSlim.WaitAsync();
+            try
+            {
+                _dbContext.DbWHSystemLinks.Remove(item);
+                await _dbContext.SaveChangesAsync();
 
-            return item;
+                return item;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         protected override async Task<IEnumerable<WHSystemLink>?> AGetAll()
         {
-            return await _dbContext.DbWHSystemLinks.ToListAsync();
+            await semSlim.WaitAsync();
+            try
+            {
+                return await _dbContext.DbWHSystemLinks.ToListAsync();
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         protected override async Task<WHSystemLink?> AGetById(int id)
         {
-            return await _dbContext.DbWHSystemLinks.FindAsync(id);
+            await semSlim.WaitAsync();
+            try
+            {
+                return await _dbContext.DbWHSystemLinks.FindAsync(id);
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         protected override async Task<WHSystemLink?> AUpdate(int id, WHSystemLink item)
         {
-            if (id != item.Id)
-                return null;
+            await semSlim.WaitAsync();
+            try
+            {
+                if (id != item.Id)
+                    return null;
 
-            _dbContext.Entry(item).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
-            return item;
+                _dbContext?.DbWHSystemLinks?.Update(item);
+                await _dbContext.SaveChangesAsync();
+                return item;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
     }
 }

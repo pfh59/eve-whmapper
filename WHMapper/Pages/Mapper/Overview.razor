@@ -1,13 +1,11 @@
 ﻿@page "/whmapper"
+
 @using Blazor.Diagrams.Core;
 @using Blazor.Diagrams.Core.Geometry;
 @using Blazor.Diagrams.Core.Models;
 @using Blazor.Diagrams.Components;
 @using Blazor.Diagrams.Algorithms;
 @using WHMapper.Models.Db.Enums;
-
-
-
 
 
 <MudGrid Class="@(_loading ? "invisible" : "visible")">
@@ -50,7 +48,7 @@
                     </MudMenu>
                 </div>
             </ChildContent>
-          </MudMenu>
+        </MudMenu>
     </MudItem>
     <MudItem xs="3">
         <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />

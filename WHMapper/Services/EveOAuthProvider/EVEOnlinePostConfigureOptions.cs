@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace WHMapper.Services.EveOAuthProvider
 {
@@ -11,7 +12,10 @@ namespace WHMapper.Services.EveOAuthProvider
             [NotNull] string name,
             [NotNull] EVEOnlineAuthenticationOptions options)
         {
-
+            if (options.SecurityTokenHandler == null)
+            {
+                options.SecurityTokenHandler = new JsonWebTokenHandler();
+            }
         }
     }
 }

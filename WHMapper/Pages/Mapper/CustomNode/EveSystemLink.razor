@@ -1,4 +1,4 @@
-﻿@using Blazor.Diagrams.Core.Geometry;
+﻿@using Blazor.Diagrams.Components.Renderers
 
 @{
     var result = Link.PathGeneratorResult;
@@ -26,3 +26,9 @@ else
 }
 
 <path d="@d" fill="none" stroke-width="4" stroke="@WHColorHelper?.GetLinkStatusColor(Link.MassStatus)" />
+
+
+@foreach (var label in Link.Labels)
+{
+    <LinkLabelRenderer @key="label.Id" Label="@label" Path="@result.FullPath" />
+}

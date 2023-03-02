@@ -13,6 +13,7 @@ using Severity = MudBlazor.Severity;
 using Microsoft.AspNetCore.Hosting.Server;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -21,11 +22,13 @@ namespace WHMapper.Pages.Mapper.Signatures
     {
         private const string _scanResultRegex = "[a-zA-Z]{3}-[0-9]{3}\\s([a-zA-Z\\s]+)[0-9]*.[0-9]+%\\s[0-9]*.[0-9]+\\sAU";
 
+
         [Inject]
-        private AuthenticationStateProvider AuthState {get;set;}
+        public IEveUserInfosServices UserService { get; set; }
 
         [Inject]
         public ISnackbar Snackbar { get; set; }
+
         [Inject]
         IWHSystemRepository? DbWHSystems { get; set; }
 
@@ -160,8 +163,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             Regex tabRegex = new Regex("\t");
             string[] sigvalues = lineRegex.Split(_scanResult);
 
-            var state = await AuthState.GetAuthenticationStateAsync();
-            string? scanUser = state?.User?.Identity?.Name;
+            string scanUser = await UserService.GetUserName();
 
             foreach (string sigValue in sigvalues)
             {

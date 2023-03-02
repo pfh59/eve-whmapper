@@ -1,0 +1,14 @@
+﻿using System;
+namespace WHMapper.Services.EveJwkExtensions
+{
+	public class EveOnlineJwkDefaults
+	{
+        public const string AuthenticationScheme = "EveOnlineBearer";
+
+        public static readonly string SSOUrl = "https://login.eveonline.com";
+        public static readonly string JWKEndpoint = "https://login.eveonline.com/oauth/jwks";
+        public static readonly string ValideIssuer = "login.eveonline.com";
+        public static readonly string ValideAudience = "EVE Online";
+    }
+}
+
