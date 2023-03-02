@@ -3,7 +3,7 @@
 
 
 <MudCard Outlined="true" Style="@(Node.Selected ? "border-color:white;" : "border-color:grey;")">
-    <MudCardHeader>
+    <MudCardHeader Class="mb-n5">
         <CardHeaderAvatar>
             <MudAvatar Style="@($"color:{_systemColor}; background:white;")">@Node.Class</MudAvatar>
         </CardHeaderAvatar>
@@ -18,14 +18,12 @@
                         <MudIcon Icon="@Icons.Material.Filled.Square" DisableElevation="true" Style="@($"color:{_whEffectColor};")" Size="Size.Small" />
                     </ChildContent>
                     <TooltipContent>
-                        <MudCard>
-                            <MudCardContent>
-                                @foreach (var effectInfo in @Node?.EffectsInfos)
-                                {
-                                    <MudText Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
-                                }
-                            </MudCardContent>
-                        </MudCard>
+                        <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
+                            @foreach (var effectInfo in @Node?.EffectsInfos)
+                            {
+                                <MudText class="ma-1" Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
+                            }
+                        </MudPaper>
                     </TooltipContent>
                 </MudTooltip>
             }
@@ -35,17 +33,19 @@
             }
         </CardHeaderActions>
     </MudCardHeader>
-        @if (Node?.Statics != null && Node?.Statics.Count() > 0)
-        {
-            <MudCardContent Class="d-flex justify-end pa-1 pr-2 mt-n7">
+
+    <MudCardContent Class="d-flex pa-1 pr-2 justify-end">
+        <MudText Class="align-self-stretch pr-10 pt-1" Typo="Typo.caption">@Node?.ConnectedUsers.FirstOrDefault()</MudText>
+        <div Class="d-flex justify-end pr-2">
+            @if (Node?.Statics != null && Node?.Statics.Count() > 0)
+            {
                 @foreach (var item in Node?.Statics)
                 {
-                <MudText Class="align-self-stretch" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
+                    <MudText Class="align-self-stretch" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
                 }
-            </MudCardContent>
-        }
-      
-        
+            }
+            </div> 
+    </MudCardContent>
 </MudCard>
 
 @foreach (var port in Node.Ports)

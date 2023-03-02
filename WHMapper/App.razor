@@ -1,17 +1,4 @@
-﻿@*<Router AppAssembly="@typeof(App).Assembly">
-        <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-        </Found>
-        <NotFound>
-            <PageTitle>Not found</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
-            </LayoutView>
-        </NotFound>
-    </Router>*@
-
-@using Models.DTO;
+﻿@using Models.DTO;
 @inject TokenProvider TokenProvider
 
 <CascadingAuthenticationState>
@@ -28,20 +15,21 @@
             </AuthorizeRouteView>
         </Found>
         <NotFound>
-            <p>Sorry, there's nothing at this address.</p>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p>Sorry, there's nothing at this address.</p>
+            </LayoutView>
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
 
 @code {
     [Parameter]
-    public InitialApplicationState InitialState { get; set; }
+    public InitialApplicationState? InitialState { get; set; }
 
     protected override Task OnInitializedAsync()
     {
-        TokenProvider.AccessToken = InitialState.AccessToken;
-        TokenProvider.RefreshToken = InitialState.RefreshToken;
-        TokenProvider.CharacterId = InitialState.CharacterId;
+        TokenProvider.AccessToken = InitialState?.AccessToken;
+        TokenProvider.RefreshToken = InitialState?.RefreshToken;
 
         return base.OnInitializedAsync();
     }

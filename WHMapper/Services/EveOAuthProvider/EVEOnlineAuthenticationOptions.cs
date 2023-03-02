@@ -1,10 +1,16 @@
 ﻿using System;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace WHMapper.Services.EveOAuthProvider
 {
     public class EVEOnlineAuthenticationOptions : OAuthOptions
     {
+        /// <summary>
+        /// Gets or sets the optional <see cref="JsonWebTokenHandler"/> to use.
+        /// </summary>
+        public JsonWebTokenHandler SecurityTokenHandler { get; set; } = default!;
+
         public EVEOnlineAuthenticationOptions()
         {
             ClaimsIssuer = EVEOnlineAuthenticationDefaults.Issuer;

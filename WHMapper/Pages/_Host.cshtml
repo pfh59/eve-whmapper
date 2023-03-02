@@ -3,19 +3,21 @@
 @using WHMapper.Models.DTO;
 @using System.Security.Claims
 @using Microsoft.Net.Http.Headers;
+@using WHMapper.Services.EveOAuthProvider;
+
 @namespace WHMapper.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = "_Layout";
 
-    
+
     var tokens = new InitialApplicationState
     {
-        AccessToken = await HttpContext.GetTokenAsync("EVEOnline", "access_token"),
-        RefreshToken = await HttpContext.GetTokenAsync("EVEOnline", "refresh_token"),
-        CharacterId = (HttpContext.User.Identity.Name == null ? string.Empty : HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value),
+        AccessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token"),
+        RefreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token"),
     };
 }
 
-<component type="typeof(App)" render-mode="ServerPrerendered" param-InitialState="tokens" />
+
+<component type="typeof(App)" render-mode="Server" param-InitialState="tokens" />
 

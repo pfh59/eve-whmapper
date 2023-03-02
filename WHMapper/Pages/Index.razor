@@ -1,14 +1,4 @@
-﻿@*@page "/"
-
-    <PageTitle>Index</PageTitle>
-
-    <h1>Hello, world!</h1>
-
-    Welcome to your new app.
-
-    <SurveyPrompt Title="How is Blazor working for you?" />*@
-
-@page "/"
+﻿@page "/"
 
 @inject AuthenticationStateProvider AuthState
 @attribute [Authorize]
@@ -21,7 +11,7 @@ You can only see this content if you're authenticated.
 @code {
     private string Username = "Anonymous User";
     private string Picture = "";
-
+    
     protected override async Task OnInitializedAsync()
     {
 

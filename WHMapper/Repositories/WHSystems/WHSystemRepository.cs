@@ -14,6 +14,7 @@ namespace WHMapper.Repositories.WHSystems
 
         protected override async Task<WHSystem?> ACreate(WHSystem item)
         {
+            await semSlim.WaitAsync();
             try
             {
                 await _dbContext.DbWHSystems.AddAsync(item);
@@ -23,7 +24,12 @@ namespace WHMapper.Repositories.WHSystems
             }
             catch (Exception ex)
             {
+                
                 return null;
+            }
+            finally
+            {
+                semSlim.Release();
             }
         }
 
@@ -34,43 +40,84 @@ namespace WHMapper.Repositories.WHSystems
             if (item == null)
                 return null;
 
-            _dbContext.DbWHSystems.Remove(item);
-            await _dbContext.SaveChangesAsync();
+            await semSlim.WaitAsync();
+            try
+            {
 
-            return item;
+                _dbContext.DbWHSystems.Remove(item);
+                await _dbContext.SaveChangesAsync();
+
+                return item;
+            }
+            finally
+            {
+                semSlim.Release();
+            } 
         }
 
         protected override async Task<IEnumerable<WHSystem>?> AGetAll()
         {
-
-            if (_dbContext?.DbWHSystems?.Count() == 0)
-                return await _dbContext.DbWHSystems.ToListAsync();
-            else
-                return await _dbContext?.DbWHSystems?.OrderBy(x => x.Name)
-                        ?.Include(x => x.WHSignatures)
-                        ?.ToListAsync();
+            await semSlim.WaitAsync();
+            try
+            {
+                if (_dbContext?.DbWHSystems?.Count() == 0)
+                    return await _dbContext.DbWHSystems.ToListAsync();
+                else
+                    return await _dbContext?.DbWHSystems?.OrderBy(x => x.Name)
+                            ?.Include(x => x.WHSignatures)
+                            ?.ToListAsync();
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         protected override async Task<WHSystem?> AGetById(int id)
         {
-            return await _dbContext?.DbWHSystems
-                .Include(x => x.WHSignatures)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            await semSlim.WaitAsync();
+            try
+            {
+                return await _dbContext?.DbWHSystems
+                     .Include(x => x.WHSignatures)
+                     .FirstOrDefaultAsync(x => x.Id == id);
+            }
+            finally
+            {
+                semSlim.Release();
+            }
+
         }
 
         protected override async Task<WHSystem?> AUpdate(int id, WHSystem item)
         {
-            if (id != item.Id)
-                return null;
+            await semSlim.WaitAsync();
+            try
+            {
+                if (id != item.Id)
+                    return null;
 
-            _dbContext.Entry(item).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
-            return item;
+                _dbContext?.DbWHSystems?.Update(item);
+                await _dbContext?.SaveChangesAsync();
+                return item;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         public async Task<WHSystem?> GetByName(string name)
         {
-            return await _dbContext?.DbWHSystems?.Include(x => x.WHSignatures)?.FirstOrDefaultAsync(x => x.Name == name);
+            await semSlim.WaitAsync();
+            try
+            {
+                return await _dbContext?.DbWHSystems?.Include(x => x.WHSignatures)?.FirstOrDefaultAsync(x => x.Name == name);
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         public async Task<WHSignature?> AddWHSignature(int idWHSystem, WHSignature whSignature)
@@ -79,9 +126,9 @@ namespace WHMapper.Repositories.WHSystems
             if (system == null)
                 return null;
 
+
             _dbContext?.DbWHSignatures?.Add(whSignature);
             system.WHSignatures.Add(whSignature);
-
 
             await this.Update(idWHSystem, system);
 
@@ -113,14 +160,21 @@ namespace WHMapper.Repositories.WHSystems
             if (system == null)
                 return null;
 
-            var sig = system.WHSignatures.Where(x => x.Id == idWHSignature).FirstOrDefault();
-            if (sig == null)
-                return null;
+            await semSlim.WaitAsync();
+            try
+            {
+                var sig = system.WHSignatures.Where(x => x.Id == idWHSignature).FirstOrDefault();
+                if (sig == null)
+                    return null;
 
-            _dbContext?.DbWHSignatures?.Remove(sig);
-            await _dbContext?.SaveChangesAsync();
-
-            return sig;
+                _dbContext?.DbWHSignatures?.Remove(sig);
+                await _dbContext?.SaveChangesAsync();
+                return sig;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
 
         }
 

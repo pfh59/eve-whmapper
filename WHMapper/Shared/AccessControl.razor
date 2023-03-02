@@ -1,4 +1,5 @@
-﻿@inject AuthenticationStateProvider AuthState
+﻿@using WHMapper.Services.EveOnlineUserInfosProvider
+@inject IEveUserInfosServices UserService
 
 <AuthorizeView>
     <Authorized>
@@ -25,15 +26,13 @@
 </AuthorizeView>
 
 
+
 @code {
     private string Username = "Anonymous";
 
     protected override async Task OnInitializedAsync()
     {
-        var state = await AuthState.GetAuthenticationStateAsync();
-
-        if (!String.IsNullOrEmpty(state?.User?.Identity?.Name))
-            Username = state.User.Identity.Name;
+        Username = await UserService.GetUserName();
 
         await base.OnInitializedAsync();
     }
