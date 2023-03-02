@@ -21,6 +21,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
     public class EveJWTAuthenticationStateProvider : AuthenticationStateProvider
     {
+       
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokkenInfo;
         private readonly IConfiguration _configurationManager;
@@ -29,7 +30,9 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
         private readonly HttpClient? _httpClient = null;
         private readonly string _clientKey;
 
-        public EveJWTAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo)
+       
+
+        public EveJWTAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo) : base()
         {
             _configurationManager = configurationManager;
              _httpClientFactory = httpClientFactory;
@@ -46,11 +49,10 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", _clientKey);
                 _httpClient.DefaultRequestHeaders.Host = "login.eveonline.com";
             }
-            
-
 
         }
 
+        
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var anonymousState = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -72,7 +74,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 }
             }
 
-            var claims = EVEOnlineAuthenticationHandler.ExtractClaimsFromToken(_tokkenInfo.AccessToken);
+            var claims = EVEOnlineAuthenticationHandler.ExtractClaimsFromEVEToken(_tokkenInfo.AccessToken);
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
         }
 
