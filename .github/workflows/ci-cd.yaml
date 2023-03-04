@@ -77,7 +77,7 @@ jobs:
         #  dotnet build WHMapper -c Release --no-restore
         #  dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
         run: |
-          dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet build WHMapper -c Release --no-restore
           dotnet-coverage collect "dotnet test WHMapper.Tests -c Release" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
