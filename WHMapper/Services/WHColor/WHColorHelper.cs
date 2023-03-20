@@ -125,9 +125,9 @@ namespace WHMapper.Services.WHColor
                 return PULSAR_COLOR;
             else if (effectName == WH_REDGIANT)
                 return REDGIANT_COLOR;
-            else if (effectName == WH_REDGIANT)
-                return BLACKHOLE_COLOR;
             else if (effectName == WH_BLACKHOLE)
+                return BLACKHOLE_COLOR;
+            else if (effectName == WH_MAGNETAR)
                 return  MAGNETAR_COLOR;
             else if (effectName == WH_WOLFRAYET)
                 return  WOLFRAYER_COLOR;
