@@ -1,30 +1,31 @@
-﻿namespace WHMapper.Models.DTO.EveAPI.Universe
+﻿using System.Text.Json.Serialization;
+
+namespace WHMapper.Models.DTO.EveAPI.Universe
 {
     public class Star
     {
-        /*
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("solar_system_id")]
+        [JsonPropertyName("solar_system_id")]
         public int SolarSystemId { get; set; }
 
-        [JsonProperty("type_id")]
+        [JsonPropertyName("type_id")]
         public int TypeId { get; set; }
 
-        [JsonProperty("age")]
+        [JsonPropertyName("age")]
         public long Age { get; set; }
 
-        [JsonProperty("luminosity")]
+        [JsonPropertyName("luminosity")]
         public decimal Luminosity { get; set; }
 
-        [JsonProperty("radius")]
+        [JsonPropertyName("radius")]
         public long Radius { get; set; }
 
-        [JsonProperty("spectral_class")]
+        [JsonPropertyName("spectral_class")]
         public string SpectralClass { get; set; }
 
-        [JsonProperty("temperature")]
-        public int Temperature { get; set; }*/
+        [JsonPropertyName("temperature")]
+        public int Temperature { get; set; }
     }
 }

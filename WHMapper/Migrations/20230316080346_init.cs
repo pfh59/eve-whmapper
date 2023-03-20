@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace WHMapper.Migrations
 {
-    public partial class Init : Migration
+    public partial class init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -54,6 +54,7 @@ namespace WHMapper.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    NameExtension = table.Column<byte>(type: "smallint", nullable: false),
                     SecurityStatus = table.Column<float>(type: "real", nullable: false),
                     PosX = table.Column<double>(type: "double precision", nullable: false),
                     PosY = table.Column<double>(type: "double precision", nullable: false),

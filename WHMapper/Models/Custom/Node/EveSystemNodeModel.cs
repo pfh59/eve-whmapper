@@ -29,6 +29,16 @@ namespace WHMapper.Models.Custom.Node
             }
          }
 
+        public string? NameExtension
+        {
+            get
+            {
+                if(_wh.NameExtension!=null && _wh.NameExtension!=0)
+                    return Convert.ToChar(_wh.NameExtension).ToString();
+                return null;
+            }
+        }
+
         public float SecurityStatus
         {
             get
@@ -40,6 +50,8 @@ namespace WHMapper.Models.Custom.Node
 
             }
         }
+
+
         public String? Class { get; private set; }
         public String? Effect { get; private set; }
         public IEnumerable<KeyValuePair<string, string>>? Statics { get; private set; }
@@ -55,10 +67,8 @@ namespace WHMapper.Models.Custom.Node
             Effect = whEffects;
             EffectsInfos = whEffectsInfos;
             Statics = whStatics;
-
         }
 
-    
         public EveSystemNodeModel(WHSystem wh)
         {
             _wh = wh;

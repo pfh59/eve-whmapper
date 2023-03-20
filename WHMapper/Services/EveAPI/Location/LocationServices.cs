@@ -10,7 +10,7 @@ namespace WHMapper.Services.EveAPI.Location
 {
     internal class LocationServices : AEveApiServices,ILocationServices
     {
-        private readonly IEveUserInfosServices _userService;
+        private readonly IEveUserInfosServices? _userService = null!;
 
 
         public LocationServices(HttpClient httpClient, TokenProvider _tokenProvider, IEveUserInfosServices userService) : base(httpClient, _tokenProvider)
@@ -21,7 +21,7 @@ namespace WHMapper.Services.EveAPI.Location
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<EveLocation> GetLocation()
         {
-            return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", await _userService.GetCharactedID()));
+            return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", await _userService?.GetCharactedID()));
         }
         
     }

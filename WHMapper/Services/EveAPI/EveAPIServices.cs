@@ -29,7 +29,7 @@ namespace WHMapper.Services.EveAPI
             var eveAPIClient = _httpClientFactory.CreateClient();
 
             LocationServices = new LocationServices(eveAPIClient, _tokenProvider, userService);
-            UniverseServices = new UniverseServices(eveAPIClient, _tokenProvider);
+            UniverseServices = new UniverseServices(eveAPIClient);
         }
     }
 }

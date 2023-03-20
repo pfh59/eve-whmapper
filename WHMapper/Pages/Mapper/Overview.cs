@@ -34,6 +34,7 @@ using static MudBlazor.CategoryTypes;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using System.Collections.Concurrent;
 using Blazor.Diagrams.Components;
+using System.Data;
 
 namespace WHMapper.Pages.Mapper
 {
@@ -49,9 +50,6 @@ namespace WHMapper.Pages.Mapper
         private EveSystemNodeModel? _selectedSystemNode = null;
         private EveSystemLinkModel? _selectedSystemLink = null;
         private PeriodicTimer? _timer;
-
-        
-
         private CancellationTokenSource? _cts;
 
         private HubConnection? _hubConnection;
@@ -514,7 +512,6 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-
         private async Task<bool> Restore()
         {
             try
@@ -639,9 +636,7 @@ namespace WHMapper.Pages.Mapper
             var link = await DbWHMaps?.AddWHSystemLink(map.Id, src.IdWH, target.IdWH);
 
             if (link != null)
-            {
-                //TODO get better algo to set position
-                target.SetPosition(src.Position.X + 10, src.Position.Y + 10);
+            {               
                 Diagram.Links.Add(new EveSystemLinkModel(link, src, target));
                 await this.NotifyLinkAdded(map.Id, link.Id);
 
@@ -652,23 +647,49 @@ namespace WHMapper.Pages.Mapper
 
         private async Task GetCharacterPositionInSpace()
         {
-           
+            EveSystemNodeModel? previousSystem = null;
+            WHSystem? newWHSystem = null;
+            double defaultNewSystemPosX = 0;
+            double defaultNewSystemPosY = 0;
             try
             {
                 EveLocation el = await EveServices.LocationServices.GetLocation();
                 
                 if (el != null && (_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) )
                 {
+                    previousSystem = _currentSystemNode;
+                    _currentLocation = el;
+                    
+                    var newSystem = await EveServices.UniverseServices.GetSystem(el.SolarSystemId);
 
-                   _currentLocation = el;
                     
-                    var newSystem = await EveServices.UniverseServices.GetSystem(_currentLocation.SolarSystemId);
-                    
+
                     if (Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase)) == null)
                     {
 
-                        WHSystem? newWHSystem = await DbWHMaps?.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystem.Name, newSystem.SecurityStatus));
+                        //determine position on map. depends of previous system
+                        if (previousSystem != null)
+                        {
+                            defaultNewSystemPosX  = (double)previousSystem.Position.X + previousSystem.Size.Width + 10;
+                            defaultNewSystemPosY = (double)previousSystem.Position.Y + previousSystem.Size.Height + 10;
+                        }
 
+                        //determine if source have same system link and get next unique ident
+                        if (newSystem.SecurityStatus <= -0.9 && previousSystem != null)
+                        {
+                            string whClass = await AnoikServices.GetSystemClass(newSystem.Name);
+                            int nbSameWHClassLink = Diagram.Links.Where(x => ((EveSystemNodeModel)x.Target.Model).Class.Contains(whClass) && ((EveSystemNodeModel)x.Source.Model).IdWH == previousSystem.IdWH).Count();
+                            if (nbSameWHClassLink > 0)
+                            {
+                                char extension = (Char)(Convert.ToUInt16('A') + nbSameWHClassLink);
+                                newWHSystem = await DbWHMaps?.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystem.Name, extension, newSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                            }
+                            else
+                                newWHSystem = await DbWHMaps?.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystem.Name, newSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                        }
+                        else
+                            newWHSystem = await DbWHMaps?.AddWHSystem(_selectedWHMap.Id, new WHSystem(newSystem.Name, newSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                      
                         if(newWHSystem!=null)
                         {
                             var newSystemNode = await DefineEveSystemNodeModel(newWHSystem);
@@ -678,17 +699,16 @@ namespace WHMapper.Pages.Mapper
                             await this.NotifyWormoleAdded(_selectedWHMap.Id, newWHSystem.Id);
                             await this.NotifyUserPosition(newSystem.Name);
 
-                            if (_currentSystemNode != null)
+                            if (previousSystem != null)
                             {
-                                if(!await CreateLink(_selectedWHMap, _currentSystemNode, newSystemNode))
+                                if(!await CreateLink(_selectedWHMap, previousSystem, newSystemNode))
                                 {
                                     Snackbar?.Add("Add Wormhole Link db error", Severity.Error);
                                 }
-                            }
-                            if (_currentSystemNode != null)//remove ConnectedUser on previous system
-                            {
-                                await _currentSystemNode.RemoveConnectedUser(_userName);
-                                _currentSystemNode.Refresh();
+
+                                //remove ConnectedUser on previous system
+                                await previousSystem.RemoveConnectedUser(_userName);
+                                previousSystem.Refresh();
                             }
 
                             _currentSystemNode = newSystemNode;
@@ -703,16 +723,12 @@ namespace WHMapper.Pages.Mapper
                     else
                     {
                         await this.NotifyUserPosition(newSystem.Name);
-                        var previousSystem = _currentSystemNode;
-
-                        if (previousSystem != null)//remove ConnectedUser on previous system
+                        if (previousSystem != null)
                         {
                             await previousSystem.RemoveConnectedUser(_userName);
                             previousSystem.Refresh();
                         }
-
-                        
-
+                            
                         _currentSystemNode = (EveSystemNodeModel)Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, newSystem.Name, StringComparison.OrdinalIgnoreCase));
                         await _currentSystemNode.AddConnectedUser(_userName);
                         _currentSystemNode.Refresh();
@@ -720,20 +736,24 @@ namespace WHMapper.Pages.Mapper
                         _currentWHSystemId = (await DbWHSystems.GetByName(newSystem.Name)).Id;
                         _selectedSystemNode = _currentSystemNode;
 
-                        //check if link exist, if not create it
-                        var whLink = Diagram.Links.FirstOrDefault(x =>
+                        if (previousSystem != null)
+                        {
+                            //check if link exist, if not create it
+                            var whLink = Diagram.Links.FirstOrDefault(x =>
                             ((((EveSystemNodeModel)x.Source.Model).IdWH == previousSystem.IdWH) && (((EveSystemNodeModel)x.Target.Model).IdWH == _currentSystemNode.IdWH))
                             ||
                             ((((EveSystemNodeModel)x.Source.Model).IdWH == _currentSystemNode.IdWH) && (((EveSystemNodeModel)x.Target.Model).IdWH == previousSystem.IdWH))
                         );
 
-                        if(whLink == null)
-                        { 
-                            if (!await CreateLink(_selectedWHMap, previousSystem, _currentSystemNode))
+                            if (whLink == null)
                             {
-                                Snackbar?.Add("Add Wormhole Link db error", Severity.Error);
+                                if (!await CreateLink(_selectedWHMap, previousSystem, _currentSystemNode))
+                                {
+                                    Snackbar?.Add("Add Wormhole Link db error", Severity.Error);
+                                }
                             }
                         }
+                        
                     }
                 }
             }
@@ -784,8 +804,6 @@ namespace WHMapper.Pages.Mapper
                     {
                         return false;
                     }
-
-                    
                 }
                 else
                 {

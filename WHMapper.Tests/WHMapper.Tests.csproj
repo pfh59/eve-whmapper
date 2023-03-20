@@ -38,11 +38,15 @@
     <None Remove="Microsoft.Extensions.Configuration" />
     <None Remove="Orders\" />
     <None Remove="Attributes\" />
+    <None Remove="EveOnlineAPI\" />
+    <None Remove="Anoik\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Db\" />
     <Folder Include="Orderers\" />
     <Folder Include="Attributes\" />
+    <Folder Include="EveOnlineAPI\" />
+    <Folder Include="Anoik\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.json" Condition="'$(ExcludeConfigFilesFromBuildOutput)'!='true'">
