@@ -82,7 +82,7 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR_UPDATED, result5?.Name);
     }
 
-    [Fact, TestPriority(99)]
+    [Fact, TestPriority(98)]
     public async Task CRUD_WHSystem()
     {
         //Create IWHMapRepository
@@ -123,7 +123,7 @@ public class DbIntegrationTest
 
     }
 
-    [Fact, TestPriority(98)]
+    [Fact, TestPriority(97)]
     public async Task CRUD_WHSignature()
     {
         //Create IWHMapRepository
