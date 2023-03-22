@@ -59,6 +59,19 @@ namespace WHMapper.Services.WHColor
         private const string WH_CLASS_NS_VALUE = "NS";
         private const string WH_CLASS_00_VALUE = "0.0";
 
+        private const string WH_CLASS_C1_COLOR = "#428bca";
+        private const string WH_CLASS_C2_COLOR = "#428bca";
+        private const string WH_CLASS_C3_COLOR = "#e28a0d";
+        private const string WH_CLASS_C4_COLOR = "#e28a0d";
+        private const string WH_CLASS_C5_COLOR = "#d9534f";
+        private const string WH_CLASS_C6_COLOR = "#d9534f";
+        private const string WH_CLASS_HS_COLOR = "#5cb85c";
+        private const string WH_CLASS_LS_COLOR = "#e28a0d";
+        private const string WH_CLASS_NS_COLOR = SECUTIRTY_STATUS_00_COLOR;
+        private const string WH_CLASS_00_COLOR = SECUTIRTY_STATUS_00_COLOR;
+
+
+
         private const string WH_IS_EOL_COLOR = "#d747d6";
         private const string WH_MASS_NORMAL_COLOR = "#3C3F41";
         private const string WH_MASS_CRITICAL_COLOR = "#e28a0d";
@@ -97,23 +110,23 @@ namespace WHMapper.Services.WHColor
         public string GetSystemTypeColor(string systemType)
         {
             if (systemType.Contains(WH_CLASS_C1_VALUE))
-                return "#428bca";
+                return WH_CLASS_C1_COLOR;
             else if (systemType.Contains(WH_CLASS_C2_VALUE))
-                return "#428bca";
+                return WH_CLASS_C2_COLOR;
             else if (systemType.Contains(WH_CLASS_C3_VALUE))
-                return "#e28a0d";
+                return WH_CLASS_C3_COLOR;
             else if (systemType.Contains(WH_CLASS_C4_VALUE))
-                return "#e28a0d";
+                return WH_CLASS_C4_COLOR;
             else if (systemType.Contains(WH_CLASS_C5_VALUE))
-                return "#d9534f";
+                return WH_CLASS_C5_COLOR;
             else if (systemType.Contains(WH_CLASS_C6_VALUE))
-                return "#d9534f";
+                return WH_CLASS_C6_COLOR;
             else if (systemType.Contains(WH_CLASS_HS_VALUE))
-                return "#5cb85c";
+                return WH_CLASS_HS_COLOR;
             else if (systemType.Contains(WH_CLASS_LS_VALUE))
-                return "#e28a0d";
+                return WH_CLASS_LS_COLOR;
             else if (systemType.Contains(WH_CLASS_NS_VALUE) || systemType.Contains(WH_CLASS_00_VALUE))
-                return SECUTIRTY_STATUS_00_COLOR;
+                return WH_CLASS_NS_COLOR;
 
             return String.Empty;
             

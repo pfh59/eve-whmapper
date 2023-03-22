@@ -66,9 +66,9 @@ namespace WHMapper.Tests.Anoik
             var sysJitaStatics = await _anoik.GetSystemStatics(SOLAR_SYSTEM_JITA_NAME);
             Assert.Null(sysJitaStatics);
 
-            var sysStatics = await _anoik.GetSystemEffects(SOLAR_SYSTEM_WH_NAME);
+            var sysStatics = await _anoik.GetSystemStatics(SOLAR_SYSTEM_WH_NAME);
             Assert.NotEmpty(sysStatics);
-            Assert.Equal(SOLAR_SYSTEM_WH_EFFECT, sysStatics);
+            Assert.Contains(new KeyValuePair<string,string>(SOLAR_SYSTEM_WH_STATICS, "HS"), sysStatics);
         }
 
         [Fact]
@@ -76,9 +76,12 @@ namespace WHMapper.Tests.Anoik
         {
             var whTypes = await _anoik.GetWormholeTypes();
             Assert.NotNull(whTypes);
-
-
-            Assert.NotNull(whTypes.FirstOrDefault(x => x.Name == SOLAR_SYSTEM_WH_STATICS));
+            var whType = whTypes.FirstOrDefault(x => x.Name == SOLAR_SYSTEM_WH_STATICS);
+            Assert.NotNull(whType);
+            Assert.Equal(SOLAR_SYSTEM_WH_STATICS, whType.Name);
+            Assert.Equal("HS", whType.Destination);
+            Assert.Contains("C3", whType?.Sources);
+            Assert.Equal(SOLAR_SYSTEM_WH_STATICS + " -> HS", whType.ToString());
 
         }
     }

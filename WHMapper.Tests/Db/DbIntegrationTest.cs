@@ -88,11 +88,11 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR, whSys1?.Name);
         Assert.Equal(1, whSys1?.SecurityStatus);
 
-        var whSys2 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SHORT_UPDATED, 1));
+        var whSys2 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SHORT_UPDATED,'A', 1));
         Assert.NotNull(whSys2);
         Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2?.Name);
         Assert.Equal(1, whSys2?.SecurityStatus);
-
+        Assert.Equal(Convert.ToByte('A'), whSys2.NameExtension);
 
         //add whsystem link
         var link = await repo.AddWHSystemLink(result2.Id, whSys1.Id, whSys2.Id);

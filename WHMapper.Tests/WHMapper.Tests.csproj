@@ -40,6 +40,7 @@
     <None Remove="Attributes\" />
     <None Remove="EveOnlineAPI\" />
     <None Remove="Anoik\" />
+    <None Remove="WHColorHelper\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Db\" />
@@ -47,6 +48,7 @@
     <Folder Include="Attributes\" />
     <Folder Include="EveOnlineAPI\" />
     <Folder Include="Anoik\" />
+    <Folder Include="WHColorHelper\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.json" Condition="'$(ExcludeConfigFilesFromBuildOutput)'!='true'">
