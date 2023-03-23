@@ -31,9 +31,11 @@ namespace WHMapper.Tests.CustomGraphModel
         {
             var node = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_JITA_NAME, 1.0F));
             Assert.NotNull(node);
+            Assert.Equal(0, node.IdWH);
             Assert.Equal(SOLAR_SYSTEM_JITA_NAME, node.Title);
             Assert.Equal("H", node.Class);
             Assert.Empty(node.ConnectedUsers);
+            Assert.Null(node.NameExtension);
 
             node.AddConnectedUser(USERNAME1);
             node.AddConnectedUser(USERNAME2);
