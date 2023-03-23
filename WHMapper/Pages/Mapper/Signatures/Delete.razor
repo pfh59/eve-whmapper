@@ -1,6 +1,13 @@
 ﻿<MudDialog>
     <DialogContent>
-        <MudText>Do you really want to delete these signature?</MudText>
+        @if (SignatureId > 0)
+        {
+            <MudText>@MSG_DELETE_SIGNATURE</MudText>
+        }
+        else
+        {
+            <MudText>@MSG_DELETE_SIGNATURES</MudText>
+        }
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>

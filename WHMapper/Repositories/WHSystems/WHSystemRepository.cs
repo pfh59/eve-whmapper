@@ -3,6 +3,7 @@ using System.Security.Cryptography.Xml;
 using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHSystems
 {
@@ -176,6 +177,29 @@ namespace WHMapper.Repositories.WHSystems
                 semSlim.Release();
             }
 
+        }
+
+        public async Task<bool> RemoveAllWHSignature(int idWHSystem)
+        {
+            var system = await this.GetById(idWHSystem);
+            if (system == null)
+                return false;
+
+            await semSlim.WaitAsync();
+            try
+            {
+                _dbContext?.DbWHSignatures?.RemoveRange(system.WHSignatures);
+                await _dbContext?.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
     }

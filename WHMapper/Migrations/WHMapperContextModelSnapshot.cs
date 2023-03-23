@@ -102,6 +102,9 @@ namespace WHMapper.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<byte>("NameExtension")
+                        .HasColumnType("smallint");
+
                     b.Property<double>("PosX")
                         .HasColumnType("double precision");
 

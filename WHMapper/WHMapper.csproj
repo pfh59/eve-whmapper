@@ -57,6 +57,9 @@
     <None Remove="Resources\Anoik\" />
     <None Remove="Microsoft.AspNetCore.SignalR.Client" />
     <None Remove="Services\EveRefreshService\" />
+    <None Remove="Models\DTO\EveAPI\Dogma\" />
+    <None Remove="Services\EveAPI\Dogma\" />
+    <None Remove="Models\DTO\Anoik\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.0.15" />
@@ -107,5 +110,8 @@
     <Folder Include="Repositories\WHSystemLinks\" />
     <Folder Include="Resources\" />
     <Folder Include="Resources\Anoik\" />
+    <Folder Include="Models\DTO\EveAPI\Dogma\" />
+    <Folder Include="Services\EveAPI\Dogma\" />
+    <Folder Include="Models\DTO\Anoik\" />
   </ItemGroup>
 </Project>

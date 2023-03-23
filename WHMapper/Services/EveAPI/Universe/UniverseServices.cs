@@ -5,9 +5,9 @@ using WHMapper.Services.EveAPI.Universe;
 
 namespace WHMapper.Services.EveAPI.Universe
 {
-    internal class UniverseServices : AEveApiServices, IUniverseServices
+    public class UniverseServices : AEveApiServices, IUniverseServices
     {
-        public UniverseServices(HttpClient httpClient, TokenProvider _tokenProvider) : base(httpClient, _tokenProvider)
+        public UniverseServices(HttpClient httpClient): base(httpClient)
         {
         }
 
@@ -46,7 +46,7 @@ namespace WHMapper.Services.EveAPI.Universe
 
         public async Task<Models.DTO.EveAPI.Universe.Type> GetType(int type_id)
         {
-            return await base.Execute<Models.DTO.EveAPI.Universe.Type>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/universe/types/{0}/?datasource=tranquility", type_id));
+            return await base.Execute<Models.DTO.EveAPI.Universe.Type>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v3/universe/types/{0}/?datasource=tranquility", type_id));
 
         }
         public async Task<int[]> GetTypes()

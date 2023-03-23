@@ -5,10 +5,12 @@
 <MudCard Outlined="true" Style="@(Node.Selected ? "border-color:white;" : "border-color:grey;")">
     <MudCardHeader Class="mb-n5">
         <CardHeaderAvatar>
-            <MudAvatar Style="@($"color:{_systemColor}; background:white;")">@Node.Class</MudAvatar>
+            <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension Color=Color.Primary Visible=@((Node.NameExtension!=null) ? true : false)>
+                <MudAvatar Style="@($"color:{_systemColor}; background:white;")" Size="Size.Medium">@Node.Class</MudAvatar>
+             </MudBadge>
         </CardHeaderAvatar>
         <CardHeaderContent>
-            <MudText Typo="Typo.body2">@Node.Name</MudText>
+                <MudText Typo="Typo.body2">@Node.Name</MudText>
         </CardHeaderContent>
         <CardHeaderActions>
             @if (!string.IsNullOrWhiteSpace(Node.Effect))
@@ -21,7 +23,7 @@
                         <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
                             @foreach (var effectInfo in @Node?.EffectsInfos)
                             {
-                                <MudText class="ma-1" Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
+                                <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
                             }
                         </MudPaper>
                     </TooltipContent>

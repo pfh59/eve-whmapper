@@ -12,8 +12,8 @@ using WHMapper.Data;
 namespace WHMapper.Migrations
 {
     [DbContext(typeof(WHMapperContext))]
-    [Migration("20221010123500_Init")]
-    partial class Init
+    [Migration("20230316080346_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -103,6 +103,9 @@ namespace WHMapper.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<byte>("NameExtension")
+                        .HasColumnType("smallint");
 
                     b.Property<double>("PosX")
                         .HasColumnType("double precision");

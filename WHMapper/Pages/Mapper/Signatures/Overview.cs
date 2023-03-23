@@ -2,34 +2,47 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystems;
+using WHMapper.Services.Anoik;
+using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.WHColor;
 using static MudBlazor.CategoryTypes;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
-    public partial class Overview : ComponentBase
+    public partial class Overview : ComponentBase,IAsyncDisposable
     {
         [Inject]
-        IWHSystemRepository? DbWHSystems { get; set; }
+        IEveUserInfosServices? UserInfos { get; set; } = null!;
 
         [Inject]
-        IWHSignatureRepository? DbWHSignatures { get; set; }
+        IWHSystemRepository? DbWHSystems { get; set; } = null!;
 
         [Inject]
-        IDialogService? DialogService { get; set; }
+        IWHSignatureRepository? DbWHSignatures { get; set; } = null!;
 
         [Inject]
-        public ISnackbar Snackbar { get; set; }
+        IDialogService? DialogService { get; set; } = null!;
 
-        private IEnumerable<WHSignature>? Signatures { get; set; }
+        [Inject]
+        public ISnackbar? Snackbar { get; set; } = null!;
+
+        [Inject]
+        public IAnoikServices? AnoikServices { get; set; } = null!;
+
+        [Inject]
+        public IWHColorHelper? WHColorHelper { get; set; } = null;
+
+        private IEnumerable<WHSignature>? Signatures { get; set; } = null!;
 
         [Parameter]
-        public EveSystemNodeModel? CurrentSystemNode { get; set; }
+        public EveSystemNodeModel? CurrentSystemNode { get; set; } = null!;
 
         private int? _currentSystemNodeId = 0;
 
@@ -38,12 +51,57 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private bool _isEditingSignature = false;
 
+        private PeriodicTimer? _timer;
+        private CancellationTokenSource? _cts;
+        private DateTime _currentDateTime;
 
- 
+
         protected override async Task OnParametersSetAsync()
         {
             await Restore();
+            HandleTimerAsync();
         }
+
+
+        private async Task HandleTimerAsync()
+        {
+
+            if (_timer == null)
+            {
+
+                _cts = new CancellationTokenSource();
+                _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000));
+                _currentDateTime = DateTime.UtcNow;
+                try
+                {
+                    while (await _timer.WaitForNextTickAsync(_cts.Token))
+                    {
+                        _currentDateTime = DateTime.UtcNow;
+                        StateHasChanged();
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                    //Handle the exception but don't propagate it
+                }
+            }
+        }
+
+        private string DateDiff(DateTime startTime, DateTime endTime)
+        {
+            TimeSpan span = startTime.Subtract(endTime);
+            if (span.Days > 0)
+                return String.Format("{0}d {1}h {2}m {3}s", span.Days, span.Hours, span.Minutes, span.Seconds);
+            else if (span.Days == 0 && span.Hours > 0)
+                return String.Format("{0}h {1}m {2}s", span.Hours, span.Minutes, span.Seconds);
+            else if (span.Days == 0 && span.Hours == 0 && span.Minutes > 0)
+                return String.Format("{0}m {1}s", span.Minutes, span.Seconds);
+            else
+                return String.Format("{0}s", span.Seconds);
+        }
+
+
 
         private string GetDisplayText(Enum value)
         {
@@ -138,6 +196,21 @@ namespace WHMapper.Pages.Mapper.Signatures
                 await Restore();
         }
 
+        private async Task DeleteAllSignature()
+        {
+            var parameters = new DialogParameters();
+            parameters.Add("CurrentSystemNodeId", _currentSystemNodeId);
+
+            var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+            var dialog = DialogService?.Show<Delete>("Delete", parameters, options);
+            DialogResult result = await dialog.Result;
+
+            if (!result.Cancelled)
+                await Restore();
+        }
+    
+
         private void BackupSingature(object element)
         {
             _isEditingSignature = true;
@@ -165,6 +238,9 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async void SignatiureHasBeenCommitted(object element)
         {
+            ((WHSignature)element).Updated = DateTime.UtcNow;
+            ((WHSignature)element).UpdatedBy = await UserInfos?.GetUserName();
+
             var res = await DbWHSignatures.Update(((WHSignature)element).Id, ((WHSignature)element));
 
             if(res!=null && res.Id== ((WHSignature)element).Id)
@@ -174,6 +250,19 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             _isEditingSignature = false;
             StateHasChanged();
+        }
+
+        private void Cancel()
+        {
+            _cts?.Cancel();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            Cancel();
+            _timer?.Dispose();
+
+            GC.SuppressFinalize(this);
         }
     }
 }

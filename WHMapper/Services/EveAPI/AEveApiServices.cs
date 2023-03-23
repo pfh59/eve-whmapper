@@ -24,15 +24,19 @@ namespace WHMapper.Services.EveAPI
     public abstract class AEveApiServices
     {
         private readonly HttpClient _httpClient;
-        private readonly TokenProvider _tokenProvider;
+        private readonly TokenProvider? _tokenProvider = null!;
 
-        public AEveApiServices(HttpClient httpClient, TokenProvider tokenProvider)
+        public AEveApiServices(HttpClient httpClient, TokenProvider? tokenProvider)
         {
             _httpClient = httpClient;
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.BaseAddress = new Uri(EveAPIServiceDefaults.ESIUrl);
 
             _tokenProvider = tokenProvider;
+        }
+
+        public AEveApiServices(HttpClient httpClient) : this(httpClient,null)
+        {
         }
 
 
