@@ -1,4 +1,4 @@
-﻿@using WHMapper.Models.DTO.Anoik;
+@using WHMapper.Models.DTO.Anoik;
 
 <MudCard Outlined="true" style="height:99%;width:99%;" Class="@(CurrentSystemNode == null ? "invisible" : "visible")">
     <MudTable Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true FixedHeader="true" Virtualize="true" Height="250px" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
