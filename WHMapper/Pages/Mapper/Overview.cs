@@ -145,6 +145,7 @@ namespace WHMapper.Pages.Mapper
             await base.OnInitializedAsync();
         }
 
+        #region Hub methodes
         private async Task<bool> InitNotificationHub()
         {
             if (TokenProvider != null && !string.IsNullOrEmpty(TokenProvider.AccessToken) && _hubConnection == null)
@@ -349,6 +350,8 @@ namespace WHMapper.Pages.Mapper
                 await _hubConnection.SendAsync("SendLinkChanged", mapId, linkId, eol, size, mass);
             }
         }
+        #endregion
+
 
         private async Task<bool> InitDiagram()
         {
@@ -358,20 +361,10 @@ namespace WHMapper.Pages.Mapper
                 var options = new BlazorDiagramOptions
                 {
                     AllowMultiSelection = true, // Whether to allow multi selection using CTRL
-                    /*Links = new DiagramLinkOptions
-                    {
-                        DefaultColor = "grey",
-                        DefaultSelectedColor = "white"
-                    },*/
-
-                    /*Zoom = new DiagramZoomOptions
-                    {
-                        Minimum = 0.25, // Minimum zoom value
-                        Inverse = false, // Whether to inverse the direction of the zoom when using the wheel
-                    },*/
-
+    
                 };
 
+          
 
                 Diagram = new BlazorDiagram(options);
                 Diagram.SelectionChanged += async (item) =>
@@ -499,7 +492,8 @@ namespace WHMapper.Pages.Mapper
                     }
                 };
 
-                Diagram.Options.Zoom.Enabled = false;
+                Diagram.Options.Zoom.Enabled = true;
+                Diagram.Options.Zoom.Inverse = false;
                 Diagram.RegisterComponent<EveSystemNodeModel, EveSystemNode>();
                 Diagram.RegisterComponent<EveSystemLinkModel, EveSystemLink>();
 
