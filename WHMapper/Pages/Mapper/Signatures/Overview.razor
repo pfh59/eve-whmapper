@@ -1,7 +1,7 @@
-﻿@using WHMapper.Models.DTO.Anoik;
+@using WHMapper.Models.DTO.Anoik;
 
 <MudCard Outlined="true" style="height:99%;width:99%;" Class="@(CurrentSystemNode == null ? "invisible" : "visible")">
-    <MudTable Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true Loading="@(Signatures==null)" LoadingProgressColor="Color.Info" RowsPerPage="5"
+    <MudTable Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true FixedHeader="true" Virtualize="true" Height="250px" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
               CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
               RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit">
         <ColGroup>
@@ -78,8 +78,8 @@
             <MudTd DataLabel="Updated" Style="text-align:center">@(DateDiff(_currentDateTime,context.Updated))</MudTd>
             <MudTd DataLabel="Updated by" Style="text-align:center">@context.UpdatedBy</MudTd>
         </RowEditingTemplate>
-        <PagerContent>
+        @*<PagerContent>
             <MudTablePager />
-        </PagerContent>
+        </PagerContent>*@
     </MudTable>
 </MudCard>

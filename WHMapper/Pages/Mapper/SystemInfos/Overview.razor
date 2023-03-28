@@ -4,7 +4,7 @@
             <MudText Typo="Typo.body2">Name:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Name) ? CurrentSystemNode.Name : String.Empty)</MudText>
+            <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Name) ? CurrentSystemNode.Name : String.Empty)</MudText>
         </MudItem>
     </MudGrid>
 
@@ -22,7 +22,7 @@
             <MudText Typo="Typo.body2">Class:</MudText>
         </MudItem>
         <MudItem xs="0">
-            <MudText Typo="Typo.body2" Style="@($"color:{_systemColor};")">@(CurrentSystemNode!=null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Class) ? CurrentSystemNode.Class : String.Empty)</MudText>
+            <MudText Typo="Typo.body2" Style="@($"color:{_systemColor}; font-weight:bold;")">@(CurrentSystemNode!=null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Class) ? CurrentSystemNode.Class : String.Empty)</MudText>
         </MudItem>
     </MudGrid>
 
@@ -60,8 +60,8 @@
             {
                 foreach (var item in CurrentSystemNode.Statics)
                 {
-                    <MudText Typo="Typo.body2" Class="d-inline-flex">@item.Key</MudText>
-                    <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(item.Value)};")">@item.Value</MudText>
+                    <MudText Typo="Typo.body2" Class="d-inline-flex ml-1">@item.Key</MudText>
+                    <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(item.Value)}; font-weight:bold;")">@item.Value</MudText>
                 }
             }
         </MudItem>
