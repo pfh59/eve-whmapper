@@ -476,7 +476,7 @@ namespace WHMapper.Pages.Mapper
                                 if (_selectedSystemNode.NameExtension == null)
                                     wh.NameExtension = 0;
                                 else
-                                    wh.NameExtension = ((byte)(_selectedSystemNode.NameExtension.ToCharArray()[0]));
+                                    wh.NameExtension = ((byte)((_selectedSystemNode.NameExtension.ToCharArray())[0]));
 
                                 wh = await DbWHSystems?.Update(wh.Id, wh);
 

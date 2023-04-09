@@ -30,12 +30,20 @@ namespace WHMapper.Services.WHSignatures
 
         public async Task<bool> ValidateScanResult(string? scanResult)
         {
-            if (!string.IsNullOrEmpty(scanResult))
+            try
             {
-                Match match = Regex.Match(scanResult, SCAN_VALIDATION_REGEX, RegexOptions.IgnoreCase);
-                return match.Success;
+                if (!string.IsNullOrEmpty(scanResult))
+                {
+                    Match match = Regex.Match(scanResult, SCAN_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
+                    return match.Success;
+                }
+                return false;
             }
-            return false;
+            catch(RegexMatchTimeoutException)
+            {
+                return false;
+            }
+
         }
 
         public async Task<IEnumerable<WHMapper.Models.Db.WHSignature>> ParseScanResult(string scanUser,string? scanResult)
@@ -43,24 +51,41 @@ namespace WHMapper.Services.WHSignatures
             string sigName = null;
             WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
             string sigType = null;
+            string[] sigvalues = null;
+            string[] splittedSig = null;
+            
 
-           
+
             IList<WHMapper.Models.Db.WHSignature> sigResult = new List<WHMapper.Models.Db.WHSignature>();
 
             if (!string.IsNullOrEmpty(scanResult))
             {
-                Regex lineRegex = new Regex("\n");
-                Regex tabRegex = new Regex("\t");
-                string[] sigvalues = lineRegex.Split(scanResult);
+                Regex lineRegex = new Regex("\n", RegexOptions.None, TimeSpan.FromSeconds(2));
+                Regex tabRegex = new Regex("\t", RegexOptions.None, TimeSpan.FromSeconds(2));
+                try
+                {
+                   sigvalues = lineRegex.Split(scanResult);
+                }
+                catch (RegexMatchTimeoutException)
+                {
+                    return null;
+                }
 
                 foreach (string sigValue in sigvalues)
                 {
                     sigGroup = WHSignatureGroup.Unknow;
                     sigType = null;
 
-                    var splittedSig = tabRegex.Split(sigValue);
+                    try
+                    { 
+                        splittedSig = tabRegex.Split(sigValue);
+                    }
+                    catch (RegexMatchTimeoutException)
+                    {
+                        return null;
+                    }
 
-                    sigName = splittedSig[0];
+                sigName = splittedSig[0];
                     
 
                     if (!String.IsNullOrWhiteSpace(splittedSig[2]))
