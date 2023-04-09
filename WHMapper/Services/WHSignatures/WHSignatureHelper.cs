@@ -141,8 +141,12 @@ namespace WHMapper.Services.WHSignatures
                             var sigParse = sigs.Where(x => x.Name == sig.Name).FirstOrDefault();
                             if (sigParse.Group != WHSignatureGroup.Unknow)
                             {
+
+
                                 sig.Group = sigParse.Group;
-                                sig.Type = sigParse.Type;
+                                if(String.IsNullOrEmpty(sig.Type))
+                                    sig.Type = sigParse.Type;
+      
                             }
 
                             sig.Updated = sigParse.Updated;
