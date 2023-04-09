@@ -150,7 +150,6 @@ namespace WHMapper.Pages.Mapper
             await base.OnInitializedAsync();
         }
 
-
         #region Hub methodes
         private async Task<bool> InitNotificationHub()
         {
@@ -389,6 +388,7 @@ namespace WHMapper.Pages.Mapper
                 await _hubConnection.SendAsync("SendLinkChanged", mapId, linkId, eol, size, mass);
             }
         }
+
         private async Task NotifyWormholeNameExtensionIncremented(int mapId, int wormholeId)
         {
             if (_hubConnection is not null)
@@ -421,11 +421,10 @@ namespace WHMapper.Pages.Mapper
                 Logger.LogInformation("Start Init Diagram");
                 var options = new BlazorDiagramOptions
                 {
-                    AllowMultiSelection = true, // Whether to allow multi selection using CTRL
+                    AllowMultiSelection = true // Whether to allow multi selection using CTRL
                 };
 
           
-
                 Diagram = new BlazorDiagram(options);
                 Diagram.SelectionChanged += async (item) =>
                 {
