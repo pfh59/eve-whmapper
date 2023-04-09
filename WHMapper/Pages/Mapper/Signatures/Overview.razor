@@ -31,7 +31,7 @@
         <RowTemplate>
             <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
             <MudTd DataLabel="Group" Style="text-align:left">@context.Group</MudTd>
-            @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type))
+            @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type) && context.Type.Contains(" -> "))
             {
                 var splitRes = @context.Type.Split(" -> ");
                 <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(splitRes[1])}; text-align:left")">@context.Type</MudTd>
