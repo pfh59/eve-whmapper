@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Hosting.Server;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.WHSignature;
+using System.Diagnostics.Tracing;
+using System.Reflection.Emit;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -24,16 +27,13 @@ namespace WHMapper.Pages.Mapper.Signatures
 
 
         [Inject]
-        public IEveUserInfosServices UserService { get; set; }
+        private IEveUserInfosServices UserService { get; set; } = null!;
 
         [Inject]
-        public ISnackbar Snackbar { get; set; }
+        private ISnackbar Snackbar { get; set; } = null!;
 
         [Inject]
-        IWHSystemRepository? DbWHSystems { get; set; }
-
-        [Inject]
-        IWHSignatureRepository? DbWHSignatures { get; set; }
+        private IWHSignatureHelper? SignatureHelper { get; set; } = null!;
 
         [CascadingParameter]
         MudDialogInstance MudDialog { get; set; }
@@ -67,127 +67,31 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             if (_form.IsValid)
             {
-                var sigs = await ParseScanResult();
-                if(sigs!=null && sigs.Count()>0)
+                try
                 {
-                    var currentSystem = await DbWHSystems.GetById(CurrentSystemNodeId);
-
-                    if(currentSystem?.WHSignatures.Count==0)
+                    String scanUser = await UserService.GetUserName();
+                    if (await SignatureHelper?.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult))
                     {
-                        var res = await DbWHSystems.AddWHSignatures(CurrentSystemNodeId, sigs);
-                        if (res != null && res.Count() == sigs.Count())
-                        {
-                            Snackbar.Add("Signatures successfully added", Severity.Success);
-                            MudDialog.Close(DialogResult.Ok(true));
-                        }
-                        else
-                        {
-                            Snackbar.Add("No signatures added", Severity.Error);
-                            MudDialog.Close(DialogResult.Ok(false));
-                        }
+                        Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
+                        MudDialog.Close(DialogResult.Ok(true));
                     }
                     else
                     {
-                        bool sigUpdated = true;
-                        bool sigAdded = true;
-
-                        var sigsToUpdate = currentSystem?.WHSignatures.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
-                        if (sigsToUpdate != null && sigsToUpdate.Count()>0)
-                        {
-                            foreach (var sig in sigsToUpdate)
-                            {
-                                var sigParse = sigs.Where(x => x.Name == sig.Name).FirstOrDefault();
-                                if (sigParse.Group != WHSignatureGroup.Unknow)
-                                {
-                                    sig.Group = sigParse.Group;
-                                    sig.Type = sigParse.Type;
-                                }
-                                
-                                sig.Updated = sigParse.Updated;
-                                sig.UpdatedBy = sigParse.UpdatedBy;
-                            }
-                            var resUpdate = await DbWHSignatures.Update(sigsToUpdate);
-                            if (resUpdate != null && resUpdate.Count() == sigsToUpdate.Count())
-                            {
-                                sigUpdated = true;
-                                Snackbar.Add("Signatures successfully updated", Severity.Success);
-                            }
-                            else
-                            {
-                                sigUpdated = false;
-                                Snackbar.Add("No signatures updated", Severity.Error);
-                            }
-                        }
-
-
-                        var sigsToAdd = sigs.ExceptBy(currentSystem?.WHSignatures.Select(x => x.Name), y => y.Name);
-                        if (sigsToAdd != null && sigsToAdd.Count() > 0)
-                        {
-                            var resAdd = await DbWHSystems.AddWHSignatures(CurrentSystemNodeId, sigsToAdd);
-                            if (resAdd != null && resAdd.Count() == sigsToAdd.Count())
-                            {
-                                sigAdded = true;
-                                Snackbar.Add("Signatures successfully added", Severity.Success);
-                            }
-                            else
-                            {
-                                sigAdded = false;
-                                Snackbar.Add("No signatures added", Severity.Error);
-                            }
-                        }
-
-                        if (sigUpdated || sigAdded)
-                        {
-                            
-                            MudDialog.Close(DialogResult.Ok(true));
-                        }
-                        else 
-                        {
-                            MudDialog.Close(DialogResult.Ok(false));
-                        }
+                        Snackbar?.Add("No signatures added/updated", Severity.Error);
+                        MudDialog.Close(DialogResult.Ok(false));
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Snackbar.Add("Bad signature parsing parameters", Severity.Error);
+                    Snackbar?.Add(ex.Message, Severity.Error);
                     MudDialog.Close(DialogResult.Ok(false));
                 }
             }
-        }
-
-        private async Task<IEnumerable<WHSignature>> ParseScanResult()
-        {
-            IList<WHSignature> sigResult = new List<WHSignature>();
-
-            Regex lineRegex = new Regex("\n");
-            Regex tabRegex = new Regex("\t");
-            string[] sigvalues = lineRegex.Split(_scanResult);
-
-            string scanUser = await UserService.GetUserName();
-
-            foreach (string sigValue in sigvalues)
+            else
             {
-                var splittedSig = tabRegex.Split(sigValue);
-                WHSignature newSig = new WHSignature(splittedSig[0], scanUser);
-
-                if (!String.IsNullOrWhiteSpace(splittedSig[2]))
-                {
-                    WHSignatureGroup group = WHSignatureGroup.Unknow;
-
-                    var sigGroup = splittedSig[2];
-                    if (splittedSig[2].Contains(' '))
-                        sigGroup = splittedSig[2].Split(' ').First();
-
-                    if (Enum.TryParse<WHSignatureGroup>(sigGroup, out group))
-                        newSig.Group = group;
-                }
-                 
-
-                sigResult.Add(newSig);
+                Snackbar?.Add("Bad signatures format", Severity.Error);
+                MudDialog.Close(DialogResult.Ok(false));
             }
-
-            return sigResult;
-
         }
 
         private async Task Cancel()

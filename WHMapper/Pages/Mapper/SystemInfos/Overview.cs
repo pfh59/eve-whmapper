@@ -47,6 +47,11 @@ namespace WHMapper.Pages.Mapper.SystemInfos
 
         }
 
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+        }
+
     }
 }
 

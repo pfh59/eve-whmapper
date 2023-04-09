@@ -5,12 +5,12 @@
 <MudCard Outlined="true" Style="@(Node.Selected ? "border-color:white;" : "border-color:grey;")">
     <MudCardHeader Class="mb-n5">
         <CardHeaderAvatar>
-            <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension Style="@($"color:{_systemColor};")" Visible=@((Node.NameExtension!=null) ? true : false)>
-                <MudAvatar Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")" Size="Size.Small" Variant="Variant.Outlined">@Node.Class</MudAvatar>
+            <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension  Visible=@((Node.NameExtension!=null) ? true : false) Bordered="true" Color="Color.Dark">
+                <MudAvatar class="mt-1" Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")" Size="Size.Small" Variant="Variant.Outlined">@Node.Class</MudAvatar>
              </MudBadge>
         </CardHeaderAvatar>
         <CardHeaderContent>
-                <MudText class="ml-n2 pr-2" Typo="Typo.body2" Style="font-weight:bold;">@Node.Name</MudText>
+                <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;">@Node.Name</MudText>
         </CardHeaderContent>
         <CardHeaderActions>
             @if (!string.IsNullOrWhiteSpace(Node.Effect))
@@ -29,10 +29,6 @@
                     </TooltipContent>
                 </MudTooltip>
             }
-            @*else
-            {
-                <MudIcon Icon="@Icons.Material.Filled.Square" DisableElevation="true" Style="color:transparent;" />
-            }*@
         </CardHeaderActions>
     </MudCardHeader>
 

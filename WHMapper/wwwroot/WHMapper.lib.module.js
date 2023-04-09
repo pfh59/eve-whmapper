@@ -1,5 +1,5 @@
 ﻿export function afterStarted(blazor) {
-    blazor.registerCustomEventType('custompaste', {
+    Blazor.registerCustomEventType('custompaste', {
         browserEventName: 'paste',
         createEventArgs: event => {
             return {

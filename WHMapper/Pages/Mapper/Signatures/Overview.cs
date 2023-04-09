@@ -2,7 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.JSInterop;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
@@ -11,6 +13,7 @@ using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.WHColor;
+using WHMapper.Services.WHSignature;
 using static MudBlazor.CategoryTypes;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
@@ -19,32 +22,39 @@ namespace WHMapper.Pages.Mapper.Signatures
     public partial class Overview : ComponentBase,IAsyncDisposable
     {
         [Inject]
-        IEveUserInfosServices? UserInfos { get; set; } = null!;
+        private IWHSignatureHelper SignatureHelper { get; set; } = null!;
 
         [Inject]
-        IWHSystemRepository? DbWHSystems { get; set; } = null!;
+        private IEveUserInfosServices? UserInfos { get; set; } = null!;
 
         [Inject]
-        IWHSignatureRepository? DbWHSignatures { get; set; } = null!;
+        private IWHSystemRepository? DbWHSystems { get; set; } = null!;
 
         [Inject]
-        IDialogService? DialogService { get; set; } = null!;
+        private IWHSignatureRepository? DbWHSignatures { get; set; } = null!;
 
         [Inject]
-        public ISnackbar? Snackbar { get; set; } = null!;
+        private IDialogService? DialogService { get; set; } = null!;
 
         [Inject]
-        public IAnoikServices? AnoikServices { get; set; } = null!;
+        private ISnackbar? Snackbar { get; set; } = null!;
 
         [Inject]
-        public IWHColorHelper? WHColorHelper { get; set; } = null;
+        private IAnoikServices? AnoikServices { get; set; } = null!;
+
+        [Inject]
+        private IWHColorHelper? WHColorHelper { get; set; } = null;
 
         private IEnumerable<WHSignature>? Signatures { get; set; } = null!;
 
-        [Parameter]
-        public EveSystemNodeModel? CurrentSystemNode { get; set; } = null!;
 
-        private int? _currentSystemNodeId = 0;
+        [Parameter]
+        public int? CurrentMapId { private get; set; } = null!;
+        [Parameter]
+        public int? CurrentSystemNodeId { private get; set; } = null!;
+        [Parameter]
+        public HubConnection? NotificationHub { private get; set; } = null!;
+
 
         private WHSignature _selectedSignature = null;
         private WHSignature _signatureBeforeEdit;
@@ -56,12 +66,12 @@ namespace WHMapper.Pages.Mapper.Signatures
         private DateTime _currentDateTime;
 
 
+
         protected override async Task OnParametersSetAsync()
         {
             await Restore();
             HandleTimerAsync();
         }
-
 
         private async Task HandleTimerAsync()
         {
@@ -100,8 +110,6 @@ namespace WHMapper.Pages.Mapper.Signatures
             else
                 return String.Format("{0}s", span.Seconds);
         }
-
-
 
         private string GetDisplayText(Enum value)
         {
@@ -155,24 +163,25 @@ namespace WHMapper.Pages.Mapper.Signatures
                 FullWidth = true
             };
             var parameters = new DialogParameters();
-            parameters.Add("CurrentSystemNodeId", _currentSystemNodeId);
+            parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId);
 
             var dialog = DialogService?.Show<Import>("Import Scan Dialog", parameters, disableBackdropClick);
             DialogResult result = await dialog.Result;
 
             if (!result.Cancelled)
+            {
+                await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
+            }
             
         }
 
-        private async Task Restore()
+        public async Task Restore()
         {
-            if (CurrentSystemNode != null)
+            if (CurrentSystemNodeId >0)
             {
 
-                var currentSystem = await DbWHSystems?.GetByName(CurrentSystemNode?.Name);
-                _currentSystemNodeId = currentSystem?.Id;
-
+                var currentSystem = await DbWHSystems?.GetById(CurrentSystemNodeId.Value);
                 Signatures = currentSystem?.WHSignatures.ToList();
             }
             else
@@ -184,7 +193,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         private async Task DeleteSignature(int id)
         {
             var parameters = new DialogParameters();
-            parameters.Add("CurrentSystemNodeId", _currentSystemNodeId);
+            parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
             parameters.Add("SignatureId", id);
 
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
@@ -193,13 +202,17 @@ namespace WHMapper.Pages.Mapper.Signatures
             DialogResult result = await dialog.Result;
 
             if (!result.Cancelled)
+            {
+                await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
+            }
         }
+
 
         private async Task DeleteAllSignature()
         {
             var parameters = new DialogParameters();
-            parameters.Add("CurrentSystemNodeId", _currentSystemNodeId);
+            parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
 
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
@@ -207,10 +220,12 @@ namespace WHMapper.Pages.Mapper.Signatures
             DialogResult result = await dialog.Result;
 
             if (!result.Cancelled)
+            {
+                await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
+            }
         }
     
-
         private void BackupSingature(object element)
         {
             _isEditingSignature = true;
@@ -263,6 +278,14 @@ namespace WHMapper.Pages.Mapper.Signatures
             _timer?.Dispose();
 
             GC.SuppressFinalize(this);
+        }
+
+        private async Task NotifyWormholeSignaturesChanged(int mapId, int wormholeId)
+        {
+            if (NotificationHub is not null)
+            {
+                await NotificationHub.SendAsync("SendWormholeSignaturesChanged", mapId, wormholeId);
+            }
         }
     }
 }

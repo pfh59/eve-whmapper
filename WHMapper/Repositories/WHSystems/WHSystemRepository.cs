@@ -50,6 +50,11 @@ namespace WHMapper.Repositories.WHSystems
 
                 return item;
             }
+            catch (Exception ex)
+            {
+
+                return null;
+            }
             finally
             {
                 semSlim.Release();
@@ -68,6 +73,11 @@ namespace WHMapper.Repositories.WHSystems
                             ?.Include(x => x.WHSignatures)
                             ?.ToListAsync();
             }
+            catch (Exception ex)
+            {
+
+                return null;
+            }
             finally
             {
                 semSlim.Release();
@@ -82,6 +92,11 @@ namespace WHMapper.Repositories.WHSystems
                 return await _dbContext?.DbWHSystems
                      .Include(x => x.WHSignatures)
                      .FirstOrDefaultAsync(x => x.Id == id);
+            }
+            catch (Exception ex)
+            {
+
+                return null;
             }
             finally
             {
@@ -102,6 +117,11 @@ namespace WHMapper.Repositories.WHSystems
                 await _dbContext?.SaveChangesAsync();
                 return item;
             }
+            catch (Exception ex)
+            {
+
+                return null;
+            }
             finally
             {
                 semSlim.Release();
@@ -114,6 +134,11 @@ namespace WHMapper.Repositories.WHSystems
             try
             {
                 return await _dbContext?.DbWHSystems?.Include(x => x.WHSignatures)?.FirstOrDefaultAsync(x => x.Name == name);
+            }
+            catch (Exception ex)
+            {
+
+                return null;
             }
             finally
             {
@@ -149,9 +174,15 @@ namespace WHMapper.Repositories.WHSystems
                 system.WHSignatures.Add(sig);
 
 
-            await this.Update(idWHSystem, system);
+            if (await this.Update(idWHSystem, system) != null)
+                return whSignatures;
+            else
+            {
+                foreach (var sig in sigArray)
+                    system.WHSignatures.Remove(sig);
 
-            return whSignatures;
+                return null;
+            }
         }
 
 
@@ -171,6 +202,11 @@ namespace WHMapper.Repositories.WHSystems
                 _dbContext?.DbWHSignatures?.Remove(sig);
                 await _dbContext?.SaveChangesAsync();
                 return sig;
+            }
+            catch (Exception ex)
+            {
+
+                return null;
             }
             finally
             {
@@ -192,8 +228,9 @@ namespace WHMapper.Repositories.WHSystems
                 await _dbContext?.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+
                 return false;
             }
             finally

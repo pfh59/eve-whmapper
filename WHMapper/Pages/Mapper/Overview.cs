@@ -35,6 +35,8 @@ using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using System.Collections.Concurrent;
 using Blazor.Diagrams.Components;
 using System.Data;
+using Microsoft.AspNetCore.Components.Web;
+using WHMapper.Services.WHSignature;
 
 namespace WHMapper.Pages.Mapper
 {
@@ -42,6 +44,7 @@ namespace WHMapper.Pages.Mapper
     {
         protected BlazorDiagram Diagram { get; private set; } = null!;
         private MudMenu ClickRightMenu { get; set; } = null!;
+        private WHMapper.Pages.Mapper.Signatures.Overview WHSignaturesView { get; set; } = null!;
 
 
         private EveLocation? _currentLocation = null;
@@ -82,6 +85,8 @@ namespace WHMapper.Pages.Mapper
 
         [Inject]
         public ISnackbar? Snackbar { get; set; }
+
+        [Inject] IWHSignatureHelper? SignatureHelper { get; set; } = null!; 
 
         [Inject]
         public NavigationManager Navigation { get; set; } = null!;
@@ -144,6 +149,7 @@ namespace WHMapper.Pages.Mapper
 
             await base.OnInitializedAsync();
         }
+
 
         #region Hub methodes
         private async Task<bool> InitNotificationHub()
@@ -230,7 +236,6 @@ namespace WHMapper.Pages.Mapper
                             }
                         }
                     }
-                    
                 });
                 _hubConnection.On<string, int, int>("NotifyLinkAdded", async (user, mapId, linKId) =>
                 {
@@ -285,7 +290,41 @@ namespace WHMapper.Pages.Mapper
                         }
                     }
                 });
+                _hubConnection.On<string, int, int>("NotifyWormholeNameExtensionIncrement", async (user, mapId, wormholeId) =>
+                {
+                    if (wormholeId > 0 && mapId == _selectedWHMap?.Id)
+                    {
+                        EveSystemNodeModel systemToIncrementNameExtenstion = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
+                        if (systemToIncrementNameExtenstion != null)
+                        {
+                            await systemToIncrementNameExtenstion.IncrementNameExtension();
+                            systemToIncrementNameExtenstion.Refresh();
+                        }
+                    }
 
+                });
+                _hubConnection.On<string, int, int>("NotifyWormholeNameExtensionDecrement", async (user, mapId, wormholeId) =>
+                {
+                    if (wormholeId > 0 && mapId == _selectedWHMap?.Id)
+                    {
+                        EveSystemNodeModel systemToIncrementNameExtenstion = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
+                        if (systemToIncrementNameExtenstion != null)
+                        {
+                            await systemToIncrementNameExtenstion.DecrementNameExtension();
+                            systemToIncrementNameExtenstion.Refresh();
+                        }
+                    }
+                });
+                _hubConnection.On<string, int, int>("NotifyWormholeSignaturesChanged", async (user, mapId, wormholeId) =>
+                {
+                    if (wormholeId > 0 && mapId == _selectedWHMap?.Id)
+                    {
+                        if (_selectedSystemNode.IdWH == wormholeId)
+                        {
+                            await WHSignaturesView.Restore();
+                        }
+                    }
+                });
 
                 await _hubConnection.StartAsync();
 
@@ -350,8 +389,30 @@ namespace WHMapper.Pages.Mapper
                 await _hubConnection.SendAsync("SendLinkChanged", mapId, linkId, eol, size, mass);
             }
         }
-        #endregion
+        private async Task NotifyWormholeNameExtensionIncremented(int mapId, int wormholeId)
+        {
+            if (_hubConnection is not null)
+            {
+                await _hubConnection.SendAsync("SendWormholeNameExtensionIncremented", mapId, wormholeId);
+            }
+        }
+        private async Task NotifyWormholeNameExtensionDecremented(int mapId, int wormholeId)
+        {
+            if (_hubConnection is not null)
+            {
+                await _hubConnection.SendAsync("SendWormholeNameExtensionDecremented", mapId, wormholeId);
+            }
+        }
 
+        private async Task NotifyWormholeSignaturesChanged(int mapId, int wormholeId)
+        {
+            if (_hubConnection is not null)
+            {
+                await _hubConnection.SendAsync("SendWormholeSignaturesChanged", mapId, wormholeId);
+            }
+        }
+
+        #endregion
 
         private async Task<bool> InitDiagram()
         {
@@ -361,7 +422,6 @@ namespace WHMapper.Pages.Mapper
                 var options = new BlazorDiagramOptions
                 {
                     AllowMultiSelection = true, // Whether to allow multi selection using CTRL
-    
                 };
 
           
@@ -373,7 +433,9 @@ namespace WHMapper.Pages.Mapper
                     {
 
                         if (((EveSystemNodeModel)item).Selected)
+                        {
                             _selectedSystemNode = (EveSystemNodeModel)item;
+                        }
                         else
                             _selectedSystemNode = null;
 
@@ -398,6 +460,44 @@ namespace WHMapper.Pages.Mapper
 
                 Diagram.KeyDown += async (kbevent) =>
                 {
+                    if (kbevent.Code == "NumpadAdd" || kbevent.Code == "NumpadSubtract")
+                    {
+                        if (_selectedSystemNode != null)
+                        {
+                            if (kbevent.Code == "NumpadAdd")
+                                await _selectedSystemNode.IncrementNameExtension();
+                            else
+                                await _selectedSystemNode.DecrementNameExtension();
+
+                            _selectedSystemNode.Refresh();
+
+                            var wh = await DbWHSystems?.GetById(_selectedSystemNode.IdWH);
+                            if(wh!=null)
+                            {
+                                if (_selectedSystemNode.NameExtension == null)
+                                    wh.NameExtension = 0;
+                                else
+                                    wh.NameExtension = ((byte)(_selectedSystemNode.NameExtension.ToCharArray()[0]));
+
+                                wh = await DbWHSystems?.Update(wh.Id, wh);
+
+                                if (wh != null)
+                                {
+                                    if (kbevent.Code == "NumpadAdd")
+                                        await NotifyWormholeNameExtensionIncremented(_selectedWHMap.Id, wh.Id);
+                                    else
+                                        await NotifyWormholeNameExtensionDecremented(_selectedWHMap.Id,wh.Id);
+                                }
+                                else
+                                    Snackbar?.Add("Loading wormhole node db error", Severity.Error);
+
+                            }
+                            else
+                                Snackbar?.Add("Loading wormhole node db error", Severity.Error);
+                        }
+                    }
+
+
                     if (kbevent.Code=="Delete")
                     {
                         if(_selectedSystemNode!=null)
@@ -614,6 +714,7 @@ namespace WHMapper.Pages.Mapper
                 }
 
                 res = new EveSystemNodeModel(wh, whClass, whEffect, whEffectsInfos, whStatics);
+             
 
             }
             else
@@ -669,7 +770,7 @@ namespace WHMapper.Pages.Mapper
                         }
 
                         //determine if source have same system link and get next unique ident
-                        if (newSystem.SecurityStatus <= -0.9 && previousSystem != null)
+                        if ((previousSystem != null && previousSystem.SecurityStatus <= -0.9 )|| (previousSystem!=null && newSystem.SecurityStatus<= -0.9))
                         {
                             string whClass = await AnoikServices.GetSystemClass(newSystem.Name);
                             int nbSameWHClassLink = Diagram.Links.Where(x => ((EveSystemNodeModel)x.Target.Model).Class.Contains(whClass) && ((EveSystemNodeModel)x.Source.Model).IdWH == previousSystem.IdWH).Count();
@@ -757,7 +858,6 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-
         public void Cancel()
         {
             _cts?.Cancel();
@@ -777,6 +877,36 @@ namespace WHMapper.Pages.Mapper
         }
 
         #region Menu Actions
+
+        /// <summary>
+        /// Menu intercep paste
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        /// <returns></returns>
+        private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)
+        {
+            if(_selectedSystemNode!=null)
+            {
+                try
+                {
+                    String scanUser = await UserInfos.GetUserName();
+                    String? message = eventArgs.PastedData;
+                    if (await SignatureHelper?.ImportScanResult(scanUser, _selectedSystemNode.IdWH, message))
+                    {
+                        Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
+                        await NotifyWormholeSignaturesChanged(_selectedWHMap.Id, _selectedSystemNode.IdWH);
+                    }
+                    else
+                        Snackbar?.Add("No signatures added/updated", Severity.Error);
+                }
+                catch(Exception ex)
+                {
+                    Snackbar?.Add(ex.Message, Severity.Error);
+                }
+            }
+        }
+
+
         public async Task<bool> ToggleSlectedSystemLinkEOL()
         {
             try

@@ -5,7 +5,7 @@ using WHMapper.Services.WHColor;
 
 namespace WHMapper.Tests.WHColorHelper
 {
-    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.WHColorHelper")]
+    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.WHHelper")]
     public class WHColorHelperTest
 	{
         private const string WH_MAGNETAR = "Magnetar";

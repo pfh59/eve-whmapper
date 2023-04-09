@@ -29,7 +29,7 @@ namespace WHMapper.Models.Custom.Node
             }
          }
 
-        public string? NameExtension
+        public String? NameExtension
         {
             get
             {
@@ -81,6 +81,27 @@ namespace WHMapper.Models.Custom.Node
             else
                 Class = "0.0";
         
+        }
+
+        public async Task IncrementNameExtension()
+        {
+            if (_wh.NameExtension == 0)
+                _wh.NameExtension = Convert.ToByte('A');
+            else
+            {
+                if (_wh.NameExtension != Convert.ToByte('Z'))
+                    _wh.NameExtension++;
+                else
+                    _wh.NameExtension = Convert.ToByte('Z');
+            }
+        }
+
+        public async Task DecrementNameExtension()
+        {
+            if (_wh.NameExtension > Convert.ToByte('A'))
+                _wh.NameExtension--;
+            else
+                _wh.NameExtension = 0;
         }
 
 
