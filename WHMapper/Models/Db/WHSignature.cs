@@ -7,6 +7,8 @@ namespace WHMapper.Models.Db
 
     public class WHSignature
     {
+        private const string DEFAULT_SCAN_USER_VALUE = "Unknown";
+
         [Key]
         public int Id { get;  set; }
 
@@ -39,11 +41,11 @@ namespace WHMapper.Models.Db
         [Required]
         public DateTime Created { get; set; } = DateTime.UtcNow;
         [Required]
-        public string? CreatedBy { get; set; } = "Unknown";
+        public string? CreatedBy { get; set; } = DEFAULT_SCAN_USER_VALUE;
         [Required]
         public DateTime Updated { get;  set; } = DateTime.UtcNow;
         [Required]
-        public string? UpdatedBy { get; set; } = "Unknown";
+        public string? UpdatedBy { get; set; } = DEFAULT_SCAN_USER_VALUE;
 
         public WHSignature()
         {
@@ -62,11 +64,19 @@ namespace WHMapper.Models.Db
             UpdatedBy = scanUser;
         }
 
-        public WHSignature(string name, WHSignatureGroup group, string? type)
+        public WHSignature(string name, WHSignatureGroup group, string? type,string scanUser)
         {
             Name = name;
             Group = group;
             Type = type;
+            CreatedBy = scanUser;
+            UpdatedBy = scanUser;
+        }
+
+        public WHSignature(string name, WHSignatureGroup group, string? type) :
+            this(name,group,type, DEFAULT_SCAN_USER_VALUE)
+        {
+
         }
 
 

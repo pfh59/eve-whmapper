@@ -49,7 +49,7 @@
     <Folder Include="Attributes\" />
     <Folder Include="EveOnlineAPI\" />
     <Folder Include="Anoik\" />
-    <Folder Include="WHColorHelper\" />
+    <Folder Include="WHHelper\" />
     <Folder Include="CustomGraphModek\" />
   </ItemGroup>
   <ItemGroup>

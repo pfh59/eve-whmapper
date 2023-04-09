@@ -42,13 +42,15 @@ using WHMapper.Services.EveJwkExtensions;
 using System.Net;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 using MudBlazor;
+using WHMapper.Services.WHSignature;
+using WHMapper.Services.WHSignatures;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
 builder.Services.AddDbContext<WHMapperContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))/*, ServiceLifetime.Transient*/);
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),ServiceLifetime.Singleton);
 
 builder.Services.AddSignalR();
 
@@ -155,7 +157,11 @@ builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
 builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
 #endregion
 
-builder.Services.AddSingleton<IWHColorHelper, WHColorHelper>();
+#region WH HELPER
+builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();
+builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();
+#endregion
+
 
 var app = builder.Build();
 

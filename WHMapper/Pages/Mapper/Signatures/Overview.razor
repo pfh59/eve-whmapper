@@ -1,18 +1,19 @@
 @using WHMapper.Models.DTO.Anoik;
 
-<MudCard Outlined="true" style="height:99%;width:99%;" Class="@(CurrentSystemNode == null ? "invisible" : "visible")">
+<MudCard Outlined="true" style="height:99%;width:99%;" Class="@(CurrentSystemNodeId ==null ? "invisible" : "visible")">
     <MudTable Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true FixedHeader="true" Virtualize="true" Height="250px" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
               CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
               RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit">
+
         <ColGroup>
             <col style="width: 120px;" />
             <col style="width: 140px;" />
-            <col/>
-            <col/>
+            <col />
+            <col />
             <col style="width: 120px;" />
-            <col/>
+            <col />
             <col style="width: 120px;" />
-            <col/>
+            <col />
         </ColGroup>
         <HeaderContent>
             <MudTh Style="text-align:left">Name</MudTh>
@@ -23,8 +24,8 @@
             <MudTh Style="text-align:center">Updated</MudTh>
             <MudTh Style="text-align:center">Updated by</MudTh>
             <MudTh Style="text-align:right">
-                <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNode==null || _isEditingSignature==true)" />
-                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllSignature())" Disabled="@(CurrentSystemNode==null || _isEditingSignature==true || Signatures==null || Signatures.Count()==0)"></MudIconButton>
+                <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true)" />
+                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllSignature())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true || Signatures==null || Signatures.Count()==0)"></MudIconButton>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -78,8 +79,5 @@
             <MudTd DataLabel="Updated" Style="text-align:center">@(DateDiff(_currentDateTime,context.Updated))</MudTd>
             <MudTd DataLabel="Updated by" Style="text-align:center">@context.UpdatedBy</MudTd>
         </RowEditingTemplate>
-        @*<PagerContent>
-            <MudTablePager />
-        </PagerContent>*@
     </MudTable>
 </MudCard>

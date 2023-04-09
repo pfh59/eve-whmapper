@@ -114,4 +114,9 @@
     <Folder Include="Services\EveAPI\Dogma\" />
     <Folder Include="Models\DTO\Anoik\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="Pages\_Layout.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

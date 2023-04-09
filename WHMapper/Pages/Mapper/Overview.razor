@@ -6,17 +6,17 @@
 @using Blazor.Diagrams.Components;
 @using Blazor.Diagrams.Algorithms;
 @using WHMapper.Models.Db.Enums;
-<MudContainer MaxWidth=MaxWidth.ExtraExtraLarge>
+<MudContainer MaxWidth=MaxWidth.ExtraExtraLarge >
     <MudGrid Class="@(_loading ? "invisible" : "visible")">
         <MudItem xs="12">
-            <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Disabled="@(_selectedSystemLink==null)" Dense="true">
+            <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Disabled="@(_selectedSystemLink==null)" Dense="true" @oncustompaste="HandleCustomPaste">
                 <ActivatorContent>
                     <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8">
                         @foreach (var item in WHMaps)
                         {
                             <div style="width:97vw; height: 60vh" Class="Rounded">
                                 <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                    <CascadingValue Value="Diagram">
+                                    <CascadingValue Value="Diagram"  >
                                         <DiagramCanvas></DiagramCanvas>
                                     </CascadingValue>
                                 </MudTabPanel>
@@ -53,10 +53,10 @@
             <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
         </MudItem>
         <MudItem xs="9">
-            <WHMapper.Pages.Mapper.Signatures.Overview CurrentSystemNode="@_selectedSystemNode" />
+            <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView"  CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection"/>
         </MudItem>
     </MudGrid>
-
+    
     <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
         <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
     </MudOverlay>

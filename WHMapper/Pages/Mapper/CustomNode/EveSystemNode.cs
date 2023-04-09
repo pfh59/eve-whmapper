@@ -1,5 +1,6 @@
 ﻿using System.Reflection.Emit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Services.WHColor;
 
@@ -7,6 +8,8 @@ namespace WHMapper.Pages.Mapper.CustomNode
 {
     public partial class EveSystemNode : ComponentBase
     {
+        
+
         private string _secColor;
         private string _systemColor;
         private string _whEffectColor;
@@ -37,6 +40,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 }
             }
         }
+
     }
 }
 

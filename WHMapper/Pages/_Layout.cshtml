@@ -29,7 +29,7 @@
 
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
-<body>
+<body allow="clipboard-read; clipboard-write">
     @RenderBody()
 
     <div id="blazor-error-ui">
@@ -47,6 +47,8 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <!-- in the body element -->
     <script src="_content/Z.Blazor.Diagrams/script.min.js"></script>
+    <script type="module" src="WHMapper.lib.module.js"></script>
+
 </body>
 </html>
 

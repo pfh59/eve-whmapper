@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Services.EveJwkExtensions;
 using WHMapper.Services.EveOnlineUserInfosProvider;
+using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Hubs
 {
@@ -111,6 +112,23 @@ namespace WHMapper.Hubs
         {
             var userName = Context.User.FindFirst("name").Value;
             await Clients.AllExcept(Context.ConnectionId).NotifyLinkChanged(userName, mapId, linkId, eol, size, mass);
+        }
+
+        public async Task SendWormholeNameExtensionIncremented(int mapId, int wowrmholeId)
+        {
+            var userName = Context.User.FindFirst("name").Value;
+            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionIncrement(userName, mapId, wowrmholeId);
+
+        }
+        public async Task SendWormholeNameExtensionDecremented(int mapId, int wowrmholeId)
+        {
+            var userName = Context.User.FindFirst("name").Value;
+            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionDecrement(userName, mapId, wowrmholeId);
+        }
+        public async Task SendWormholeSignaturesChanged(int mapId, int wowrmholeId)
+        {
+            var userName = Context.User.FindFirst("name").Value;
+            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeSignaturesChanged(userName, mapId, wowrmholeId);
         }
 
     }
