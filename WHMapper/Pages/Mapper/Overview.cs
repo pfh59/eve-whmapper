@@ -811,7 +811,7 @@ namespace WHMapper.Pages.Mapper
                         }
                         else
                         {
-                            Logger.LogError("Add Wormhole db error")
+                            Logger.LogError("Add Wormhole db error");
                             Snackbar?.Add("Add Wormhole db error", Severity.Error);
                         }
                     }
