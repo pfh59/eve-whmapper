@@ -648,7 +648,6 @@ namespace WHMapper.Pages.Mapper
                         else
                         {
                             Logger.LogWarning("Bad Link,Auto remove");
-
                             await DbWHSystemLinks.DeleteById(dbWHSysLink.Id);
                         }
                     }
@@ -681,15 +680,15 @@ namespace WHMapper.Pages.Mapper
                     var state = await AuthState.GetAuthenticationStateAsync();
 
                     if (!String.IsNullOrEmpty(state?.User?.Identity?.Name))
-                        await GetCharacterPositionInSpace();
+                        await AutoMapper();
                     else
                         _cts.Cancel();//todo redirect to logout
                 }
             }
             catch (Exception ex)
             {
-                
-                //Handle the exception but don't propagate it
+
+                Logger.LogError(ex,"Polling error");
             }
         }
 
@@ -739,7 +738,7 @@ namespace WHMapper.Pages.Mapper
             return false;
         }
 
-        private async Task GetCharacterPositionInSpace()
+        private async Task AutoMapper()
         {
             EveSystemNodeModel? previousSystem = null;
             WHSystem? newWHSystem = null;
@@ -797,6 +796,7 @@ namespace WHMapper.Pages.Mapper
                             {
                                 if(!await CreateLink(_selectedWHMap, previousSystem, newSystemNode))
                                 {
+                                    Logger.LogError("Add Wormhole Link db error");
                                     Snackbar?.Add("Add Wormhole Link db error", Severity.Error);
                                 }
 
@@ -811,6 +811,7 @@ namespace WHMapper.Pages.Mapper
                         }
                         else
                         {
+                            Logger.LogError("Add Wormhole db error")
                             Snackbar?.Add("Add Wormhole db error", Severity.Error);
                         }
                     }
@@ -843,6 +844,7 @@ namespace WHMapper.Pages.Mapper
                             {
                                 if (!await CreateLink(_selectedWHMap, previousSystem, _currentSystemNode))
                                 {
+                                    Logger.LogError("Add Wormhole Link db error");
                                     Snackbar?.Add("Add Wormhole Link db error", Severity.Error);
                                 }
                             }
@@ -853,7 +855,7 @@ namespace WHMapper.Pages.Mapper
             }
             catch(Exception ex)
             {
-      
+                Logger.LogError(ex, "Auto mapper error");
             }
         }
 
@@ -900,6 +902,7 @@ namespace WHMapper.Pages.Mapper
                 }
                 catch(Exception ex)
                 {
+                    Logger.LogError(ex, "Handle Custom Paste error");
                     Snackbar?.Add(ex.Message, Severity.Error);
                 }
             }
@@ -935,7 +938,7 @@ namespace WHMapper.Pages.Mapper
             }
             catch(Exception ex)
             {
-                Logger.LogError("Toggle system link eol error", ex);
+                Logger.LogError(ex, "Toggle system link eol error");
                 return false;
             }
         }
@@ -970,7 +973,7 @@ namespace WHMapper.Pages.Mapper
             }
             catch(Exception ex)
             {
-                Logger.LogError("System link status error", ex);
+                Logger.LogError(ex, "System link status error");
                 return false;
             }
         }
@@ -1008,7 +1011,7 @@ namespace WHMapper.Pages.Mapper
             }
             catch(Exception ex)
             {
-                Logger.LogError("System link size error", ex);
+                Logger.LogError(ex, "System link size error");
                 return false;
             }
         }
