@@ -33,16 +33,31 @@
     </MudCardHeader>
 
     <MudCardContent Class="d-flex pa-1 pr-2 justify-space-between">
-        <MudText Class="align-self-stretch ml-1 mt-1" Typo="Typo.caption">@Node?.ConnectedUsers.FirstOrDefault()</MudText>
-        <div Class="d-flex justify-end">
-            @if (Node?.Statics != null && Node?.Statics.Count() > 0)
-            {
-                @foreach (var item in Node?.Statics)
+        <div Class="d-flex justify-start">
+            <MudTooltip Typo="Typo.caption" Arrow="true" Placement="Placement.Bottom">
+                <ChildContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Group" Color=@((Node?.ConnectedUsers.FirstOrDefault()!=null) ? Color.Default : Color.Transparent) Size="Size.Small"/>
+                </ChildContent>
+                <TooltipContent>
+                    <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
+                        @foreach (var user in @Node?.ConnectedUsers)
+                        {
+                            <MudText class="ml-1 mr-1" Typo="Typo.caption">@user</MudText>
+                        }
+                    </MudPaper>
+                </TooltipContent>
+            </MudTooltip>
+            <MudText Class="align-self-stretch ml-1 mt-1" Typo="Typo.caption">@Node?.ConnectedUsers.FirstOrDefault()</MudText>
+        </div>
+            <div Class="d-flex justify-end">
+                @if (Node?.Statics != null && Node?.Statics.Count() > 0)
                 {
-                    <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
+                    @foreach (var item in Node?.Statics)
+                    {
+                        <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
+                    }
                 }
-            }
-            </div> 
+            </div>
     </MudCardContent>
 </MudCard>
 
