@@ -12,8 +12,8 @@ using WHMapper.Data;
 namespace WHMapper.Migrations
 {
     [DbContext(typeof(WHMapperContext))]
-    [Migration("20230420203441_Init")]
-    partial class Init
+    [Migration("20230316080346_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -115,9 +115,6 @@ namespace WHMapper.Migrations
 
                     b.Property<float>("SecurityStatus")
                         .HasColumnType("real");
-
-                    b.Property<int>("SoloarSystemId")
-                        .HasColumnType("integer");
 
                     b.Property<int?>("WHMapId")
                         .HasColumnType("integer");

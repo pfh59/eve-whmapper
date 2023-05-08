@@ -36,23 +36,6 @@ namespace WHMapper.Services.Anoik
         }
 
 
-        public async Task<int?> GetSystemId(string systemName)
-        {
-            try
-            {
-                var sys = _jsonSystems.GetProperty(systemName);
-                var solarSystemID = sys.GetProperty("solarSystemID");
-
-                return solarSystemID.GetInt32();
-            }
-            catch (KeyNotFoundException)
-            {
-                _logger.LogInformation(string.Format("Key not found {0} not found", systemName));
-                return null;
-            }
-        }
-
-
         /// <summary>
         /// 
         /// </summary>

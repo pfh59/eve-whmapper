@@ -4,8 +4,6 @@ namespace WHMapper.Services.EveAPI.Universe
 {
     public interface IUniverseServices
     {
-
-        Task<int[]> GetSystems();
         Task<SolarSystem> GetSystem(int system_id);
         Task<Star> GetStar(int star_id);
         Task<Group> GetGroup(int group_id);
@@ -14,6 +12,5 @@ namespace WHMapper.Services.EveAPI.Universe
         Task<int[]> GetCategories();
         Task<Models.DTO.EveAPI.Universe.Type> GetType(int type_id);
         Task<int[]> GetTypes();
-        Task<Stargate> GetStargate(int stargate_id);
     }
 }

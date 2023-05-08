@@ -16,7 +16,8 @@ namespace WHMapper.Hubs
         Task NotifyUsersPosition(IDictionary<string, string> connectedUsersPosition);
         Task NotifyWormoleMoved(string userName, int mapId, int wormholeId,double posx,double posy);
         Task NotifyLinkChanged(string username,int mapId, int linkId, bool eol, SystemLinkSize size, SystemLinkMassStatus mass);
-        Task NotifyWormholeNameExtensionChanged(string username, int mapId, int wormholeId);
+        Task NotifyWormholeNameExtensionIncrement(string username, int mapId, int wormholeId);
+        Task NotifyWormholeNameExtensionDecrement(string username, int mapId, int wormholeId);
         Task NotifyWormholeSignaturesChanged(string username, int mapId, int wormholeId);
     }
 }

@@ -60,11 +60,6 @@
     <None Remove="Models\DTO\EveAPI\Dogma\" />
     <None Remove="Services\EveAPI\Dogma\" />
     <None Remove="Models\DTO\Anoik\" />
-    <None Remove="Services\EveAPI\User Interface\" />
-    <None Remove="Resources\SDE\" />
-    <None Remove="Services\SDE\" />
-    <None Remove="Models\DTO\SDE\" />
-    <None Remove="Services\EveMapper\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.0.15" />
@@ -85,7 +80,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.14" />
-    <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
@@ -119,41 +113,10 @@
     <Folder Include="Models\DTO\EveAPI\Dogma\" />
     <Folder Include="Services\EveAPI\Dogma\" />
     <Folder Include="Models\DTO\Anoik\" />
-    <Folder Include="Services\EveAPI\User Interface\" />
-    <Folder Include="Resources\SDE\" />
-    <Folder Include="Services\SDE\" />
-    <Folder Include="Models\DTO\SDE\" />
-    <Folder Include="Services\EveMapper\" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Pages\_Layout.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000001\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000002\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000003\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000004\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000005\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000006\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000007\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000008\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

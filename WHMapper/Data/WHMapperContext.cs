@@ -24,7 +24,6 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHMap>().HasIndex(x => new { x.Name }).IsUnique(true);
 
             modelBuilder.Entity<WHSystem>().ToTable("Systems");
-            modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.SoloarSystemId }).IsUnique(true);
             modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.Name }).IsUnique(true);
             modelBuilder.Entity<WHSystem>().HasOne<WHMap>().WithMany(x => x.WHSystems).OnDelete(DeleteBehavior.Cascade);
 
