@@ -65,6 +65,7 @@
     <None Remove="Services\SDE\" />
     <None Remove="Models\DTO\SDE\" />
     <None Remove="Services\EveMapper\" />
+    <None Remove="Resources\SDE\sde.zip" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.0.15" />
@@ -124,6 +125,11 @@
     <Folder Include="Services\SDE\" />
     <Folder Include="Models\DTO\SDE\" />
     <Folder Include="Services\EveMapper\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\SDE\sde.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Update="Pages\_Layout.cshtml">
