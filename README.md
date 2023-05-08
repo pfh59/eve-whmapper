@@ -3,4 +3,4 @@
 # eve-whmapper
 simple eve online wormhole mapper
 
-Project inprogress
+Project in progress
