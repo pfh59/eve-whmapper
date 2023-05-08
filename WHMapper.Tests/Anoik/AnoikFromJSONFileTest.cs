@@ -29,6 +29,18 @@ namespace WHMapper.Tests.Anoik
         }
 
         [Fact]
+        public async Task Get_System_Id()
+        {
+            var sysJitaId = await _anoik.GetSystemId(SOLAR_SYSTEM_JITA_NAME);
+            Assert.Null(sysJitaId);
+
+            var sysWHId= await _anoik.GetSystemId(SOLAR_SYSTEM_WH_NAME);
+            Assert.NotNull(sysWHId);
+            Assert.Equal(SOLAR_SYSTEM_WH_ID, sysWHId);
+
+        }
+
+        [Fact]
         public async Task Get_System_Class()
         {
             var sysJitaClass = await _anoik.GetSystemClass(SOLAR_SYSTEM_JITA_NAME);

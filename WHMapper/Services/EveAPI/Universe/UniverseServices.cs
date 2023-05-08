@@ -7,8 +7,13 @@ namespace WHMapper.Services.EveAPI.Universe
 {
     public class UniverseServices : AEveApiServices, IUniverseServices
     {
-        public UniverseServices(HttpClient httpClient): base(httpClient)
+        public UniverseServices(HttpClient httpClient) : base(httpClient)
         {
+        }
+
+        public async Task<int[]> GetSystems()
+        {
+            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, "/v1/universe/systems/?datasource=tranquility");
         }
 
         public async Task<SolarSystem> GetSystem(int system_id)
@@ -53,5 +58,11 @@ namespace WHMapper.Services.EveAPI.Universe
         {
             return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, "/v1/universe/types/?datasource=tranquility");
         }
+
+        public async Task<Stargate> GetStargate(int stargate_id)
+        {
+            return await base.Execute<Stargate>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/universe/stargates/{0}/?datasource=tranquility", stargate_id));
+        }
     }
+
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
+using WHMapper.Models.DTO.EveAPI;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Dogma;
 using WHMapper.Services.EveAPI.Universe;
@@ -24,7 +26,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         private const int SOLAR_SYSTEM_WH_ID = 31001123;
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
 
-        
+
 
         private const int CATEGORY_CELESTIAL_ID = 2;
         private const int CATEGORY_STRUCTURE_ID = 65;
@@ -58,7 +60,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         private IDogmaServices _eveDogmaApi;
 
         public PublicEveOnlineAPITest()
-		{
+        {
             var services = new ServiceCollection();
             services.AddHttpClient();
             var provider = services.BuildServiceProvider();
@@ -69,23 +71,42 @@ namespace WHMapper.Tests.EveOnlineAPI
             _eveDogmaApi = new DogmaServices(httpclientfactory.CreateClient());
         }
 
+
         [Fact]
-        public async Task Get_Universe_System_And_Star()
+        public async Task Get_Universe_System_And_Star_And_Stargate()
         {
+            //getsystems
+            int[] systems = await _eveUniverseApi.GetSystems();
+            Assert.NotNull(systems);
+            Assert.Contains(systems, item => SOLAR_SYSTEM_JITA_ID==item);
+
+             
+
+
             //test Jita
             var jita = await _eveUniverseApi.GetSystem(SOLAR_SYSTEM_JITA_ID);
             Assert.NotNull(jita);
             Assert.Equal(SOLAR_SYSTEM_JITA_NAME, jita.Name);
+            Assert.NotNull(jita.Stargates);
+
 
             //test Jita star
             var jitaStar = await _eveUniverseApi.GetStar(jita.StarId);
             Assert.NotNull(jitaStar);
             Assert.Contains(SOLAR_SYSTEM_JITA_NAME, jitaStar.Name);
 
+            //test Jita Stargate
+            var jitaStargate = await _eveUniverseApi.GetStargate(jita.Stargates[0]);
+            Assert.NotNull(jitaStargate);
+            Assert.Equal(SOLAR_SYSTEM_JITA_ID, jitaStargate.SystemId);
+
+
+
             //test wh
             var wh = await _eveUniverseApi.GetSystem(SOLAR_SYSTEM_WH_ID);
             Assert.NotNull(wh);
             Assert.Equal(SOLAR_SYSTEM_WH_NAME, wh.Name);
+            Assert.Null(wh.Stargates);
 
             //test wh star
             var whStar = await _eveUniverseApi.GetStar(wh.StarId);
@@ -102,12 +123,12 @@ namespace WHMapper.Tests.EveOnlineAPI
 
             //Test Celestial
             Assert.Contains<int>(CATEGORY_CELESTIAL_ID, categories);
-            var  celestialCategory = await _eveUniverseApi.GetCategory(CATEGORY_CELESTIAL_ID);
+            var celestialCategory = await _eveUniverseApi.GetCategory(CATEGORY_CELESTIAL_ID);
             Assert.NotNull(celestialCategory);
             Assert.Equal(CELESTIAL_GATEGORY_NAME, celestialCategory.Name);
         }
 
-        
+
         [Fact]
         public async Task Get_Universe_Groups_And_Group()
         {
@@ -128,7 +149,7 @@ namespace WHMapper.Tests.EveOnlineAPI
 
             //wormhole
             //has been removed ??? but always accessible if you get group with GROUP_WORMHOLE_ID
-           // Assert.Contains<int>(GROUP_WORMHOLE_ID, groups);
+            // Assert.Contains<int>(GROUP_WORMHOLE_ID, groups);
             var whGroups = await _eveUniverseApi.GetGroup(GROUP_WORMHOLE_ID);
             Assert.NotNull(whGroups);
             Assert.Equal(WORMHOLE_GROUP_NAME, whGroups.Name);
@@ -158,7 +179,8 @@ namespace WHMapper.Tests.EveOnlineAPI
             var effects = await _eveDogmaApi.GetEffects();
             Assert.NotNull(effects);
         }
-
+       
     }
+
 }
 

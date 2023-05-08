@@ -1,0 +1,15 @@
+﻿
+<MudDialog>
+    <DialogContent>
+        <MudForm @bind-IsValid="@_success" @ref="@_form">
+            <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
+                             Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
+                             Validation="@(new Func<string, IEnumerable<string>>(Validate))"
+                             AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_success==false)">Add System</MudButton>
+    </DialogActions>
+</MudDialog>

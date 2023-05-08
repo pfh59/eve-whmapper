@@ -9,45 +9,56 @@
 <MudContainer MaxWidth=MaxWidth.ExtraExtraLarge >
     <MudGrid Class="@(_loading ? "invisible" : "visible")">
         <MudItem xs="12">
-            <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Disabled="@(_selectedSystemLink==null)" Dense="true" @oncustompaste="HandleCustomPaste">
+            <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste">
                 <ActivatorContent>
                     <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8">
                         @foreach (var item in WHMaps)
                         {
                             <div style="width:97vw; height: 60vh" Class="Rounded">
                                 <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                    <CascadingValue Value="Diagram"  >
+                                    <CascadingValue Value="Diagram">
                                         <DiagramCanvas></DiagramCanvas>
                                     </CascadingValue>
                                 </MudTabPanel>
                             </div>
                         }
-                        </MudDynamicTabs>
+                    </MudDynamicTabs>
                 </ActivatorContent>
                 <ChildContent>
-                    <MudMenuItem OnClick="@(()=>ToggleSlectedSystemLinkEOL())">Toggle EOL</MudMenuItem>
-                    <div class="d-flex flex-column">
-                        <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true"
-                                 EndIcon="@Icons.Material.Filled.ArrowRight" Label="Status" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
-                            <ChildContent>
-                                <MudMenuItem OnClick="@(()=>SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))">Normal</MudMenuItem>
-                                <MudMenuItem OnClick="@(()=>SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))">Critical</MudMenuItem>
-                                <MudMenuItem OnClick="@(()=>SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))">Verge</MudMenuItem>
-                            </ChildContent>
-                        </MudMenu>
+                    <MudMenuItem OnClick="OpenSearchAndAddDialog">Add System</MudMenuItem>
+                    @if (_selectedSystemLink != null)
+                    {
+                        <MudMenuItem OnClick="@(() => ToggleSlectedSystemLinkEOL())" Disabled="@(_selectedSystemLink == null)">Toggle EOL</MudMenuItem>
+                        <div class="d-flex flex-column">
+                            <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
+                                     EndIcon="@Icons.Material.Filled.ArrowRight" Label="Status" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
+                                <ChildContent>
+                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))">Normal</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))">Critical</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))">Verge</MudMenuItem>
+                                </ChildContent>
+                            </MudMenu>
 
-                        <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true"
-                                 EndIcon="@Icons.Material.Filled.ArrowRight" Label="Size" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
-                            <ChildContent>
-                                <MudMenuItem OnClick="@(()=>SetSelectedSystemLinkSize(SystemLinkSize.Small))">Small</MudMenuItem>
-                                <MudMenuItem OnClick="@(()=>SetSelectedSystemLinkSize(SystemLinkSize.Medium))">Medium</MudMenuItem>
-                                <MudMenuItem OnClick="@(()=>SetSelectedSystemLinkSize(SystemLinkSize.Large))">Large</MudMenuItem>
-                                <MudMenuItem OnClick="@(()=>SetSelectedSystemLinkSize(SystemLinkSize.XLarge))">XLarge</MudMenuItem>
-                            </ChildContent>
-                        </MudMenu>
-                    </div>
+                            <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
+                                     EndIcon="@Icons.Material.Filled.ArrowRight" Label="Size" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
+                                <ChildContent>
+                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))">Small</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))">Medium</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))">Large</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))">XLarge</MudMenuItem>
+                                </ChildContent>
+                            </MudMenu>
+                        </div>
+                    }
+
+                    @if (_selectedSystemNode != null)
+                    {
+                        <MudMenuItem OnClick="@(() => SetSelectedSystemDestinationWaypoint())" Disabled="@(_selectedSystemNode == null)">Set Destination</MudMenuItem>
+                    }
                 </ChildContent>
             </MudMenu>
+        
+            
         </MudItem>
         <MudItem xs="3">
             <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />

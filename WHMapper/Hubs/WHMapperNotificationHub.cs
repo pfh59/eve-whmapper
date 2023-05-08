@@ -114,17 +114,13 @@ namespace WHMapper.Hubs
             await Clients.AllExcept(Context.ConnectionId).NotifyLinkChanged(userName, mapId, linkId, eol, size, mass);
         }
 
-        public async Task SendWormholeNameExtensionIncremented(int mapId, int wowrmholeId)
+        public async Task SendWormholeNameExtensionChanged(int mapId, int wowrmholeId)
         {
             var userName = Context.User.FindFirst("name").Value;
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionIncrement(userName, mapId, wowrmholeId);
+            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionChanged(userName, mapId, wowrmholeId);
 
         }
-        public async Task SendWormholeNameExtensionDecremented(int mapId, int wowrmholeId)
-        {
-            var userName = Context.User.FindFirst("name").Value;
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionDecrement(userName, mapId, wowrmholeId);
-        }
+
         public async Task SendWormholeSignaturesChanged(int mapId, int wowrmholeId)
         {
             var userName = Context.User.FindFirst("name").Value;
