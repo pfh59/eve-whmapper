@@ -44,8 +44,6 @@ using WHMapper.Services.EveOnlineUserInfosProvider;
 using MudBlazor;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
-using WHMapper.Services.SDE;
-using WHMapper.Services.EveMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -151,7 +149,6 @@ builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStatePr
 builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
 builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();
 builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
-builder.Services.AddSingleton<ISDEServices, SDEServices>();
 
 #region DB Acess Repo
 builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
@@ -161,7 +158,6 @@ builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
 #endregion
 
 #region WH HELPER
-builder.Services.AddScoped<IEveMapperHelper, EveMapperHelper>();
 builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();
 builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();
 #endregion

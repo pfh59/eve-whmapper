@@ -18,11 +18,9 @@ namespace WHMapper.Tests.Db;
 [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.Db")]
 public class DbIntegrationTest
 {
-    private const int FOOBAR_SYSTEM_ID = 123456;
+
     private const string FOOBAR ="FooBar";
     private const string FOOBAR_UPDATED = "FooBar Updated";
-
-    private const int FOOBAR_SYSTEM_ID2 = 1234567;
     private const string FOOBAR_SHORT_UPDATED = "FooBarU";
     private WHMapperContext _context;
 
@@ -85,15 +83,13 @@ public class DbIntegrationTest
 
 
         //Add WHSystem
-        var whSys1 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SYSTEM_ID, FOOBAR, 1));
+        var whSys1 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR, 1));
         Assert.NotNull(whSys1);
-        Assert.Equal(FOOBAR_SYSTEM_ID, whSys1?.SoloarSystemId);
         Assert.Equal(FOOBAR, whSys1?.Name);
         Assert.Equal(1, whSys1?.SecurityStatus);
 
-        var whSys2 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SYSTEM_ID2,FOOBAR_SHORT_UPDATED,'A', 1));
+        var whSys2 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SHORT_UPDATED,'A', 1));
         Assert.NotNull(whSys2);
-        Assert.Equal(FOOBAR_SYSTEM_ID2, whSys2?.SoloarSystemId);
         Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2?.Name);
         Assert.Equal(1, whSys2?.SecurityStatus);
         Assert.Equal(Convert.ToByte('A'), whSys2.NameExtension);
@@ -143,13 +139,13 @@ public class DbIntegrationTest
         Assert.Empty(results);
 
         //ADD WHSystem
-        var result = await repo.Create(new WHSystem(FOOBAR_SYSTEM_ID,FOOBAR, 1));
+        var result = await repo.Create(new WHSystem(FOOBAR, 1));
         Assert.NotNull(result);
         Assert.Equal(FOOBAR, result?.Name);
         Assert.Equal(1, result?.SecurityStatus);
 
         //ADD Same WHsystem => return error null
-        var duplicateResult = await repo.Create(new WHSystem(FOOBAR_SYSTEM_ID,FOOBAR, 1));
+        var duplicateResult = await repo.Create(new WHSystem(FOOBAR, 1));
         Assert.Null(duplicateResult);
 
         //GetALL
@@ -162,17 +158,14 @@ public class DbIntegrationTest
         //GetById
         var result2 = await repo.GetById(result.Id);
         Assert.NotNull(result2);
-        Assert.Equal(FOOBAR_SYSTEM_ID, result2?.SoloarSystemId);
         Assert.Equal(FOOBAR, result2?.Name);
         Assert.Equal(1, result2?.SecurityStatus);
 
         //update
         result2.Name = FOOBAR_UPDATED;
-        result2.SoloarSystemId = FOOBAR_SYSTEM_ID2;
         result2.SecurityStatus = 0.5F;
         var result4 = await repo.Update(result2.Id, result2);
         Assert.NotNull(result2);
-        Assert.Equal(FOOBAR_SYSTEM_ID2, result2?.SoloarSystemId);
         Assert.Equal(FOOBAR_UPDATED, result2?.Name);
         Assert.Equal(0.5F, result2?.SecurityStatus);
 

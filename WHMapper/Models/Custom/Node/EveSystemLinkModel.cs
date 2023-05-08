@@ -115,7 +115,7 @@ namespace WHMapper.Models.Custom.Node
             //Color = GetLinkStatusColor(_whLink.MassStatus);
             //SelectedColor = GetLinkStatusColor(_whLink.MassStatus);
             SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
-
+            
         }
 
     }

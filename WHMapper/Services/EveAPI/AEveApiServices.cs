@@ -54,10 +54,8 @@ namespace WHMapper.Services.EveAPI
 
             //Serialize post body data
             HttpContent postBody = null;
-         
             if (body != null)
                 postBody = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-            
 
             HttpResponseMessage response = null;
             switch (method)
@@ -72,7 +70,7 @@ namespace WHMapper.Services.EveAPI
 
                 case RequestMethod.Post:
                     response = await _httpClient.PostAsync(uri, postBody).ConfigureAwait(false);
-           
+
                     break;
 
                 case RequestMethod.Put:
@@ -88,7 +86,7 @@ namespace WHMapper.Services.EveAPI
                 return JsonSerializer.Deserialize<T>(result);
             }
             else
-               return default(T);
+                return default(T);
         }
     }
 }
