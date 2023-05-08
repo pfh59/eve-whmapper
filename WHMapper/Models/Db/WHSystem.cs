@@ -11,7 +11,9 @@ namespace WHMapper.Models.Db
         public int Id { get; set; }
 
         [Required]
-        [StringLength(255, ErrorMessage = "Map name is too long.")]
+        public int SoloarSystemId { get; set; } = -1;
+
+        [Required , StringLength(255, ErrorMessage = "Map name is too long.")]
         public String Name { get; set; }
 
         public byte NameExtension { get; set; }
@@ -26,33 +28,40 @@ namespace WHMapper.Models.Db
         public double PosY { get; set; } = 0.0;
 
 
-        public WHSystem(string name,float securityStatus) :
-            this(name,securityStatus,0,0)
-        {
-        }
+        public WHSystem()
+        { }
 
-        public WHSystem(string name, float securityStatus,double posX, double posY)
+        public WHSystem(int solarSystemId,string name, float securityStatus,double posX, double posY)
         {
+            SoloarSystemId = solarSystemId;
             Name = name;
             SecurityStatus = securityStatus;
             PosX = posX;
             PosY = posY;
         }
 
-        public WHSystem(string name, char nameExtension, float securityStatus) :
-            this(name,nameExtension,securityStatus,0,0)
+        public WHSystem(int solarSystemId, string name, char nameExtension, float securityStatus, double posX, double posY)
         {
-
-        }
-
-        public WHSystem(string name, char nameExtension, float securityStatus,double posX,double posY)
-        {
+            SoloarSystemId = solarSystemId;
             Name = name;
             NameExtension = Convert.ToByte(nameExtension);
             SecurityStatus = securityStatus;
             PosX = posX;
             PosY = posY;
         }
+
+        
+        public WHSystem(int solarSystemId, string name, float securityStatus) :
+            this(solarSystemId, name, securityStatus, 0, 0)
+        {
+        }
+
+        public WHSystem(int solarSystemId, string name, char nameExtension, float securityStatus) :
+            this(solarSystemId,name, nameExtension,securityStatus,0,0)
+        {
+
+        }
+
     }
 }
 

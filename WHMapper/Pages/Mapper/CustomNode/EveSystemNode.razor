@@ -5,12 +5,12 @@
 <MudCard Outlined="true" Style="@(Node.Selected ? "border-color:white;" : "border-color:grey;")">
     <MudCardHeader Class="mb-n5">
         <CardHeaderAvatar>
-            <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension  Visible=@((Node.NameExtension!=null) ? true : false) Bordered="true" Color="Color.Dark">
+            <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension Visible=@((Node.NameExtension!=null) ? true : false) Bordered="true" Color="Color.Dark">
                 <MudAvatar class="mt-1" Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")" Size="Size.Small" Variant="Variant.Outlined">@Node.Class</MudAvatar>
-             </MudBadge>
+            </MudBadge>
         </CardHeaderAvatar>
         <CardHeaderContent>
-                <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;">@Node.Name</MudText>
+            <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;">@Node.Name</MudText>
         </CardHeaderContent>
         <CardHeaderActions>
             @if (!string.IsNullOrWhiteSpace(Node.Effect))
@@ -36,7 +36,7 @@
         <div Class="d-flex justify-start">
             <MudTooltip Typo="Typo.caption" Arrow="true" Placement="Placement.Bottom">
                 <ChildContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Group" Color=@((Node?.ConnectedUsers.FirstOrDefault()!=null) ? Color.Default : Color.Transparent) Size="Size.Small"/>
+                    <MudIcon Icon="@Icons.Material.Filled.Group" Color=@((Node?.ConnectedUsers.FirstOrDefault()!=null) ? Color.Default : Color.Transparent) Size="Size.Small" />
                 </ChildContent>
                 <TooltipContent>
                     <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
@@ -49,19 +49,17 @@
             </MudTooltip>
             <MudText Class="align-self-stretch ml-1 mt-1" Typo="Typo.caption">@Node?.ConnectedUsers.FirstOrDefault()</MudText>
         </div>
-            <div Class="d-flex justify-end">
-                @if (Node?.Statics != null && Node?.Statics.Count() > 0)
+        <div Class="d-flex justify-end">
+            @if (Node?.Statics != null && Node?.Statics.Count() > 0)
+            {
+                @foreach (var item in Node?.Statics)
                 {
-                    @foreach (var item in Node?.Statics)
-                    {
-                        <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
-                    }
+                    <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
                 }
-            </div>
+            }
+        </div>
     </MudCardContent>
 </MudCard>
 
-@foreach (var port in Node.Ports)
-{
-    <PortRenderer Port="port"></PortRenderer>
-}
+
+
