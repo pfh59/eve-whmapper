@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Compression;
+using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.SDE;
 using WHMapper.Services.Anoik;
 using YamlDotNet.Serialization;
@@ -22,8 +23,22 @@ namespace WHMapper.Services.SDE
 
             if (!Directory.Exists(_sdeUniverseDirectoryPath))
             {
+
                 _logger.LogInformation("Extrat Eve SDE files");
-                ZipFile.ExtractToDirectory(_sdeZipPath, _sdeUniverseDirectoryPath);
+                using (ZipArchive archive = ZipFile.OpenRead(_sdeZipPath))
+                {
+                    foreach (ZipArchiveEntry entry in archive.Entries)
+                    {
+                        string extractPath = Path.Combine(_sdeUniverseDirectoryPath, entry.FullName);
+                        string extractDirectoryName = Path.GetDirectoryName(extractPath);
+
+                        if (!Directory.Exists(extractDirectoryName))
+                            Directory.CreateDirectory(extractDirectoryName);
+
+
+                        entry.ExtractToFile(Path.Combine(_sdeUniverseDirectoryPath, entry.FullName),true);
+                    }
+                }
             }
         }
 

@@ -29,28 +29,28 @@ namespace WHMapper.Pages.Mapper
         
 
         [Inject]
-        private IEveMapperHelper? MapperServices { get; set; } = null!;
+        private IEveMapperHelper MapperServices { get; set; } = null!;
 
         [Inject]
-        private IEveAPIServices? EveServices { get; set; } = null!;
+        private IEveAPIServices EveServices { get; set; } = null!;
 
         [Inject]
-        private IWHMapRepository? DbWHMaps { get; set; } = null!;
+        private IWHMapRepository DbWHMaps { get; set; } = null!;
 
         [Inject]
         private ISnackbar Snackbar { get; set; } = null!;
 
         [Inject]
-        ISDEServices? SDEServices { get; set; } = null!;
+        private ISDEServices SDEServices { get; set; } = null!;
 
         [CascadingParameter]
-        MudDialogInstance MudDialog { get; set; }
+        MudDialogInstance MudDialog { get; set; } = null!;
 
         [Parameter]
-        public BlazorDiagram CurrentDiagram { get; set; }
+        public BlazorDiagram CurrentDiagram { get; set; } = null!;
 
         [Parameter]
-        public WHMap CurrentWHMap { get; set; }
+        public WHMap CurrentWHMap { get; set; } = null!;
 
         [Parameter]
         public double MouseX { get; set; }
@@ -58,10 +58,10 @@ namespace WHMapper.Pages.Mapper
         [Parameter]
         public double MouseY { get; set; }
 
-        private MudForm _form;
+        private MudForm _form = null!;
         private bool _success = false;
 
-        private HashSet<SDESolarSystem> _systems;
+        private HashSet<SDESolarSystem> _systems = null!;
         private string _searchResult = string.Empty;
 
         protected override async Task OnInitializedAsync()
@@ -82,17 +82,19 @@ namespace WHMapper.Pages.Mapper
                         Snackbar?.Add("CurrentWHMap or CurrentDiagram is null", Severity.Error);
                         MudDialog.Close(DialogResult.Cancel);
                     }
-                       
-                    var sdeSolarSystem = _systems.Where(x => x.Name == _searchResult).FirstOrDefault();
 
-                    if(CurrentWHMap.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem.SolarSystemID).FirstOrDefault()!=null)
+
+
+                    var sdeSolarSystem = _systems.Where(x => x.Name == _searchResult).FirstOrDefault();
+               
+                    if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem?.SolarSystemID).FirstOrDefault()!=null)
                     {
                         Snackbar?.Add("Solar System is already added", Severity.Normal);
                         MudDialog.Close(DialogResult.Ok(0));
                     }
 
-                    var solarSystem = await EveServices?.UniverseServices.GetSystem(sdeSolarSystem.SolarSystemID);
-                    var newWHSystem = await DbWHMaps?.AddWHSystem(CurrentWHMap.Id, new WHSystem(solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY));//change position
+                    var solarSystem = await EveServices.UniverseServices.GetSystem(sdeSolarSystem.SolarSystemID);
+                    var newWHSystem = await DbWHMaps.AddWHSystem(CurrentWHMap.Id, new WHSystem(solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY));//change position
 
                     if (newWHSystem == null)
                     {
@@ -101,8 +103,8 @@ namespace WHMapper.Pages.Mapper
                     }
 
 
-                    var nodeModel = await MapperServices?.DefineEveSystemNodeModel(newWHSystem);
-                    CurrentDiagram.Nodes.Add(nodeModel);
+                    var nodeModel = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
+                    CurrentDiagram?.Nodes.Add(nodeModel);
 
                     Snackbar?.Add(String.Format("{0} solar system successfully added",nodeModel.Name), Severity.Success);
                     MudDialog.Close(DialogResult.Ok(nodeModel.SolarSystemId));
@@ -123,18 +125,18 @@ namespace WHMapper.Pages.Mapper
 
 
 
-        private async Task Cancel()
+        private void Cancel()
         {
             MudDialog.Cancel();
         }
 
-        private async Task<IEnumerable<string>> Search(string value)
+        private async Task<IEnumerable<string>?> Search(string value)
         {
            
             if (string.IsNullOrEmpty(value) || SDEServices == null)
                 return null;
 
-            _systems = (await SDEServices.SearchSystem(value))?.ToHashSet<SDESolarSystem>();
+            _systems = (await SDEServices.SearchSystem(value)).ToHashSet<SDESolarSystem>();
 
 
             if (_systems != null) 
