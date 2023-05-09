@@ -20,6 +20,7 @@ namespace WHMapper.Services.SDE
         public SDEServices(ILogger<SDEServices> logger)
 		{
             _logger = logger;
+            string target_dir_full_path= Path.GetFullPath(SDE_TARGET_DIRECTORY);
 
             if (!Directory.Exists(SDE_TARGET_DIRECTORY))
             {
@@ -36,7 +37,7 @@ namespace WHMapper.Services.SDE
                         if (!Directory.Exists(extractDirectoryName))
                             Directory.CreateDirectory(extractDirectoryName);
 
-                        if (canonicalDestinationPath.StartsWith(SDE_TARGET_DIRECTORY, StringComparison.Ordinal))
+                        if (canonicalDestinationPath.StartsWith(target_dir_full_path, StringComparison.Ordinal))
                             entry.ExtractToFile(extractPath, true);
                     }
                 }

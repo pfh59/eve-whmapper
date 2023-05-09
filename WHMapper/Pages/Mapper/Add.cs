@@ -136,7 +136,7 @@ namespace WHMapper.Pages.Mapper
             if (string.IsNullOrEmpty(value) || SDEServices == null)
                 return null;
 
-            _systems = (await SDEServices.SearchSystem(value)).ToHashSet<SDESolarSystem>();
+            _systems =  SDEServices.SearchSystem(value).ToHashSet<SDESolarSystem>();
 
 
             if (_systems != null) 
