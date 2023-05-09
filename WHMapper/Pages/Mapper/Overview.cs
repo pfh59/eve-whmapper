@@ -260,9 +260,9 @@ namespace WHMapper.Pages.Mapper
                         {
                             if (wormholeId > 0 && mapId == _selectedWHMap?.Id)
                             {
-                                var newWHSystem = await DbWHSystems?.GetById(wormholeId);
+                                var newWHSystem = await DbWHSystems.GetById(wormholeId);
                                 while (newWHSystem == null)
-                                    newWHSystem = await DbWHSystems?.GetById(wormholeId);
+                                    newWHSystem = await DbWHSystems.GetById(wormholeId);
 
                                 var newSystemNode = await DefineEveSystemNodeModel(newWHSystem);
                                 Diagram?.Nodes?.Add(newSystemNode);

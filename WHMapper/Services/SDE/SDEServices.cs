@@ -36,7 +36,7 @@ namespace WHMapper.Services.SDE
                             Directory.CreateDirectory(extractDirectoryName);
 
 
-                        entry.ExtractToFile(Path.Combine(_sdeUniverseDirectoryPath, entry.FullName),true);
+                        entry.ExtractToFile(extractPath, true);
                     }
                 }
             }
