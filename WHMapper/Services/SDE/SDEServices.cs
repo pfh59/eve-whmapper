@@ -12,70 +12,71 @@ namespace WHMapper.Services.SDE
 	{
         private readonly ILogger _logger;
 
-        private const string _sdeZipPath = @"./Resources/SDE/sde.zip";
-        private const string _sdeUniverseDirectoryPath= @"./Resources/SDE/universe";
-        private const string _default_solarsystem_static_filename = "solarsystem.staticdata";
+        private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
+        private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
+        private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.staticdata";
 
 
         public SDEServices(ILogger<SDEServices> logger)
 		{
             _logger = logger;
 
-            if (!Directory.Exists(_sdeUniverseDirectoryPath))
+            if (!Directory.Exists(SDE_TARGET_DIRECTORY))
             {
 
                 _logger.LogInformation("Extrat Eve SDE files");
-                using (ZipArchive archive = ZipFile.OpenRead(_sdeZipPath))
+                using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
                 {
                     foreach (ZipArchiveEntry entry in archive.Entries)
                     {
-                        string extractPath = Path.Combine(_sdeUniverseDirectoryPath, entry.FullName);
+                        string extractPath = Path.Combine(SDE_TARGET_DIRECTORY, entry.FullName);
+                        string canonicalDestinationPath = Path.GetFullPath(extractPath);
                         string extractDirectoryName = Path.GetDirectoryName(extractPath);
 
                         if (!Directory.Exists(extractDirectoryName))
                             Directory.CreateDirectory(extractDirectoryName);
 
-
-                        entry.ExtractToFile(extractPath, true);
+                        if (canonicalDestinationPath.StartsWith(SDE_TARGET_DIRECTORY, StringComparison.Ordinal))
+                            entry.ExtractToFile(extractPath, true);
                     }
                 }
             }
         }
 
 
-        public async Task<IEnumerable<SDESolarSystem>> SearchSystem(string value)
+        public IEnumerable<SDESolarSystem>? SearchSystem(string value)
         {
-            if (Directory.Exists(_sdeUniverseDirectoryPath) && !String.IsNullOrEmpty(value) && value.Length>2)
+            if (Directory.Exists(SDE_TARGET_DIRECTORY) && !String.IsNullOrEmpty(value) && value.Length > 2)
             {
-                HashSet<SDESolarSystem>  results = new HashSet<SDESolarSystem>();
-                var directories = (IEnumerable<string>)Directory.GetDirectories(_sdeUniverseDirectoryPath, $"{value}*", SearchOption.AllDirectories);
+                HashSet<SDESolarSystem> results = new HashSet<SDESolarSystem>();
+                var directories = (IEnumerable<string>)Directory.GetDirectories(SDE_TARGET_DIRECTORY, $"{value}*", SearchOption.AllDirectories);
 
 
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
 
-                    foreach (string directoryPath in directories)
+                foreach (string directoryPath in directories)
+                {
+                    var sdeFiles = Directory.GetFiles(directoryPath);
+                    if (sdeFiles.Count() > 0 && sdeFiles.Any(x => x.Contains(SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE)))
                     {
-                        var sdeFiles = Directory.GetFiles(directoryPath);
-                        if (sdeFiles.Count() > 0 && sdeFiles.Any(x => x.Contains(_default_solarsystem_static_filename)))
+                        using (TextReader text_reader = File.OpenText(sdeFiles[0]))
                         {
-                            using (TextReader text_reader = File.OpenText(sdeFiles[0]))
+                            try
                             {
-                                try
-                                {
-                                    var res = deserializer.Deserialize<SDESolarSystem>(text_reader);
-                                    res.Name = Path.GetFileName(directoryPath);
-                                    results.Add(res);
-                                }
-                                catch(Exception ex)
-                                {
-                                    _logger.LogError(ex,String.Format("Parsing sdefiles {0} Error", sdeFiles[0]));
-                                }
+                                var res = deserializer.Deserialize<SDESolarSystem>(text_reader);
+                                res.Name = Path.GetFileName(directoryPath);
+                                results.Add(res);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, String.Format("Parsing sdefiles {0} Error", sdeFiles[0]));
                             }
                         }
                     }
-                
+                }
+
 
                 return results;
             }
