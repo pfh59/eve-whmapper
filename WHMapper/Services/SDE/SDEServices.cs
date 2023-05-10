@@ -26,23 +26,7 @@ namespace WHMapper.Services.SDE
                 _logger.LogInformation("Extrat Eve SDE files");
                 using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
                 {
-                    foreach (ZipArchiveEntry entry in archive.Entries)
-                    {
-                        if (entry.Name == SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE)
-                        {
-                            string destinationPath = Path.Combine(SDE_TARGET_DIRECTORY, entry.FullName);
-                            string canonicalDestinationPath = Path.GetFullPath(destinationPath);
-
-                            if (canonicalDestinationPath.Contains(destinationPath.Substring(1), StringComparison.Ordinal))
-                            {
-                                string extractDirectoryName = Path.GetDirectoryName(destinationPath);
-                                if (!Directory.Exists(extractDirectoryName))
-                                    Directory.CreateDirectory(Path.Combine(extractDirectoryName));
-                                
-                                entry.ExtractToFile(destinationPath, true);
-                            }
-                        }
-                    }
+                    archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
                 }
             }
         }
