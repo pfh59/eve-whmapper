@@ -11,10 +11,10 @@ namespace WHMapper.Tests.SDE
     {
 
         private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
-        private const string SOLAR_SYSTEM_JIT_NAME = "Jit";
+        private const string SOLAR_SYSTEM_JIT_NAME = "jit";
 
         private const string SOLAR_SYSTEM_AMARR_NAME = "Amarr";
-        private const string SOLAR_SYSTEM_AMA_NAME = "Ama";
+        private const string SOLAR_SYSTEM_AMA_NAME = "ama";
 
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
         private const string SOLAR_SYSTEM_WH_PARTIAL_NAME = "J1651";

@@ -888,6 +888,10 @@ namespace WHMapper.Pages.Mapper
                         _cts.Cancel();//todo redirect to logout
                 }
             }
+            catch(OperationCanceledException oce)
+            {
+                Logger.LogInformation(oce, "Cancel operation");
+            }
             catch (Exception ex)
             {
                 Logger.LogError(ex,"Polling error");

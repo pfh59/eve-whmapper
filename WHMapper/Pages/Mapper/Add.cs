@@ -85,7 +85,7 @@ namespace WHMapper.Pages.Mapper
 
 
 
-                    var sdeSolarSystem = _systems.Where(x => x.Name == _searchResult).FirstOrDefault();
+                    var sdeSolarSystem = _systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
                
                     if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem?.SolarSystemID).FirstOrDefault()!=null)
                     {
@@ -159,7 +159,7 @@ namespace WHMapper.Pages.Mapper
                 yield break;
             }
 
-            if(_systems==null || _systems.Where(x=>x.Name==value).FirstOrDefault()==null)
+            if(_systems==null || _systems.Where(x=>x.Name.ToLower() == value.ToLower()).FirstOrDefault()==null)
             {
                 yield return "Bad Solar system name";
                 yield break;

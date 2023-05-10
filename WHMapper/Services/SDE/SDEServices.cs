@@ -16,6 +16,7 @@ namespace WHMapper.Services.SDE
         private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
         private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.staticdata";
 
+        private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
 
         public SDEServices(ILogger<SDEServices> logger)
 		{
@@ -37,8 +38,7 @@ namespace WHMapper.Services.SDE
             if (Directory.Exists(SDE_TARGET_DIRECTORY) && !String.IsNullOrEmpty(value) && value.Length > 2)
             {
                 HashSet<SDESolarSystem> results = new HashSet<SDESolarSystem>();
-                var directories = (IEnumerable<string>)Directory.GetDirectories(SDE_TARGET_DIRECTORY, $"{value}*", SearchOption.AllDirectories);
-
+                var directories = (IEnumerable<string>)Directory.EnumerateDirectories(SDE_TARGET_DIRECTORY, $"{value}*", _directorySearchOptions) ;
 
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
