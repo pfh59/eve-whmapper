@@ -39,6 +39,15 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
+        
+        public int SolarSystemId
+        {
+            get
+            {
+                return _wh.SoloarSystemId;
+            }
+        }
+
         public float SecurityStatus
         {
             get
@@ -67,6 +76,11 @@ namespace WHMapper.Models.Custom.Node
             Effect = whEffects;
             EffectsInfos = whEffectsInfos;
             Statics = whStatics;
+
+            AddPort(PortAlignment.Bottom);
+            AddPort(PortAlignment.Top);
+            AddPort(PortAlignment.Left);
+            AddPort(PortAlignment.Right);
         }
 
         public EveSystemNodeModel(WHSystem wh)
@@ -80,8 +94,14 @@ namespace WHMapper.Models.Custom.Node
                 Class = "LS";
             else
                 Class = "0.0";
-        
+
+            AddPort(PortAlignment.Bottom);
+            AddPort(PortAlignment.Top);
+            AddPort(PortAlignment.Left);
+            AddPort(PortAlignment.Right);
         }
+        
+
 
         public async Task IncrementNameExtension()
         {

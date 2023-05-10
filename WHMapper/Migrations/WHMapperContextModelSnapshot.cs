@@ -114,6 +114,9 @@ namespace WHMapper.Migrations
                     b.Property<float>("SecurityStatus")
                         .HasColumnType("real");
 
+                    b.Property<int>("SoloarSystemId")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("WHMapId")
                         .HasColumnType("integer");
 

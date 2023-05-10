@@ -114,12 +114,22 @@ namespace WHMapper.Repositories.WHMaps
             if (map == null)
                 return null;
 
+            await semSlim.WaitAsync();
+            try
+            {
 
-            _dbContext.DbWHSystems.Add(whSystem);
-            map.WHSystems.Add(whSystem);
+                _dbContext.DbWHSystems.Add(whSystem);
+                map.WHSystems.Add(whSystem);
 
-            await this.Update(idWHMap, map);
-            return whSystem; 
+                _dbContext?.DbWHMaps?.Update(map);
+                await _dbContext?.SaveChangesAsync();
+
+                return whSystem;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         public async Task<WHSystem?> RemoveWHSystem(int idWHMap, int idWHSystem)
@@ -180,16 +190,23 @@ namespace WHMapper.Repositories.WHMaps
             if (map == null)
                 return null;
 
-            
-            WHSystemLink whLink = new WHSystemLink(idWHSystemFrom, idWHSystemTo);
+            await semSlim.WaitAsync();
+            try
+            {
+                WHSystemLink whLink = new WHSystemLink(idWHSystemFrom, idWHSystemTo);
 
-            _dbContext.DbWHSystemLinks.Add(whLink);
-            map.WHSystemLinks.Add(whLink);
+                _dbContext.DbWHSystemLinks.Add(whLink);
+                map.WHSystemLinks.Add(whLink);
 
+                _dbContext?.DbWHMaps?.Update(map);
+                await _dbContext?.SaveChangesAsync();
 
-            await this.Update(idWHMap, map);
-
-            return whLink;
+                return whLink;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
         }
 
         public async Task<WHSystemLink?> RemoveWHSystemLink(int idWHMap, int idWHSystemLink)

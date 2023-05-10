@@ -8,8 +8,10 @@ namespace WHMapper.Tests.CustomGraphModel
     [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.CustomGraphModel")]
     public class CustomModelTest
     {
+        private const int SOLAR_SYSTEM_JITA_ID = 30000142;
         private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
 
+        private const int SOLAR_SYSTEM_WH_ID = 31001123;
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
         private const string SOLAR_SYSTEM_WH_CLASS = "C3";
         private const string SOLAR_SYSTEM_WH_EFFECT = "Pulsar";
@@ -29,9 +31,10 @@ namespace WHMapper.Tests.CustomGraphModel
         [Fact]
         public async Task Eve_System_Node_Model()
         {
-            var node = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_JITA_NAME, 1.0F));
+            var node = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_JITA_ID,SOLAR_SYSTEM_JITA_NAME, 1.0F));
             Assert.NotNull(node);
             Assert.Equal(0, node.IdWH);
+            Assert.Equal(SOLAR_SYSTEM_JITA_ID, node.SolarSystemId);
             Assert.Equal(SOLAR_SYSTEM_JITA_NAME, node.Title);
             Assert.Equal("H", node.Class);
             Assert.Empty(node.ConnectedUsers);
@@ -50,8 +53,8 @@ namespace WHMapper.Tests.CustomGraphModel
         [Fact]
         public async Task Eve_System_Link_Model()
         {
-            var node = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_JITA_NAME, 1.0F));
-            var node2 = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_WH_NAME, -1.0F), SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT, null, new List<KeyValuePair<string, string>>() { new KeyValuePair<string, string>(SOLAR_SYSTEM_WH_STATICS, "HS") });
+            var node = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0F));
+            var node2 = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_WH_ID,SOLAR_SYSTEM_WH_NAME, -1.0F), SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT, null, new List<KeyValuePair<string, string>>() { new KeyValuePair<string, string>(SOLAR_SYSTEM_WH_STATICS, "HS") });
 
 
             var link = new EveSystemLinkModel(new Models.Db.WHSystemLink(1, 2), node, node2);
