@@ -20,25 +20,29 @@ namespace WHMapper.Services.SDE
         public SDEServices(ILogger<SDEServices> logger)
 		{
             _logger = logger;
-            string target_dir_full_path= Path.GetFullPath(SDE_TARGET_DIRECTORY);
 
             if (!Directory.Exists(SDE_TARGET_DIRECTORY))
             {
-
                 _logger.LogInformation("Extrat Eve SDE files");
                 using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
                 {
                     foreach (ZipArchiveEntry entry in archive.Entries)
                     {
-                        string extractPath = Path.Combine(SDE_TARGET_DIRECTORY, entry.FullName);
-                        string canonicalDestinationPath = Path.GetFullPath(extractPath);
-                        string extractDirectoryName = Path.GetDirectoryName(extractPath);
+                        if (entry.Name == SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE)
+                        {
 
-                        if (!Directory.Exists(extractDirectoryName))
-                            Directory.CreateDirectory(extractDirectoryName);
+                            string destinationPath = Path.Combine(SDE_TARGET_DIRECTORY, entry.FullName);
+                            string canonicalDestinationPath = Path.GetFullPath(destinationPath);
 
-                        if (canonicalDestinationPath.StartsWith(target_dir_full_path, StringComparison.Ordinal))
-                            entry.ExtractToFile(extractPath, true);
+                            if (canonicalDestinationPath.Contains(destinationPath.Substring(1), StringComparison.Ordinal))
+                            {
+                                string extractDirectoryName = Path.GetDirectoryName(destinationPath);
+                                if (!Directory.Exists(extractDirectoryName))
+                                    Directory.CreateDirectory(Path.Combine(extractDirectoryName));
+                                
+                                entry.ExtractToFile(destinationPath, true);
+                            }
+                        }
                     }
                 }
             }
