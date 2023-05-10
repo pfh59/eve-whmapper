@@ -30,7 +30,6 @@ namespace WHMapper.Services.SDE
                     {
                         if (entry.Name == SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE)
                         {
-
                             string destinationPath = Path.Combine(SDE_TARGET_DIRECTORY, entry.FullName);
                             string canonicalDestinationPath = Path.GetFullPath(destinationPath);
 
