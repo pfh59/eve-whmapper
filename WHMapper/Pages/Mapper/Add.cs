@@ -64,6 +64,8 @@ namespace WHMapper.Pages.Mapper
         private HashSet<SDESolarSystem> _systems = null!;
         private string _searchResult = string.Empty;
 
+        private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
@@ -75,14 +77,15 @@ namespace WHMapper.Pages.Mapper
 
             if (_form.IsValid)
             {
+                await _semaphoreSlim.WaitAsync();
                 try
                 {
+                    
                     if (CurrentWHMap == null || CurrentDiagram==null)//add log and message
                     {
                         Snackbar?.Add("CurrentWHMap or CurrentDiagram is null", Severity.Error);
                         MudDialog.Close(DialogResult.Cancel);
                     }
-
 
 
                     var sdeSolarSystem = _systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
@@ -107,13 +110,17 @@ namespace WHMapper.Pages.Mapper
                     CurrentDiagram?.Nodes.Add(nodeModel);
 
                     Snackbar?.Add(String.Format("{0} solar system successfully added",nodeModel.Name), Severity.Success);
-                    MudDialog.Close(DialogResult.Ok(nodeModel.SolarSystemId));
+                    MudDialog.Close(DialogResult.Ok(newWHSystem.Id));
 
                 }
                 catch (Exception ex)
                 {
                     Snackbar?.Add(ex.Message, Severity.Error);
                     MudDialog.Close(DialogResult.Cancel);
+                }
+                finally
+                {
+                    _semaphoreSlim.Release();
                 }
             }
             else
