@@ -1176,7 +1176,7 @@ namespace WHMapper.Pages.Mapper
 
                             _currentSystemNode = newSystemNode;
                             _currentWHSystemId = newWHSystem.Id;
-                            _selectedSystemNode = _currentSystemNode;
+                            Diagram.SelectModel(_currentSystemNode, true);
                         }
                         else
                         {
@@ -1198,7 +1198,9 @@ namespace WHMapper.Pages.Mapper
                         _currentSystemNode.Refresh();
 
                         _currentWHSystemId = (await DbWHSystems.GetByName(_currentSolarSystem.Name)).Id;
-                        _selectedSystemNode = _currentSystemNode;
+
+                        Diagram.SelectModel(_currentSystemNode, true);
+
 
                         if (previousSystem != null)
                         {

@@ -11,10 +11,10 @@
         <MudItem xs="12">
             <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste">
                 <ActivatorContent>
-                    <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8">
+                    <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8" >
                         @foreach (var item in WHMaps)
                         {
-                            <div style="width:97vw; height: 60vh" Class="Rounded">
+                            <div style="width:97vw; height: 60vh" Class="Rounded" >
                                 <MudTabPanel Text="@item.Name" Tag="@item.Id">
                                     <CascadingValue Value="Diagram">
                                         <DiagramCanvas></DiagramCanvas>
