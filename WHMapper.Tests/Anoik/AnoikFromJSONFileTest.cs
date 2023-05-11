@@ -29,45 +29,47 @@ namespace WHMapper.Tests.Anoik
         }
 
         [Fact]
-        public async Task Get_System_Id()
+        public void Get_System_Id()
         {
-            var sysJitaId = await _anoik.GetSystemId(SOLAR_SYSTEM_JITA_NAME);
+            var sysJitaId = _anoik.GetSystemId(SOLAR_SYSTEM_JITA_NAME);
             Assert.Null(sysJitaId);
 
-            var sysWHId= await _anoik.GetSystemId(SOLAR_SYSTEM_WH_NAME);
+            var sysWHId = _anoik.GetSystemId(SOLAR_SYSTEM_WH_NAME);
             Assert.NotNull(sysWHId);
             Assert.Equal(SOLAR_SYSTEM_WH_ID, sysWHId);
 
         }
 
         [Fact]
-        public async Task Get_System_Class()
+        public void Get_System_Class()
         {
-            var sysJitaClass = await _anoik.GetSystemClass(SOLAR_SYSTEM_JITA_NAME);
+            var sysJitaClass = _anoik.GetSystemClass(SOLAR_SYSTEM_JITA_NAME);
             Assert.Null(sysJitaClass);
 
-            var sysClass = await _anoik.GetSystemClass(SOLAR_SYSTEM_WH_NAME);
+            var sysClass = _anoik.GetSystemClass(SOLAR_SYSTEM_WH_NAME);
+            Assert.NotNull(sysClass);
             Assert.NotEmpty(sysClass);
             Assert.Equal(SOLAR_SYSTEM_WH_CLASS, sysClass);
         }
 
         [Fact]
-        public async Task Get_System_Effect()
+        public void Get_System_Effect()
         {
-            var sysJitaEffect = await _anoik.GetSystemEffects(SOLAR_SYSTEM_JITA_NAME);
+            var sysJitaEffect = _anoik.GetSystemEffects(SOLAR_SYSTEM_JITA_NAME);
             Assert.Null(sysJitaEffect);
 
-            var sysEffect = await _anoik.GetSystemEffects(SOLAR_SYSTEM_WH_NAME);
+            var sysEffect = _anoik.GetSystemEffects(SOLAR_SYSTEM_WH_NAME);
+            Assert.NotNull(sysEffect);
             Assert.NotEmpty(sysEffect);
             Assert.Equal(SOLAR_SYSTEM_WH_EFFECT, sysEffect);
         }
         [Fact]
-        public async Task Get_System_Effects_Infos()
+        public void Get_System_Effects_Infos()
         {
-            var badResult = await _anoik.GetSystemEffectsInfos(string.Empty, string.Empty);
+            var badResult = _anoik.GetSystemEffectsInfos(string.Empty, string.Empty);
             Assert.Null(badResult);
 
-            var sysEffectsINfos = await _anoik.GetSystemEffectsInfos(SOLAR_SYSTEM_WH_EFFECT, SOLAR_SYSTEM_WH_CLASS);
+            var sysEffectsINfos = _anoik.GetSystemEffectsInfos(SOLAR_SYSTEM_WH_EFFECT, SOLAR_SYSTEM_WH_CLASS);
             Assert.NotNull(sysEffectsINfos);
         }
 
@@ -92,7 +94,8 @@ namespace WHMapper.Tests.Anoik
             Assert.NotNull(whType);
             Assert.Equal(SOLAR_SYSTEM_WH_STATICS, whType.Name);
             Assert.Equal("HS", whType.Destination);
-            Assert.Contains("C3", whType?.Sources);
+            Assert.NotNull(whType.Sources);
+            Assert.Contains("C3", whType.Sources);
             Assert.Equal(SOLAR_SYSTEM_WH_STATICS + " -> HS", whType.ToString());
 
         }

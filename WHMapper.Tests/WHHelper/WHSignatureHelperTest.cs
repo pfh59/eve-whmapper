@@ -28,13 +28,13 @@ namespace WHMapper.Tests.WHHelper
         public async Task Validate_Scan_Result_Test()
         {
             bool emptyRes = await _whHelper.ValidateScanResult(string.Empty);
-            Assert.Equal(false, emptyRes);
+            Assert.False(emptyRes);
 
             bool valideScan = await _whHelper.ValidateScanResult(DSCAN);
-            Assert.Equal(true, valideScan);
+            Assert.True(valideScan);
 
             bool invalidateScan = await _whHelper.ValidateScanResult(SCAN_USER);
-            Assert.Equal(false, invalidateScan);
+            Assert.False(invalidateScan);
         }
 
         [Fact]

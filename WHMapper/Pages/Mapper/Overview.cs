@@ -43,6 +43,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WHMapper.Pages.Mapper.Signatures;
 using System.Diagnostics.Tracing;
+using WHMapper.Services.EveMapper;
 
 namespace WHMapper.Pages.Mapper
 {
@@ -110,6 +111,9 @@ namespace WHMapper.Pages.Mapper
 
         [Inject]
         private IDialogService DialogService { get; set; } = null!;
+
+        [Inject]
+        private IEveMapperHelper MapperServices { get; set; } = null!;
 
         private string _userName = string.Empty;
 
@@ -264,7 +268,7 @@ namespace WHMapper.Pages.Mapper
                                 while (newWHSystem == null)
                                     newWHSystem = await DbWHSystems.GetById(wormholeId);
 
-                                var newSystemNode = await DefineEveSystemNodeModel(newWHSystem);
+                                var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
                                 Diagram?.Nodes?.Add(newSystemNode);
                             }
                         }
@@ -828,7 +832,7 @@ namespace WHMapper.Pages.Mapper
                 {
                     foreach (WHSystem dbWHSys in _selectedWHMap.WHSystems)
                     {
-                        EveSystemNodeModel whSysNode = await DefineEveSystemNodeModel(dbWHSys);
+                        EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
                         Diagram.Nodes.Add(whSysNode);
 
                     }
@@ -993,36 +997,6 @@ namespace WHMapper.Pages.Mapper
             }
         }
     
-        private async Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh)
-        {
-
-            EveSystemNodeModel res = null;
-            if (wh == null)
-                throw new ArgumentNullException();
-
-            if (wh.SecurityStatus <= -0.9)
-            {
-
-                string whClass = await AnoikServices.GetSystemClass(wh.Name);
-                string whEffect = await AnoikServices.GetSystemEffects(wh.Name);
-                IEnumerable<KeyValuePair<string, string>> whStatics = await AnoikServices.GetSystemStatics(wh.Name);
-                IEnumerable<KeyValuePair<string, string>> whEffectsInfos = null;
-                if (!String.IsNullOrWhiteSpace(whEffect))
-                {
-                    whEffectsInfos = await AnoikServices.GetSystemEffectsInfos(whEffect, whClass);
-                }
-
-                res = new EveSystemNodeModel(wh, whClass, whEffect, whEffectsInfos, whStatics);
-            }
-            else
-            {
-                res = new EveSystemNodeModel(wh);
-            }
-
-            res.SetPosition(wh.PosX, wh.PosY);
-            return res;
-        }
-
         private async Task<bool> CreateLink(WHMap map, EveSystemNodeModel src, EveSystemNodeModel target)
         {
             try
@@ -1154,17 +1128,23 @@ namespace WHMapper.Pages.Mapper
                         //determine if source have same system link and get next unique ident
                         if(previousSystem != null && await IsRouteViaWH(previousSolarSystem, _currentSolarSystem))
                         {
-                            string whClass = await AnoikServices.GetSystemClass(_currentSolarSystem.Name);
-
-                            int nbSameWHClassLink = Diagram.Links.Where(x => ((EveSystemNodeModel)x.Target.Model).Class.Contains(whClass) && ((EveSystemNodeModel)x.Source.Model).IdWH == previousSystem.IdWH).Count();
-
-                            if (nbSameWHClassLink > 0)
+                            var whClass = AnoikServices.GetSystemClass(_currentSolarSystem.Name);
+                            if (!string.IsNullOrEmpty(whClass))
                             {
-                                char extension = (Char)(Convert.ToUInt16('A') + nbSameWHClassLink);
-                                newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId,_currentSolarSystem.Name, extension, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                                int nbSameWHClassLink = Diagram.Links.Where(x => ((EveSystemNodeModel)x.Target.Model).Class.Contains(whClass) && ((EveSystemNodeModel)x.Source.Model).IdWH == previousSystem.IdWH).Count();
+
+                                if (nbSameWHClassLink > 0)
+                                {
+                                    char extension = (Char)(Convert.ToUInt16('A') + nbSameWHClassLink);
+                                    newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId, _currentSolarSystem.Name, extension, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                                }
+                                else
+                                    newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                             }
                             else
-                                newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId,_currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                            {
+                                newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                            }
 
                         }
                         else
@@ -1174,7 +1154,7 @@ namespace WHMapper.Pages.Mapper
                            
                         if (newWHSystem!=null)
                         {
-                            var newSystemNode = await DefineEveSystemNodeModel(newWHSystem);
+                            var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
                             await newSystemNode.AddConnectedUser(_userName);
 
                             Diagram.Nodes.Add(newSystemNode);

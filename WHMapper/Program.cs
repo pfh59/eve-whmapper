@@ -154,10 +154,10 @@ builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
 builder.Services.AddSingleton<ISDEServices, SDEServices>();
 
 #region DB Acess Repo
-builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
-builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
-builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
-builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
+builder.Services.AddSingleton<IWHMapRepository, WHMapRepository>();
+builder.Services.AddSingleton<IWHSystemRepository, WHSystemRepository>();
+builder.Services.AddSingleton<IWHSignatureRepository, WHSignatureRepository>();
+builder.Services.AddSingleton<IWHSystemLinkRepository, WHSystemLinkRepository>();
 #endregion
 
 #region WH HELPER

@@ -74,28 +74,28 @@ public class DbIntegrationTest
         //GetByName
         var result2 = await repo.GetById(1);
         Assert.NotNull(result2);
-        Assert.Equal(FOOBAR, result2?.Name);
+        Assert.Equal(FOOBAR, result2.Name);
 
         //update
         result2.Name = FOOBAR_UPDATED;
         var result4 = await repo.Update(result2.Id, result2);
         Assert.NotNull(result2);
-        Assert.Equal(FOOBAR_UPDATED, result2?.Name);
+        Assert.Equal(FOOBAR_UPDATED, result2.Name);
 
 
 
         //Add WHSystem
         var whSys1 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SYSTEM_ID, FOOBAR, 1));
         Assert.NotNull(whSys1);
-        Assert.Equal(FOOBAR_SYSTEM_ID, whSys1?.SoloarSystemId);
-        Assert.Equal(FOOBAR, whSys1?.Name);
-        Assert.Equal(1, whSys1?.SecurityStatus);
+        Assert.Equal(FOOBAR_SYSTEM_ID, whSys1.SoloarSystemId);
+        Assert.Equal(FOOBAR, whSys1.Name);
+        Assert.Equal(1, whSys1.SecurityStatus);
 
         var whSys2 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SYSTEM_ID2,FOOBAR_SHORT_UPDATED,'A', 1));
         Assert.NotNull(whSys2);
-        Assert.Equal(FOOBAR_SYSTEM_ID2, whSys2?.SoloarSystemId);
-        Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2?.Name);
-        Assert.Equal(1, whSys2?.SecurityStatus);
+        Assert.Equal(FOOBAR_SYSTEM_ID2, whSys2.SoloarSystemId);
+        Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2.Name);
+        Assert.Equal(1, whSys2.SecurityStatus);
         Assert.Equal(Convert.ToByte('A'), whSys2.NameExtension);
 
         //add whsystem link
@@ -115,14 +115,14 @@ public class DbIntegrationTest
         //Delete byname
         var whSys2Del = await repo.RemoveWHSystemByName(result2.Id, FOOBAR_SHORT_UPDATED);
         Assert.NotNull(whSys2Del);
-        Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2Del?.Name);
-        Assert.Equal(1, whSys2Del?.SecurityStatus);
+        Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2Del.Name);
+        Assert.Equal(1, whSys2Del.SecurityStatus);
 
         //Delete byname
         var whSys1Del = await repo.RemoveWHSystem(result2.Id, whSys1.Id);
         Assert.NotNull(whSys1Del);
-        Assert.Equal(FOOBAR, whSys1Del?.Name);
-        Assert.Equal(1, whSys1Del?.SecurityStatus);
+        Assert.Equal(FOOBAR, whSys1Del.Name);
+        Assert.Equal(1, whSys1Del.SecurityStatus);
 
 
         //Delete WHMAP
@@ -160,11 +160,12 @@ public class DbIntegrationTest
         Assert.Equal(1, results?[0].SecurityStatus);
 
         //GetById
+        Assert.NotNull(result);
         var result2 = await repo.GetById(result.Id);
         Assert.NotNull(result2);
-        Assert.Equal(FOOBAR_SYSTEM_ID, result2?.SoloarSystemId);
-        Assert.Equal(FOOBAR, result2?.Name);
-        Assert.Equal(1, result2?.SecurityStatus);
+        Assert.Equal(FOOBAR_SYSTEM_ID, result2.SoloarSystemId);
+        Assert.Equal(FOOBAR, result2.Name);
+        Assert.Equal(1, result2.SecurityStatus);
 
         //update
         result2.Name = FOOBAR_UPDATED;
@@ -189,7 +190,7 @@ public class DbIntegrationTest
        var badSystemIdResult = await repo.RemoveAllWHSignature(123);//test bad system id return false
        Assert.False(badSystemIdResult);
 
-
+        Assert.NotNull(result2);
        var goodSystemIdResult=await repo.RemoveAllWHSignature(result2.Id);//test good system but empty sig
        Assert.True(goodSystemIdResult);
 
@@ -201,6 +202,7 @@ public class DbIntegrationTest
         Assert.Equal(WHSignatureGroup.Unknow, resultWHSignature?.Group);
 
         //Remove WHSystemSignature
+        Assert.NotNull(resultWHSignature);
         var resultWHSignatureDel = await repo.RemoveWHSignature(result2.Id, resultWHSignature.Id);
         Assert.NotNull(resultWHSignatureDel);
         Assert.Equal(FOOBAR, resultWHSignatureDel?.Name);
@@ -247,6 +249,7 @@ public class DbIntegrationTest
         Assert.Equal(WHSignatureGroup.Unknow, results?[0].Group);
 
         //GetById
+        Assert.NotNull(result);
         var result2 = await repo.GetById(result.Id);
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR, result2?.Name);
@@ -255,22 +258,22 @@ public class DbIntegrationTest
         //GetByName
         result2 = await repo.GetByName(FOOBAR);
         Assert.NotNull(result2);
-        Assert.Equal(FOOBAR, result2?.Name);
-        Assert.Equal(WHSignatureGroup.Unknow, result2?.Group);
+        Assert.Equal(FOOBAR, result2.Name);
+        Assert.Equal(WHSignatureGroup.Unknow, result2.Group);
 
         //update, name characters max 7
         result2.Name = FOOBAR_SHORT_UPDATED;
         result2.Group = WHSignatureGroup.Wormhole;
         var result4 = await repo.Update(result2.Id, result2);
         Assert.NotNull(result2);
-        Assert.Equal(FOOBAR_SHORT_UPDATED, result2?.Name);
-        Assert.Equal(WHSignatureGroup.Wormhole, result2?.Group);
+        Assert.Equal(FOOBAR_SHORT_UPDATED, result2.Name);
+        Assert.Equal(WHSignatureGroup.Wormhole, result2.Group);
 
         //Delete WHMAP, name characters max 7
         var result5 = await repo.DeleteById(result2.Id);
         Assert.NotNull(result5);
-        Assert.Equal(FOOBAR_SHORT_UPDATED, result5?.Name);
-        Assert.Equal(WHSignatureGroup.Wormhole, result5?.Group);
+        Assert.Equal(FOOBAR_SHORT_UPDATED, result5.Name);
+        Assert.Equal(WHSignatureGroup.Wormhole, result5.Group);
      
     }
 }

@@ -86,7 +86,7 @@ namespace WHMapper.Tests.WHColorHelper
         }
 
         [Fact]
-        public async Task Get_Security_Status_Color()
+        public void Get_Security_Status_Color()
         {
             Assert.Equal(SECUTIRTY_STATUS_00_COLOR, _whHelper.GetSecurityStatusColor(SECUTIRTY_STATUS_00_VALUE));
             Assert.Equal(SECUTIRTY_STATUS_01_COLOR, _whHelper.GetSecurityStatusColor(SECUTIRTY_STATUS_01_VALUE));
@@ -104,7 +104,7 @@ namespace WHMapper.Tests.WHColorHelper
         }
 
         [Fact]
-        public async Task Get_System_Type_Color()
+        public void Get_System_Type_Color()
         {
             Assert.Equal(WH_CLASS_C1_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C1_VALUE));
             Assert.Equal(WH_CLASS_C2_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C2_VALUE));
@@ -118,7 +118,7 @@ namespace WHMapper.Tests.WHColorHelper
         }
 
         [Fact]
-        public async Task Get_Effect_Color()
+        public void Get_Effect_Color()
         {
             Assert.Equal(MAGNETAR_COLOR, _whHelper.GetEffectColor(WH_MAGNETAR));
             Assert.Equal(REDGIANT_COLOR, _whHelper.GetEffectColor(WH_REDGIANT));
@@ -129,13 +129,13 @@ namespace WHMapper.Tests.WHColorHelper
         }
 
         [Fact]
-        public async Task Get_Link_EOL_Color()
+        public void Get_Link_EOL_Color()
         {
             Assert.Equal(WH_IS_EOL_COLOR, _whHelper.GetLinkEOLColor());
         }
 
         [Fact]
-        public async Task Get_Link_Status_Color()
+        public void Get_Link_Status_Color()
         {
             Assert.Equal(WH_MASS_NORMAL_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Normal));
             Assert.Equal(WH_MASS_CRITICAL_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Critical));
@@ -143,7 +143,7 @@ namespace WHMapper.Tests.WHColorHelper
         }
 
         [Fact]
-        public async Task Get_Link_Selected_Color()
+        public void Get_Link_Selected_Color()
         {
             Assert.Equal(SELECTED_LINK_COLOR, _whHelper.GetLinkSelectedColor());
         }

@@ -67,7 +67,7 @@ namespace WHMapper.Models.Custom.Node
         public IEnumerable<KeyValuePair<string, string>>? EffectsInfos { get; private set; }
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
-        public EveSystemNodeModel(WHSystem wh, string whClass, string whEffects, IEnumerable<KeyValuePair<string, string>> whEffectsInfos, IEnumerable<KeyValuePair<string, string>> whStatics) 
+        public EveSystemNodeModel(WHSystem wh, string whClass, string whEffects, IEnumerable<KeyValuePair<string, string>>? whEffectsInfos, IEnumerable<KeyValuePair<string, string>> whStatics) 
         {
             _wh = wh;
 
