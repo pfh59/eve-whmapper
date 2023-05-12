@@ -83,10 +83,11 @@ jobs:
           dotnet-coverage collect "dotnet test WHMapper.Tests -c Release" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
       
-  publish_docker_images:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
+
+  #publish_docker_images:
+  #  runs-on: ubuntu-latest
+  #  needs: build
+  #  steps:
       - name: Extract metadata (tags, labels) for Docker
         if: github.event_name != 'pull_request'
         id: meta
