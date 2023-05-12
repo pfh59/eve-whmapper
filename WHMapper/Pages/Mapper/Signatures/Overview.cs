@@ -186,7 +186,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             }
             else
             {
-                Signatures = null;
+                Signatures = new List<WHSignature>();
             }
         }
 
