@@ -36,7 +36,7 @@ namespace WHMapper.Services.Anoik
         }
 
 
-        public async Task<int?> GetSystemId(string systemName)
+        public int? GetSystemId(string systemName)
         {
             try
             {
@@ -58,14 +58,22 @@ namespace WHMapper.Services.Anoik
         /// </summary>
         /// <param name="systemName"></param>
         /// <returns> A null value represent a not found system</returns>
-        public async Task<string?> GetSystemClass(string systemName)
+        public string? GetSystemClass(string systemName)
         {
             try
             {
                 var sys = _jsonSystems.GetProperty(systemName);
-                var whClass = sys.GetProperty("wormholeClass");
+                var whClassJSON = sys.GetProperty("wormholeClass");
 
-                return whClass.GetString().ToUpper();
+                var whClass = whClassJSON.GetString();
+
+
+                if (String.IsNullOrEmpty(whClass))
+                    return string.Empty;
+                else
+                {
+                    return whClass.ToUpper();
+                }
             }
             catch (KeyNotFoundException)
             {
@@ -79,7 +87,7 @@ namespace WHMapper.Services.Anoik
         /// </summary>
         /// <param name="systemName"></param>
         /// <returns> A null value represent a not found system</returns>
-        public async Task<string?> GetSystemEffects(string systemName)
+        public string? GetSystemEffects(string systemName)
         {
             try
             {
@@ -114,9 +122,12 @@ namespace WHMapper.Services.Anoik
                 while (statics.MoveNext())
                 {
                     var whStaticType = statics.Current.GetString();
-                    var whStaticDest = await GetWHClassFromWHType(whStaticType);
-                    if (whStaticDest != null)
-                        res.Add(whStaticType, whStaticDest);
+                    if (!String.IsNullOrEmpty(whStaticType))
+                    {
+                        var whStaticDest = GetWHClassFromWHType(whStaticType);
+                        if (!string.IsNullOrEmpty(whStaticDest))
+                            res.Add(whStaticType, whStaticDest);
+                    }
                 }
 
                 return res;
@@ -135,7 +146,7 @@ namespace WHMapper.Services.Anoik
         /// <param name="effectName"></param>
         /// <param name="systemClass"></param>
         /// <returns>return null effectname or systemclass are bad</returns>
-        public async Task<IEnumerable<KeyValuePair<string, string>>?> GetSystemEffectsInfos(string effectName, string systemClass)
+        public IEnumerable<KeyValuePair<string, string>>? GetSystemEffectsInfos(string effectName, string systemClass)
         {
             int classlvl = -1;
             if (string.IsNullOrWhiteSpace(effectName) || string.IsNullOrWhiteSpace(systemClass) || !(systemClass.Length >= 2 && systemClass.Length < 4 && systemClass.ToUpper().Contains('C')))
@@ -157,8 +168,10 @@ namespace WHMapper.Services.Anoik
 
                 foreach (var jsonProperty in effects.EnumerateObject())
                 {
-                    var effectLevel = jsonProperty.Value.EnumerateArray().ElementAt(classlvl - 1);
-                    res.Add(jsonProperty.Name, effectLevel.GetString());
+                    var effectLevelJSONProperty = jsonProperty.Value.EnumerateArray().ElementAt(classlvl - 1);
+                    var effectLevel = effectLevelJSONProperty.GetString();
+                    if (!string.IsNullOrEmpty(effectLevel))
+                        res.Add(jsonProperty.Name, effectLevel);
                 }
 
                 return res;
@@ -171,16 +184,20 @@ namespace WHMapper.Services.Anoik
         }
 
 
-        private async Task<string?> GetWHClassFromWHType(string whType)
+        private string? GetWHClassFromWHType(string whType)
         {
 
             try
             {
                 var whInfos = _jsonWormholes.GetProperty(whType);
 
-                var whDest = whInfos.GetProperty("dest");
+                var whDestJSONProperty = whInfos.GetProperty("dest");
+                var whDest = whDestJSONProperty.GetString();
 
-                return whDest.GetString().ToUpper();
+                if (!string.IsNullOrEmpty(whDest))
+                    return whDest.ToUpper();
+                else
+                    return string.Empty;
             }
             catch (KeyNotFoundException)
             {

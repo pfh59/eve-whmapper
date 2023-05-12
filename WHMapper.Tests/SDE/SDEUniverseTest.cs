@@ -11,10 +11,10 @@ namespace WHMapper.Tests.SDE
     {
 
         private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
-        private const string SOLAR_SYSTEM_JIT_NAME = "Jit";
+        private const string SOLAR_SYSTEM_JIT_NAME = "jit";
 
         private const string SOLAR_SYSTEM_AMARR_NAME = "Amarr";
-        private const string SOLAR_SYSTEM_AMA_NAME = "Ama";
+        private const string SOLAR_SYSTEM_AMA_NAME = "ama";
 
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
         private const string SOLAR_SYSTEM_WH_PARTIAL_NAME = "J1651";
@@ -28,7 +28,7 @@ namespace WHMapper.Tests.SDE
         }
 
         [Fact]
-        public async Task Search_System()
+        public void Search_System()
         {
             //TEST empty
             var empty_result = _services.SearchSystem("");
@@ -41,7 +41,7 @@ namespace WHMapper.Tests.SDE
             //TEST JI for JITA partial
             var ji_result = _services.SearchSystem(SOLAR_SYSTEM_JIT_NAME);
             Assert.NotNull(ji_result);
-            Assert.Contains(ji_result, x => x.Name.Contains(SOLAR_SYSTEM_JITA_NAME,StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(ji_result, x => x.Name.Contains(SOLAR_SYSTEM_JITA_NAME, StringComparison.OrdinalIgnoreCase));
 
 
             //TEST AMARR
@@ -62,7 +62,7 @@ namespace WHMapper.Tests.SDE
 
             var wh_partial_result = _services.SearchSystem(SOLAR_SYSTEM_WH_PARTIAL_NAME);
             Assert.NotNull(wh_partial_result);
-            Assert.Contains(wh_partial_result, x => x.Name.Contains(SOLAR_SYSTEM_WH_NAME,StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(wh_partial_result, x => x.Name.Contains(SOLAR_SYSTEM_WH_NAME, StringComparison.OrdinalIgnoreCase));
 
 
             //TESTABYSSAL

@@ -40,27 +40,31 @@ namespace WHMapper.Tests.CustomGraphModel
             Assert.Empty(node.ConnectedUsers);
             Assert.Null(node.NameExtension);
 
-            node.AddConnectedUser(USERNAME1);
-            node.AddConnectedUser(USERNAME2);
+            await node.AddConnectedUser(USERNAME1);
+            await node.AddConnectedUser(USERNAME2);
             Assert.Contains(USERNAME1, node.ConnectedUsers);
             Assert.Contains(USERNAME2, node.ConnectedUsers);
 
-            node.RemoveConnectedUser(USERNAME2);
+            await node.RemoveConnectedUser(USERNAME2);
             Assert.Contains(USERNAME1, node.ConnectedUsers);
             Assert.DoesNotContain(USERNAME2, node.ConnectedUsers);
         }
 
         [Fact]
-        public async Task Eve_System_Link_Model()
+        public void Eve_System_Link_Model()
         {
             var node = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0F));
-            var node2 = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_WH_ID,SOLAR_SYSTEM_WH_NAME, -1.0F), SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT, null, new List<KeyValuePair<string, string>>() { new KeyValuePair<string, string>(SOLAR_SYSTEM_WH_STATICS, "HS") });
+            var node2 = new EveSystemNodeModel(new Models.Db.WHSystem(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0F), SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT, null, new List<KeyValuePair<string, string>>() { new KeyValuePair<string, string>(SOLAR_SYSTEM_WH_STATICS, "HS") });
 
 
             var link = new EveSystemLinkModel(new Models.Db.WHSystemLink(1, 2), node, node2);
             Assert.NotNull(link);
-            Assert.Equal(SOLAR_SYSTEM_JITA_NAME, ((EveSystemNodeModel)link.Source.Model).Name);
-            Assert.Equal(SOLAR_SYSTEM_WH_NAME, ((EveSystemNodeModel)link.Target.Model).Name);
+            var srcEveNodeModel = link.Source.Model as EveSystemNodeModel;
+            var targetEveNodeModel = link.Target.Model as EveSystemNodeModel;
+            Assert.NotNull(srcEveNodeModel);
+            Assert.NotNull(targetEveNodeModel);
+            Assert.Equal(SOLAR_SYSTEM_JITA_NAME, srcEveNodeModel.Name);
+            Assert.Equal(SOLAR_SYSTEM_WH_NAME, targetEveNodeModel.Name);
             Assert.False(link.IsEoL);
             Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
             Assert.Equal(SystemLinkSize.Large, link.Size);

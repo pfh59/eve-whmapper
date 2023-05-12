@@ -11,7 +11,7 @@
     "WHMapper": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:21177",
+      "applicationUrl": "http://localhost:55023",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
