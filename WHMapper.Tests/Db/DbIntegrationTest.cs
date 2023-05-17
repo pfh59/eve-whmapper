@@ -269,6 +269,16 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR_SHORT_UPDATED, result2.Name);
         Assert.Equal(WHSignatureGroup.Wormhole, result2.Group);
 
+
+        //updates ienumerable
+        Assert.NotNull(results);
+        results[0].UpdatedBy = FOOBAR;
+        var resultsUpdates = await repo.Update(results);
+        Assert.NotNull(resultsUpdates);
+        Assert.Contains(resultsUpdates, x => x.UpdatedBy == FOOBAR);
+ 
+    
+
         //Delete WHMAP, name characters max 7
         var result5 = await repo.DeleteById(result2.Id);
         Assert.NotNull(result5);

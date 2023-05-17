@@ -18,9 +18,7 @@ namespace WHMapper.Services.WHSignatures
 
 
         private IWHSystemRepository _dbWHSystem;
-
         private IWHSignatureRepository _dbWHSignatures;
-
         
         public WHSignatureHelper(IWHSystemRepository systemRepo, IWHSignatureRepository sigRepo)
         {
@@ -121,10 +119,11 @@ namespace WHMapper.Services.WHSignatures
 
             if (sigs != null && sigs.Count() > 0)
             {
-                try
+
+                var currentSystem = await _dbWHSystem.GetById(currentSystemScannedId);
+                if (currentSystem != null)
                 {
-                    var currentSystem = await _dbWHSystem.GetById(currentSystemScannedId);
-                    var sigsToUpdate = currentSystem?.WHSignatures.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
+                    var sigsToUpdate = currentSystem.WHSignatures.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
 
                     if (sigsToUpdate != null && sigsToUpdate.Count() > 0)
                     {
@@ -165,10 +164,8 @@ namespace WHMapper.Services.WHSignatures
                     await Task.Delay(500);
                     return (sigUpdated || sigAdded);
                 }
-                catch(Exception ex)
-                {
-                    return false;
-                }
+                else
+                    throw new Exception("Current System is nullable");
             }
             else
                 throw new Exception("Bad signature parsing parameters");
