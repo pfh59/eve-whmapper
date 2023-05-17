@@ -6,17 +6,16 @@ namespace WHMapper.Data
 {
 	public class WHMapperContext : DbContext
 	{
-        public DbSet<WHMap>? DbWHMaps { get; set; }
-		public DbSet<WHSystem>? DbWHSystems { get; set; }
-        public DbSet<WHSystemLink>? DbWHSystemLinks { get; set; }
-        public DbSet<WHSignature>? DbWHSignatures { get; set; }
-       
+        public DbSet<WHMap> DbWHMaps { get; set; } = null!;
+		public DbSet<WHSystem> DbWHSystems { get; set; } = null!;
+        public DbSet<WHSystemLink> DbWHSystemLinks { get; set; } = null!;
+        public DbSet<WHSignature> DbWHSignatures { get; set; } = null!;
+
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
 
         }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

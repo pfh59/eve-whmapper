@@ -18,9 +18,7 @@ namespace WHMapper.Services.WHSignatures
 
 
         private IWHSystemRepository _dbWHSystem;
-
         private IWHSignatureRepository _dbWHSignatures;
-
         
         public WHSignatureHelper(IWHSystemRepository systemRepo, IWHSignatureRepository sigRepo)
         {
@@ -109,6 +107,7 @@ namespace WHMapper.Services.WHSignatures
 
         public async Task<bool> ImportScanResult(string scanUser,int currentSystemScannedId,string? scanResult)
         {
+            
             bool sigUpdated = true;
             bool sigAdded = true;
 
@@ -120,47 +119,53 @@ namespace WHMapper.Services.WHSignatures
 
             if (sigs != null && sigs.Count() > 0)
             {
+
                 var currentSystem = await _dbWHSystem.GetById(currentSystemScannedId);
-                var sigsToUpdate = currentSystem?.WHSignatures.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
-
-                if (sigsToUpdate != null && sigsToUpdate.Count() > 0)
+                if (currentSystem != null)
                 {
-                    foreach (var sig in sigsToUpdate)
-                    {
-                        var sigParse = sigs.Where(x => x.Name == sig.Name).FirstOrDefault();
-                        if (sigParse.Group != WHSignatureGroup.Unknow)
-                        {
+                    var sigsToUpdate = currentSystem.WHSignatures.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
 
-                            sig.Group = sigParse.Group;
-                            if(String.IsNullOrEmpty(sig.Type))
-                                sig.Type = sigParse.Type;
-      
+                    if (sigsToUpdate != null && sigsToUpdate.Count() > 0)
+                    {
+                        foreach (var sig in sigsToUpdate)
+                        {
+                            var sigParse = sigs.Where(x => x.Name == sig.Name).FirstOrDefault();
+                            if (sigParse.Group != WHSignatureGroup.Unknow)
+                            {
+
+                                sig.Group = sigParse.Group;
+                                if (String.IsNullOrEmpty(sig.Type))
+                                    sig.Type = sigParse.Type;
+
+                            }
+
+                            sig.Updated = sigParse.Updated;
+                            sig.UpdatedBy = sigParse.UpdatedBy;
                         }
 
-                        sig.Updated = sigParse.Updated;
-                        sig.UpdatedBy = sigParse.UpdatedBy;
+                        var resUpdate = await _dbWHSignatures.Update(sigsToUpdate);
+
+                        if (resUpdate != null && resUpdate.Count() == sigsToUpdate.Count())
+                            sigUpdated = true;
+                        else
+                            sigUpdated = false;
                     }
 
-                    var resUpdate = await _dbWHSignatures.Update(sigsToUpdate);
 
-                    if (resUpdate != null && resUpdate.Count() == sigsToUpdate.Count())
-                        sigUpdated=true;
-                    else
-                        sigUpdated=false;
+                    var sigsToAdd = sigs.ExceptBy(currentSystem.WHSignatures.Select(x => x.Name), y => y.Name);
+                    if (sigsToAdd != null && sigsToAdd.Count() > 0)
+                    {
+                        var resAdd = await _dbWHSystem.AddWHSignatures(currentSystemScannedId, sigsToAdd);
+                        if (resAdd != null && resAdd.Count() == sigsToAdd.Count())
+                            sigAdded = true;
+                        else
+                            sigAdded = false;
+                    }
+                    await Task.Delay(500);
+                    return (sigUpdated || sigAdded);
                 }
-
-
-                var sigsToAdd = sigs.ExceptBy(currentSystem?.WHSignatures.Select(x => x.Name), y => y.Name);
-                if (sigsToAdd != null && sigsToAdd.Count() > 0)
-                {
-                    var resAdd = await _dbWHSystem.AddWHSignatures(currentSystemScannedId, sigsToAdd);
-                    if (resAdd != null && resAdd.Count() == sigsToAdd.Count())
-                        sigAdded=true;
-                    else
-                        sigAdded=false;
-                }
-
-                return(sigUpdated || sigAdded);
+                else
+                    throw new Exception("Current System is nullable");
             }
             else
                 throw new Exception("Bad signature parsing parameters");

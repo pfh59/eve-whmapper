@@ -25,7 +25,11 @@
                     </MudDynamicTabs>
                 </ActivatorContent>
                 <ChildContent>
-                    <MudMenuItem OnClick="OpenSearchAndAddDialog">Add System</MudMenuItem>
+                    @if (_selectedSystemLink == null && _selectedSystemNode == null)
+                    {
+                        <MudMenuItem OnClick="OpenSearchAndAddDialog">Add System</MudMenuItem>
+                    }
+
                     @if (_selectedSystemLink != null)
                     {
                         <MudMenuItem OnClick="@(() => ToggleSlectedSystemLinkEOL())" Disabled="@(_selectedSystemLink == null)">Toggle EOL</MudMenuItem>
@@ -51,10 +55,6 @@
                         </div>
                     }
 
-                    @if (_selectedSystemNode != null)
-                    {
-                        <MudMenuItem OnClick="@(() => SetSelectedSystemDestinationWaypoint())" Disabled="@(_selectedSystemNode == null)">Set Destination</MudMenuItem>
-                    }
                 </ChildContent>
             </MudMenu>
         

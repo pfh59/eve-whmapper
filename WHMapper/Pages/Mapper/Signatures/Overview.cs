@@ -66,7 +66,6 @@ namespace WHMapper.Pages.Mapper.Signatures
         private DateTime _currentDateTime;
 
 
-
         protected override async Task OnParametersSetAsync()
         {
             await Restore();
@@ -180,7 +179,6 @@ namespace WHMapper.Pages.Mapper.Signatures
         {
             if (CurrentSystemNodeId >0)
             {
-
                 var currentSystem = await DbWHSystems?.GetById(CurrentSystemNodeId.Value);
                 Signatures = currentSystem?.WHSignatures.ToList();
             }

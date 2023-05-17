@@ -44,6 +44,7 @@ using System.Linq;
 using WHMapper.Pages.Mapper.Signatures;
 using System.Diagnostics.Tracing;
 using WHMapper.Services.EveMapper;
+using Blazor.Diagrams.Core.Behaviors;
 
 namespace WHMapper.Pages.Mapper
 {
@@ -531,17 +532,17 @@ namespace WHMapper.Pages.Mapper
             try
             {
                 Logger.LogInformation("Start Init Diagram");
-               /* var options = new BlazorDiagramOptions
-                { 
-                    AllowMultiSelection = false// Whether to allow multi selection using CTRL
-                };*/
-
-
                 Diagram = new BlazorDiagram();
-                Diagram.SelectionChanged += async (item) => OnDiagramSelectionChanged(item);
+                //Diagram.UnregisterBehavior<SelectionBehavior>();
+                Diagram.UnregisterBehavior<DragMovablesBehavior>();
+                //Diagram.RegisterBehavior(new CustomDiagramSelectionBehavior(Diagram));
+                Diagram.RegisterBehavior(new CustomDragMovablesBehavior(Diagram));
                 
+
+                Diagram.SelectionChanged += async (item) => OnDiagramSelectionChanged(item);
                 Diagram.KeyDown += async (kbevent) => OnDiagramKeyDown(kbevent);
                 Diagram.PointerUp +=  async (item, pointerEvent) => OnDiagramPointerUp(item, pointerEvent);
+
 
                 Diagram.Options.Zoom.Enabled = true;
                 Diagram.Options.Zoom.Inverse = false;
@@ -549,6 +550,7 @@ namespace WHMapper.Pages.Mapper
                 Diagram.Options.AllowMultiSelection = true;
                 Diagram.RegisterComponent<EveSystemNodeModel, EveSystemNode>();
                 Diagram.RegisterComponent<EveSystemLinkModel, EveSystemLink>();
+
 
                 return true;
             }            
@@ -1374,28 +1376,7 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-
-        public async Task<bool> SetSelectedSystemDestinationWaypoint()
-        {
-            try
-            {
-                if(_selectedSystemNode !=null)
-                {
-                    var res = await EveServices.UserInterfaceServices.SetWaypoint(_selectedSystemNode.SolarSystemId,false,true);
-                    return true;
-                    
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Set destination waypoint error");
-                return false;
-            }
-        }
-
-        
+       
 
         private async Task<bool> OpenSearchAndAddDialog(MouseEventArgs args)
         {
