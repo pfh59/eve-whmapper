@@ -66,12 +66,12 @@ namespace WHMapper.Repositories.WHSystems
             await semSlim.WaitAsync();
             try
             {
-                if (_dbContext?.DbWHSystems?.Count() == 0)
+                if (_dbContext.DbWHSystems.Count() == 0)
                     return await _dbContext.DbWHSystems.ToListAsync();
                 else
-                    return await _dbContext?.DbWHSystems?.OrderBy(x => x.Name)
-                            ?.Include(x => x.WHSignatures)
-                            ?.ToListAsync();
+                    return await _dbContext.DbWHSystems.OrderBy(x => x.Name)
+                            .Include(x => x.WHSignatures)
+                            .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -89,9 +89,11 @@ namespace WHMapper.Repositories.WHSystems
             await semSlim.WaitAsync();
             try
             {
-                return await _dbContext?.DbWHSystems
-                     .Include(x => x.WHSignatures)
-                     .FirstOrDefaultAsync(x => x.Id == id);
+                var res = await _dbContext.DbWHSystems
+                        .Include(x=>x.WHSignatures)
+                        .SingleOrDefaultAsync(x => x.Id == id);
+    
+                return res;
             }
             catch (Exception ex)
             {
@@ -113,8 +115,8 @@ namespace WHMapper.Repositories.WHSystems
                 if (id != item.Id)
                     return null;
 
-                _dbContext?.DbWHSystems?.Update(item);
-                await _dbContext?.SaveChangesAsync();
+                _dbContext.DbWHSystems.Update(item);
+                await _dbContext.SaveChangesAsync();
                 return item;
             }
             catch (Exception ex)
@@ -133,7 +135,7 @@ namespace WHMapper.Repositories.WHSystems
             await semSlim.WaitAsync();
             try
             {
-                return await _dbContext?.DbWHSystems?.Include(x => x.WHSignatures)?.FirstOrDefaultAsync(x => x.Name == name);
+                return await _dbContext.DbWHSystems.Include(x => x.WHSignatures).FirstOrDefaultAsync(x => x.Name == name);
             }
             catch (Exception ex)
             {
@@ -168,7 +170,7 @@ namespace WHMapper.Repositories.WHSystems
                 return null;
 
             var sigArray = whSignatures.ToArray();
-            await _dbContext?.DbWHSignatures?.AddRangeAsync(sigArray);
+            await _dbContext.DbWHSignatures.AddRangeAsync(sigArray);
 
             foreach (var sig in sigArray)
                 system.WHSignatures.Add(sig);
@@ -199,8 +201,8 @@ namespace WHMapper.Repositories.WHSystems
                 if (sig == null)
                     return null;
 
-                _dbContext?.DbWHSignatures?.Remove(sig);
-                await _dbContext?.SaveChangesAsync();
+                _dbContext.DbWHSignatures?.Remove(sig);
+                await _dbContext.SaveChangesAsync();
                 return sig;
             }
             catch (Exception ex)
@@ -224,8 +226,8 @@ namespace WHMapper.Repositories.WHSystems
             await semSlim.WaitAsync();
             try
             {
-                _dbContext?.DbWHSignatures?.RemoveRange(system.WHSignatures);
-                await _dbContext?.SaveChangesAsync();
+                _dbContext.DbWHSignatures.RemoveRange(system.WHSignatures);
+                await _dbContext.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)

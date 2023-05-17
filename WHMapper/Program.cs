@@ -52,7 +52,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<WHMapperContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),ServiceLifetime.Singleton);
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),ServiceLifetime.Transient);
 
 builder.Services.AddSignalR();
 
@@ -154,10 +154,10 @@ builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
 builder.Services.AddSingleton<ISDEServices, SDEServices>();
 
 #region DB Acess Repo
-builder.Services.AddSingleton<IWHMapRepository, WHMapRepository>();
-builder.Services.AddSingleton<IWHSystemRepository, WHSystemRepository>();
-builder.Services.AddSingleton<IWHSignatureRepository, WHSignatureRepository>();
-builder.Services.AddSingleton<IWHSystemLinkRepository, WHSystemLinkRepository>();
+builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
+builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
+builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
+builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
 #endregion
 
 #region WH HELPER

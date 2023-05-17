@@ -2,6 +2,7 @@
 @using WHMapper.Models.Custom.Node;
 
 
+
 <MudCard Outlined="true" Style="@(Node.Selected ? "border-color:white;" : "border-color:grey;")">
     <MudCardHeader Class="mb-n5">
         <CardHeaderAvatar>
@@ -10,10 +11,17 @@
             </MudBadge>
         </CardHeaderAvatar>
         <CardHeaderContent>
-            <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;">@Node.Name</MudText>
+            <MudMenu PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" >
+                <ActivatorContent>
+                    <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;">@Node.Name</MudText>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() =>SetSelectedSystemDestinationWaypoint())">Set Destination</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
         </CardHeaderContent>
         <CardHeaderActions>
-            @if (!string.IsNullOrWhiteSpace(Node.Effect))
+            @if (Node!=null && !string.IsNullOrWhiteSpace(Node.Effect))
             {
                 <MudTooltip Text="@Node.Effect" Arrow="true" Placement="Placement.Bottom">
                     <ChildContent>
@@ -21,7 +29,7 @@
                     </ChildContent>
                     <TooltipContent>
                         <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
-                            @foreach (var effectInfo in @Node?.EffectsInfos)
+                            @foreach (var effectInfo in Node.EffectsInfos)
                             {
                                 <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
                             }
@@ -34,32 +42,32 @@
 
     <MudCardContent Class="d-flex pa-1 pr-2 justify-space-between">
         <div Class="d-flex justify-start">
-            @if (Node?.ConnectedUsers.FirstOrDefault() != null)
+            @if (Node!=null && Node.ConnectedUsers!=null && Node.ConnectedUsers.FirstOrDefault() != null)
             {
                 <MudTooltip Typo="Typo.caption" Arrow="true" Placement="Placement.Bottom">
                     <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Default  Size="Size.Small" />
+                        <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Default Size="Size.Small" />
                     </ChildContent>
                     <TooltipContent>
                         <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
-                            @foreach (var user in @Node?.ConnectedUsers)
-                                {
+                            @foreach (var user in @Node.ConnectedUsers)
+                            {
                                 <MudText class="ml-1 mr-1" Typo="Typo.caption">@user</MudText>
-                                }
+                            }
                         </MudPaper>
                     </TooltipContent>
                 </MudTooltip>
-             }
-             else
-             {
-                <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Transparent Size="Size.Small" />      
-             }
+            }
+            else
+            {
+                <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Transparent Size="Size.Small" />
+            }
             <MudText Class="align-self-stretch ml-1 mt-1" Typo="Typo.caption">@Node?.ConnectedUsers.FirstOrDefault()</MudText>
         </div>
         <div Class="d-flex justify-end">
-            @if (Node?.Statics != null && Node?.Statics.Count() > 0)
+            @if (Node!=null && Node.Statics != null && Node?.Statics.Count() > 0)
             {
-                @foreach (var item in Node?.Statics)
+                @foreach (var item in Node.Statics)
                 {
                     <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
                 }

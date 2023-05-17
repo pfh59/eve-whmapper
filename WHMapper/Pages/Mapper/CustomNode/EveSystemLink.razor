@@ -10,25 +10,25 @@
 
 
 
-@if (Link.Selected)
-{
-    <path d="@d" fill="none" stroke-width="10" stroke-opacity="0.8" stroke="@WHColorHelper?.GetLinkSelectedColor()" />
-}
+    @if (Link.Selected)
+    {
+        <path d="@d" fill="none" stroke-width="10" stroke-opacity="0.8" stroke="@WHColorHelper?.GetLinkSelectedColor()" />
+    }
 
 
-@if (Link.IsEoL)
-{
-    <path d="@d" fill="none" stroke-width="8" stroke="@WHColorHelper?.GetLinkEOLColor()"></path>
-}
-else
-{
-    <path d="@d" fill="none" stroke-width="8" stroke="grey" />
-}
+    @if (Link.IsEoL)
+    {
+        <path d="@d" fill="none" stroke-width="8" stroke="@WHColorHelper?.GetLinkEOLColor()"></path>
+    }
+    else
+    {
+        <path d="@d" fill="none" stroke-width="8" stroke="grey" />
+    }
 
-<path d="@d" fill="none" stroke-width="4" stroke="@WHColorHelper?.GetLinkStatusColor(Link.MassStatus)" />
+    <path d="@d" fill="none" stroke-width="4" stroke="@WHColorHelper?.GetLinkStatusColor(Link.MassStatus)" />
 
 
-@foreach (var label in Link.Labels)
-{
-    <LinkLabelRenderer @key="label.Id" Label="@label" Path="@result.FullPath" />
-}
+    @foreach (var label in Link.Labels)
+    {
+        <LinkLabelRenderer @key="label.Id" Label="@label" Path="@result.FullPath" />
+    }

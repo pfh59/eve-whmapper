@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using static MudBlazor.CategoryTypes;
@@ -94,8 +95,8 @@ namespace WHMapper.Repositories.WHSignatures
                 if (id != item.Id)
                     return null;
 
-                _dbContext?.DbWHSignatures?.Update(item);
-                await _dbContext?.SaveChangesAsync();
+                _dbContext.DbWHSignatures.Update(item);
+                await _dbContext.SaveChangesAsync();
                 return item;
             }
             finally
@@ -123,15 +124,17 @@ namespace WHMapper.Repositories.WHSignatures
             await semSlim.WaitAsync();
             try
             {
+
                 foreach (var sig in whSignatures)
                 {
                     _dbContext.Entry(sig).State = EntityState.Modified;
                 }
 
                 await _dbContext.SaveChangesAsync();
+
                 return whSignatures;
             }
-            catch
+            catch(Exception ex)
             {
                 return null;
             }
