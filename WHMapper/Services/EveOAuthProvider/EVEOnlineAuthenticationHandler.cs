@@ -32,7 +32,7 @@ namespace WHMapper.Services.EveOAuthProvider
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
             string? accessToken = tokens.AccessToken;
-
+            
             if (string.IsNullOrWhiteSpace(accessToken))
             {
                 throw new InvalidOperationException("No access token was returned in the OAuth token.");

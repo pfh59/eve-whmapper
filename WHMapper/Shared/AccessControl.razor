@@ -3,23 +3,23 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudMenu FullWidth="true">
+        <MudMenu Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft">
             <ActivatorContent>
                 <MudChip Icon="@Icons.Material.Filled.Person">@Username</MudChip>
             </ActivatorContent>
             <ChildContent>
-                <MudMenuItem>Profile</MudMenuItem>
-                <MudNavLink Href="logout">Logout</MudNavLink>
+                <MudNavLink Href="login?redirectUri=/" Target="_blank" ForceLoad="true" Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default">Add Account</MudNavLink>
+                <MudNavLink Href="logout" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default">Logout</MudNavLink>
             </ChildContent>
         </MudMenu>
     </Authorized>
     <NotAuthorized>
-        <MudMenu FullWidth="true">
+        <MudMenu Dense="true">
             <ActivatorContent>
                 <MudChip Icon="@Icons.Material.Filled.Person">Account</MudChip>
             </ActivatorContent>
             <ChildContent>
-                <MudNavLink Href="login?redirectUri=/">Login</MudNavLink>
+                <MudNavLink Href="login?redirectUri=/" Icon="@Icons.Material.Filled.Login" IconColor="Color.Default">Login</MudNavLink>
             </ChildContent>
         </MudMenu>
     </NotAuthorized>
