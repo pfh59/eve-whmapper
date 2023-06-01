@@ -270,6 +270,7 @@ namespace WHMapper.Pages.Mapper
                                     newWHSystem = await DbWHSystems.GetById(wormholeId);
 
                                 var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
+                                newSystemNode.OnLocked += OnWHSystemNodeLocked;
                                 Diagram?.Nodes?.Add(newSystemNode);
                             }
                         }
@@ -439,6 +440,29 @@ namespace WHMapper.Pages.Mapper
                         }
                     });
 
+
+
+                    _hubConnection.On<string, int, int, bool>("NotifyWormholeLockChanged", async (user, mapId, wormholeId, locked) =>
+                    {
+                        try
+                        {
+                            if (_selectedWHMap != null && _selectedSystemNode != null && wormholeId > 0 && mapId == _selectedWHMap.Id)
+                            {
+                                EveSystemNodeModel whChangeLock = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
+                                if(whChangeLock!=null)
+                                {
+                                    whChangeLock.Locked = locked;
+                                    whChangeLock.Refresh();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "On NotifyWormholeLockChanged error");
+                        }
+
+                    });
+
                     await _hubConnection.StartAsync();
 
                     return true;
@@ -525,6 +549,14 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
+        private async Task NotifyWormholeLockChanged(int mapId, int wormholeId, bool locked)
+        {
+            if (_hubConnection is not null)
+            {
+                await _hubConnection.SendAsync("SendWormholeLockChanged", mapId, wormholeId, locked);
+            }
+        }
+
         #endregion
 
         private async Task<bool> InitDiagram()
@@ -542,7 +574,7 @@ namespace WHMapper.Pages.Mapper
                 Diagram.SelectionChanged += async (item) => OnDiagramSelectionChanged(item);
                 Diagram.KeyDown += async (kbevent) => OnDiagramKeyDown(kbevent);
                 Diagram.PointerUp +=  async (item, pointerEvent) => OnDiagramPointerUp(item, pointerEvent);
-
+               
 
                 Diagram.Options.Zoom.Enabled = true;
                 Diagram.Options.Zoom.Inverse = false;
@@ -714,10 +746,10 @@ namespace WHMapper.Pages.Mapper
                                 {
                                     if (_selectedSystemNode?.IdWH == node.IdWH)
                                     {
-                                        _currentLocation = null;
-                                        _currentSystemNode = null;
+                                        _currentLocation = null!;
+                                        _currentSystemNode = null!;
                                         _currentWHSystemId = -1;
-                                        _currentSolarSystem = null;
+                                        _currentSolarSystem = null!;
                                     }
                                     _selectedSystemNode = null;
                                 }
@@ -818,23 +850,29 @@ namespace WHMapper.Pages.Mapper
         {
             try
             {
+                if (DbWHMaps == null)
+                {
+                    Logger.LogError("DbWHMaps is null");
+                    return false;
+                }
 
                 Logger.LogInformation("Beginning Restore Mapper");
-                WHMaps = await DbWHMaps?.GetAll();
+                WHMaps = await DbWHMaps.GetAll();
                 if (WHMaps == null || WHMaps.Count() == 0)
                 {
                     _selectedWHMap = await DbWHMaps.Create(new WHMap("Default Maps"));
                     if (_selectedWHMap != null)
-                        WHMaps = await DbWHMaps?.GetAll();
+                        WHMaps = await DbWHMaps.GetAll();
 
                 }
                 _selectedWHMap = WHMaps.FirstOrDefault();
 
-                if (_selectedWHMap.WHSystems.Count > 0)
+                if (_selectedWHMap != null && _selectedWHMap.WHSystems.Count > 0)
                 {
                     foreach (WHSystem dbWHSys in _selectedWHMap.WHSystems)
                     {
                         EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
+                        whSysNode.OnLocked += OnWHSystemNodeLocked;
                         Diagram.Nodes.Add(whSysNode);
 
                     }
@@ -848,9 +886,9 @@ namespace WHMapper.Pages.Mapper
                         var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
                         var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
                         if (whFrom != null && whTo != null)
-                        { 
-                            EveSystemNodeModel newSystemNodeFrom = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
-                            EveSystemNodeModel newSystemNodeTo = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
+                        {
+                            EveSystemNodeModel newSystemNodeFrom = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
+                            EveSystemNodeModel newSystemNodeTo = Diagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
 
                             Diagram.Links.Add(new EveSystemLinkModel(dbWHSysLink, newSystemNodeFrom, newSystemNodeTo));
                         }
@@ -864,6 +902,7 @@ namespace WHMapper.Pages.Mapper
                 Logger.LogInformation("Restore Mapper Success");
                 StateHasChanged();
                 return true;
+                
             }
             catch(Exception ex)
             {
@@ -914,8 +953,13 @@ namespace WHMapper.Pages.Mapper
                     return false;
                 }
 
+                if(map.WHSystems.Count>0 && map.WHSystems.FirstOrDefault(x=>x.Id==node.IdWH)==null)
+                {
+                    Logger.LogError("DeletedNodeOnMap map doesn't contain this node");
+                    return false;
+                }
 
-                if (await DbWHMaps.RemoveWHSystem(map.Id, node.IdWH) != null)
+                if (await DbWHSystems.DeleteById(node.IdWH) != null)
                 {
                     await NotifyWormholeRemoved(map.Id, node.IdWH);
                     return true;
@@ -940,7 +984,7 @@ namespace WHMapper.Pages.Mapper
                     return false;
                 }
 
-                if (await DbWHMaps.RemoveWHSystemLink(map.Id, ((EveSystemNodeModel)link.Source.Model).IdWH, ((EveSystemNodeModel)link.Target.Model).IdWH) != null)
+                if(await DbWHSystemLinks.DeleteById(link.Id))
                 {
                     await NotifyLinkRemoved(map.Id, link.Id);
                     return true;
@@ -970,9 +1014,9 @@ namespace WHMapper.Pages.Mapper
                 if (wh != null)
                 {
                     if (increment)
-                        await node.IncrementNameExtension();
+                        node.IncrementNameExtension();
                     else
-                        await node.DecrementNameExtension();
+                        node.DecrementNameExtension();
 
                     if (node.NameExtension == null)
                         wh.NameExtension = 0;
@@ -1009,13 +1053,12 @@ namespace WHMapper.Pages.Mapper
                     return false;
                 }
 
+                var newLink = await DbWHSystemLinks.Create(new WHSystemLink(map.Id, src.IdWH, target.IdWH));
 
-                var link = await DbWHMaps.AddWHSystemLink(map.Id, src.IdWH, target.IdWH);
-
-                if (link != null)
+                if (newLink != null)
                 {
-                    Diagram.Links.Add(new EveSystemLinkModel(link, src, target));
-                    await this.NotifyLinkAdded(map.Id, link.Id);
+                    Diagram.Links.Add(new EveSystemLinkModel(newLink, src, target));
+                    await this.NotifyLinkAdded(map.Id, newLink.Id);
 
                     return true;
                 }
@@ -1138,25 +1181,26 @@ namespace WHMapper.Pages.Mapper
                                 if (nbSameWHClassLink > 0)
                                 {
                                     char extension = (Char)(Convert.ToUInt16('A') + nbSameWHClassLink);
-                                    newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId, _currentSolarSystem.Name, extension, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                                    newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId, _currentSolarSystem.Name, extension, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                                 }
                                 else
-                                    newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                                    newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                             }
                             else
                             {
-                                newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                                newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                             }
 
                         }
                         else
-                         newWHSystem = await DbWHMaps.AddWHSystem(_selectedWHMap.Id, new WHSystem(_currentSolarSystem.SystemId,_currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
-
+                            newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId,_currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                        
 
                            
                         if (newWHSystem!=null)
                         {
                             var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
+                            newSystemNode.OnLocked += OnWHSystemNodeLocked;
                             await newSystemNode.AddConnectedUser(_userName);
 
                             Diagram.Nodes.Add(newSystemNode);
@@ -1244,6 +1288,15 @@ namespace WHMapper.Pages.Mapper
             }
 
             GC.SuppressFinalize(this);
+        }
+
+
+        private void OnWHSystemNodeLocked(EveSystemNodeModel whNodeModel)
+        {
+            if (whNodeModel != null)
+            {
+                NotifyWormholeLockChanged(whNodeModel.IdWHMap, whNodeModel.IdWHMap, whNodeModel.Locked);
+            }
         }
 
         #region Menu Actions

@@ -6,8 +6,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace WHMapper.Migrations
 {
-    public partial class Init : Migration
+    /// <inheritdoc />
+    public partial class init : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -29,12 +31,12 @@ namespace WHMapper.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    WHMapId = table.Column<int>(type: "integer", nullable: false),
                     IdWHSystemFrom = table.Column<int>(type: "integer", nullable: false),
                     IdWHSystemTo = table.Column<int>(type: "integer", nullable: false),
                     IsEndOfLifeConnection = table.Column<bool>(type: "boolean", nullable: false),
                     Size = table.Column<int>(type: "integer", nullable: false),
-                    MassStatus = table.Column<int>(type: "integer", nullable: false),
-                    WHMapId = table.Column<int>(type: "integer", nullable: true)
+                    MassStatus = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -53,13 +55,14 @@ namespace WHMapper.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    WHMapId = table.Column<int>(type: "integer", nullable: false),
                     SoloarSystemId = table.Column<int>(type: "integer", nullable: false),
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     NameExtension = table.Column<byte>(type: "smallint", nullable: false),
                     SecurityStatus = table.Column<float>(type: "real", nullable: false),
                     PosX = table.Column<double>(type: "double precision", nullable: false),
                     PosY = table.Column<double>(type: "double precision", nullable: false),
-                    WHMapId = table.Column<int>(type: "integer", nullable: true)
+                    Locked = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -78,21 +81,21 @@ namespace WHMapper.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    WHId = table.Column<int>(type: "integer", nullable: false),
                     Name = table.Column<string>(type: "character varying(7)", maxLength: 7, nullable: false),
                     Group = table.Column<int>(type: "integer", nullable: false),
                     Type = table.Column<string>(type: "text", nullable: true),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: false),
                     Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
-                    WHSystemId = table.Column<int>(type: "integer", nullable: true)
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Signatures", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Signatures_Systems_WHSystemId",
-                        column: x => x.WHSystemId,
+                        name: "FK_Signatures_Systems_WHId",
+                        column: x => x.WHId,
                         principalTable: "Systems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -111,9 +114,9 @@ namespace WHMapper.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Signatures_WHSystemId",
+                name: "IX_Signatures_WHId",
                 table: "Signatures",
-                column: "WHSystemId");
+                column: "WHId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SystemLinks_IdWHSystemFrom_IdWHSystemTo",
@@ -133,11 +136,18 @@ namespace WHMapper.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Systems_SoloarSystemId",
+                table: "Systems",
+                column: "SoloarSystemId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Systems_WHMapId",
                 table: "Systems",
                 column: "WHMapId");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

@@ -13,6 +13,10 @@ namespace WHMapper.Models.Db
         public int Id { get;  set; }
 
         [Required]
+        public int WHId { get; set; }
+
+
+        [Required]
         [StringLength(7, ErrorMessage = "Bad Signature Format")]
         public string Name { get; set; }
 
@@ -52,20 +56,21 @@ namespace WHMapper.Models.Db
 
         }
 
-        public WHSignature(string name)
+        public WHSignature(int whId,string name) :
+            this(whId,name, DEFAULT_SCAN_USER_VALUE)
         {
-            Name = name;
+
         }
 
-        public WHSignature(string name,string scanUser)
+        public WHSignature(int whId, string name,string scanUser)
+            : this(whId,name,WHSignatureGroup.Unknow,null,scanUser)
         {
-            Name = name;
-            CreatedBy = scanUser;
-            UpdatedBy = scanUser;
+
         }
 
-        public WHSignature(string name, WHSignatureGroup group, string? type,string scanUser)
+        public WHSignature(int whId, string name, WHSignatureGroup group, string? type,string scanUser)
         {
+            WHId = whId;
             Name = name;
             Group = group;
             Type = type;
@@ -73,8 +78,8 @@ namespace WHMapper.Models.Db
             UpdatedBy = scanUser;
         }
 
-        public WHSignature(string name, WHSignatureGroup group, string? type) :
-            this(name,group,type, DEFAULT_SCAN_USER_VALUE)
+        public WHSignature(int whId, string name, WHSignatureGroup group, string? type) :
+            this(whId,name, group,type, DEFAULT_SCAN_USER_VALUE)
         {
 
         }

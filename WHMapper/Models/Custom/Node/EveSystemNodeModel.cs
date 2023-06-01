@@ -3,20 +3,31 @@ using System.Collections.Concurrent;
 using System.Xml.Linq;
 using Blazor.Diagrams.Core.Geometry;
 using Blazor.Diagrams.Core.Models;
+using Blazor.Diagrams.Core.Models.Base;
 using WHMapper.Models.Db;
 
 namespace WHMapper.Models.Custom.Node
 {
     public class EveSystemNodeModel : NodeModel
     {
-        private WHSystem _wh;
+        public event Action<EveSystemNodeModel>? OnLocked;
 
+        private WHSystem _wh = null!;
 
         public int IdWH
         {
             get
             {
                 return _wh.Id;
+
+            }
+        }
+
+        public int IdWHMap
+        {
+            get
+            {
+                return _wh.WHMapId;
 
             }
         }
@@ -33,7 +44,7 @@ namespace WHMapper.Models.Custom.Node
         {
             get
             {
-                if(_wh.NameExtension!=null && _wh.NameExtension!=0)
+                if(_wh!=null && _wh.NameExtension!=0)
                     return Convert.ToChar(_wh.NameExtension).ToString();
                 return null;
             }
@@ -60,14 +71,33 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
+        
+        public new bool Locked
+        {
+            get
+            {
+                return base.Locked;
+            }
+            set
+            {
+                if (base.Locked != value)
+                {
+                    base.Locked = value;
+                    OnLocked?.Invoke(this);
+                }
+            }
 
-        public String? Class { get; private set; }
-        public String? Effect { get; private set; }
-        public IEnumerable<KeyValuePair<string, string>>? Statics { get; private set; }
-        public IEnumerable<KeyValuePair<string, string>>? EffectsInfos { get; private set; }
+        }
+
+        
+        public String Class { get; private set; } = null!;
+        public String Effect { get; private set; } = null!;
+        public IEnumerable<KeyValuePair<string, string>> Statics { get; private set; } = null!;
+        public IEnumerable<KeyValuePair<string, string>> EffectsInfos { get; private set; } = null!;
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
-        public EveSystemNodeModel(WHSystem wh, string whClass, string whEffects, IEnumerable<KeyValuePair<string, string>>? whEffectsInfos, IEnumerable<KeyValuePair<string, string>> whStatics) 
+
+        public EveSystemNodeModel(WHSystem wh, string whClass, string whEffects, IEnumerable<KeyValuePair<string, string>> whEffectsInfos, IEnumerable<KeyValuePair<string, string>> whStatics) 
         {
             _wh = wh;
 
@@ -76,17 +106,21 @@ namespace WHMapper.Models.Custom.Node
             Effect = whEffects;
             EffectsInfos = whEffectsInfos;
             Statics = whStatics;
+            Locked = wh.Locked;
 
             AddPort(PortAlignment.Bottom);
             AddPort(PortAlignment.Top);
             AddPort(PortAlignment.Left);
             AddPort(PortAlignment.Right);
+
+
         }
 
         public EveSystemNodeModel(WHSystem wh)
         {
             _wh = wh;
             Title = this.Name;
+            Locked = wh.Locked;
 
             if (SecurityStatus >= 0.5)
                 Class = "H";
@@ -100,10 +134,9 @@ namespace WHMapper.Models.Custom.Node
             AddPort(PortAlignment.Left);
             AddPort(PortAlignment.Right);
         }
-        
 
 
-        public async Task IncrementNameExtension()
+        public void IncrementNameExtension()
         {
             if (_wh.NameExtension == 0)
                 _wh.NameExtension = Convert.ToByte('A');
@@ -116,7 +149,7 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
-        public async Task DecrementNameExtension()
+        public void DecrementNameExtension()
         {
             if (_wh.NameExtension > Convert.ToByte('A'))
                 _wh.NameExtension--;

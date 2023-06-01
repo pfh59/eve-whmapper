@@ -21,19 +21,21 @@ namespace WHMapper.Data
         {
             modelBuilder.Entity<WHMap>().ToTable("Maps");
             modelBuilder.Entity<WHMap>().HasIndex(x => new { x.Name }).IsUnique(true);
+            modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystems).WithOne().HasForeignKey(x => x.WHMapId).IsRequired();
+            modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystemLinks).WithOne().HasForeignKey(x => x.WHMapId).IsRequired();
 
             modelBuilder.Entity<WHSystem>().ToTable("Systems");
             modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.SoloarSystemId }).IsUnique(true);
             modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.Name }).IsUnique(true);
-            modelBuilder.Entity<WHSystem>().HasOne<WHMap>().WithMany(x => x.WHSystems).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHSystem>().HasOne<WHMap>().WithMany(x => x.WHSystems).HasForeignKey(x =>x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<WHSystemLink>().ToTable("SystemLinks");
             modelBuilder.Entity<WHSystemLink>().HasIndex(x => new { x.IdWHSystemFrom, x.IdWHSystemTo }).IsUnique(true);
-            modelBuilder.Entity<WHSystemLink>().HasOne<WHMap>().WithMany(x => x.WHSystemLinks).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHSystemLink>().HasOne<WHMap>().WithMany(x => x.WHSystemLinks).HasForeignKey(x =>x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<WHSignature>().ToTable("Signatures");
             modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.Name }).IsUnique(true);
-            modelBuilder.Entity<WHSignature>().HasOne<WHSystem>().WithMany(x => x.WHSignatures).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHSignature>().HasOne<WHSystem>().WithMany(x => x.WHSignatures).HasForeignKey(x=>x.WHId).IsRequired().OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

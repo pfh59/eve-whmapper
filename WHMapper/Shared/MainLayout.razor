@@ -1,11 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
-
-<MudThemeProvider IsDarkMode="true" DefaultScrollbar="false" />
+<MudThemeProvider Theme="currentTheme" DefaultScrollbar="false"/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout >
+<MudLayout>
     <MudAppBar Elevation="1">
         <MudText Typo="Typo.h5" Class="ml-3">Wormhole Mapper</MudText>
         <MudSpacer />
@@ -21,3 +20,36 @@
         </AuthorizeView>
     </MudMainContent>
 </MudLayout>
+
+@code{
+    private MudTheme currentTheme = null!;
+
+    protected override void OnInitialized()
+    {
+        currentTheme = new MudTheme()
+        {
+            Palette = new PaletteDark()
+            {
+                Black = "#27272f",
+                Background = "#32333d",
+                BackgroundGrey = "#27272f",
+                Surface = "#373740",
+                DrawerBackground = "#27272f",
+                DrawerText = "rgba(255,255,255, 0.50)",
+                DrawerIcon = "rgba(255,255,255, 0.50)",
+                AppbarBackground = "#27272f",
+                AppbarText = "rgba(255,255,255, 0.70)",
+                TextPrimary = "rgba(255,255,255, 0.70)",
+                TextSecondary = "rgba(255,255,255, 0.50)",
+                ActionDefault = "#adadb1",
+                ActionDisabled = "rgba(255,255,255, 0.26)",
+                ActionDisabledBackground = "rgba(255,255,255, 0.12)",
+                Primary="#ffffff",
+                PrimaryDarken = "#ffffff",
+                PrimaryLighten = "#ffffff"
+
+            }
+        };
+
+    }
+    }

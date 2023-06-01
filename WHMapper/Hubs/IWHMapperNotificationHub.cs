@@ -18,6 +18,7 @@ namespace WHMapper.Hubs
         Task NotifyLinkChanged(string username,int mapId, int linkId, bool eol, SystemLinkSize size, SystemLinkMassStatus mass);
         Task NotifyWormholeNameExtensionChanged(string username, int mapId, int wormholeId);
         Task NotifyWormholeSignaturesChanged(string username, int mapId, int wormholeId);
+        Task NotifyWormholeLockChanged(string username, int mapId, int wormholeId, bool locked);
     }
 }
 

@@ -32,20 +32,20 @@ namespace WHMapper.Repositories.WHSystemLinks
             }
         }
 
-        protected override async Task<WHSystemLink?> ADeleteById(int id)
+        protected override async Task<bool> ADeleteById(int id)
         {
-            var item = await AGetById(id);
-
-            if (item == null)
-                return null;
-
             await semSlim.WaitAsync();
             try
             {
-                _dbContext.DbWHSystemLinks.Remove(item);
-                await _dbContext.SaveChangesAsync();
-
-                return item;
+                int rowDeleted = await _dbContext.DbWHSystemLinks.Where(x => x.Id == id).ExecuteDeleteAsync();
+                if (rowDeleted > 0)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
             finally
             {

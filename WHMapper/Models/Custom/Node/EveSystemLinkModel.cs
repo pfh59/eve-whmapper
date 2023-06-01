@@ -34,7 +34,6 @@ namespace WHMapper.Models.Custom.Node
             {
 
                 _whLink.IsEndOfLifeConnection = value;
-                //SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
             }
         }
 
@@ -61,8 +60,6 @@ namespace WHMapper.Models.Custom.Node
             set
             {
                 _whLink.MassStatus = value;
-                //Color = GetLinkStatusColor(_whLink.MassStatus);
-                //SelectedColor = GetLinkStatusColor(_whLink.MassStatus);
             }
         }
 
@@ -77,43 +74,16 @@ namespace WHMapper.Models.Custom.Node
                 case SystemLinkSize.Medium:
                     this.Labels.Add(new LinkLabelModel(this, "M"));
                     break;
-                //case SystemLinkSize.Large:
-                //    this.Labels.Add(new LinkLabelModel(this, "L"));
-                //    break;
                 case SystemLinkSize.XLarge:
                     this.Labels.Add(new LinkLabelModel(this, "XL"));
                     break;
             }
-            /*
-            if(isEol)
-            {
-                this.Labels.Add(new LinkLabelModel(this, "EOL"));
-            }*/
         }
-
-        /*
-        private string GetLinkStatusColor(SystemLinkMassStatus status)
-        {
-            switch (status)
-            {
-                case SystemLinkMassStatus.Normal:
-                    return "#3C3F41";
-                case SystemLinkMassStatus.Critical:
-                    return "#e28a0d";
-                case SystemLinkMassStatus.Verge:
-                    return "#a52521";
-            }
-
-            return "#3C3F41";
-        }*/
-
 
         public EveSystemLinkModel(WHSystemLink whLink,EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
             : base (sourcePort, targetPort)
         {
             _whLink = whLink;
-            //Color = GetLinkStatusColor(_whLink.MassStatus);
-            //SelectedColor = GetLinkStatusColor(_whLink.MassStatus);
             SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
 
         }

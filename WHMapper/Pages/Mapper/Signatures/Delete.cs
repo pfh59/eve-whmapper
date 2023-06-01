@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Db;
+using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystems;
 
 namespace WHMapper.Pages.Mapper.Signatures
@@ -13,12 +14,12 @@ namespace WHMapper.Pages.Mapper.Signatures
         private const string MSG_DELETE_SIGNATURES = "Do you really want to delete all signatures?";
 
         [Inject]
-        public ISnackbar Snackbar { get; set; }
+        public ISnackbar Snackbar { get; set; } = null!;
         [Inject]
-        IWHSystemRepository? DbWHSystems { get; set; }
+        IWHSignatureRepository DbWHSignatures { get; set; } = null!;
 
         [CascadingParameter]
-        MudDialogInstance MudDialog { get; set; }
+        MudDialogInstance MudDialog { get; set; } = null!;
 
         private bool _success = false;
 
@@ -43,10 +44,16 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async Task DeleteSignature()
         {
+            if(DbWHSignatures==null)
+            {
+                Snackbar.Add("DbWHSignatures is null", Severity.Error);
+                MudDialog.Close(DialogResult.Ok(false));
+            }
+                
+
             if (CurrentSystemNodeId > 0 && SignatureId > 0)
             {
-                var res = await DbWHSystems.RemoveWHSignature(CurrentSystemNodeId, SignatureId);
-                if (res != null && res.Id == SignatureId)
+                if (DbWHSignatures!=null  && await DbWHSignatures.DeleteById(SignatureId))
                 {
                     Snackbar.Add("Signature successfully deleted", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(true));
@@ -66,9 +73,15 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async Task DeleteSignatures()
         {
+            if (DbWHSignatures == null)
+            {
+                Snackbar.Add("DbWHSignatures is null", Severity.Error);
+                MudDialog.Close(DialogResult.Ok(false));
+            }
+
             if (CurrentSystemNodeId > 0)
             {
-                if(await DbWHSystems.RemoveAllWHSignature(CurrentSystemNodeId))
+                if(DbWHSignatures!=null && await DbWHSignatures.DeleteByWHId(CurrentSystemNodeId))
                 {
                     Snackbar.Add("All Signatures are successfully deleted", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(true));
@@ -86,9 +99,9 @@ namespace WHMapper.Pages.Mapper.Signatures
             }
         }
 
-        private async Task Cancel()
+        private void Cancel()
         {
-            MudDialog.Cancel();
+            MudDialog?.Cancel();
         }
     }
 }

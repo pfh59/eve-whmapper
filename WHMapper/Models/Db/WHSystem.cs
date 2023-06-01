@@ -11,6 +11,9 @@ namespace WHMapper.Models.Db
         public int Id { get; set; }
 
         [Required]
+        public int WHMapId { get; set; }
+
+        [Required]
         public int SoloarSystemId { get; set; } = -1;
 
         [Required , StringLength(255, ErrorMessage = "Map name is too long.")]
@@ -27,12 +30,16 @@ namespace WHMapper.Models.Db
 
         public double PosY { get; set; } = 0.0;
 
+        public bool Locked { get; set; } = false;
+
 
         public WHSystem()
         { }
 
-        public WHSystem(int solarSystemId,string name, float securityStatus,double posX, double posY)
+
+        public WHSystem(int whMapId,int solarSystemId,string name, float securityStatus,double posX, double posY)
         {
+            WHMapId = whMapId;
             SoloarSystemId = solarSystemId;
             Name = name;
             SecurityStatus = securityStatus;
@@ -40,8 +47,9 @@ namespace WHMapper.Models.Db
             PosY = posY;
         }
 
-        public WHSystem(int solarSystemId, string name, char nameExtension, float securityStatus, double posX, double posY)
+        public WHSystem(int whMapId, int solarSystemId, string name, char nameExtension, float securityStatus, double posX, double posY)
         {
+            WHMapId = whMapId;
             SoloarSystemId = solarSystemId;
             Name = name;
             NameExtension = Convert.ToByte(nameExtension);
@@ -50,14 +58,14 @@ namespace WHMapper.Models.Db
             PosY = posY;
         }
 
-        
-        public WHSystem(int solarSystemId, string name, float securityStatus) :
-            this(solarSystemId, name, securityStatus, 0, 0)
+
+        public WHSystem(int whMapId, int solarSystemId, string name, float securityStatus) :
+            this(whMapId,solarSystemId, name, securityStatus, 0, 0)
         {
         }
 
-        public WHSystem(int solarSystemId, string name, char nameExtension, float securityStatus) :
-            this(solarSystemId,name, nameExtension,securityStatus,0,0)
+        public WHSystem(int whMapId, int solarSystemId, string name, char nameExtension, float securityStatus) :
+            this(whMapId,solarSystemId, name, nameExtension,securityStatus,0,0)
         {
 
         }

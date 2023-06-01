@@ -20,7 +20,7 @@ namespace WHMapper.Repositories
         protected abstract Task<T?> AGetById(U id);
         protected abstract Task<T?> ACreate(T item);
         protected abstract Task<T?> AUpdate(U id, T item);
-        protected abstract Task<T?> ADeleteById(U id);
+        protected abstract Task<bool> ADeleteById(U id);
 
 
         protected static SemaphoreSlim semSlim = new SemaphoreSlim(1, 1);
@@ -36,7 +36,7 @@ namespace WHMapper.Repositories
             return await ACreate(item);
         }
 
-        public async Task<T?> DeleteById(U id)
+        public async Task<bool> DeleteById(U id)
         {
             return await ADeleteById(id);
         }

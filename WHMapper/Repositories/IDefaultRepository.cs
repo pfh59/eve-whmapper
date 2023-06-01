@@ -11,6 +11,6 @@ namespace WHMapper.Repositories
         Task<T?> GetById(U id);
         Task<T?> Create(T item);
         Task<T?> Update(U id, T item);
-        Task<T?> DeleteById(U id);
+        Task<bool> DeleteById(U id);
     }
 }

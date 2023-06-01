@@ -8,6 +8,7 @@ using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHSignatures;
+using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Tests.Attributes;
 using Xunit;
@@ -82,60 +83,26 @@ public class DbIntegrationTest
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR_UPDATED, result2.Name);
 
-
-
-        //Add WHSystem
-        var whSys1 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SYSTEM_ID, FOOBAR, 1));
-        Assert.NotNull(whSys1);
-        Assert.Equal(FOOBAR_SYSTEM_ID, whSys1.SoloarSystemId);
-        Assert.Equal(FOOBAR, whSys1.Name);
-        Assert.Equal(1, whSys1.SecurityStatus);
-
-        var whSys2 = await repo.AddWHSystem(result2.Id, new WHSystem(FOOBAR_SYSTEM_ID2,FOOBAR_SHORT_UPDATED,'A', 1));
-        Assert.NotNull(whSys2);
-        Assert.Equal(FOOBAR_SYSTEM_ID2, whSys2.SoloarSystemId);
-        Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2.Name);
-        Assert.Equal(1, whSys2.SecurityStatus);
-        Assert.Equal(Convert.ToByte('A'), whSys2.NameExtension);
-
-        //add whsystem link
-        var link = await repo.AddWHSystemLink(result2.Id, whSys1.Id, whSys2.Id);
-        Assert.NotNull(link);
-        Assert.Equal(whSys1.Id, link.IdWHSystemFrom);
-        Assert.Equal(whSys2.Id, link.IdWHSystemTo);
-        Assert.False(link.IsEndOfLifeConnection);
-        Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
-        Assert.Equal(SystemLinkSize.Large, link.Size);
-
-        //Delete link
-        var linkDel = await repo.RemoveWHSystemLink(result2.Id, link.Id);
-        Assert.NotNull(linkDel);
-        Assert.Equal(link.Id, linkDel.IdWHSystemFrom);
-
-        //Delete byname
-        var whSys2Del = await repo.RemoveWHSystemByName(result2.Id, FOOBAR_SHORT_UPDATED);
-        Assert.NotNull(whSys2Del);
-        Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2Del.Name);
-        Assert.Equal(1, whSys2Del.SecurityStatus);
-
-        //Delete byname
-        var whSys1Del = await repo.RemoveWHSystem(result2.Id, whSys1.Id);
-        Assert.NotNull(whSys1Del);
-        Assert.Equal(FOOBAR, whSys1Del.Name);
-        Assert.Equal(1, whSys1Del.SecurityStatus);
-
-
         //Delete WHMAP
         var result5 = await repo.DeleteById(result2.Id);
-        Assert.NotNull(result5);
-        Assert.Equal(FOOBAR_UPDATED, result5?.Name);
+        Assert.True(result5);
     }
 
     [Fact, TestPriority(98)]
     public async Task CRUD_WHSystem()
     {
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(_context);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+
         //Create IWHMapRepository
         IWHSystemRepository repo = new WHSystemRepository(_context);
+
 
         //GETALL system => return empty arry
         var results = (await repo.GetAll())?.ToArray();
@@ -143,13 +110,14 @@ public class DbIntegrationTest
         Assert.Empty(results);
 
         //ADD WHSystem
-        var result = await repo.Create(new WHSystem(FOOBAR_SYSTEM_ID,FOOBAR, 1));
+        var result = await repo.Create(new WHSystem(map.Id, FOOBAR_SYSTEM_ID, FOOBAR, 1));
         Assert.NotNull(result);
         Assert.Equal(FOOBAR, result?.Name);
         Assert.Equal(1, result?.SecurityStatus);
+        Assert.False(result?.Locked);
 
         //ADD Same WHsystem => return error null
-        var duplicateResult = await repo.Create(new WHSystem(FOOBAR_SYSTEM_ID,FOOBAR, 1));
+        var duplicateResult = await repo.Create(new WHSystem(map.Id,FOOBAR_SYSTEM_ID, FOOBAR, 1));
         Assert.Null(duplicateResult);
 
         //GetALL
@@ -158,6 +126,7 @@ public class DbIntegrationTest
         Assert.Single(results);
         Assert.Equal(FOOBAR, results?[0].Name);
         Assert.Equal(1, results?[0].SecurityStatus);
+        Assert.False(results?[0]?.Locked);
 
         //GetById
         Assert.NotNull(result);
@@ -184,60 +153,116 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR_UPDATED, result3?.Name);
         Assert.Equal(0.5F, result3?.SecurityStatus);
 
+        //Delete WHSytem
+        var whDeleted = await repo.DeleteById(result.Id);
+        Assert.True(whDeleted);
 
-
-        //remove ALL WHSystemSignature
-       var badSystemIdResult = await repo.RemoveAllWHSignature(123);//test bad system id return false
-       Assert.False(badSystemIdResult);
-
-        Assert.NotNull(result2);
-       var goodSystemIdResult=await repo.RemoveAllWHSignature(result2.Id);//test good system but empty sig
-       Assert.True(goodSystemIdResult);
-
-
-        //Add WHSystemSignature
-        var resultWHSignature = await repo.AddWHSignature(result2.Id, new WHSignature(FOOBAR));
-        Assert.NotNull(resultWHSignature);
-        Assert.Equal(FOOBAR, resultWHSignature?.Name);
-        Assert.Equal(WHSignatureGroup.Unknow, resultWHSignature?.Group);
-
-        //Remove WHSystemSignature
-        Assert.NotNull(resultWHSignature);
-        var resultWHSignatureDel = await repo.RemoveWHSignature(result2.Id, resultWHSignature.Id);
-        Assert.NotNull(resultWHSignatureDel);
-        Assert.Equal(FOOBAR, resultWHSignatureDel?.Name);
-        Assert.Equal(WHSignatureGroup.Unknow, resultWHSignatureDel?.Group);
-
-        //Add multi sig
-        IList<WHSignature> sigs = new List<WHSignature>();
-        sigs.Add(new WHSignature(FOOBAR));
-        sigs.Add(new WHSignature(FOOBAR_SHORT_UPDATED));
-
-
-        var resultWHSigs = await repo.AddWHSignatures(result2.Id, sigs);
-        Assert.NotNull(resultWHSigs);
-        Assert.Equal(2, resultWHSigs.Count());
-
-        //delete all
-        goodSystemIdResult = await repo.RemoveAllWHSignature(result2.Id);//test good system but empty sig
-        Assert.True(goodSystemIdResult);
-
-        //Delete WHSystem
-        var result5 = await repo.DeleteById(result2.Id);
-        Assert.NotNull(result5);
-        Assert.Equal(FOOBAR_UPDATED, result5?.Name);
-        Assert.Equal(0.5F, result2?.SecurityStatus);
+        //Delete WHMAP
+        var mapDeleted= await repoMap.DeleteById(map.Id);
+        Assert.True(mapDeleted);
     }
 
     [Fact, TestPriority(97)]
+    public async Task CRUD_WHLink()
+    {
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(_context);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+
+
+        //Create IWHMapRepository
+        IWHSystemRepository repoWH = new WHSystemRepository(_context);
+        Assert.NotNull(map);
+        var whSys1 = await repoWH.Create(new WHSystem(map.Id,FOOBAR_SYSTEM_ID, FOOBAR, 1));
+        Assert.NotNull(whSys1);
+        Assert.Equal(FOOBAR_SYSTEM_ID, whSys1.SoloarSystemId);
+        Assert.Equal(FOOBAR, whSys1.Name);
+        Assert.Equal(1, whSys1.SecurityStatus);
+        Assert.False(whSys1.Locked);
+
+        var whSys2 = await repoWH.Create(new WHSystem(map.Id, FOOBAR_SYSTEM_ID2, FOOBAR_SHORT_UPDATED, 'A', 1));
+        Assert.NotNull(whSys2);
+        Assert.Equal(FOOBAR_SYSTEM_ID2, whSys2.SoloarSystemId);
+        Assert.Equal(FOOBAR_SHORT_UPDATED, whSys2.Name);
+        Assert.Equal(1, whSys2.SecurityStatus);
+        Assert.Equal(Convert.ToByte('A'), whSys2.NameExtension);
+        Assert.False(whSys2.Locked);
+
+
+        //Create IWHMapRepository
+        IWHSystemLinkRepository repo = new WHSystemLinkRepository(_context);
+
+        //add whsystem link
+        var link = await repo.Create(new WHSystemLink(map.Id,whSys1.Id, whSys2.Id));
+        Assert.NotNull(link);
+        Assert.Equal(whSys1.Id, link.IdWHSystemFrom);
+        Assert.Equal(whSys2.Id, link.IdWHSystemTo);
+        Assert.False(link.IsEndOfLifeConnection);
+        Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
+        Assert.Equal(SystemLinkSize.Large, link.Size);
+
+        //update link
+        link.IsEndOfLifeConnection = true;
+        link.MassStatus = SystemLinkMassStatus.Verge;
+        link = await repo.Update(link.Id, link);
+        Assert.NotNull(link);
+        Assert.Equal(whSys1.Id, link.IdWHSystemFrom);
+        Assert.Equal(whSys2.Id, link.IdWHSystemTo);
+        Assert.True(link.IsEndOfLifeConnection);
+        Assert.Equal(SystemLinkMassStatus.Verge, link.MassStatus);
+        Assert.Equal(SystemLinkSize.Large, link.Size);
+
+        //Delete link
+        var linkDel = await repo.DeleteById(link.Id);
+        Assert.NotNull(linkDel);
+
+        //Delete WHMAP
+        var mapDeleted = await repoMap.DeleteById(map.Id);
+        Assert.NotNull(mapDeleted);
+
+        var links = repo.GetAll();
+        Assert.NotNull(links);
+
+    }
+
+
+
+    [Fact, TestPriority(96)]
     public async Task CRUD_WHSignature()
     {
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(_context);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+
+
+        //Create IWHMapRepository
+        IWHSystemRepository repoWH = new WHSystemRepository(_context);
+        Assert.NotNull(map);
+        var whSys1 = await repoWH.Create(new WHSystem(map.Id, FOOBAR_SYSTEM_ID, FOOBAR, 1));
+        Assert.NotNull(whSys1);
+        Assert.Equal(FOOBAR_SYSTEM_ID, whSys1.SoloarSystemId);
+        Assert.Equal(FOOBAR, whSys1.Name);
+        Assert.Equal(1, whSys1.SecurityStatus);
+        Assert.False(whSys1.Locked);
+
+
         //Create IWHMapRepository
         IWHSignatureRepository repo = new WHSignatureRepository(_context);
 
         //ADD WHSignature
-        var result = await repo.Create(new WHSignature(FOOBAR));
+        var result = await repo.Create(new WHSignature(whSys1.Id,FOOBAR));
         Assert.NotNull(result);
+        Assert.Equal(whSys1.Id, result.WHId);
         Assert.Equal(FOOBAR, result?.Name);
         Assert.Equal(WHSignatureGroup.Unknow, result?.Group);
 
@@ -269,21 +294,43 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR_SHORT_UPDATED, result2.Name);
         Assert.Equal(WHSignatureGroup.Wormhole, result2.Group);
 
-
         //updates ienumerable
         Assert.NotNull(results);
         results[0].UpdatedBy = FOOBAR;
         var resultsUpdates = await repo.Update(results);
         Assert.NotNull(resultsUpdates);
         Assert.Contains(resultsUpdates, x => x.UpdatedBy == FOOBAR);
- 
-    
+
+        //remove ALL WHSystemSignature
+        var badDelete = await repo.DeleteByWHId(123);//test bad system id return false
+        Assert.False(badDelete);
+
+        Assert.NotNull(result2);
+        var deleteStatus=await repo.DeleteByWHId(whSys1.Id);//test good system but empty sig
+        Assert.True(deleteStatus);
+
+       //Add multi sig
+       IList<WHSignature> sigs = new List<WHSignature>();
+       sigs.Add(new WHSignature(whSys1.Id, FOOBAR));
+       sigs.Add(new WHSignature(whSys1.Id,FOOBAR_SHORT_UPDATED));
+
+
+       var resultWHSigs = await repo.Create(sigs);
+       Assert.NotNull(resultWHSigs);
+       Assert.Equal(2, resultWHSigs.Count());
+
+        //delete all
+        deleteStatus = await repo.DeleteByWHId(whSys1.Id);//test good system but empty sig
+        Assert.True(deleteStatus);
+       
 
         //Delete WHMAP, name characters max 7
         var result5 = await repo.DeleteById(result2.Id);
-        Assert.NotNull(result5);
-        Assert.Equal(FOOBAR_SHORT_UPDATED, result5.Name);
-        Assert.Equal(WHSignatureGroup.Wormhole, result5.Group);
-     
+        Assert.True(result5);
+
+        //Delete WHMAP
+        var mapDeleted = await repoMap.DeleteById(map.Id);
+        Assert.True(mapDeleted);
+
     }
 }

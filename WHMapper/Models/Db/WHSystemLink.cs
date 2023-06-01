@@ -12,6 +12,9 @@ namespace WHMapper.Models.Db
         public int Id { get; set; }
 
         [Required]
+        public int WHMapId { get; set; }
+
+        [Required]
         public int IdWHSystemFrom { get; set; }
 
         [Required]
@@ -27,8 +30,14 @@ namespace WHMapper.Models.Db
         public SystemLinkMassStatus MassStatus { get; set; } = SystemLinkMassStatus.Normal;
 
 
-        public WHSystemLink(int idWHSystemFrom, int idWHSystemTo)
+        public WHSystemLink(int idWHSystemFrom, int idWHSystemTo) :
+            this(0,idWHSystemFrom,idWHSystemTo)
         {
+        }
+
+        public WHSystemLink(int whMapId,int idWHSystemFrom, int idWHSystemTo)
+        {
+            WHMapId = whMapId;
             IdWHSystemFrom = idWHSystemFrom;
             IdWHSystemTo = idWHSystemTo;
         }
