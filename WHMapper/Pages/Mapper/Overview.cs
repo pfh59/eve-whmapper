@@ -879,7 +879,7 @@ namespace WHMapper.Pages.Mapper
 
                 }
 
-                if (_selectedWHMap.WHSystemLinks.Count > 0)
+                if (_selectedWHMap!=null && _selectedWHMap.WHSystemLinks!=null && _selectedWHMap.WHSystemLinks.Count > 0)
                 {
                     foreach (WHSystemLink dbWHSysLink in _selectedWHMap.WHSystemLinks)
                     {
