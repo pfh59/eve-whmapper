@@ -206,6 +206,12 @@ public class DbIntegrationTest
         Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
         Assert.Equal(SystemLinkSize.Large, link.Size);
 
+
+        var linkGet = await repo.GetById(link.Id);
+        Assert.NotNull(linkGet);
+        Assert.Equal(link.Id, linkGet.Id);
+
+
         //update link
         link.IsEndOfLifeConnection = true;
         link.MassStatus = SystemLinkMassStatus.Verge;
@@ -219,11 +225,11 @@ public class DbIntegrationTest
 
         //Delete link
         var linkDel = await repo.DeleteById(link.Id);
-        Assert.NotNull(linkDel);
+        Assert.True(linkDel);
 
         //Delete WHMAP
         var mapDeleted = await repoMap.DeleteById(map.Id);
-        Assert.NotNull(mapDeleted);
+        Assert.True(mapDeleted);
 
         var links = repo.GetAll();
         Assert.NotNull(links);
@@ -279,6 +285,12 @@ public class DbIntegrationTest
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR, result2?.Name);
         Assert.Equal(WHSignatureGroup.Unknow, result2?.Group);
+
+        //GetByWHId
+        var result3 = await repo.GetByWHId(whSys1.Id);
+        Assert.NotNull(result3);
+        Assert.NotEmpty(result3);
+
 
         //GetByName
         result2 = await repo.GetByName(FOOBAR);
