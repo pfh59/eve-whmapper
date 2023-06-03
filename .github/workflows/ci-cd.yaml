@@ -9,7 +9,7 @@ on:
       - "main"
 
 env:
-  DOTNET_VERSION: '6.0.x'
+  DOTNET_VERSION: '7.0.x'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -22,7 +22,7 @@ jobs:
         with:
           java-version: 1.11
 
-      - name: Setup .NET6 🦴
+      - name: Setup .NET7 🦴
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: ${{env.DOTNET_VERSION}}

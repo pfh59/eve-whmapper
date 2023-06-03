@@ -1,14 +1,16 @@
 ﻿using System;
 using Microsoft.AspNetCore.Components;
+using WHMapper.Hubs;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Services.Anoik;
+using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveMapper
 {
 	public class EveMapperHelper : IEveMapperHelper
     {
-        private IAnoikServices _anoikServices;
+        private IAnoikServices _anoikServices = null!;
 
         public EveMapperHelper(IAnoikServices anoikServices)
 		{
@@ -18,7 +20,7 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh)
         {
-            EveSystemNodeModel res = null;
+            EveSystemNodeModel res = null!;
             if (wh == null)
                 throw new ArgumentNullException();
 
@@ -32,7 +34,7 @@ namespace WHMapper.Services.EveMapper
                 if (!String.IsNullOrWhiteSpace(whEffect) && !string.IsNullOrEmpty(whClass))
                     whEffectsInfos = _anoikServices.GetSystemEffectsInfos(whEffect, whClass);
                 
-                res = new EveSystemNodeModel(wh, whClass, whEffect, whEffectsInfos, whStatics);
+                res = new EveSystemNodeModel(wh, whClass, whEffect, whEffectsInfos, whStatics);            
             }
             else
             {
@@ -43,7 +45,5 @@ namespace WHMapper.Services.EveMapper
             return res;
         }
     }
-
-
 }
 

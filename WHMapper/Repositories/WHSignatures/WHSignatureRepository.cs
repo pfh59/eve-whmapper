@@ -35,21 +35,17 @@ namespace WHMapper.Repositories.WHSignatures
             }
         }
 
-        protected override async Task<WHSignature?> ADeleteById(int id)
+        protected override async Task<bool> ADeleteById(int id)
         {
-            var item = await AGetById(id);
-
-            if (item == null)
-                return null;
-
-
             await semSlim.WaitAsync();
             try
             {
-                _dbContext.DbWHSignatures.Remove(item);
-                await _dbContext.SaveChangesAsync();
-
-                return item;
+                await _dbContext.DbWHSignatures.Where(x => x.Id == id).ExecuteDeleteAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
             finally
             {
@@ -135,6 +131,71 @@ namespace WHMapper.Repositories.WHSignatures
                 return whSignatures;
             }
             catch(Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
+        }
+
+        public async Task<IEnumerable<WHSignature>?> GetByWHId(int whid)
+        {
+            await semSlim.WaitAsync();
+            try
+            {
+                if (_dbContext.DbWHSignatures.Count() == 0)
+                    return await _dbContext.DbWHSignatures.ToListAsync();
+                else
+                    return await _dbContext.DbWHSignatures.Where(x => x.WHId == whid).OrderBy(x => x.Id)
+                            .ToListAsync();
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
+        }
+
+        public async Task<bool> DeleteByWHId(int whid)
+        {
+            await semSlim.WaitAsync();
+            try
+            {
+                int rowDeleted = await _dbContext.DbWHSignatures.Where(x => x.WHId == whid).ExecuteDeleteAsync();
+                if (rowDeleted > 0)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            finally
+            {
+                semSlim.Release();
+            }
+        }
+
+        public async Task<IEnumerable<WHSignature?>> Create(IEnumerable<WHSignature> whSignatures)
+        {
+            await semSlim.WaitAsync();
+            try
+            {
+                var sigArray = whSignatures.ToArray();
+                await _dbContext.DbWHSignatures.AddRangeAsync(sigArray);
+                await _dbContext.SaveChangesAsync();
+
+
+                return whSignatures;
+            }
+            catch (Exception ex)
             {
                 return null;
             }

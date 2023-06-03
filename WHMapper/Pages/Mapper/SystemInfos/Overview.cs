@@ -13,18 +13,18 @@ namespace WHMapper.Pages.Mapper.SystemInfos
     {
         private bool _showWHInfos=false;
 
-        private EveSystemNodeModel? _currentSystemNode;
+        private EveSystemNodeModel _currentSystemNode = null!;
 
-        private string _secColor;
-        private string _systemColor;
-        private string _whEffectColor;
+        private string _secColor = string.Empty;
+        private string _systemColor= string.Empty;
+        private string _whEffectColor = string.Empty;
 
 
         [Inject]
-        public IWHColorHelper? WHColorHelper { get; set; }
+        public IWHColorHelper WHColorHelper { get; set; } = null!;
 
         [Parameter]
-        public EveSystemNodeModel? CurrentSystemNode
+        public EveSystemNodeModel CurrentSystemNode
         {
             get
             {
@@ -37,10 +37,10 @@ namespace WHMapper.Pages.Mapper.SystemInfos
                     _showWHInfos = false;
                 else
                 {
-                    _showWHInfos = ((bool)(_currentSystemNode?.Class?.Contains('C')) ? true : false);
-                    _secColor = WHColorHelper?.GetSecurityStatusColor(_currentSystemNode.SecurityStatus);
-                    _systemColor = WHColorHelper?.GetSystemTypeColor(_currentSystemNode.Class);
-                    _whEffectColor = WHColorHelper?.GetEffectColor(_currentSystemNode.Effect);
+                    _showWHInfos = ((bool)(_currentSystemNode.Class.Contains('C')) ? true : false);
+                    _secColor = WHColorHelper.GetSecurityStatusColor(_currentSystemNode.SecurityStatus);
+                    _systemColor = WHColorHelper.GetSystemTypeColor(_currentSystemNode.Class);
+                    _whEffectColor = WHColorHelper.GetEffectColor(_currentSystemNode.Effect);
 
                 }
             }

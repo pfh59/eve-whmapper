@@ -3,6 +3,7 @@ using System.Security.Cryptography.Xml;
 using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using YamlDotNet.Core;
 using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHSystems
@@ -34,31 +35,22 @@ namespace WHMapper.Repositories.WHSystems
             }
         }
 
-        protected override async Task<WHSystem?> ADeleteById(int id)
+        protected override async Task<bool> ADeleteById(int id)
         {
-            var item = await AGetById(id);
-
-            if (item == null)
-                return null;
-
             await semSlim.WaitAsync();
             try
             {
-
-                _dbContext.DbWHSystems.Remove(item);
-                await _dbContext.SaveChangesAsync();
-
-                return item;
+                await _dbContext.DbWHSystems.Where(x => x.Id == id).ExecuteDeleteAsync();
+                return true;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-
-                return null;
+                return false;
             }
             finally
             {
                 semSlim.Release();
-            } 
+            }
         }
 
         protected override async Task<IEnumerable<WHSystem>?> AGetAll()
@@ -147,100 +139,6 @@ namespace WHMapper.Repositories.WHSystems
                 semSlim.Release();
             }
         }
-
-        public async Task<WHSignature?> AddWHSignature(int idWHSystem, WHSignature whSignature)
-        {
-            var system = await this.GetById(idWHSystem);
-            if (system == null)
-                return null;
-
-
-            _dbContext?.DbWHSignatures?.Add(whSignature);
-            system.WHSignatures.Add(whSignature);
-
-            await this.Update(idWHSystem, system);
-
-            return whSignature;
-        }
-
-        public async Task<IEnumerable<WHSignature?>> AddWHSignatures(int idWHSystem, IEnumerable<WHSignature> whSignatures)
-        {
-            var system = await this.GetById(idWHSystem);
-            if (system == null)
-                return null;
-
-            var sigArray = whSignatures.ToArray();
-            await _dbContext.DbWHSignatures.AddRangeAsync(sigArray);
-
-            foreach (var sig in sigArray)
-                system.WHSignatures.Add(sig);
-
-
-            if (await this.Update(idWHSystem, system) != null)
-                return whSignatures;
-            else
-            {
-                foreach (var sig in sigArray)
-                    system.WHSignatures.Remove(sig);
-
-                return null;
-            }
-        }
-
-
-        public async Task<WHSignature?> RemoveWHSignature(int idWHSystem, int idWHSignature)
-        {
-            var system = await this.GetById(idWHSystem);
-            if (system == null)
-                return null;
-
-            await semSlim.WaitAsync();
-            try
-            {
-                var sig = system.WHSignatures.Where(x => x.Id == idWHSignature).FirstOrDefault();
-                if (sig == null)
-                    return null;
-
-                _dbContext.DbWHSignatures?.Remove(sig);
-                await _dbContext.SaveChangesAsync();
-                return sig;
-            }
-            catch (Exception ex)
-            {
-
-                return null;
-            }
-            finally
-            {
-                semSlim.Release();
-            }
-
-        }
-
-        public async Task<bool> RemoveAllWHSignature(int idWHSystem)
-        {
-            var system = await this.GetById(idWHSystem);
-            if (system == null)
-                return false;
-
-            await semSlim.WaitAsync();
-            try
-            {
-                _dbContext.DbWHSignatures.RemoveRange(system.WHSignatures);
-                await _dbContext.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-
-                return false;
-            }
-            finally
-            {
-                semSlim.Release();
-            }
-        }
-
     }
 }
 

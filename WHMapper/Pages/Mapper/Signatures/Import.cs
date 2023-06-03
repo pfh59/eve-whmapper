@@ -33,16 +33,16 @@ namespace WHMapper.Pages.Mapper.Signatures
         private ISnackbar Snackbar { get; set; } = null!;
 
         [Inject]
-        private IWHSignatureHelper? SignatureHelper { get; set; } = null!;
+        private IWHSignatureHelper SignatureHelper { get; set; } = null!;
 
         [CascadingParameter]
-        MudDialogInstance MudDialog { get; set; }
+        MudDialogInstance MudDialog { get; set; } = null!;
 
         [Parameter]
         public int CurrentSystemNodeId { get; set; }
 
 
-        private MudForm _form;
+        private MudForm _form = null!;
         private bool _success = false;
         private FluentValueValidator<string> _ccValidator = new FluentValueValidator<string>(x => x
             .NotEmpty()
@@ -70,26 +70,26 @@ namespace WHMapper.Pages.Mapper.Signatures
                 try
                 {
                     String scanUser = await UserService.GetUserName();
-                    if (await SignatureHelper?.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult))
+                    if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult))
                     {
-                        Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
+                        Snackbar.Add("Signatures successfully added/updated", Severity.Success);
                         MudDialog.Close(DialogResult.Ok(true));
                     }
                     else
                     {
-                        Snackbar?.Add("No signatures added/updated", Severity.Error);
+                        Snackbar.Add("No signatures added/updated", Severity.Error);
                         MudDialog.Close(DialogResult.Ok(false));
                     }
                 }
                 catch (Exception ex)
                 {
-                    Snackbar?.Add(ex.Message, Severity.Error);
+                    Snackbar.Add(ex.Message, Severity.Error);
                     MudDialog.Close(DialogResult.Ok(false));
                 }
             }
             else
             {
-                Snackbar?.Add("Bad signatures format", Severity.Error);
+                Snackbar.Add("Bad signatures format", Severity.Error);
                 MudDialog.Close(DialogResult.Ok(false));
             }
         }

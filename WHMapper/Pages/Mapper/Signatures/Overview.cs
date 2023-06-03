@@ -25,27 +25,24 @@ namespace WHMapper.Pages.Mapper.Signatures
         private IWHSignatureHelper SignatureHelper { get; set; } = null!;
 
         [Inject]
-        private IEveUserInfosServices? UserInfos { get; set; } = null!;
+        private IEveUserInfosServices UserInfos { get; set; } = null!;
 
         [Inject]
-        private IWHSystemRepository? DbWHSystems { get; set; } = null!;
+        private IWHSignatureRepository DbWHSignatures { get; set; } = null!;
 
         [Inject]
-        private IWHSignatureRepository? DbWHSignatures { get; set; } = null!;
+        private IDialogService DialogService { get; set; } = null!;
 
         [Inject]
-        private IDialogService? DialogService { get; set; } = null!;
+        private ISnackbar Snackbar { get; set; } = null!;
 
         [Inject]
-        private ISnackbar? Snackbar { get; set; } = null!;
+        private IAnoikServices AnoikServices { get; set; } = null!;
 
         [Inject]
-        private IAnoikServices? AnoikServices { get; set; } = null!;
+        private IWHColorHelper WHColorHelper { get; set; } = null!;
 
-        [Inject]
-        private IWHColorHelper? WHColorHelper { get; set; } = null;
-
-        private IEnumerable<WHSignature>? Signatures { get; set; } = null!;
+        private IEnumerable<WHSignature> Signatures { get; set; } = null!;
 
 
         [Parameter]
@@ -53,11 +50,11 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Parameter]
         public int? CurrentSystemNodeId { private get; set; } = null!;
         [Parameter]
-        public HubConnection? NotificationHub { private get; set; } = null!;
+        public HubConnection NotificationHub { private get; set; } = null!;
 
 
-        private WHSignature _selectedSignature = null;
-        private WHSignature _signatureBeforeEdit;
+        private WHSignature _selectedSignature = null!;
+        private WHSignature _signatureBeforeEdit = null!;
 
         private bool _isEditingSignature = false;
 
@@ -164,10 +161,10 @@ namespace WHMapper.Pages.Mapper.Signatures
             var parameters = new DialogParameters();
             parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId);
 
-            var dialog = DialogService?.Show<Import>("Import Scan Dialog", parameters, disableBackdropClick);
+            var dialog = DialogService.Show<Import>("Import Scan Dialog", parameters, disableBackdropClick);
             DialogResult result = await dialog.Result;
 
-            if (!result.Cancelled)
+            if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
             {
                 await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
@@ -177,10 +174,13 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         public async Task Restore()
         {
-            if (CurrentSystemNodeId >0)
+            if (DbWHSignatures!=null && CurrentSystemNodeId != null && CurrentSystemNodeId > 0)
             {
-                var currentSystem = await DbWHSystems?.GetById(CurrentSystemNodeId.Value);
-                Signatures = currentSystem?.WHSignatures.ToList();
+                var sigs = await DbWHSignatures.GetByWHId(CurrentSystemNodeId.Value);
+                if(sigs!=null)
+                    Signatures = sigs.ToList();
+                else
+                    Signatures = new List<WHSignature>();
             }
             else
             {
@@ -196,10 +196,10 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-            var dialog = DialogService?.Show<Delete>("Delete", parameters, options);
+            var dialog = DialogService.Show<Delete>("Delete", parameters, options);
             DialogResult result = await dialog.Result;
 
-            if (!result.Cancelled)
+            if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
             {
                 await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
@@ -214,10 +214,10 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-            var dialog = DialogService?.Show<Delete>("Delete", parameters, options);
+            var dialog = DialogService.Show<Delete>("Delete", parameters, options);
             DialogResult result = await dialog.Result;
 
-            if (!result.Cancelled)
+            if (!result.Canceled && CurrentMapId != null && CurrentSystemNodeId != null)
             {
                 await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
@@ -229,6 +229,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             _isEditingSignature = true;
 
             _signatureBeforeEdit = new WHSignature(
+                ((WHSignature)element).WHId,
                 ((WHSignature)element).Name,
                 ((WHSignature)element).Group,
                 ((WHSignature)element).Type
@@ -252,7 +253,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         private async void SignatiureHasBeenCommitted(object element)
         {
             ((WHSignature)element).Updated = DateTime.UtcNow;
-            ((WHSignature)element).UpdatedBy = await UserInfos?.GetUserName();
+            ((WHSignature)element).UpdatedBy = await UserInfos.GetUserName();
 
             var res = await DbWHSignatures.Update(((WHSignature)element).Id, ((WHSignature)element));
 

@@ -9,6 +9,7 @@ using MudBlazor;
 using Microsoft.AspNetCore.Components;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystems;
+using System.Linq;
 
 namespace WHMapper.Services.WHSignatures
 {
@@ -16,13 +17,10 @@ namespace WHMapper.Services.WHSignatures
     {
         private const string SCAN_VALIDATION_REGEX = "[a-zA-Z]{3}-[0-9]{3}\\s([a-zA-Z\\s]+)[0-9]*.[0-9]+%\\s[0-9]*.[0-9]+\\sAU";
 
-
-        private IWHSystemRepository _dbWHSystem;
         private IWHSignatureRepository _dbWHSignatures;
         
-        public WHSignatureHelper(IWHSystemRepository systemRepo, IWHSignatureRepository sigRepo)
+        public WHSignatureHelper(IWHSignatureRepository sigRepo)
         {
-            _dbWHSystem = systemRepo;
             _dbWHSignatures = sigRepo;
         }
 
@@ -44,13 +42,13 @@ namespace WHMapper.Services.WHSignatures
 
         }
 
-        public async Task<IEnumerable<WHMapper.Models.Db.WHSignature>> ParseScanResult(string scanUser,string? scanResult)
+        public async Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser,int currentSystemScannedId,string? scanResult)
         {
-            string sigName = null;
+            string sigName = string.Empty;
             WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
-            string sigType = null;
-            string[] sigvalues = null;
-            string[] splittedSig = null;
+            string sigType = string.Empty;
+            string[]? sigvalues = null;
+            string[]? splittedSig = null;
             
 
 
@@ -72,7 +70,7 @@ namespace WHMapper.Services.WHSignatures
                 foreach (string sigValue in sigvalues)
                 {
                     sigGroup = WHSignatureGroup.Unknow;
-                    sigType = null;
+                    sigType = string.Empty;
 
                     try
                     { 
@@ -97,7 +95,7 @@ namespace WHMapper.Services.WHSignatures
                         sigType = splittedSig[3];
                     }
          
-                    sigResult.Add(new WHMapper.Models.Db.WHSignature(sigName, sigGroup, sigType, scanUser));
+                    sigResult.Add(new WHMapper.Models.Db.WHSignature(currentSystemScannedId, sigName, sigGroup, sigType, scanUser));
                 }
             }
 
@@ -115,32 +113,41 @@ namespace WHMapper.Services.WHSignatures
                 throw new Exception("Bad signatures format");
 
 
-            var sigs = await ParseScanResult(scanUser, scanResult);
+            var sigs = await ParseScanResult(scanUser, currentSystemScannedId,scanResult);
 
             if (sigs != null && sigs.Count() > 0)
             {
 
-                var currentSystem = await _dbWHSystem.GetById(currentSystemScannedId);
-                if (currentSystem != null)
+                if (currentSystemScannedId >0)
                 {
-                    var sigsToUpdate = currentSystem.WHSignatures.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
+                    var currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
+                    if (currentSystemSigs == null)
+                        return false;//to do lod
 
+                    var sigsToUpdate = currentSystemSigs.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
                     if (sigsToUpdate != null && sigsToUpdate.Count() > 0)
                     {
                         foreach (var sig in sigsToUpdate)
                         {
                             var sigParse = sigs.Where(x => x.Name == sig.Name).FirstOrDefault();
-                            if (sigParse.Group != WHSignatureGroup.Unknow)
+                            if (sigParse != null)
                             {
+                                if (sigParse.Group != WHSignatureGroup.Unknow)
+                                {
 
-                                sig.Group = sigParse.Group;
-                                if (String.IsNullOrEmpty(sig.Type))
-                                    sig.Type = sigParse.Type;
+                                    sig.Group = sigParse.Group;
+                                    if (String.IsNullOrEmpty(sig.Type))
+                                        sig.Type = sigParse.Type;
 
+                                }
+
+                                sig.Updated = sigParse.Updated;
+                                sig.UpdatedBy = sigParse.UpdatedBy;
                             }
-
-                            sig.Updated = sigParse.Updated;
-                            sig.UpdatedBy = sigParse.UpdatedBy;
+                            else
+                            {
+                                //todo add log
+                            }
                         }
 
                         var resUpdate = await _dbWHSignatures.Update(sigsToUpdate);
@@ -152,10 +159,12 @@ namespace WHMapper.Services.WHSignatures
                     }
 
 
-                    var sigsToAdd = sigs.ExceptBy(currentSystem.WHSignatures.Select(x => x.Name), y => y.Name);
+                    var sigsToAdd = sigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
                     if (sigsToAdd != null && sigsToAdd.Count() > 0)
                     {
-                        var resAdd = await _dbWHSystem.AddWHSignatures(currentSystemScannedId, sigsToAdd);
+                        //var resAdd = await _dbWHSystem.AddWHSignatures(currentSystemScannedId, sigsToAdd);
+
+                        var resAdd = await _dbWHSignatures.Create(sigsToAdd);
                         if (resAdd != null && resAdd.Count() == sigsToAdd.Count())
                             sigAdded = true;
                         else

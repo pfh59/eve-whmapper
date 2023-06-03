@@ -13,6 +13,7 @@ using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.SDE;
 using WHMapper.Repositories.WHMaps;
+using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
@@ -35,7 +36,7 @@ namespace WHMapper.Pages.Mapper
         private IEveAPIServices EveServices { get; set; } = null!;
 
         [Inject]
-        private IWHMapRepository DbWHMaps { get; set; } = null!;
+        IWHSystemRepository DbWHSystems { get; set; } = null!;
 
         [Inject]
         private ISnackbar Snackbar { get; set; } = null!;
@@ -97,7 +98,9 @@ namespace WHMapper.Pages.Mapper
                     }
 
                     var solarSystem = await EveServices.UniverseServices.GetSystem(sdeSolarSystem.SolarSystemID);
-                    var newWHSystem = await DbWHMaps.AddWHSystem(CurrentWHMap.Id, new WHSystem(solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY));//change position
+                    // var newWHSystem = await DbWHMaps.AddWHSystem(CurrentWHMap.Id, new WHSystem(solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY));//change position
+                    var newWHSystem = await DbWHSystems.Create(new WHSystem(CurrentWHMap.Id,solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY)); //change position
+
 
                     if (newWHSystem == null)
                     {
@@ -129,7 +132,6 @@ namespace WHMapper.Pages.Mapper
                 MudDialog.Close(DialogResult.Cancel);
             }
         }
-
 
 
         private void Cancel()

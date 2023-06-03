@@ -12,14 +12,15 @@ using WHMapper.Data;
 namespace WHMapper.Migrations
 {
     [DbContext(typeof(WHMapperContext))]
-    [Migration("20230420203441_Init")]
-    partial class Init
+    [Migration("20230529200400_init")]
+    partial class init
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.8")
+                .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -78,7 +79,7 @@ namespace WHMapper.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("WHSystemId")
+                    b.Property<int>("WHId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -86,7 +87,7 @@ namespace WHMapper.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.HasIndex("WHSystemId");
+                    b.HasIndex("WHId");
 
                     b.ToTable("Signatures", (string)null);
                 });
@@ -98,6 +99,9 @@ namespace WHMapper.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Locked")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -119,12 +123,15 @@ namespace WHMapper.Migrations
                     b.Property<int>("SoloarSystemId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("WHMapId")
+                    b.Property<int>("WHMapId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("SoloarSystemId")
                         .IsUnique();
 
                     b.HasIndex("WHMapId");
@@ -155,7 +162,7 @@ namespace WHMapper.Migrations
                     b.Property<int>("Size")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("WHMapId")
+                    b.Property<int>("WHMapId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -172,8 +179,9 @@ namespace WHMapper.Migrations
                 {
                     b.HasOne("WHMapper.Models.Db.WHSystem", null)
                         .WithMany("WHSignatures")
-                        .HasForeignKey("WHSystemId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("WHId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHSystem", b =>
@@ -181,7 +189,8 @@ namespace WHMapper.Migrations
                     b.HasOne("WHMapper.Models.Db.WHMap", null)
                         .WithMany("WHSystems")
                         .HasForeignKey("WHMapId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHSystemLink", b =>
@@ -189,7 +198,8 @@ namespace WHMapper.Migrations
                     b.HasOne("WHMapper.Models.Db.WHMap", null)
                         .WithMany("WHSystemLinks")
                         .HasForeignKey("WHMapId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHMap", b =>
