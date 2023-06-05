@@ -740,18 +740,25 @@ namespace WHMapper.Pages.Mapper
                         {
                             foreach (var node in _selectedSystemNodes)
                             {
-                                if (!await DeletedNodeOnMap(_selectedWHMap, node))
-                                    Snackbar?.Add("Remove wormhole node db error", Severity.Error);
+                                if (!node.Locked)
+                                {
+                                    if (!await DeletedNodeOnMap(_selectedWHMap, node))
+                                        Snackbar?.Add("Remove wormhole node db error", Severity.Error);
+                                    else
+                                    {
+                                        if (_selectedSystemNode?.IdWH == node.IdWH)
+                                        {
+                                            _currentLocation = null!;
+                                            _currentSystemNode = null!;
+                                            _currentWHSystemId = -1;
+                                            _currentSolarSystem = null!;
+                                        }
+                                        _selectedSystemNode = null;
+                                    }
+                                }
                                 else
                                 {
-                                    if (_selectedSystemNode?.IdWH == node.IdWH)
-                                    {
-                                        _currentLocation = null!;
-                                        _currentSystemNode = null!;
-                                        _currentWHSystemId = -1;
-                                        _currentSolarSystem = null!;
-                                    }
-                                    _selectedSystemNode = null;
+                                    Snackbar?.Add(string.Format("{0} wormhole is locked.You can't remove it.",node.Name), Severity.Warning);
                                 }
 
                             }
@@ -1314,7 +1321,7 @@ namespace WHMapper.Pages.Mapper
                 {
                     String scanUser = await UserInfos.GetUserName();
                     String? message = eventArgs.PastedData;
-                    if (await SignatureHelper.ImportScanResult(scanUser, _selectedSystemNode.IdWH, message))
+                    if (await SignatureHelper.ImportScanResult(scanUser, _selectedSystemNode.IdWH, message,false))
                     {
                         Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
                         await NotifyWormholeSignaturesChanged(_selectedWHMap.Id, _selectedSystemNode.IdWH);

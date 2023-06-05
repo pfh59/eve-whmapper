@@ -50,7 +50,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             .Matches(_scanResultRegex));
 
         private string _scanResult = String.Empty;
-
+        private bool _lazyDeleted = false;
         
 
         protected override Task OnInitializedAsync()
@@ -70,7 +70,8 @@ namespace WHMapper.Pages.Mapper.Signatures
                 try
                 {
                     String scanUser = await UserService.GetUserName();
-                    if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult))
+
+                    if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult, _lazyDeleted))
                     {
                         Snackbar.Add("Signatures successfully added/updated", Severity.Success);
                         MudDialog.Close(DialogResult.Ok(true));
