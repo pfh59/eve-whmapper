@@ -70,6 +70,7 @@ namespace WHMapper.Pages.Mapper.Signatures
                 try
                 {
                     String scanUser = await UserService.GetUserName();
+
                     if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult, _lazyDeleted))
                     {
                         Snackbar.Add("Signatures successfully added/updated", Severity.Success);

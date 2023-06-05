@@ -140,9 +140,6 @@ namespace WHMapper.Services.WHSignatures
                         }
 
                     }
-
-
-
                     var sigsToUpdate = currentSystemSigs.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
                     if (sigsToUpdate != null && sigsToUpdate.Count() > 0)
                     {
