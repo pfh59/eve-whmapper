@@ -4,6 +4,7 @@
             <MudTextField T="string" Variant="Variant.Outlined" @bind-Value="@_scanResult"
                           Label="Scan Result" Lines="10" Required="true"
                           RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true" />
+            <MudCheckBox @bind-Checked="@_lazyDeleted" Label="Lazy Deleted" Color="Color.Secondary"></MudCheckBox>
         </MudForm>
 </DialogContent>
     <DialogActions>

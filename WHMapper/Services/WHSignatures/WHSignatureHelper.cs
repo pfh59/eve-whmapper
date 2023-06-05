@@ -103,7 +103,7 @@ namespace WHMapper.Services.WHSignatures
 
         }
 
-        public async Task<bool> ImportScanResult(string scanUser,int currentSystemScannedId,string? scanResult)
+        public async Task<bool> ImportScanResult(string scanUser,int currentSystemScannedId,string? scanResult,bool lazyDeleted)
         {
             
             bool sigUpdated = true;
@@ -123,6 +123,25 @@ namespace WHMapper.Services.WHSignatures
                     var currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
                     if (currentSystemSigs == null)
                         return false;//to do lod
+
+                    if (lazyDeleted)
+                    {
+                        var sigsToDeleted = currentSystemSigs.ExceptBy(sigs.Select(x => x.Name), y => y.Name);
+                        if (sigsToDeleted != null && sigsToDeleted.Count() > 0)
+                        {
+                            foreach (var sig in sigsToDeleted)
+                            {
+                                await _dbWHSignatures.DeleteById(sig.Id);
+                            }
+
+                            currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
+                            if (currentSystemSigs == null)
+                                return false;
+                        }
+
+                    }
+
+
 
                     var sigsToUpdate = currentSystemSigs.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
                     if (sigsToUpdate != null && sigsToUpdate.Count() > 0)
