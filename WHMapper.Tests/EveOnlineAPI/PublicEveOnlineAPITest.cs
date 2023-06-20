@@ -1,23 +1,16 @@
 ﻿using System;
-using System.Text;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using WHMapper.Data;
-using WHMapper.Models.DTO.EveAPI;
-using WHMapper.Services.EveAPI;
+using WHMapper.Services.EveAPI.Alliance;
+using WHMapper.Services.EveAPI.Character;
+using WHMapper.Services.EveAPI.Corporation;
 using WHMapper.Services.EveAPI.Dogma;
 using WHMapper.Services.EveAPI.Universe;
-using WHMapper.Tests.Attributes;
+using Xunit.Priority;
 
 namespace WHMapper.Tests.EveOnlineAPI
 {
 
-    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.EveOnlineAPI")]
+    [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class PublicEveOnlineAPITest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;
@@ -35,6 +28,17 @@ namespace WHMapper.Tests.EveOnlineAPI
         private const int GROUP_STAR_ID = 6;
         private const int GROUP_PLANET_ID = 7;
         private const int GROUP_WORMHOLE_ID = 988;
+
+
+        private const int ALLIANCE_GOONS_ID = 1354830081;
+        private const string ALLIANCE_GOONS_NAME = "Goonswarm Federation";
+
+        private const int CORPORATION_GOONS_ID = 1344654522;
+        private const string CORPORATION_GOONS_NAME = "DJ's Retirement Fund";
+
+
+        private const int CHARACTER_GOONS_ID = 2113720458;
+        private const string CHARACTER_GOONS_NAME = "Sexy Gym Teacher";
 
         //private const int DOGMA_ATTRIBUTE_SCANWHSTRENGTH_ID=1908
 
@@ -58,6 +62,9 @@ namespace WHMapper.Tests.EveOnlineAPI
         //public API
         private IUniverseServices _eveUniverseApi;
         private IDogmaServices _eveDogmaApi;
+        private IAllianceServices _eveAllianceApi;
+        private ICorporationServices _eveCorpoApi;
+        private ICharacterServices _eveCharacterApi;
 
         public PublicEveOnlineAPITest()
         {
@@ -69,8 +76,10 @@ namespace WHMapper.Tests.EveOnlineAPI
 
             _eveUniverseApi = new UniverseServices(httpclientfactory.CreateClient());
             _eveDogmaApi = new DogmaServices(httpclientfactory.CreateClient());
+            _eveAllianceApi = new AllianceServices(httpclientfactory.CreateClient());
+            _eveCorpoApi = new CorporationServices(httpclientfactory.CreateClient());
+            _eveCharacterApi = new CharacterServices(httpclientfactory.CreateClient());
         }
-
 
         [Fact]
         public async Task Get_Universe_System_And_Star_And_Stargate()
@@ -179,7 +188,40 @@ namespace WHMapper.Tests.EveOnlineAPI
             var effects = await _eveDogmaApi.GetEffects();
             Assert.NotNull(effects);
         }
-       
+
+        [Fact]
+        public async Task Get_Alliances_And_Alliance()
+        {
+            int[] alliances = await _eveAllianceApi.GetAlliances();
+            Assert.NotNull(alliances);
+            Assert.NotEmpty(alliances);
+            Assert.Contains<int>(ALLIANCE_GOONS_ID, alliances);
+
+            var goonsAlliance = await _eveAllianceApi.GetAlliance(ALLIANCE_GOONS_ID);
+            Assert.NotNull(goonsAlliance);
+            Assert.Equal(ALLIANCE_GOONS_NAME, goonsAlliance.Name);
+        }
+
+        [Fact]
+        public async Task Get_Corporation()
+        {
+            var corpo = await _eveCorpoApi.GetCorporation(CORPORATION_GOONS_ID);
+            Assert.NotNull(corpo);
+            Assert.Equal(ALLIANCE_GOONS_ID, corpo.AllianceId);
+            Assert.Equal(CORPORATION_GOONS_NAME, corpo.Name);
+        }
+
+
+        [Fact]
+        public async Task Get_Character()
+        {
+            var character = await _eveCharacterApi.GetCharacter(CHARACTER_GOONS_ID);
+            Assert.NotNull(character);
+            Assert.Equal(ALLIANCE_GOONS_ID, character.AllianceId);
+            Assert.Equal(CORPORATION_GOONS_ID, character.CorporationId);
+            Assert.Equal(CHARACTER_GOONS_NAME, character.Name);
+        }
+
     }
 
 }

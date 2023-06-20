@@ -87,7 +87,7 @@ namespace WHMapper.Repositories.WHSystemLinks
                 if (id != item.Id)
                     return null;
 
-                _dbContext?.DbWHSystemLinks?.Update(item);
+                _dbContext.DbWHSystemLinks.Update(item);
                 await _dbContext.SaveChangesAsync();
                 return item;
             }

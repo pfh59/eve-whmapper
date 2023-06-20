@@ -46,6 +46,8 @@ using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
 using WHMapper.Services.SDE;
 using WHMapper.Services.EveMapper;
+using WHMapper.Repositories.WHAdmins;
+using WHMapper.Repositories.WHAccesses;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -154,6 +156,8 @@ builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
 builder.Services.AddSingleton<ISDEServices, SDEServices>();
 
 #region DB Acess Repo
+builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
+builder.Services.AddScoped<IWHAccessRepository, WHAccessRepository>();
 builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
 builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
 builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
@@ -161,6 +165,7 @@ builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
 #endregion
 
 #region WH HELPER
+builder.Services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
 builder.Services.AddScoped<IEveMapperHelper, EveMapperHelper>();
 builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();
 builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();

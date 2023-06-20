@@ -22,6 +22,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
     <PackageReference Include="Npgsql" Version="7.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Xunit.Priority" Version="1.1.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +34,6 @@
     <None Remove="appsettings.Development.json" />
     <None Remove="Microsoft.Extensions.Configuration" />
     <None Remove="Orders\" />
-    <None Remove="Attributes\" />
     <None Remove="EveOnlineAPI\" />
     <None Remove="Anoik\" />
     <None Remove="WHColorHelper\" />
@@ -41,8 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Db\" />
-    <Folder Include="Orderers\" />
-    <Folder Include="Attributes\" />
     <Folder Include="EveOnlineAPI\" />
     <Folder Include="Anoik\" />
     <Folder Include="WHHelper\" />

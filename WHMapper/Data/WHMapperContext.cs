@@ -6,6 +6,8 @@ namespace WHMapper.Data
 {
 	public class WHMapperContext : DbContext
 	{
+        public DbSet<WHAccess> DbWHAccesses { get; set; } = null!;
+        public DbSet<WHAdmin> DbWHAdmins { get; set; } = null!;
         public DbSet<WHMap> DbWHMaps { get; set; } = null!;
 		public DbSet<WHSystem> DbWHSystems { get; set; } = null!;
         public DbSet<WHSystemLink> DbWHSystemLinks { get; set; } = null!;
@@ -19,6 +21,12 @@ namespace WHMapper.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<WHAccess>().ToTable("Accesses");
+            modelBuilder.Entity<WHAccess>().HasIndex(x => new { x.EveEntityId,x.EveEntity }).IsUnique(true);
+
+            modelBuilder.Entity<WHAdmin>().ToTable("Admins");
+            modelBuilder.Entity<WHAdmin>().HasIndex(x => new { x.EveCharacterId }).IsUnique(true);
+
             modelBuilder.Entity<WHMap>().ToTable("Maps");
             modelBuilder.Entity<WHMap>().HasIndex(x => new { x.Name }).IsUnique(true);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystems).WithOne().HasForeignKey(x => x.WHMapId).IsRequired();

@@ -4,10 +4,10 @@ using WHMapper.Models.DTO.EveAPI.Universe;
 
 namespace WHMapper.Models.DTO.EveAPI.Search
 {
-	public class SearchCharacterResults
+	public class SearchAllianceResults
 	{
-        [JsonPropertyName("character")]
-        public int[]? Characters { get; set; }
+        [JsonPropertyName("alliance")]
+        public int[]? Alliances { get; set; } = null!;
     }
 }
 

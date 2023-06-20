@@ -2,22 +2,22 @@
 using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using static MudBlazor.CategoryTypes;
+using WHMapper.Repositories.WHMaps;
 
-namespace WHMapper.Repositories.WHMaps
+namespace WHMapper.Repositories.WHAdmins
 {
-    public class WHMapRepository : ADefaultRepository<WHMapperContext, WHMap, int>, IWHMapRepository
+	public class WHAdminRepository : ADefaultRepository<WHMapperContext, WHAdmin, int>, IWHAdminRepository
     {
-        public WHMapRepository(WHMapperContext context) : base(context)
+        public WHAdminRepository(WHMapperContext context) : base(context)
         {
         }
 
-        protected override async Task<WHMap?> ACreate(WHMap item)
+        protected override async Task<WHAdmin?> ACreate(WHAdmin item)
         {
             await semSlim.WaitAsync();
             try
             {
-                await _dbContext.DbWHMaps.AddAsync(item);
+                await _dbContext.DbWHAdmins.AddAsync(item);
                 await _dbContext.SaveChangesAsync();
 
                 return item;
@@ -30,7 +30,7 @@ namespace WHMapper.Repositories.WHMaps
             {
                 semSlim.Release();
             }
-            
+
         }
 
         protected override async Task<bool> ADeleteById(int id)
@@ -38,7 +38,7 @@ namespace WHMapper.Repositories.WHMaps
             await semSlim.WaitAsync();
             try
             {
-                var deleteRow = await _dbContext.DbWHMaps.Where(x => x.Id == id).ExecuteDeleteAsync();
+                var deleteRow = await _dbContext.DbWHAdmins.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
                     return true;
                 else
@@ -54,19 +54,12 @@ namespace WHMapper.Repositories.WHMaps
             }
         }
 
-        protected override async Task<IEnumerable<WHMap>?> AGetAll()
+        protected override async Task<IEnumerable<WHAdmin>?> AGetAll()
         {
             await semSlim.WaitAsync();
             try
             {
-
-                if (_dbContext.DbWHMaps.Count() == 0)
-                    return await _dbContext.DbWHMaps.ToListAsync();
-                else
-                    return await _dbContext.DbWHMaps
-                            .Include(x => x.WHSystems)
-                            .Include(x => x.WHSystemLinks)
-                            .OrderBy(x => x.Name).ToListAsync();
+                return await _dbContext.DbWHAdmins.ToListAsync();
             }
             finally
             {
@@ -74,12 +67,12 @@ namespace WHMapper.Repositories.WHMaps
             }
         }
 
-        protected override async Task<WHMap?> AGetById(int id)
+        protected override async Task<WHAdmin?> AGetById(int id)
         {
             await semSlim.WaitAsync();
             try
             {
-                return await _dbContext.DbWHMaps.FindAsync(id);
+                return await _dbContext.DbWHAdmins.FindAsync(id);
             }
             finally
             {
@@ -88,7 +81,7 @@ namespace WHMapper.Repositories.WHMaps
 
         }
 
-        protected override async Task<WHMap?> AUpdate(int id, WHMap item)
+        protected override async Task<WHAdmin?> AUpdate(int id, WHAdmin item)
         {
             await semSlim.WaitAsync();
             try
@@ -96,7 +89,7 @@ namespace WHMapper.Repositories.WHMaps
                 if (id != item.Id)
                     return null;
 
-                _dbContext.DbWHMaps.Update(item);
+                _dbContext.DbWHAdmins.Update(item);
                 await _dbContext.SaveChangesAsync();
                 return item;
             }

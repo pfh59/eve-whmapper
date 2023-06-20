@@ -1,14 +1,11 @@
 ﻿using System;
-using WHMapper.Models.DTO.EveAPI.Dogma;
 
-namespace WHMapper.Services.EveAPI.Dogma
+namespace WHMapper.Services.EveAPI.Corporation
 {
-	public interface IDogmaServices
+	public interface ICorporationServices
     {
-        Task<int[]> GetAttributes();
-        Task<Models.DTO.EveAPI.Dogma.Attribute> GetAttribute(int attribute_id);
-        Task<int[]> GetEffects();
-        Task<Effect> GetEffect(int effect_id);
+        //Task<int[]> GetCorporations();
+        Task<Models.DTO.EveAPI.Corporation.Corporation> GetCorporation(int corporation_id);
     }
 }
 

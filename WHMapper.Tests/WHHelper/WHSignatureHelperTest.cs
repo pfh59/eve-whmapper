@@ -3,10 +3,11 @@ using WHMapper.Models.Db.Enums;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
+using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper
 {
-   [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.WHHelper")]
+    [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class WHSignatureHelperTest
 	{
         private const int WH_ID = 1;
@@ -20,9 +21,7 @@ namespace WHMapper.Tests.WHHelper
 
         public WHSignatureHelperTest()
 		{
-
             _whHelper = new WHSignatureHelper(null);
-
         }
 
 
