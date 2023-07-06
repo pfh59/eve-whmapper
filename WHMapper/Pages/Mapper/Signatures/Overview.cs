@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -19,6 +20,7 @@ using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
+    [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase,IAsyncDisposable
     {
         [Inject]
@@ -62,12 +64,16 @@ namespace WHMapper.Pages.Mapper.Signatures
         private CancellationTokenSource? _cts;
         private DateTime _currentDateTime;
 
-
-        protected override async Task OnParametersSetAsync()
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            await Restore();
-            HandleTimerAsync();
+            if (firstRender)
+            {
+                await Restore();
+                HandleTimerAsync();
+            }
+            await base.OnAfterRenderAsync(firstRender);
         }
+
 
         private async Task HandleTimerAsync()
         {

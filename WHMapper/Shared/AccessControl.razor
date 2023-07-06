@@ -1,14 +1,17 @@
 ﻿@using WHMapper.Services.EveOnlineUserInfosProvider
-@inject IEveUserInfosServices UserService
-
+@using Microsoft.AspNetCore.Components.Authorization;
 <AuthorizeView>
     <Authorized>
         <MudMenu Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft">
             <ActivatorContent>
-                <MudChip Icon="@Icons.Material.Filled.Person">@Username</MudChip>
+                <MudChip Icon="@Icons.Material.Filled.Person">@_username</MudChip>
             </ActivatorContent>
             <ChildContent>
                 <MudNavLink Href="login?redirectUri=/" Target="_blank" ForceLoad="true" Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default">Add Account</MudNavLink>
+                @if (isAdmin)
+                {
+                    <MudNavLink Href="whmapperadmin" Target="_blank" Icon="@Icons.Material.Filled.SettingsAccessibility">Access List</MudNavLink>
+                }
                 <MudNavLink Href="logout" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default">Logout</MudNavLink>
             </ChildContent>
         </MudMenu>
@@ -27,13 +30,39 @@
 
 
 
-@code {
-    private string Username = "Anonymous";
+@code
+{
+    private bool isAdmin = false;
+    private string _username = "Anonymous";
 
-    protected override async Task OnInitializedAsync()
+    [Inject]
+    private IEveUserInfosServices UserService { get; set; } = null!;
+
+    [Inject]
+    private IAuthorizationService AuthorizationService { get; set; } = null!;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Username = await UserService.GetUserName();
+        if (firstRender)
+        {
+            _username = await UserService.GetUserName();
 
-        await base.OnInitializedAsync();
+            var user = (await AuthenticationStateTask).User;
+
+            if ((await AuthorizationService.AuthorizeAsync(user, "Admin"))
+                .Succeeded)
+                isAdmin = true;
+            else
+                isAdmin = false;
+
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 }

@@ -3,10 +3,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.SDE;
+using Xunit.Priority;
 
 namespace WHMapper.Tests.SDE
 {
-    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.SDE")]
+    [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class SDEUniverseTest
     {
 

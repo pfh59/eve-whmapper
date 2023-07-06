@@ -5,10 +5,11 @@ using WHMapper.Models.Db;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.WHColor;
+using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper
 {
-    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.WHHelper")]
+    [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class EveWHMapperHelperTest
     {
         private const int DEFAULT_MAP_ID = 1;
@@ -31,7 +32,7 @@ namespace WHMapper.Tests.WHHelper
         }
 
         [Fact]
-        public async Task Define_Eve_System_Node_Model_Test()
+        public async Task Define_Eve_System_Node_Model()
         {
             var jita_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0f));
             Assert.NotNull(jita_result);

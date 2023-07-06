@@ -18,10 +18,15 @@ namespace WHMapper.Services.EveAPI.Location
             _userService = userService;
         }
 
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<EveLocation> GetLocation()
+        public async Task<EveLocation?> GetLocation()
         {
-            return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", await _userService?.GetCharactedID()));
+            if (_userService != null)
+            {
+                string characterId = await _userService.GetCharactedID();
+                return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", characterId));
+
+            }
+            return null;
         }
         
     }

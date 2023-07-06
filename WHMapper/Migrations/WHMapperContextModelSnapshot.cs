@@ -22,6 +22,55 @@ namespace WHMapper.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("WHMapper.Models.Db.WHAccess", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EveEntity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EveEntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EveEntityName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EveEntityId", "EveEntity")
+                        .IsUnique();
+
+                    b.ToTable("Accesses", (string)null);
+                });
+
+            modelBuilder.Entity("WHMapper.Models.Db.WHAdmin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EveCharacterId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EveCharacterName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EveCharacterId")
+                        .IsUnique();
+
+                    b.ToTable("Admins", (string)null);
+                });
+
             modelBuilder.Entity("WHMapper.Models.Db.WHMap", b =>
                 {
                     b.Property<int>("Id")

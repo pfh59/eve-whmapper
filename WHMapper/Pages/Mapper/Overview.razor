@@ -6,15 +6,18 @@
 @using Blazor.Diagrams.Components;
 @using Blazor.Diagrams.Algorithms;
 @using WHMapper.Models.Db.Enums;
-<MudContainer MaxWidth=MaxWidth.ExtraExtraLarge >
+
+
+
+<MudContainer MaxWidth=MaxWidth.ExtraExtraLarge>
     <MudGrid Class="@(_loading ? "invisible" : "visible")">
         <MudItem xs="12">
             <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste">
                 <ActivatorContent>
-                    <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8" >
+                    <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" Class="mt-8">
                         @foreach (var item in WHMaps)
                         {
-                            <div style="width:97vw; height: 60vh" Class="Rounded" >
+                            <div style="width:97vw; height: 60vh" Class="Rounded">
                                 <MudTabPanel Text="@item.Name" Tag="@item.Id">
                                     <CascadingValue Value="Diagram">
                                         <DiagramCanvas></DiagramCanvas>
@@ -35,7 +38,7 @@
                         <MudMenuItem OnClick="@(() => ToggleSlectedSystemLinkEOL())" Disabled="@(_selectedSystemLink == null)">Toggle EOL</MudMenuItem>
                         <div class="d-flex flex-column">
                             <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
-                                     EndIcon="@Icons.Material.Filled.ArrowRight" Label="Status" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
+                                        EndIcon="@Icons.Material.Filled.ArrowRight" Label="Status" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
                                 <ChildContent>
                                     <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))">Normal</MudMenuItem>
                                     <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))">Critical</MudMenuItem>
@@ -44,7 +47,7 @@
                             </MudMenu>
 
                             <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
-                                     EndIcon="@Icons.Material.Filled.ArrowRight" Label="Size" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
+                                        EndIcon="@Icons.Material.Filled.ArrowRight" Label="Size" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
                                 <ChildContent>
                                     <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))">Small</MudMenuItem>
                                     <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))">Medium</MudMenuItem>
@@ -57,17 +60,17 @@
 
                 </ChildContent>
             </MudMenu>
-        
-            
+
+
         </MudItem>
         <MudItem xs="3">
             <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
         </MudItem>
         <MudItem xs="9">
-            <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView"  CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection"/>
+            <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
         </MudItem>
     </MudGrid>
-    
+
     <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
         <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
     </MudOverlay>

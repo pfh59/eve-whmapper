@@ -96,8 +96,8 @@ namespace WHMapper.Repositories.WHMaps
                 if (id != item.Id)
                     return null;
 
-                _dbContext?.DbWHMaps?.Update(item);
-                await _dbContext?.SaveChangesAsync();
+                _dbContext.DbWHMaps.Update(item);
+                await _dbContext.SaveChangesAsync();
                 return item;
             }
             finally

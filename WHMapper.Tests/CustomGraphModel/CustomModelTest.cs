@@ -1,11 +1,10 @@
-﻿using System;
-using System.Xml.Linq;
-using WHMapper.Models.Custom.Node;
+﻿using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db.Enums;
+using Xunit.Priority;
 
 namespace WHMapper.Tests.CustomGraphModel
 {
-    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.CustomGraphModel")]
+    [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class CustomModelTest
     {
         private const int DEFAULT_MAP_ID = 1;

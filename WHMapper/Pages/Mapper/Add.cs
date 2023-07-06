@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using Blazor.Diagrams;
 using Blazor.Diagrams.Core.Events;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
@@ -25,10 +26,9 @@ using static MudBlazor.Colors;
 
 namespace WHMapper.Pages.Mapper
 {
+    [Authorize(Policy = "Access")]
     public partial class Add : Microsoft.AspNetCore.Components.ComponentBase
     {
-        
-
         [Inject]
         private IEveMapperHelper MapperServices { get; set; } = null!;
 

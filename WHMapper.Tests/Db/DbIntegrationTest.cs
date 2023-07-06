@@ -1,24 +1,30 @@
-﻿using System.Collections.Generic;
-using System.Runtime.Intrinsics.X86;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Repositories.WHAccesses;
+using WHMapper.Repositories.WHAdmins;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
-using WHMapper.Tests.Attributes;
-using Xunit;
+using Xunit.Priority;
 using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Tests.Db;
 
-[TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.Db")]
+[TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+[Collection("Sequential")]
 public class DbIntegrationTest
 {
+    private int EVE_CHARACTERE_ID = 2113720458;
+    private int EVE_CHARACTERE_ID2 = 2113932209;
+
+    private int EVE_CORPO_ID = 1344654522;
+    private int EVE_ALLIANCE_ID = 1354830081;
+        
+
     private const int FOOBAR_SYSTEM_ID = 123456;
     private const string FOOBAR ="FooBar";
     private const string FOOBAR_UPDATED = "FooBar Updated";
@@ -44,7 +50,7 @@ public class DbIntegrationTest
 
 
 
-    [Fact, TestPriority(100)]
+    [Fact, Priority(1)]
     public async Task DeleteAndCreateDatabse()
     {
         //Delete all to make a fresh Db
@@ -55,7 +61,7 @@ public class DbIntegrationTest
 
     }
 
-    [Fact, TestPriority(99)]
+    [Fact, Priority(2)]
     public async Task CRUD_WHMAP()
     {
         //Create IWHMapRepository
@@ -88,7 +94,7 @@ public class DbIntegrationTest
         Assert.True(result5);
     }
 
-    [Fact, TestPriority(98)]
+    [Fact, Priority(3)]
     public async Task CRUD_WHSystem()
     {
         //init MAP
@@ -162,7 +168,7 @@ public class DbIntegrationTest
         Assert.True(mapDeleted);
     }
 
-    [Fact, TestPriority(97)]
+    [Fact, Priority(4)]
     public async Task CRUD_WHLink()
     {
         //init MAP
@@ -238,7 +244,7 @@ public class DbIntegrationTest
 
 
 
-    [Fact, TestPriority(96)]
+    [Fact, Priority(5)]
     public async Task CRUD_WHSignature()
     {
         //init MAP
@@ -344,5 +350,77 @@ public class DbIntegrationTest
         var mapDeleted = await repoMap.DeleteById(map.Id);
         Assert.True(mapDeleted);
 
+    }
+
+    [Fact, Priority(6)]
+    public async Task CRUD_WHAdmin()
+    {
+        //Create IWHMapRepository
+        IWHAdminRepository repo = new WHAdminRepository(_context);
+
+        //ADD WHMAP
+        var result = await repo.Create(new WHAdmin(EVE_CHARACTERE_ID, "TOTO"));
+        Assert.NotNull(result);
+        Assert.Equal(EVE_CHARACTERE_ID, result.EveCharacterId);
+        Assert.Equal("TOTO", result.EveCharacterName);
+
+        //GetALL
+        var results = (await repo.GetAll())?.ToArray();
+        Assert.NotNull(results);
+        Assert.Single(results);
+        Assert.Equal(EVE_CHARACTERE_ID, results[0].EveCharacterId);
+
+        //GetById
+        var result2 = await repo.GetById(1);
+        Assert.NotNull(result2);
+        Assert.Equal(EVE_CHARACTERE_ID, result2.EveCharacterId);
+
+        //update
+        result2.EveCharacterId = EVE_CHARACTERE_ID2;
+        result2 = await repo.Update(result2.Id, result2);
+        Assert.NotNull(result2);
+        Assert.Equal(EVE_CHARACTERE_ID2, result2.EveCharacterId);
+
+        //Delete WHMAP
+        var result5 = await repo.DeleteById(result2.Id);
+        Assert.True(result5);
+    }
+
+    [Fact, Priority(7)]
+    public async Task CRUD_WHAccess()
+    {
+        //Create IWHMapRepository
+        IWHAccessRepository repo = new WHAccessRepository(_context);
+
+        //ADD WHMAP
+        var result = await repo.Create(new WHAccess(EVE_CORPO_ID,"TOTO", WHAccessEntity.Corporation));
+        Assert.NotNull(result);
+        Assert.Equal(EVE_CORPO_ID, result.EveEntityId);
+        Assert.Equal(WHAccessEntity.Corporation, result.EveEntity);
+
+        //GetALL
+        var results = (await repo.GetAll())?.ToArray();
+        Assert.NotNull(results);
+        Assert.Single(results);
+        Assert.Equal(EVE_CORPO_ID, results[0].EveEntityId);
+        Assert.Equal(WHAccessEntity.Corporation, results[0].EveEntity);
+
+        //GetbyID
+        var result2 = await repo.GetById(1);
+        Assert.NotNull(result2);
+        Assert.Equal(EVE_CORPO_ID, result2.EveEntityId);
+        Assert.Equal(WHAccessEntity.Corporation, result2.EveEntity);
+
+        //update
+        result2.EveEntityId = EVE_ALLIANCE_ID;
+        result2.EveEntity = WHAccessEntity.Alliance;
+        result2 = await repo.Update(result2.Id, result2);
+        Assert.NotNull(result2);
+        Assert.Equal(EVE_ALLIANCE_ID, result2.EveEntityId);
+        Assert.Equal(WHAccessEntity.Alliance, result2.EveEntity);
+
+        //Delete WHMAP
+        var result5 = await repo.DeleteById(result2.Id);
+        Assert.True(result5);
     }
 }

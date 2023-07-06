@@ -7,11 +7,40 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WHMapper.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Accesses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EveEntityId = table.Column<int>(type: "integer", nullable: false),
+                    EveEntityName = table.Column<string>(type: "text", nullable: false),
+                    EveEntity = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Accesses", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Admins",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EveCharacterId = table.Column<int>(type: "integer", nullable: false),
+                    EveCharacterName = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Admins", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Maps",
                 columns: table => new
@@ -102,6 +131,18 @@ namespace WHMapper.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Accesses_EveEntityId_EveEntity",
+                table: "Accesses",
+                columns: new[] { "EveEntityId", "EveEntity" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Admins_EveCharacterId",
+                table: "Admins",
+                column: "EveCharacterId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Maps_Name",
                 table: "Maps",
                 column: "Name",
@@ -150,6 +191,12 @@ namespace WHMapper.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Accesses");
+
+            migrationBuilder.DropTable(
+                name: "Admins");
+
             migrationBuilder.DropTable(
                 name: "Signatures");
 

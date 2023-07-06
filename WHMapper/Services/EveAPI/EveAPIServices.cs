@@ -2,7 +2,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using WHMapper.Models.DTO;
+using WHMapper.Services.EveAPI.Alliance;
+using WHMapper.Services.EveAPI.Character;
+using WHMapper.Services.EveAPI.Corporation;
 using WHMapper.Services.EveAPI.Location;
+using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;
 using WHMapper.Services.EveOnlineUserInfosProvider;
@@ -19,6 +23,10 @@ namespace WHMapper.Services.EveAPI
         public ILocationServices LocationServices { get; private set; }
         public IUniverseServices UniverseServices { get; private set; }
         public IUserInterfaceServices UserInterfaceServices { get; private set; }
+        public IAllianceServices AllianceServices { get; private set; }
+        public ICorporationServices CorporationServices { get; private set; }
+        public ICharacterServices CharacterServices { get; private set; }
+        public ISearchServices SearchServices { get;private set; }
 
         public EveAPIServices(ILogger<EveAPIServices> logger,IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)
         {
@@ -32,6 +40,10 @@ namespace WHMapper.Services.EveAPI
             LocationServices = new LocationServices(eveAPIClient, _tokenProvider, userService);
             UniverseServices = new UniverseServices(eveAPIClient);
             UserInterfaceServices = new UserInterfaceServices(eveAPIClient, _tokenProvider);
+            AllianceServices = new AllianceServices(eveAPIClient);
+            CorporationServices = new CorporationServices(eveAPIClient);
+            CharacterServices = new CharacterServices(eveAPIClient);
+            SearchServices = new SearchServices(eveAPIClient, _tokenProvider, userService);
         }
     }
 }

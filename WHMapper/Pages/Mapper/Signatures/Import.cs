@@ -17,10 +17,11 @@ using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.WHSignature;
 using System.Diagnostics.Tracing;
 using System.Reflection.Emit;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
-
+    [Authorize(Policy = "Access")]
     public partial class Import : Microsoft.AspNetCore.Components.ComponentBase
     {
         private const string _scanResultRegex = "[a-zA-Z]{3}-[0-9]{3}\\s([a-zA-Z\\s]+)[0-9]*.[0-9]+%\\s[0-9]*.[0-9]+\\sAU";
@@ -52,13 +53,6 @@ namespace WHMapper.Pages.Mapper.Signatures
         private string _scanResult = String.Empty;
         private bool _lazyDeleted = false;
         
-
-        protected override Task OnInitializedAsync()
-        {
-        
-            return base.OnInitializedAsync();
-        }
-
 
 
         private async Task Submit()

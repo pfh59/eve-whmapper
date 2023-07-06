@@ -1,13 +1,13 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Services.Anoik;
+using Xunit.Priority;
 using static MudBlazor.Colors;
 
 namespace WHMapper.Tests.Anoik
 {
 
-    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.Anoik")]
+    [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class AnoikFromJSONFileTest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;

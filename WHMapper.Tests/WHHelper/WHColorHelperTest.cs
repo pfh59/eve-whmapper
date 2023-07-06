@@ -2,10 +2,11 @@
 using WHMapper.Models.Db.Enums;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.WHColor;
+using Xunit.Priority;
 
 namespace WHMapper.Tests.WHColorHelper
 {
-    [TestCaseOrderer("WHMapper.Tests.Orderers.PriorityOrderer", "WHMapper.Tests.WHHelper")]
+    [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class WHColorHelperTest
 	{
         private const string WH_MAGNETAR = "Magnetar";

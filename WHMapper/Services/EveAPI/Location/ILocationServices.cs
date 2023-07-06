@@ -5,6 +5,6 @@ namespace WHMapper.Services.EveAPI.Location
 {
     public interface ILocationServices
     {
-        Task<EveLocation> GetLocation();
+        Task<EveLocation?> GetLocation();
     }
 }

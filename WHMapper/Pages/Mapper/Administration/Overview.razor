@@ -1,0 +1,108 @@
+﻿@page "/whmapperadmin"
+@using WHMapper.Models.Db;
+
+    <MudGrid>
+        <MudItem xs="6">
+            <MudPaper Class="pa-4">
+                <MudTable Items="@WHAccesses" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Virtualize="true" Height="100%" Loading="@(WHAccesses==null)" LoadingProgressColor="Color.Info"
+                          CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedWHAccess"
+                          FixedHeader="true">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">WHMapper Entities Access : </MudText>
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col />
+                        <col />
+                        <col />
+                        <col />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Eve Entity</MudTh>
+                        <MudTh>Eve Entity Id</MudTh>
+                        <MudTh>Eve Entity Name</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="accessContext">
+                        <MudTd DataLabel="Id">@accessContext.EveEntity.ToString()</MudTd>
+                        <MudTd DataLabel="EveEntityId">@accessContext.EveEntityId</MudTd>
+                        <MudTd DataLabel="EveEntityName">@accessContext.EveEntityName</MudTd>
+                        <MudTd Style="text-align:center">
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAccess(@accessContext.Id))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+
+                <MudForm @bind-IsValid="@_successAccess" @ref="@_formAccess" class="d-flex align-center justify-end">
+                    <MudAutocomplete T="WHAccess" Label="search eve character/corporation/alliance name" @bind-Value="_searchResultAccess" SearchFunc="@SearchAccess" MinCharacters="3" ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
+                                     Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
+                                     Validation="@(new Func<string, IEnumerable<string>>(ValidateAccess))"
+                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" ToStringFunc="@(x=> x==null?null : $"{x.EveEntityName}")" Disabled="_searchInProgress">
+                        <ItemTemplate Context="item">
+                            <MudText>
+                                @if (item.EveEntity == Models.Db.Enums.WHAccessEntity.Alliance)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mb-n1 mr-3" />
+                                }
+                                else if (item.EveEntity == Models.Db.Enums.WHAccessEntity.Corporation)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Grade" Class="mb-n1 mr-3" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />
+                                }
+                                @item.EveEntityName
+                            </MudText>
+                        </ItemTemplate>
+                    </MudAutocomplete>
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="SubmitAccess" />
+                </MudForm>
+
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="pa-4">
+                <MudTable Items="@WHAdmins" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Virtualize="true" Height="100%" Loading="@(WHAdmins==null)" LoadingProgressColor="Color.Info"
+                          CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedWHAdmin"
+                          FixedHeader="true">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">WHMapper Admin Access : </MudText>
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col />
+                        <col />
+                        <col />
+                        <col />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Eve Character Id</MudTh>
+                        <MudTh>Eve Character Name</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="accessContext">
+                        <MudTd DataLabel="Id">@accessContext.EveCharacterId</MudTd>
+                        <MudTd DataLabel="EveEntityName">@accessContext.EveCharacterName</MudTd>
+                        <MudTd Style="text-align:center">
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAdmin(@accessContext.Id))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+
+                <MudForm @bind-IsValid="@_successAdmin" @ref="@_formAdmin" class="d-flex align-center justify-end">
+                    <MudAutocomplete T="WHAdmin" Label="Search eve charactere name" @bind-Value="_searchResultAdmin" SearchFunc="@SearchAdmin" MinCharacters="3" ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
+                                     Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
+                                     Validation="@(new Func<string, IEnumerable<string>>(ValidateAdmin))"
+                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" ToStringFunc="@(x=> x==null?null : $"{x.EveCharacterName}")" Disabled="_searchInProgress">
+                        <ItemTemplate Context="item">
+                            <MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />
+                                @item.EveCharacterName
+                            </MudText>
+                        </ItemTemplate>
+                    </MudAutocomplete>
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="SubmitAdmin" />
+                </MudForm>
+                
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
