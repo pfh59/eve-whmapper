@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="currentTheme" DefaultScrollbar="false"/>
+<MudThemeProvider Theme="_currentTheme" DefaultScrollbar="false"/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -13,20 +13,44 @@
     <MudMainContent>
         <AuthorizeView>
             <Authorized>
-                <WHMapper.Pages.Mapper.Overview />
+                @Body
             </Authorized>
-            <NotAuthorized>
-            </NotAuthorized>
         </AuthorizeView>
     </MudMainContent>
 </MudLayout>
 
-@code{
-    private MudTheme currentTheme = null!;
+@code
+{
+    private MudTheme _currentTheme = null!;
+    private bool _isNotAuthoried = false;
 
-    protected override void OnInitialized()
+    [Inject]
+    private IAuthorizationService AuthorizationService { get; set; } = null!;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        currentTheme = new MudTheme()
+        if(firstRender)
+        {
+            var user = (await AuthenticationStateTask).User;
+
+            if ((await AuthorizationService.AuthorizeAsync(user, "Admin"))
+                .Succeeded)
+                _isNotAuthoried = true;
+            else
+                _isNotAuthoried = false;
+
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        _currentTheme = new MudTheme()
         {
             Palette = new PaletteDark()
             {
@@ -44,12 +68,14 @@
                 ActionDefault = "#adadb1",
                 ActionDisabled = "rgba(255,255,255, 0.26)",
                 ActionDisabledBackground = "rgba(255,255,255, 0.12)",
-                Primary="#ffffff",
+                Primary = "#ffffff",
                 PrimaryDarken = "#ffffff",
                 PrimaryLighten = "#ffffff"
 
             }
         };
 
+        return base.OnInitializedAsync();
     }
-    }
+
+}

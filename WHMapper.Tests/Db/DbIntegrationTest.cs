@@ -359,9 +359,10 @@ public class DbIntegrationTest
         IWHAdminRepository repo = new WHAdminRepository(_context);
 
         //ADD WHMAP
-        var result = await repo.Create(new WHAdmin(EVE_CHARACTERE_ID));
+        var result = await repo.Create(new WHAdmin(EVE_CHARACTERE_ID, "TOTO"));
         Assert.NotNull(result);
         Assert.Equal(EVE_CHARACTERE_ID, result.EveCharacterId);
+        Assert.Equal("TOTO", result.EveCharacterName);
 
         //GetALL
         var results = (await repo.GetAll())?.ToArray();
@@ -392,7 +393,7 @@ public class DbIntegrationTest
         IWHAccessRepository repo = new WHAccessRepository(_context);
 
         //ADD WHMAP
-        var result = await repo.Create(new WHAccess(EVE_CORPO_ID,WHAccessEntity.Corporation));
+        var result = await repo.Create(new WHAccess(EVE_CORPO_ID,"TOTO", WHAccessEntity.Corporation));
         Assert.NotNull(result);
         Assert.Equal(EVE_CORPO_ID, result.EveEntityId);
         Assert.Equal(WHAccessEntity.Corporation, result.EveEntity);

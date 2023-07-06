@@ -12,7 +12,7 @@ using WHMapper.Data;
 namespace WHMapper.Migrations
 {
     [DbContext(typeof(WHMapperContext))]
-    [Migration("20230615195821_Init")]
+    [Migration("20230705194538_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -39,6 +39,10 @@ namespace WHMapper.Migrations
                     b.Property<int>("EveEntityId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("EveEntityName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EveEntityId", "EveEntity")
@@ -57,6 +61,10 @@ namespace WHMapper.Migrations
 
                     b.Property<int>("EveCharacterId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("EveCharacterName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

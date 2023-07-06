@@ -36,6 +36,10 @@ namespace WHMapper.Migrations
                     b.Property<int>("EveEntityId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("EveEntityName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EveEntityId", "EveEntity")
@@ -54,6 +58,10 @@ namespace WHMapper.Migrations
 
                     b.Property<int>("EveCharacterId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("EveCharacterName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

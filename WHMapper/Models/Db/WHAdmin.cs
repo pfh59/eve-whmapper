@@ -12,11 +12,13 @@ namespace WHMapper.Models.Db
         [Required]
         public int EveCharacterId { get; set; }
 
+        [Required]
+        public string EveCharacterName { get; set; }
 
-        public WHAdmin(int eveCharacterId)
+        public WHAdmin(int eveCharacterId,string eveCharacterName)
 		{
             EveCharacterId = eveCharacterId;
-
+            EveCharacterName = eveCharacterName;
         }
 	}
 }

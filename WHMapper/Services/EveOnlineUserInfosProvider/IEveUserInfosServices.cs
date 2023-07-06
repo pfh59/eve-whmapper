@@ -3,7 +3,9 @@ namespace WHMapper.Services.EveOnlineUserInfosProvider
 {
 	public interface IEveUserInfosServices
 	{
-		public Task<string> GetUserName();
+        public const string ANONYMOUS_USERNAME = "Anonymous";
+
+        public Task<string> GetUserName();
 		public Task<string> GetCharactedID();
     }
 }

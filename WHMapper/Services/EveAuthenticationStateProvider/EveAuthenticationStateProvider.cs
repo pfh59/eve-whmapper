@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Tokens;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.SSO;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOAuthProvider;
 
 namespace WHMapper.Services.EveJwtAuthenticationStateProvider
@@ -31,7 +32,6 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
         private readonly HttpClient? _httpClient = null;
         private readonly string _clientKey;
 
-       
 
         public EveAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo) : base()
         {
@@ -78,6 +78,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
         }
 
+        
         private Task<bool> IsTokenExpired()
         {
             JsonWebTokenHandler SecurityTokenHandle = new JsonWebTokenHandler();

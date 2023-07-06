@@ -9,8 +9,6 @@ namespace WHMapper.Services.EveOnlineUserInfosProvider
 {
 	public class EveUserInfosServices : IEveUserInfosServices
     {
-        private const string _defaultusername = "Anonymous";
-
         private readonly AuthenticationStateProvider _authenticationStateProvider;
         
        
@@ -22,7 +20,7 @@ namespace WHMapper.Services.EveOnlineUserInfosProvider
         public async Task<string> GetUserName()
         {
             var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
-            return state?.User?.Identity?.Name ?? _defaultusername;
+            return state?.User?.Identity?.Name ?? IEveUserInfosServices.ANONYMOUS_USERNAME;
         }
 
         public async Task<string> GetCharactedID()

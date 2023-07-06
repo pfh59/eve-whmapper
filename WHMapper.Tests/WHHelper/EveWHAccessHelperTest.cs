@@ -10,6 +10,7 @@ using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
+using WHMapper.Services.EveAPI.Character;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveMapper;
 using Xunit.Priority;
@@ -39,8 +40,6 @@ namespace WHMapper.Tests.WHHelper
             var provider = services.BuildServiceProvider();
             var httpclientfactory = provider.GetService<IHttpClientFactory>();
 
-            ILogger<EveAPIServices> logger = new NullLogger<EveAPIServices>();
-            var eveUniverseApi = new EveAPIServices(logger, httpclientfactory, null, null);
 
             //Create DB Context
             var configuration = new ConfigurationBuilder()
@@ -54,7 +53,7 @@ namespace WHMapper.Tests.WHHelper
             _context = new WHMapperContext(optionBuilder.Options);
             _whAccessRepository = new WHAccessRepository(_context);
             _whAdminRepository = new WHAdminRepository(_context);
-            _accessHelper = new EveMapperAccessHelper(_whAccessRepository,_whAdminRepository, eveUniverseApi);
+            _accessHelper = new EveMapperAccessHelper(_whAccessRepository,_whAdminRepository, new CharacterServices(httpclientfactory.CreateClient()));
 
             
         }
@@ -76,7 +75,7 @@ namespace WHMapper.Tests.WHHelper
             var fullAuthorize = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
             Assert.True(fullAuthorize);
 
-            var character = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_CHARACTERE_ID2, WHAccessEntity.Character));
+            var character = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_CHARACTERE_ID2, "TOTO",WHAccessEntity.Character));
             Assert.NotNull(character);
             Assert.Equal(EVE_CHARACTERE_ID2, character.EveEntityId);
 
@@ -93,7 +92,7 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(3)]
         public async Task Eve_Mapper_Corpo_Access()
         {
-            var corpo = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_CORPO_ID, WHAccessEntity.Corporation));
+            var corpo = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_CORPO_ID, "TOTO",WHAccessEntity.Corporation));
             Assert.NotNull(corpo);
             Assert.Equal(EVE_CORPO_ID, corpo.EveEntityId);
 
@@ -109,7 +108,7 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(4)]
         public async Task Eve_Mapper_Alliance_Access()
         {
-            var alliance = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_ALLIANCE_ID, WHAccessEntity.Alliance));
+            var alliance = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_ALLIANCE_ID, "TOTO",WHAccessEntity.Alliance));
             Assert.NotNull(alliance);
             Assert.Equal(EVE_ALLIANCE_ID, alliance.EveEntityId);
 
@@ -128,7 +127,7 @@ namespace WHMapper.Tests.WHHelper
             var fullAuthorize = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID);
             Assert.True(fullAuthorize);
 
-            var character = await _whAdminRepository.Create(new Models.Db.WHAdmin(EVE_CHARACTERE_ID2));
+            var character = await _whAdminRepository.Create(new Models.Db.WHAdmin(EVE_CHARACTERE_ID2, "TOTO"));
             Assert.NotNull(character);
             Assert.Equal(EVE_CHARACTERE_ID2, character.EveCharacterId);
 

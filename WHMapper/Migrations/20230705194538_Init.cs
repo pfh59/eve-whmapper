@@ -19,6 +19,7 @@ namespace WHMapper.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EveEntityId = table.Column<int>(type: "integer", nullable: false),
+                    EveEntityName = table.Column<string>(type: "text", nullable: false),
                     EveEntity = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -32,7 +33,8 @@ namespace WHMapper.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    EveCharacterId = table.Column<int>(type: "integer", nullable: false)
+                    EveCharacterId = table.Column<int>(type: "integer", nullable: false),
+                    EveCharacterName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {

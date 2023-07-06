@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Runtime.Intrinsics.X86;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MudBlazor.Utilities;
@@ -9,6 +10,7 @@ using Color = MudBlazor.Color;
 
 namespace WHMapper.Pages.Mapper.SystemInfos
 {
+    [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase
     {
         private bool _showWHInfos=false;
@@ -46,12 +48,6 @@ namespace WHMapper.Pages.Mapper.SystemInfos
             }
 
         }
-
-        protected override void OnInitialized()
-        {
-            base.OnInitialized();
-        }
-
     }
 }
 

@@ -1,53 +1,32 @@
-﻿using Blazor.Diagrams.Core;
-using Blazor.Diagrams.Core.Models;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveAPI.Location;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Pages.Mapper.CustomNode;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
-using Blazor.Diagrams.Algorithms;
 using Microsoft.AspNetCore.Components.Authorization;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSystems;
-using System;
 using MudBlazor;
-using Blazor.Diagrams.Core.Options;
-using Blazor.Diagrams.Options;
 using Blazor.Diagrams;
 using WHMapper.Models.Db.Enums;
-using System.Threading.Tasks;
 using WHMapper.Repositories.WHSystemLinks;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using SvgPathProperties.Base;
-using System.Net.NetworkInformation;
 using Microsoft.AspNetCore.Authorization;
 using WHMapper.Models.DTO;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Logging;
-using WHMapper.Services.EveJwkExtensions;
 using WHMapper.Services.EveOnlineUserInfosProvider;
-using static MudBlazor.CategoryTypes;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
-using System.Collections.Concurrent;
-using Blazor.Diagrams.Components;
 using System.Data;
 using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Services.WHSignature;
-using MudBlazor.Services;
-using System.Xml.Linq;
-using System.Collections.Generic;
-using System.Linq;
-using WHMapper.Pages.Mapper.Signatures;
-using System.Diagnostics.Tracing;
 using WHMapper.Services.EveMapper;
 using Blazor.Diagrams.Core.Behaviors;
 
 namespace WHMapper.Pages.Mapper
 {
+    [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase, IAsyncDisposable
     {
         protected BlazorDiagram Diagram { get; private set; } = null!;
@@ -62,7 +41,7 @@ namespace WHMapper.Pages.Mapper
         private int _currentWHSystemId = 0;
         private EveSystemNodeModel? _selectedSystemNode = null;
         private EveSystemLinkModel? _selectedSystemLink = null;
-
+        
         private ICollection<EveSystemNodeModel>? _selectedSystemNodes = null;
         private ICollection<EveSystemLinkModel>? _selectedSystemLinks = null;
 
@@ -73,6 +52,11 @@ namespace WHMapper.Pages.Mapper
 
         private HubConnection _hubConnection=null!;
 
+        [Inject]
+        IAuthorizationService AuthorizationService { get; set; } = null!;
+
+        [CascadingParameter]
+        private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
         [Inject]
         AuthenticationStateProvider AuthState { get; set; } = null!;
@@ -142,34 +126,44 @@ namespace WHMapper.Pages.Mapper
         private bool _loading = true;
         public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
-        protected override async Task OnInitializedAsync()
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            _loading = true;
-            _userName = await UserInfos.GetUserName();
-            if (await InitDiagram())
+            if(firstRender)
             {
-                if (await Restore())
+                var user = (await AuthenticationStateTask).User;
+
+                if ((await AuthorizationService.AuthorizeAsync(user, "Access"))
+                    .Succeeded)
                 {
-                    if (await InitNotificationHub())
+
+                    _userName = await UserInfos.GetUserName();
+                    if (await InitDiagram())
                     {
-                        HandleTimerAsync();
+                        if (await Restore())
+                        {
+                            if (await InitNotificationHub())
+                            {
+                                HandleTimerAsync();
+                            }
+
+                            _loading = false;
+                            StateHasChanged();
+                        }
+                        else
+                        {
+                            Snackbar?.Add("Mapper restore error", Severity.Error);
+                        }
+                    }
+                    else
+                    {
+                        Snackbar?.Add("Mapper Initialization error", Severity.Error);
                     }
 
-                    _loading = false;
-                    StateHasChanged();
-                }
-                else
-                {
-                    Snackbar?.Add("Mapper restore error", Severity.Error);
                 }
             }
-            else
-            {
-                Snackbar?.Add("Mapper Initialization error", Severity.Error);
-            }
 
-
-            await base.OnInitializedAsync();
+            await base.OnAfterRenderAsync(firstRender);
         }
 
         #region Hub methodes
@@ -934,7 +928,7 @@ namespace WHMapper.Pages.Mapper
                 {
                     var state = await AuthState.GetAuthenticationStateAsync();
 
-                    if (!String.IsNullOrEmpty(state?.User?.Identity?.Name))
+                    if (!string.IsNullOrEmpty(state?.User?.Identity?.Name))
                         await AutoMapper();
                     else
                         _cts.Cancel();//todo redirect to logout
@@ -1319,8 +1313,8 @@ namespace WHMapper.Pages.Mapper
             {
                 try
                 {
-                    String scanUser = await UserInfos.GetUserName();
-                    String? message = eventArgs.PastedData;
+                    string scanUser = await UserInfos.GetUserName();
+                    string? message = eventArgs.PastedData;
                     if (await SignatureHelper.ImportScanResult(scanUser, _selectedSystemNode.IdWH, message,false))
                     {
                         Snackbar?.Add("Signatures successfully added/updated", Severity.Success);

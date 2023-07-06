@@ -13,17 +13,20 @@ namespace WHMapper.Models.Db
         public int EveEntityId { get; set; }
 
         [Required]
+        public string EveEntityName { get; set; }
+
+        [Required]
         public WHAccessEntity EveEntity { get; set; }
 
-        public WHAccess(int eveEntityId)
-            : this(eveEntityId,WHAccessEntity.Character)
+        public WHAccess(int eveEntityId,string eveEntityName) : this(eveEntityId, eveEntityName, WHAccessEntity.Character)
         {
             
         }
 
-        public WHAccess(int eveEntityId, WHAccessEntity entityType)
+        public WHAccess(int eveEntityId,string eveEntityName, WHAccessEntity entityType)
 		{
             EveEntityId = eveEntityId;
+            EveEntityName = eveEntityName;
             EveEntity = entityType;
         }
 	}

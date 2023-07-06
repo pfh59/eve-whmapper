@@ -1,37 +1,12 @@
 ﻿@page "/"
+@inject NavigationManager NavManager
 
-@inject AuthenticationStateProvider AuthState
 @attribute [Authorize]
 
-<h1>Welcome, @Username!</h1>
-You can only see this content if you're authenticated.
-<br />
-<!--<img src="@Picture">-->
-
 @code {
-    private string Username = "Anonymous User";
-    private string Picture = "";
-    
-    protected override async Task OnInitializedAsync()
+
+    protected override void OnInitialized()
     {
-
-
-        var state = await AuthState.GetAuthenticationStateAsync();
-
-        if (!String.IsNullOrEmpty(state?.User?.Identity?.Name))
-            Username = state?.User?.Identity?.Name;
-
-
-        /*Username = state.User.Claims
-                    .Where(c => c.Type.Equals("name"))
-                    .Select(c => c.Value)
-                    .FirstOrDefault() ?? string.Empty;*/
-
-        /*Picture = state.User.Claims
-                    .Where(c => c.Type.Equals("picture"))
-                    .Select(c => c.Value)
-                    .FirstOrDefault() ?? string.Empty;*/
-
-        await base.OnInitializedAsync();
+        NavManager.NavigateTo("/whmapper");
     }
 }

@@ -48,6 +48,9 @@ using WHMapper.Services.SDE;
 using WHMapper.Services.EveMapper;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Repositories.WHAccesses;
+using WHMapper.Services.EveAPI.Character;
+using System.Linq;
+using WHMapper.Services.EveMapper.AuthorizationPolicies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,9 +65,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices(config =>
 {
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
 
-    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.PreventDuplicates = true;
     config.SnackbarConfiguration.NewestOnTop = false;
     config.SnackbarConfiguration.ShowCloseIcon = true;
     config.SnackbarConfiguration.VisibleStateDuration = 10000;
@@ -111,10 +114,21 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
     options.Scope.Add("esi-location.read_ship_type.v1");
     options.Scope.Add("esi-ui.open_window.v1");
     options.Scope.Add("esi-ui.write_waypoint.v1");
+    options.Scope.Add("esi-search.search_structures.v1");
     options.SaveTokens = true;
     options.UsePkce = true;
 })
 .AddEveOnlineJwtBearer();//validate hub tokken
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Access", policy =>
+        policy.Requirements.Add(new EveMapperAccessRequirement())) ;
+
+    options.AddPolicy("Admin", policy =>
+        policy.Requirements.Add(new EveMapperAdminRequirement()));
+});
+
 
 
 
@@ -152,6 +166,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStatePr
 
 builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
 builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();
+builder.Services.AddScoped<ICharacterServices, CharacterServices>();
 builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
 builder.Services.AddSingleton<ISDEServices, SDEServices>();
 
@@ -171,6 +186,9 @@ builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();
 builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();
 #endregion
 
+
+builder.Services.AddScoped<IAuthorizationHandler, EveMapperAccessHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, EveMapperAdminHandler>();
 
 var app = builder.Build();
 
