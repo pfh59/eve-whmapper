@@ -64,7 +64,6 @@ namespace WHMapper.Pages.Mapper.Signatures
         private CancellationTokenSource? _cts;
         private DateTime _currentDateTime;
 
-
         protected override async Task OnParametersSetAsync()
         {
             await Restore();
