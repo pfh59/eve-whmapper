@@ -64,14 +64,12 @@ namespace WHMapper.Pages.Mapper.Signatures
         private CancellationTokenSource? _cts;
         private DateTime _currentDateTime;
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+
+        protected override async Task OnParametersSetAsync()
         {
-            if (firstRender)
-            {
-                await Restore();
-                HandleTimerAsync();
-            }
-            await base.OnAfterRenderAsync(firstRender);
+            await Restore();
+            HandleTimerAsync();
+            await base.OnParametersSetAsync();
         }
 
 
