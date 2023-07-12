@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿
+
+using Microsoft.AspNetCore.Components;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveAPI.Location;
 using WHMapper.Models.DTO.EveAPI.Universe;
@@ -24,8 +26,12 @@ using WHMapper.Services.WHSignature;
 using WHMapper.Services.EveMapper;
 using Blazor.Diagrams.Core.Behaviors;
 
+
+
 namespace WHMapper.Pages.Mapper
 {
+
+
     [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase, IAsyncDisposable
     {
@@ -104,7 +110,7 @@ namespace WHMapper.Pages.Mapper
 
         private IEnumerable<WHMap> WHMaps { get; set; } = new List<WHMap>();
         private WHMap _selectedWHMap = null!;
-
+        
         private int _selectedWHMapIndex = 0;
         private int SelectedWHMapIndex
         {
@@ -126,6 +132,20 @@ namespace WHMapper.Pages.Mapper
         private bool _loading = true;
         public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
+        private bool _isAdmin = false;
+
+
+        protected override async Task OnInitializedAsync()
+        {
+            if (await InitDiagram())
+            {
+                await base.OnInitializedAsync();
+            }
+            else
+            {
+                Snackbar?.Add("Mapper Initialization error", Severity.Error);
+            }
+        }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -136,30 +156,25 @@ namespace WHMapper.Pages.Mapper
                 if ((await AuthorizationService.AuthorizeAsync(user, "Access"))
                     .Succeeded)
                 {
+                    _isAdmin = (await AuthorizationService.AuthorizeAsync(user, "Admin"))
+                    .Succeeded;
 
                     _userName = await UserInfos.GetUserName();
-                    if (await InitDiagram())
-                    {
-                        if (await Restore())
-                        {
-                            if (await InitNotificationHub())
-                            {
-                                HandleTimerAsync();
-                            }
 
-                            _loading = false;
-                            StateHasChanged();
-                        }
-                        else
+                    if (await Restore())
+                    {
+                        if (await InitNotificationHub())
                         {
-                            Snackbar?.Add("Mapper restore error", Severity.Error);
+                            HandleTimerAsync();
                         }
+
+                        _loading = false;
+                        StateHasChanged();
                     }
                     else
                     {
-                        Snackbar?.Add("Mapper Initialization error", Severity.Error);
+                        Snackbar?.Add("Mapper restore error", Severity.Error);
                     }
-
                 }
             }
 
@@ -557,26 +572,28 @@ namespace WHMapper.Pages.Mapper
         {
             try
             {
-                Logger.LogInformation("Start Init Diagram");
-                Diagram = new BlazorDiagram();
-                //Diagram.UnregisterBehavior<SelectionBehavior>();
-                Diagram.UnregisterBehavior<DragMovablesBehavior>();
-                //Diagram.RegisterBehavior(new CustomDiagramSelectionBehavior(Diagram));
-                Diagram.RegisterBehavior(new CustomDragMovablesBehavior(Diagram));
-                
+                if (Diagram == null)
+                {
+                    Logger.LogInformation("Start Init Diagram");
+                    Diagram = new BlazorDiagram();
+                    //Diagram.UnregisterBehavior<SelectionBehavior>();
+                    Diagram.UnregisterBehavior<DragMovablesBehavior>();
+                    //Diagram.RegisterBehavior(new CustomDiagramSelectionBehavior(Diagram));
+                    Diagram.RegisterBehavior(new CustomDragMovablesBehavior(Diagram));
 
-                Diagram.SelectionChanged += async (item) => OnDiagramSelectionChanged(item);
-                Diagram.KeyDown += async (kbevent) => OnDiagramKeyDown(kbevent);
-                Diagram.PointerUp +=  async (item, pointerEvent) => OnDiagramPointerUp(item, pointerEvent);
-               
 
-                Diagram.Options.Zoom.Enabled = true;
-                Diagram.Options.Zoom.Inverse = false;
-                Diagram.Options.Links.EnableSnapping = false;
-                Diagram.Options.AllowMultiSelection = true;
-                Diagram.RegisterComponent<EveSystemNodeModel, EveSystemNode>();
-                Diagram.RegisterComponent<EveSystemLinkModel, EveSystemLink>();
+                    Diagram.SelectionChanged += async (item) => OnDiagramSelectionChanged(item);
+                    Diagram.KeyDown += async (kbevent) => OnDiagramKeyDown(kbevent);
+                    Diagram.PointerUp += async (item, pointerEvent) => OnDiagramPointerUp(item, pointerEvent);
 
+
+                    Diagram.Options.Zoom.Enabled = true;
+                    Diagram.Options.Zoom.Inverse = false;
+                    Diagram.Options.Links.EnableSnapping = false;
+                    Diagram.Options.AllowMultiSelection = true;
+                    Diagram.RegisterComponent<EveSystemNodeModel, EveSystemNode>();
+                    Diagram.RegisterComponent<EveSystemLinkModel, EveSystemLink>();
+                }
 
                 return true;
             }            
@@ -1461,5 +1478,18 @@ namespace WHMapper.Pages.Mapper
 
         }
         #endregion
+
+
+#if !DISABLE_MULTI_MAP
+        #region Tabs Actions
+
+        [Authorize(Policy = "Access")]
+        private async Task AddNewMap()
+        {
+
+        }
+        #endregion
+#endif
     }
+
 }

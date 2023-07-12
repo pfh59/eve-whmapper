@@ -67,7 +67,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         protected override async Task OnParametersSetAsync()
         {
             await Restore();
-            HandleTimerAsync();
+           // HandleTimerAsync();
             await base.OnParametersSetAsync();
         }
 
