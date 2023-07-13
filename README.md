@@ -38,15 +38,60 @@ Make sure your server environment fulfils all [Requirements](requirements) first
 
 #### Get docker-compose template
 
+Navigate to your desired install location and git clone the repo:
+(Exemple : /opt/docker/)
+
 ```shell
-git clone https://github.com/pfh59/eve-whmapper.git/docker .
+sudo git clone https://github.com/pfh59/eve-whmapper.git/docker .
 ```
 
-### 
+### Configuration
+
+#### SSO
+
+Eve-whmapper requires CCP's SSO authentication API to use [ESI API](https://esi.evetech.net/ui/).
+
+Register your installion in https://developers.eveonline.com
+- Click to "MANAGE APPLICATIONS" button
+- Click to "CREATE NEW APPLICATION" button
+- Choose a Name of your choice for your installation (prod eve-whmapper)
+- Enter a description for this installation (Eve wormholemapper on production)
+- Change "CONNECTION TYPE" to "Authentication & API Access"
+- Add Minimun required "PERMISSIONS" (scopes)
+  - esi-location.read_location.v1
+  - esi-location.read_ship_type.v1
+  - esi-ui.open_window.v
+  - esi-ui.write_waypoint.v1
+  - esi-search.search_structures.v1
+- Set your "CALLBACK URL" (https://[YOUR_DOMAIN]/sso/callback)
+- Click to "CREATE APPLICATION"
+- Copy Client ID,Secret Key and Callback URL to use if on next configuration step
+  
+
+#### eve-whmapper/docker-compose.yml
+Eve-whmapper is pretty easy to configure! Edit only docker-compose.yml file in eve-whmapper directory
+
+##### Configure postgres
+
+Set environment POSTGRES_USER and POSTGRES_PASSWORD
+
+```yml
+POSTGRES_USER: ${POSTGRES_USER:-my_posgres_user}
+POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-my_secret}
+```
+##### Configure whmapper
+
+Set environment EveSSO__ClientId, EveSSO__Secret and ConnectionStrings__DefaultConnection
+
+```yml
+  - EveSSO__ClientId=xxxxxxxxx
+  - EveSSO__Secret=xxxxxxxxx
+   - ConnectionStrings__DefaultConnection=server=db;port=5432;database=whmapper;User Id=my_posgres_user;Password=my_secret
+```
+
+#### haproxy
 
 ## Features
-
-
 
 
 ## Documentation
