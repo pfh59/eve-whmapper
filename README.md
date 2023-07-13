@@ -84,15 +84,58 @@ POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-my_secret}
 Set environment EveSSO__ClientId, EveSSO__Secret and ConnectionStrings__DefaultConnection
 
 ```yml
-  - EveSSO__ClientId=xxxxxxxxx
-  - EveSSO__Secret=xxxxxxxxx
-   - ConnectionStrings__DefaultConnection=server=db;port=5432;database=whmapper;User Id=my_posgres_user;Password=my_secret
+EveSSO__ClientId=xxxxxxxxx
+EveSSO__Secret=xxxxxxxxx
+ConnectionStrings__DefaultConnection=server=db;port=5432;database=whmapper;User Id=my_posgres_user;Password=my_secret
 ```
 
 #### haproxy
 
 ## Features
 
+### Authentication module
+- CCP's SSO login
+- Cookie bases login system
+- ESI API support
+- Multi account support
+
+### Administration Module
+
+- Set administation access list to characters
+- Set eve-whmapper access list to alliances/coorporations/characters
+
+### Map Module
+
+- Share map whith other players
+- Track Pilots
+- Auto Location tracking
+- Auto Tag multi system target with same class from same system  with A,B,C or change manualy with '+'/'-' or 'Up'/'Down' Keys
+- Add manualy systems via right click
+- Select multiple systems by ctrl + left click
+- Select and move multiple systems at once
+- Link two systems after selecting them and press 'L' Key
+- Edit system connection link
+- Lock system
+- Delete system espect locked system
+- Live syncrhonisation between clients
+
+### System Module
+
+- Easy access to system informations
+  - Name
+  - Security
+  - Wormhole Class
+  - Wormhole Type
+  - Wormhole static information
+  - Wormhole effects
+  - 
+### Signature Module
+
+- Share system signature informations
+- Add/update/delete multiple signature at once 
+- Check for new signatures within a second
+- Updated signature type information
+- Live synchronisation between clients
 
 ## Documentation
 
