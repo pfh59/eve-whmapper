@@ -13,6 +13,8 @@ Eve wormhole mapper is a simple mapping tool for eve player. It was inspired by 
 ## Table of contents
 * [Technologies](#technologies)
 * [Requirements](#requirements)
+* [Installation](#installation)
+* [Features](#features)
 * [Documentation](#documentation)
 * [License](#license)
 
@@ -128,7 +130,7 @@ ConnectionStrings__DefaultConnection=server=db;port=5432;database=whmapper;User 
   - Wormhole Type
   - Wormhole static information
   - Wormhole effects
-  - 
+    
 ### Signature Module
 
 - Share system signature informations
