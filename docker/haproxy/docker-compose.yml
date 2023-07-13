@@ -1,0 +1,40 @@
+version: '3.5'
+
+services:
+  haproxy:
+    image: haproxy:latest
+    user: root
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./conf/haproxy:/usr/local/etc/haproxy/:ro
+    networks:
+      - net
+      - portainer_net
+      - eve-whmapper_net
+  nginx-certbot:
+    image: nginx:latest
+    restart: always
+    container_name: nginx-certbot
+    volumes:
+      - ./conf/nginx/:/etc/nginx/conf.d/:ro
+      - ./certbot/www/:/var/www/certbot:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
+    networks:
+      - net
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
+  portainer_net:
+    external: true
+  eve-whmapper_net:
+    external: true
