@@ -24,36 +24,28 @@ Eve wormhole mapper is written in C# using ASP.NET Core Blazor Server,EF Core, S
 
 ## Requirements
 
+### Server
+
+We recommand to linux server with OS [Debian] (https://www.debian.org/index.fr.html)
+If you want to use an other OS, you need to write your own init script or configure manually files (see the list bellow)
+
+### Domain
+
+We recommand to use a domaine name (your.domaine.com) with public DNS.
+
+### Docker
+
 In order to run this container you'll need docker installed.
 
 * [Linux](https://docs.docker.com/linux/started/)
 * [Windows](https://docs.docker.com/windows/started)
 * [OS X](https://docs.docker.com/mac/started/)
 
-## Installation
-
-These instructions will cover usage information and for the docker container eve-whmapper
-
-### Getting Started
-
-Make sure your server environment fulfils all [Requirements](requirements) first.
-
-#### Get docker-compose template
-
-Navigate to your desired install location and git clone the repo:
-(Exemple : /opt/docker/)
-
-```shell
-sudo git clone https://github.com/pfh59/eve-whmapper.git/docker .
-```
-
-### Configuration
-
-#### SSO
+### Register your app with CCP
 
 Eve-whmapper requires CCP's SSO authentication API to use [ESI API](https://esi.evetech.net/ui/).
 
-Register your installion in https://developers.eveonline.com
+Register your app in https://developers.eveonline.com
 - Click to "MANAGE APPLICATIONS" button
 - Click to "CREATE NEW APPLICATION" button
 - Choose a Name of your choice for your installation (prod eve-whmapper)
@@ -65,33 +57,54 @@ Register your installion in https://developers.eveonline.com
   - esi-ui.open_window.v
   - esi-ui.write_waypoint.v1
   - esi-search.search_structures.v1
-- Set your "CALLBACK URL" (https://[YOUR_DOMAIN]/sso/callback)
+- Set your "CALLBACK URL" (https://your.domaine.com/sso/callback)
 - Click to "CREATE APPLICATION"
 - Copy Client ID,Secret Key and Callback URL to use if on next configuration step
+
+## Installation
+
+### Getting Started
+
+Make sure your server environment fulfils all [Requirements](requirements) first.
+
+#### Get docker-compose template
+
+Navigate to your desired install location and git clone the eve-whmapper repository :
+(Recommanded install location : /opt/)
+
+```shell
+sudo git clone https://github.com/pfh59/eve-whmapper.git
+cd eve-whmapper/docker
+```
+
+### Configuration
+
+Eve-whmapper is pretty easy to configure!
+
+Run the init.sh script as sudo or root user and follow instructions
+
+```shell
+sudo ./init.sh
+```
+
+This script automatically :
+- Updates all the configurations (docker-compose.yml, haproxy.cfg, nginx.conf) from your response,
+- Initialize all docker container.
+- Create,add and use a strong certifcate to use HTTPS with your domain
   
+## Start and stop
 
-#### eve-whmapper/docker-compose.yml
-Eve-whmapper is pretty easy to configure! Edit only docker-compose.yml file in eve-whmapper directory
+- To Start all container, use the script start.sh as a sudo user or root user
 
-##### Configure postgres
-
-Set environment POSTGRES_USER and POSTGRES_PASSWORD
-
-```yml
-POSTGRES_USER: ${POSTGRES_USER:-my_posgres_user}
-POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-my_secret}
-```
-##### Configure whmapper
-
-Set environment EveSSO__ClientId, EveSSO__Secret and ConnectionStrings__DefaultConnection
-
-```yml
-EveSSO__ClientId=xxxxxxxxx
-EveSSO__Secret=xxxxxxxxx
-ConnectionStrings__DefaultConnection=server=db;port=5432;database=whmapper;User Id=my_posgres_user;Password=my_secret
+```shell
+sudo ./start.sh
 ```
 
-#### haproxy
+- To Stop all container, use the script start.sh as a sudo user or root user
+
+```shell
+sudo ./stop.sh
+```
 
 ## Features
 
