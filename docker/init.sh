@@ -65,22 +65,19 @@ fi
 echo "#------------------------------------------------------------#"
 echo "Applying configuration..." 
 defaultDomain="mydomain.com"
-echo $DOMAIN
 sed -i "s|$defaultDomain|$DOMAIN|g" ./haproxy/nginx/nginx.conf
 
 defaultDbPwd1="POSTGRES_PASSWORD:-secret"
 defaultDbPwd2="Password=secret"
 
-sed -i "s|$defaultDbPwd1|$DBPASSWORD|g" ./eve-whmapper/docker-compose.yml
-sed -i "s|$defaultDbPwd2|$DBPASSWORD|g" ./eve-whmapper/docker-compose.yml
+sed -i "s|$defaultDbPwd1|POSTGRES_PASSWORD:-$DBPASSWORD|g" ./eve-whmapper/docker-compose.yml
+sed -i "s|$defaultDbPwd2|Password=$DBPASSWORD|g" ./eve-whmapper/docker-compose.yml
 
 defaultSSOClientId="EveSSO__ClientId=xxxxxxxxx"
-sed -i "s|$defaultSSOClientId|$SSOCLIENTID|g" ./eve-whmapper/docker-compose.yml
+sed -i "s|$defaultSSOClientId|EveSSO__ClientId=$SSOCLIENTID|g" ./eve-whmapper/docker-compose.yml
 
 defaultSSOSecret="EveSSO__Secret=xxxxxxxxx"
-sed -i "s|$defaultSSOSecret|$SSOSECRET|g" ./eve-whmapper/docker-compose.yml
-
-exit 0
+sed -i "s|$defaultSSOSecret|EveSSO__Secret=$SSOSECRET|g" ./eve-whmapper/docker-compose.yml
 
 echo "Initializing..."
 
