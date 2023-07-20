@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Require script to be run via sudo, but not as root
+clear
 
+# Require script to be run via sudo, but not as root
 if [[ $EUID != 0 ]]; then
     echo "Script must be run with root privilages!"
     exit 1
@@ -12,22 +13,74 @@ fi
 
 set -e
 
-if [ "$#" -lt 2 ]; then
-    echo "Usage: ...  <domain> <email> [options]"
-    exit
-fi
-
-DOMAIN=$1
-EMAIL=$2
-OPTIONS=$3
-
-echo "Cleaning"
+echo "Cleaning cert directories"
 rm -rf ./haproxy/certbot/*
 rm -rf ./haproxy/certs/*
 
-echo "Configuration certbot-nginx domain" 
+echo "#------------------------------------------------------------#"
+
+echo "Installation Wizard"
+echo "Configation Certbot and HAProxy"
+read -p "Enter you domain [Required] :" DOMAIN
+if [ -z "$DOMAIN" ]
+then
+      echo "Error: Domain must be set"
+      exit 1
+fi
+
+read -p "Enter your email (use by certbot to send a email before certificat expiration.) [Required] :" EMAIL
+if [ -z "$EMAIL" ]
+then
+      echo "Error: EMAIL must be set"
+      exit 1
+fi
+
+read -p 'Enter options (exemple : "-d sub1.your.doamin.com") [OPTIONAL] :' OPTIONS
+
+echo "Configurate Db"
+read -s -p "Enter your root db password [Required] :" DBPASSWORD
+if [ -z "$DBPASSWORD" ]
+then
+      echo "Error: DB PASSWORD must be set"
+      exit 1
+fi
+
+echo  "\n"
+echo "Configuration CCP SSO"
+
+read -p "Enter CCP SSO ClientId [Required] :" SSOCLIENTID
+if [ -z "$SSOCLIENTID" ]
+then
+      echo "Error: SSO CLIENTID must be set"
+      exit 1
+fi
+
+read -p "Enter CCP SSO Secret [Required] :" SSOSECRET
+if [ -z "$SSOSECRET" ]
+then
+      echo "Error: SSO SECRET must be set"
+      exit 1
+fi
+
+echo "#------------------------------------------------------------#"
+echo "Applying configuration..." 
 defaultDomain="mydomain.com"
+echo $DOMAIN
 sed -i "s|$defaultDomain|$DOMAIN|g" ./haproxy/nginx/nginx.conf
+
+defaultDbPwd1="POSTGRES_PASSWORD:-secret"
+defaultDbPwd2="Password=secret"
+
+sed -i "s|$defaultDbPwd1|$DBPASSWORD|g" ./eve-whmapper/docker-compose.yml
+sed -i "s|$defaultDbPwd2|$DBPASSWORD|g" ./eve-whmapper/docker-compose.yml
+
+defaultSSOClientId="EveSSO__ClientId=xxxxxxxxx"
+sed -i "s|$defaultSSOClientId|$SSOCLIENTID|g" ./eve-whmapper/docker-compose.yml
+
+defaultSSOSecret="EveSSO__Secret=xxxxxxxxx"
+sed -i "s|$defaultSSOSecret|$SSOSECRET|g" ./eve-whmapper/docker-compose.yml
+
+exit 0
 
 echo "Initializing..."
 
