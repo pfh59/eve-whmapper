@@ -8,17 +8,18 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./conf/haproxy:/usr/local/etc/haproxy/:ro
+      - ./conf:/usr/local/etc/haproxy/:ro
+      - ./certs:/usr/local/etc/certs:ro
     networks:
       - net
-      - portainer_net
       - eve-whmapper_net
+  
   nginx-certbot:
     image: nginx:latest
     restart: always
     container_name: nginx-certbot
     volumes:
-      - ./conf/nginx/:/etc/nginx/conf.d/:ro
+      - ./nginx/:/etc/nginx/conf.d/:ro
       - ./certbot/www/:/var/www/certbot:ro
       - ./certbot/conf/:/etc/nginx/ssl/:ro
     networks:
@@ -34,7 +35,6 @@ services:
 networks:
   net:
     driver: bridge
-  portainer_net:
-    external: true
   eve-whmapper_net:
     external: true
+  
