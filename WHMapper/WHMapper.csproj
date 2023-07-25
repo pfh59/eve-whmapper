@@ -8,6 +8,9 @@
     <UserSecretsId>6545e3a1-0941-41bf-a51b-1a58ca6ed175</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="MudBlazor" />
     <None Remove="MudBlazor.ThemeManager" />

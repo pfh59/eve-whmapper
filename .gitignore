@@ -15,6 +15,9 @@ Resources/SDE/universe/
 *.sln.docstates
 .vs
 .DS_Store
+**/appsettings.Development.json
+**/appsettings.Production.json
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
