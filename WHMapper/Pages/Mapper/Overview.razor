@@ -9,94 +9,86 @@
 
 
 
-<MudContainer MaxWidth=MaxWidth.ExtraExtraLarge>
-    <MudGrid Class="@(_loading ? "invisible" : "visible")">
-        <MudItem xs="12">       
-            <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste" style="height:100%;width:100%;">
-                <ActivatorContent>
-                    @if (!FeatureFlag.DISABLE_MULTI_MAP())
-                    {
-                        <MudTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" style="height:99%;width:99%;" Class="pa-5">
-                            <ChildContent>
-                                @foreach (var item in WHMaps)
-                                {
-                                    <div style="width: inherit; height: 60vh" Class="Rounded">
-                                        <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                            <CascadingValue Value="Diagram">
-                                                <DiagramCanvas></DiagramCanvas>
-                                            </CascadingValue>
-                                        </MudTabPanel>
-                                    </div>
-                                }
-                            </ChildContent>
-                            <Header Context="tabs_context">
-                                @if (_isAdmin)
-                                {
-                                    <MudButtonGroup>
-                                        <MudTooltip Text="Add new map">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="@( async () => AddNewMap() )" />
-                                        </MudTooltip>
-                                    </MudButtonGroup>
-                                }
-                            </Header>
-                        </MudTabs>
-                    }
-                    else
-                    {
-                        <MudCard Elevation="4" Rounded="true" Border="true" style="height:99%;width:99%;" Class="pa-5">
-                            <div style="width: inherit; height: 60vh" Class="Rounded">
-                                <CascadingValue Value="Diagram">
-                                    <DiagramCanvas></DiagramCanvas>
-                                </CascadingValue>
+<MudPaper Class="@(_loading ? "invisible" : "visible ma-2")" Outlined="true" Square="true" Height="60vh" MinHeight="60vh">
+    <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste" style="height: 100%; width: 100%;">
+        <ActivatorContent>
+            @if (!FeatureFlag.DISABLE_MULTI_MAP())
+            {
+                <MudTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" style="height: inherit; width: inherit;" Class="pa-5">
+                    <ChildContent>
+                        @foreach (var item in WHMaps)
+                        {
+                            <div style="width: inherit; height: inherit" Class="Rounded">
+                                <MudTabPanel Text="@item.Name" Tag="@item.Id">
+                                    <CascadingValue Value="Diagram">
+                                        <DiagramCanvas></DiagramCanvas>
+                                    </CascadingValue>
+                                </MudTabPanel>
                             </div>
-                        </MudCard>
-                    }
-                    </ActivatorContent>
-                <ChildContent>
-                    @if (_selectedSystemLink == null && _selectedSystemNode == null)
-                    {
-                        <MudMenuItem OnClick="OpenSearchAndAddDialog">Add System</MudMenuItem>
-                    }
+                        }
+                    </ChildContent>
+                    <Header Context="tabs_context">
+                        @if (_isAdmin)
+                        {
+                            <MudButtonGroup>
+                                <MudTooltip Text="Add new map">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="@( async () => AddNewMap() )" />
+                                </MudTooltip>
+                            </MudButtonGroup>
+                        }
+                    </Header>
+                </MudTabs>
+            }
+            else
+            {
+                <div style="width: 100%; height: 100%" Class="Rounded">
+                    <CascadingValue Value="Diagram">
+                        <DiagramCanvas></DiagramCanvas>
+                    </CascadingValue>
+                </div>
+            }
+        </ActivatorContent>
+        <ChildContent>
+            @if (_selectedSystemLink == null && _selectedSystemNode == null)
+            {
+                <MudMenuItem OnClick="OpenSearchAndAddDialog">Add System</MudMenuItem>
+            }
 
-                    @if (_selectedSystemLink != null)
-                    {
-                        <MudMenuItem OnClick="@(() => ToggleSlectedSystemLinkEOL())" Disabled="@(_selectedSystemLink == null)">Toggle EOL</MudMenuItem>
-                        <div class="d-flex flex-column">
-                            <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
-                                     EndIcon="@Icons.Material.Filled.ArrowRight" Label="Status" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
-                                <ChildContent>
-                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))">Normal</MudMenuItem>
-                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))">Critical</MudMenuItem>
-                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))">Verge</MudMenuItem>
-                                </ChildContent>
-                            </MudMenu>
+            @if (_selectedSystemLink != null)
+            {
+                <MudMenuItem OnClick="@(() => ToggleSlectedSystemLinkEOL())" Disabled="@(_selectedSystemLink == null)">Toggle EOL</MudMenuItem>
+                <div class="d-flex flex-column">
+                    <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
+                             EndIcon="@Icons.Material.Filled.ArrowRight" Label="Status" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
+                        <ChildContent>
+                            <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))">Normal</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))">Critical</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))">Verge</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
 
-                            <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
-                                     EndIcon="@Icons.Material.Filled.ArrowRight" Label="Size" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
-                                <ChildContent>
-                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))">Small</MudMenuItem>
-                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))">Medium</MudMenuItem>
-                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))">Large</MudMenuItem>
-                                    <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))">XLarge</MudMenuItem>
-                                </ChildContent>
-                            </MudMenu>
-                        </div>
-                    }
+                    <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
+                             EndIcon="@Icons.Material.Filled.ArrowRight" Label="Size" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
+                        <ChildContent>
+                            <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))">Small</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))">Medium</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))">Large</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))">XLarge</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                </div>
+            }
 
-                </ChildContent>
-            </MudMenu>
+        </ChildContent>
+    </MudMenu>
+</MudPaper>
+<MudPaper Elevation="0" Class="@(_loading ? "invisible" : "visible")">
+    <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Stretch">
+        <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
+        <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
+    </MudStack>
+</MudPaper>
 
-
-        </MudItem>
-        <MudItem xs="3">
-            <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
-        </MudItem>
-        <MudItem xs="9">
-            <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
-        </MudItem>
-    </MudGrid>
-
-    <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
-        <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
-    </MudOverlay>
-</MudContainer>
+<MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
+</MudOverlay>
