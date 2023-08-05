@@ -1,0 +1,9 @@
+changelog:
+  categories:
+    - title: 🏕 Features
+      labels:
+        - features
+        - user story
+    - title: 👒 Bugs
+      labels:
+        - bug
