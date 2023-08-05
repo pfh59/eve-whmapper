@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -27,19 +28,15 @@ namespace WHMapper.Tests.WHHelper
         private int EVE_CORPO_ID = 1344654522;
         private int EVE_ALLIANCE_ID = 1354830081;
 
-        private WHMapperContext _context;
+        IDbContextFactory<WHMapperContext> _contextFactory;
         private IEveMapperAccessHelper _accessHelper;
         private IWHAccessRepository _whAccessRepository;
         private IWHAdminRepository _whAdminRepository;
 
+        
+
         public EveWHAccessHelperTest()
         {
-
-            var services = new ServiceCollection();
-            services.AddHttpClient();
-            var provider = services.BuildServiceProvider();
-            var httpclientfactory = provider.GetService<IHttpClientFactory>();
-
 
             //Create DB Context
             var configuration = new ConfigurationBuilder()
@@ -47,12 +44,19 @@ namespace WHMapper.Tests.WHHelper
                 .AddEnvironmentVariables()
                 .Build();
 
-            var optionBuilder = new DbContextOptionsBuilder<WHMapperContext>();
-            optionBuilder.UseNpgsql(configuration["ConnectionStrings:DefaultConnection"]);
+            var services = new ServiceCollection();
+            services.AddDbContextFactory<WHMapperContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-            _context = new WHMapperContext(optionBuilder.Options);
-            _whAccessRepository = new WHAccessRepository(_context);
-            _whAdminRepository = new WHAdminRepository(_context);
+            services.AddHttpClient();
+
+            var provider = services.BuildServiceProvider();
+            var httpclientfactory = provider.GetService<IHttpClientFactory>();
+
+
+            _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+            _whAccessRepository = new WHAccessRepository(_contextFactory);
+            _whAdminRepository = new WHAdminRepository(_contextFactory);
             _accessHelper = new EveMapperAccessHelper(_whAccessRepository,_whAdminRepository, new CharacterServices(httpclientfactory.CreateClient()));
 
             
@@ -62,10 +66,14 @@ namespace WHMapper.Tests.WHHelper
         public async Task Delete_And_Create_DB()
         {
             //Delete all to make a fresh Db
-            bool dbDeleted = await _context.Database.EnsureDeletedAsync();
-            Assert.True(dbDeleted);
-            bool dbCreated = await _context.Database.EnsureCreatedAsync();
-            Assert.True(dbCreated);
+
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                bool dbDeleted = await context.Database.EnsureDeletedAsync();
+                Assert.True(dbDeleted);
+                bool dbCreated = await context.Database.EnsureCreatedAsync();
+                Assert.True(dbCreated);
+            }
 
         }
 

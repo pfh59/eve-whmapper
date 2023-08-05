@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection.Metadata;
 using Microsoft.EntityFrameworkCore;
 using WHMapper.Models.Db;
 
@@ -36,10 +37,13 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.SoloarSystemId }).IsUnique(true);
             modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.Name }).IsUnique(true);
             modelBuilder.Entity<WHSystem>().HasOne<WHMap>().WithMany(x => x.WHSystems).HasForeignKey(x =>x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHSystem>().HasMany<WHSystemLink>().WithOne().HasForeignKey(x=>x.IdWHSystemFrom).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHSystem>().HasMany<WHSystemLink>().WithOne().HasForeignKey(x => x.IdWHSystemTo).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<WHSystemLink>().ToTable("SystemLinks");
             modelBuilder.Entity<WHSystemLink>().HasIndex(x => new { x.IdWHSystemFrom, x.IdWHSystemTo }).IsUnique(true);
             modelBuilder.Entity<WHSystemLink>().HasOne<WHMap>().WithMany(x => x.WHSystemLinks).HasForeignKey(x =>x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+      
 
             modelBuilder.Entity<WHSignature>().ToTable("Signatures");
             modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.Name }).IsUnique(true);

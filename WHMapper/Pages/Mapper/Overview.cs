@@ -25,9 +25,6 @@ using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.EveMapper;
 using Blazor.Diagrams.Core.Behaviors;
-
-
-
 namespace WHMapper.Pages.Mapper
 {
 
@@ -280,6 +277,7 @@ namespace WHMapper.Pages.Mapper
 
                                 var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
                                 newSystemNode.OnLocked += OnWHSystemNodeLocked;
+                                _selectedWHMap.WHSystems.Add(newWHSystem);
                                 Diagram?.Nodes?.Add(newSystemNode);
                             }
                         }
@@ -294,14 +292,16 @@ namespace WHMapper.Pages.Mapper
                     {
                         try
                         {
-                            if (wormholeId > 0 && mapId == _selectedWHMap?.Id)
+                            if (DbWHMaps!=null && _selectedWHMap!=null && wormholeId > 0 && _selectedWHMap?.Id== mapId)
                             {
-                                var sustemNodeToDelete = Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
-                                if (sustemNodeToDelete != null)
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
+                                var systemNodeToDelete = Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
+                                if (systemNodeToDelete != null)
                                 {
-                                    Diagram?.Nodes?.Remove(sustemNodeToDelete);
+                                    Diagram?.Nodes?.Remove(systemNodeToDelete);
 
-                                    if (((EveSystemNodeModel)sustemNodeToDelete).IdWH == _currentWHSystemId)
+
+                                    if (((EveSystemNodeModel)systemNodeToDelete).IdWH == _currentWHSystemId)
                                     {
                                         _currentLocation = null;
                                         _currentSystemNode = null;
@@ -312,6 +312,7 @@ namespace WHMapper.Pages.Mapper
                                             StateHasChanged();
                                         }
                                     }
+
                                 }
                             }
                         }
@@ -325,30 +326,17 @@ namespace WHMapper.Pages.Mapper
                     {
                         try
                         {
-                            if (linKId > 0 && mapId == _selectedWHMap?.Id)
+                            if (DbWHMaps != null && linKId > 0 && _selectedWHMap!=null && _selectedWHMap?.Id== mapId )
                             {
-
-                                var link = await DbWHSystemLinks.GetById(linKId);
-                                while (link == null)
-                                    link = await DbWHSystemLinks.GetById(linKId);
-
-                                var whFrom = await DbWHSystems.GetById(link.IdWHSystemFrom);
-                                while (whFrom == null)
-                                    whFrom = await DbWHSystems.GetById(link.IdWHSystemFrom);
-
-
-                                var whTo = await DbWHSystems.GetById(link.IdWHSystemTo);
-                                while (whTo == null)
-                                    whTo = await DbWHSystems.GetById(link.IdWHSystemTo);
-
-                                if (whFrom != null && whTo != null)
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
+                                var link = _selectedWHMap.WHSystemLinks.Where(x => x.Id == linKId).SingleOrDefault();
+                                if (link != null)
                                 {
-                                    EveSystemNodeModel newSystemNodeFrom = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
-                                    EveSystemNodeModel newSystemNodeTo = Diagram?.Nodes?.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
+                                    EveSystemNodeModel? newSystemNodeFrom = (EveSystemNodeModel?)(Diagram?.Nodes?.FirstOrDefault(x => (x as EveSystemNodeModel).IdWH == link.IdWHSystemFrom));
+                                    EveSystemNodeModel? newSystemNodeTo = (EveSystemNodeModel?)(Diagram?.Nodes?.FirstOrDefault(x => (x as EveSystemNodeModel).IdWH == link.IdWHSystemTo));
                                     Diagram?.Links?.Add(new EveSystemLinkModel(link, newSystemNodeFrom, newSystemNodeTo));
                                 }
                             }
-
                         }
                         catch (Exception ex)
                         {
@@ -356,12 +344,14 @@ namespace WHMapper.Pages.Mapper
                         }
                     });
 
-                    _hubConnection.On<string, int, int>("NotifyLinkRemoved", (user, mapId, linKId) =>
+                    _hubConnection.On<string, int, int>("NotifyLinkRemoved", async (user, mapId, linKId) =>
                     {
                         try
                         {
-                            if (linKId > 0 && mapId == _selectedWHMap?.Id)
-                            {
+                            if (DbWHMaps != null && linKId > 0 && _selectedWHMap != null && _selectedWHMap?.Id == mapId)
+                            { 
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
+
                                 var linkToDel = Diagram?.Links?.FirstOrDefault(x => ((EveSystemLinkModel)x).Id == linKId);
                                 if (linkToDel != null)
                                     Diagram?.Links?.Remove(linkToDel);
@@ -374,12 +364,14 @@ namespace WHMapper.Pages.Mapper
                         }
                     });
 
-                    _hubConnection.On<string, int, int, double, double>("NotifyWormoleMoved", (user, mapId, wormholeId, posX, posY) =>
+                    _hubConnection.On<string, int, int, double, double>("NotifyWormoleMoved", async (user, mapId, wormholeId, posX, posY) =>
                     {
                         try
                         {
-                            if (wormholeId > 0 && mapId == _selectedWHMap?.Id)
+                            if (DbWHMaps != null && _selectedWHMap != null && wormholeId > 0 && _selectedWHMap?.Id == mapId)
                             {
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
+
                                 var whToMoved = Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
                                 if (whToMoved != null)
                                     whToMoved.SetPosition(posX, posY);
@@ -391,12 +383,13 @@ namespace WHMapper.Pages.Mapper
                         }
                     });
 
-                    _hubConnection.On<string, int, int, bool, SystemLinkSize, SystemLinkMassStatus>("NotifyLinkChanged", (user, mapId, linkId, eol, size, mass) =>
+                    _hubConnection.On<string, int, int, bool, SystemLinkSize, SystemLinkMassStatus>("NotifyLinkChanged",async (user, mapId, linkId, eol, size, mass) =>
                     {
                         try
                         {
-                            if (linkId > 0 && mapId == _selectedWHMap?.Id)
+                            if (DbWHMaps != null && linkId > 0 && _selectedWHMap != null && _selectedWHMap?.Id == mapId)
                             {
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
                                 var linkToChanged = Diagram?.Links?.FirstOrDefault(x => ((EveSystemLinkModel)x).Id == linkId);
                                 if (linkToChanged != null)
                                 {
@@ -413,12 +406,13 @@ namespace WHMapper.Pages.Mapper
                         }
                     });
 
-                    _hubConnection.On<string, int, int>("NotifyWormholeNameExtensionChanged", (user, mapId, wormholeId) =>
+                    _hubConnection.On<string, int, int>("NotifyWormholeNameExtensionChanged", async (user, mapId, wormholeId) =>
                     {
                         try
                         {
-                            if (wormholeId > 0 && mapId == _selectedWHMap?.Id)
+                            if (DbWHMaps != null && _selectedWHMap != null && wormholeId > 0 && _selectedWHMap?.Id == mapId)
                             {
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
                                 EveSystemNodeModel systemToIncrementNameExtenstion = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
                                 if (systemToIncrementNameExtenstion != null)
                                     systemToIncrementNameExtenstion.Refresh();
@@ -435,8 +429,9 @@ namespace WHMapper.Pages.Mapper
                     {
                         try
                         {
-                            if (_selectedWHMap!=null && _selectedSystemNode!=null && wormholeId > 0 && mapId == _selectedWHMap.Id)
+                            if (DbWHMaps != null && _selectedWHMap != null && wormholeId > 0 && _selectedWHMap?.Id == mapId)
                             {
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
                                 if (_selectedSystemNode.IdWH == wormholeId)
                                 {
                                     await WHSignaturesView.Restore();
@@ -457,6 +452,7 @@ namespace WHMapper.Pages.Mapper
                         {
                             if (_selectedWHMap != null && _selectedSystemNode != null && wormholeId > 0 && mapId == _selectedWHMap.Id)
                             {
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
                                 EveSystemNodeModel whChangeLock = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
                                 if(whChangeLock!=null)
                                 {
@@ -883,7 +879,13 @@ namespace WHMapper.Pages.Mapper
                         WHMaps = await DbWHMaps.GetAll();
 
                 }
-                _selectedWHMap = WHMaps.FirstOrDefault();
+                else
+                {
+                    _selectedWHMap = WHMaps.FirstOrDefault();
+                }
+
+
+                
 
                 if (_selectedWHMap != null && _selectedWHMap.WHSystems.Count > 0)
                 {
@@ -899,6 +901,7 @@ namespace WHMapper.Pages.Mapper
 
                 if (_selectedWHMap!=null && _selectedWHMap.WHSystemLinks!=null && _selectedWHMap.WHSystemLinks.Count > 0)
                 {
+                    
                     foreach (WHSystemLink dbWHSysLink in _selectedWHMap.WHSystemLinks)
                     {
                         var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
@@ -913,7 +916,10 @@ namespace WHMapper.Pages.Mapper
                         else
                         {
                             Logger.LogWarning("Bad Link,Auto remove");
-                            await DbWHSystemLinks.DeleteById(dbWHSysLink.Id);
+                            if(await DbWHSystemLinks.DeleteById(dbWHSysLink.Id))
+                            {
+                                _selectedWHMap.WHSystemLinks.Remove(dbWHSysLink);
+                            }
                         }
                     }
                 }
@@ -979,6 +985,15 @@ namespace WHMapper.Pages.Mapper
 
                 if (await DbWHSystems.DeleteById(node.IdWH) != null)
                 {
+                    var whSystemToDelete = map.WHSystems.FirstOrDefault(x => x.Id == node.IdWH);
+                    if(whSystemToDelete!=null)
+                        map.WHSystems.Remove(whSystemToDelete);
+
+                    //db link will be automatically delete via db foreignkey cascade
+                    var whSystemLinksToDetele = map.WHSystemLinks.Where(x => x.IdWHSystemFrom == node.IdWH || x.IdWHSystemTo == node.IdWH);
+                    foreach(var linkToDelete in whSystemLinksToDetele)
+                        map.WHSystemLinks.Remove(linkToDelete);
+                    
                     await NotifyWormholeRemoved(map.Id, node.IdWH);
                     return true;
                 }
@@ -1004,6 +1019,10 @@ namespace WHMapper.Pages.Mapper
 
                 if(await DbWHSystemLinks.DeleteById(link.Id))
                 {
+                    var whSystemLinkToDelete = map.WHSystemLinks.FirstOrDefault(x => x.Id == link.Id);
+                    if (whSystemLinkToDelete != null)
+                        map.WHSystemLinks.Remove(whSystemLinkToDelete);
+
                     await NotifyLinkRemoved(map.Id, link.Id);
                     return true;
                 }
@@ -1075,6 +1094,7 @@ namespace WHMapper.Pages.Mapper
 
                 if (newLink != null)
                 {
+                    _selectedWHMap.WHSystemLinks.Add(newLink);
                     Diagram.Links.Add(new EveSystemLinkModel(newLink, src, target));
                     await this.NotifyLinkAdded(map.Id, newLink.Id);
 
@@ -1221,6 +1241,7 @@ namespace WHMapper.Pages.Mapper
                             newSystemNode.OnLocked += OnWHSystemNodeLocked;
                             await newSystemNode.AddConnectedUser(_userName);
 
+                            _selectedWHMap.WHSystems.Add(newWHSystem);
                             Diagram.Nodes.Add(newSystemNode);
                             await this.NotifyWormoleAdded(_selectedWHMap.Id, newWHSystem.Id);
                             await this.NotifyUserPosition(_currentSolarSystem.Name);
@@ -1470,7 +1491,7 @@ namespace WHMapper.Pages.Mapper
             if (!result.Cancelled)
             {
                 int whAddedId = (int)result.Data;
-                if(whAddedId>0)
+                if (whAddedId > 0)
                     await this.NotifyWormoleAdded(_selectedWHMap.Id, whAddedId);
             }
 
