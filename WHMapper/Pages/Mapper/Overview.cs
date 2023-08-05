@@ -406,7 +406,7 @@ namespace WHMapper.Pages.Mapper
                         }
                     });
 
-                    _hubConnection.On<string, int, int>("NotifyWormholeNameExtensionChanged", async (user, mapId, wormholeId) =>
+                    _hubConnection.On<string, int, int,bool>("NotifyWormholeNameExtensionChanged", async (user, mapId, wormholeId,increment) =>
                     {
                         try
                         {
@@ -415,7 +415,14 @@ namespace WHMapper.Pages.Mapper
                                 _selectedWHMap = await DbWHMaps.GetById(mapId);
                                 EveSystemNodeModel systemToIncrementNameExtenstion = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
                                 if (systemToIncrementNameExtenstion != null)
+                                {
+                                    if (increment)
+                                        systemToIncrementNameExtenstion.IncrementNameExtension();
+                                    else
+                                        systemToIncrementNameExtenstion.DecrementNameExtension();
+
                                     systemToIncrementNameExtenstion.Refresh();
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -538,11 +545,11 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-        private async Task NotifyWormholeNameExtensionChanged(int mapId, int wormholeId)
+        private async Task NotifyWormholeNameExtensionChanged(int mapId, int wormholeId,bool increment)
         {
             if (_hubConnection is not null)
             {
-                await _hubConnection.SendAsync("SendWormholeNameExtensionChanged", mapId, wormholeId);
+                await _hubConnection.SendAsync("SendWormholeNameExtensionChanged", mapId, wormholeId, increment);
             }
         }
 
@@ -1065,7 +1072,7 @@ namespace WHMapper.Pages.Mapper
 
                     if (wh != null)
                     {
-                        await NotifyWormholeNameExtensionChanged(map.Id, wh.Id);
+                        await NotifyWormholeNameExtensionChanged(map.Id, wh.Id, increment);
                         return true;
                     }
                 }
