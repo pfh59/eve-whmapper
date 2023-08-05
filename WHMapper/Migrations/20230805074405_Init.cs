@@ -55,30 +55,6 @@ namespace WHMapper.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SystemLinks",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    WHMapId = table.Column<int>(type: "integer", nullable: false),
-                    IdWHSystemFrom = table.Column<int>(type: "integer", nullable: false),
-                    IdWHSystemTo = table.Column<int>(type: "integer", nullable: false),
-                    IsEndOfLifeConnection = table.Column<bool>(type: "boolean", nullable: false),
-                    Size = table.Column<int>(type: "integer", nullable: false),
-                    MassStatus = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SystemLinks", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SystemLinks_Maps_WHMapId",
-                        column: x => x.WHMapId,
-                        principalTable: "Maps",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Systems",
                 columns: table => new
                 {
@@ -130,6 +106,42 @@ namespace WHMapper.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SystemLinks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    WHMapId = table.Column<int>(type: "integer", nullable: false),
+                    IdWHSystemFrom = table.Column<int>(type: "integer", nullable: false),
+                    IdWHSystemTo = table.Column<int>(type: "integer", nullable: false),
+                    IsEndOfLifeConnection = table.Column<bool>(type: "boolean", nullable: false),
+                    Size = table.Column<int>(type: "integer", nullable: false),
+                    MassStatus = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SystemLinks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SystemLinks_Maps_WHMapId",
+                        column: x => x.WHMapId,
+                        principalTable: "Maps",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SystemLinks_Systems_IdWHSystemFrom",
+                        column: x => x.IdWHSystemFrom,
+                        principalTable: "Systems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SystemLinks_Systems_IdWHSystemTo",
+                        column: x => x.IdWHSystemTo,
+                        principalTable: "Systems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Accesses_EveEntityId_EveEntity",
                 table: "Accesses",
@@ -164,6 +176,11 @@ namespace WHMapper.Migrations
                 table: "SystemLinks",
                 columns: new[] { "IdWHSystemFrom", "IdWHSystemTo" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SystemLinks_IdWHSystemTo",
+                table: "SystemLinks",
+                column: "IdWHSystemTo");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SystemLinks_WHMapId",

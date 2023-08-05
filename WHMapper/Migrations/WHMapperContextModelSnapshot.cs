@@ -17,7 +17,7 @@ namespace WHMapper.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "7.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -213,6 +213,8 @@ namespace WHMapper.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IdWHSystemTo");
+
                     b.HasIndex("WHMapId");
 
                     b.HasIndex("IdWHSystemFrom", "IdWHSystemTo")
@@ -241,6 +243,18 @@ namespace WHMapper.Migrations
 
             modelBuilder.Entity("WHMapper.Models.Db.WHSystemLink", b =>
                 {
+                    b.HasOne("WHMapper.Models.Db.WHSystem", null)
+                        .WithMany()
+                        .HasForeignKey("IdWHSystemFrom")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WHMapper.Models.Db.WHSystem", null)
+                        .WithMany()
+                        .HasForeignKey("IdWHSystemTo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("WHMapper.Models.Db.WHMap", null)
                         .WithMany("WHSystemLinks")
                         .HasForeignKey("WHMapId")

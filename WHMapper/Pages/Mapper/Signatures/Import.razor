@@ -8,7 +8,7 @@
         </MudForm>
 </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_success==false)">Update Signatures</MudButton>
+        <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" OnClick="Submit" Disabled="@(_success==false)">Update Signatures</MudButton>
     </DialogActions>
 </MudDialog>

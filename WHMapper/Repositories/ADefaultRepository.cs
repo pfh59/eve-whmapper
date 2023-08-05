@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace WHMapper.Repositories
 {
@@ -12,9 +13,9 @@ namespace WHMapper.Repositories
     /// <typeparam name="C">Server DbContext</typeparam>
     /// <typeparam name="T">Object to Manage in database</typeparam>
     /// <typeparam name="U">type of Id of Object</typeparam>
-    public abstract class ADefaultRepository<C,T, U> : IDefaultRepository<T, U>
+    public abstract class ADefaultRepository<C,T, U>  where C : DbContext 
     {
-        protected readonly C _dbContext;
+        protected readonly IDbContextFactory<C> _contextFactory;
 
         protected abstract Task<IEnumerable<T>?> AGetAll();
         protected abstract Task<T?> AGetById(U id);
@@ -22,12 +23,9 @@ namespace WHMapper.Repositories
         protected abstract Task<T?> AUpdate(U id, T item);
         protected abstract Task<bool> ADeleteById(U id);
 
-
-        protected static SemaphoreSlim semSlim = new SemaphoreSlim(1, 1);
-
-        public ADefaultRepository(C dbContext)
+        public ADefaultRepository(IDbContextFactory<C> dbContext)
         {
-            _dbContext = dbContext; 
+            _contextFactory = dbContext; 
         }
 
         public async Task<T?> Create(T item)
@@ -55,6 +53,8 @@ namespace WHMapper.Repositories
         {
             return await AUpdate(id, item);
         }
+
+        
 
     }
 }

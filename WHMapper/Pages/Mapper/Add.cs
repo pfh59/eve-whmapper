@@ -29,6 +29,14 @@ namespace WHMapper.Pages.Mapper
     [Authorize(Policy = "Access")]
     public partial class Add : Microsoft.AspNetCore.Components.ComponentBase
     {
+        private const string MSG_SEARCH_ERROR = "Search System Error";
+        private const string MSG_BAD_SOLAR_SYSTEM_NAME_ERROR = "Bad solar system name";
+        private const string MSG_ADD_WORHMOLE_DB_ERROR = "Add Wormhole db error";
+
+
+        [Inject]
+        public ILogger<Add> Logger { get; set; } = null!;
+
         [Inject]
         private IEveMapperHelper MapperServices { get; set; } = null!;
 
@@ -64,6 +72,7 @@ namespace WHMapper.Pages.Mapper
 
         private HashSet<SDESolarSystem> _systems = null!;
         private string _searchResult = string.Empty;
+        private bool _searchInProgress = false;
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
@@ -98,18 +107,20 @@ namespace WHMapper.Pages.Mapper
                     }
 
                     var solarSystem = await EveServices.UniverseServices.GetSystem(sdeSolarSystem.SolarSystemID);
-                    // var newWHSystem = await DbWHMaps.AddWHSystem(CurrentWHMap.Id, new WHSystem(solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY));//change position
                     var newWHSystem = await DbWHSystems.Create(new WHSystem(CurrentWHMap.Id,solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY)); //change position
 
 
                     if (newWHSystem == null)
                     {
-                        //Logger.LogError("Add Wormhole db error");
-                        Snackbar?.Add("Add Wormhole db error", Severity.Error);
+                        Logger.LogError(MSG_ADD_WORHMOLE_DB_ERROR);
+                        Snackbar?.Add(MSG_ADD_WORHMOLE_DB_ERROR, Severity.Error);
+                        return;
                     }
 
 
+                   
                     var nodeModel = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
+                    CurrentWHMap.WHSystems.Add(newWHSystem);
                     CurrentDiagram?.Nodes.Add(nodeModel);
 
                     Snackbar?.Add(String.Format("{0} solar system successfully added",nodeModel.Name), Severity.Success);
@@ -128,7 +139,8 @@ namespace WHMapper.Pages.Mapper
             }
             else
             {
-                Snackbar?.Add("Bad solar system name", Severity.Error);
+                Logger.LogError(MSG_BAD_SOLAR_SYSTEM_NAME_ERROR);
+                Snackbar?.Add(MSG_BAD_SOLAR_SYSTEM_NAME_ERROR, Severity.Error);
                 MudDialog.Close(DialogResult.Cancel);
             }
         }
@@ -141,35 +153,50 @@ namespace WHMapper.Pages.Mapper
 
         private async Task<IEnumerable<string>?> Search(string value)
         {
-           
-            if (string.IsNullOrEmpty(value) || SDEServices == null)
+            try
+            {
+
+                if (string.IsNullOrEmpty(value) || SDEServices == null || value.Length < 3 || _searchInProgress)
+                    return null;
+
+                _systems?.Clear();
+                _searchInProgress = true;
+
+                _systems = (HashSet<SDESolarSystem>)await SDEServices.SearchSystem(value);
+
+                _searchInProgress = false;
+                if (_systems != null)
+                    return _systems.Select(x => x.Name);
+                else
+                    return null;
+            }
+            catch(Exception ex)
+            {
+                Logger.LogError(ex, MSG_SEARCH_ERROR);
+                Snackbar.Add(MSG_SEARCH_ERROR, Severity.Error);
                 return null;
-
-            _systems =  SDEServices.SearchSystem(value).ToHashSet<SDESolarSystem>();
-
-
-            if (_systems != null) 
-                return _systems.Select(x => x.Name);
-            else
-                return null; 
-        }
+            }
+}
 
         private IEnumerable<string> Validate(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
+                _searchInProgress = false;
                 yield return "The system solar name is required";
                 yield break;
             }
 
             if (value.Length<3)
             {
+                _searchInProgress = false;
                 yield return "Please enter 3 or more characters";
                 yield break;
             }
 
             if(_systems==null || _systems.Where(x=>x.Name.ToLower() == value.ToLower()).FirstOrDefault()==null)
             {
+                _searchInProgress = false;
                 yield return "Bad Solar system name";
                 yield break;
             }

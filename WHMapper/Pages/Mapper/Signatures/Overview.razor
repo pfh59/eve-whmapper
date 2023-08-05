@@ -1,84 +1,84 @@
 @using WHMapper.Models.DTO.Anoik;
 
 
-<MudCard Outlined="true" style="height:99%;width:99%;" Class="@(CurrentSystemNodeId ==null ? "invisible" : "visible")">
-    <MudTable Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Virtualize="true" Height="250px" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
-              CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
-              RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true">
 
-        <ColGroup>
-            <col style="width: 120px;" />
-            <col style="width: 140px;" />
-            <col />
-            <col />
-            <col style="width: 120px;" />
-            <col />
-            <col style="width: 120px;" />
-            <col />
-        </ColGroup>
-        <HeaderContent>
-            <MudTh Style="text-align:left"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align:left"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Group.ToString())">Group</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align:left">Type</MudTh>
-            <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Created)">Created</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align:center">Created by</MudTh>
-            <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Updated)">Updated</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align:center">Updated by</MudTh>
-            <MudTh Style="text-align:right">
-                <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true)" />
-                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllSignature())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true || Signatures==null || Signatures.Count()==0)"></MudIconButton>
-            </MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
-            <MudTd DataLabel="Group" Style="text-align:left">@context.Group</MudTd>
-            @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type) && context.Type.Contains(" -> "))
+<MudTable Class="@(CurrentSystemNodeId == null ? "invisible ma-2" : "visible ma-2")" Outlined="true" Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Height="30vh" style="width: 100%;" Virtualize="true" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
+            CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
+            RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true">
+
+    <ColGroup>
+        <col style="width: 120px;" />
+        <col style="width: 140px;" />
+        <col />
+        <col />
+        <col style="width: 120px;" />
+        <col />
+        <col style="width: 120px;" />
+        <col />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh Style="text-align:left"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:left"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Group.ToString())">Group</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:left">Type</MudTh>
+        <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Created)">Created</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:center">Created by</MudTh>
+        <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Updated)">Updated</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:center">Updated by</MudTh>
+        <MudTh Style="text-align:right">
+            <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true)" />
+            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllSignature())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true || Signatures==null || Signatures.Count()==0)"></MudIconButton>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
+        <MudTd DataLabel="Group" Style="text-align:left">@context.Group</MudTd>
+        @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type) && context.Type.Contains(" -> "))
+        {
+            var splitRes = @context.Type.Split(" -> ");
+            <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(splitRes[1])}; text-align:left")">@context.Type</MudTd>
+        }
+        else
+        {
+            <MudTd DataLabel="Type" Style="text-align:left">@context.Type</MudTd>
+        }
+        <MudTd DataLabel="Created" Style="text-align:center">@(DateDiff(_currentDateTime,context.Created))</MudTd>
+        <MudTd DataLabel="Created by">@context.CreatedBy</MudTd>
+        <MudTd DataLabel="Updated" Style="text-align:center">@(DateDiff(_currentDateTime,context.Updated))</MudTd>
+        <MudTd DataLabel="Updated by">@context.UpdatedBy</MudTd>
+        <MudTd Style="text-align:center">
+            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteSignature(@context.Id))" Disabled="@(_isEditingSignature==true)" />
+        </MudTd>
+    </RowTemplate>
+    <RowEditingTemplate>
+        <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
+        <MudTd DataLabel="Group" Style="text-align:left">
+            <MudSelect @bind-Value="@context.Group" Required="true">
+                @foreach (WHMapper.Models.Db.Enums.WHSignatureGroup item in Enum.GetValues(typeof(WHMapper.Models.Db.Enums.WHSignatureGroup)))
+                {
+                    <MudSelectItem Value="@item" Style="text-align:left">@GetDisplayText(item)</MudSelectItem>
+                }
+            </MudSelect>
+
+        </MudTd>
+        <MudTd DataLabel="Type" Style="text-align:left">
+            @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole)
             {
-                var splitRes = @context.Type.Split(" -> ");
-                <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(splitRes[1])}; text-align:left")">@context.Type</MudTd>
+                <MudSelect @bind-Value="@context.Type" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense">
+                    @foreach (WormholeTypeInfo wti in AnoikServices.GetWormholeTypes().Result)
+                    {
+                        <MudSelectItem Value="@wti.ToString()" Style="@($"color:{WHColorHelper.GetSystemTypeColor(wti.Destination)}; text-align:left")">@wti.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
             }
             else
             {
-                <MudTd DataLabel="Type" Style="text-align:left">@context.Type</MudTd>
+                <MudTextField @bind-Value="@context.Type" Style="text-align:left" />
             }
-            <MudTd DataLabel="Created" Style="text-align:center">@(DateDiff(_currentDateTime,context.Created))</MudTd>
-            <MudTd DataLabel="Created by">@context.CreatedBy</MudTd>
-            <MudTd DataLabel="Updated" Style="text-align:center">@(DateDiff(_currentDateTime,context.Updated))</MudTd>
-            <MudTd DataLabel="Updated by">@context.UpdatedBy</MudTd>
-            <MudTd Style="text-align:center">
-                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteSignature(@context.Id))" Disabled="@(_isEditingSignature==true)" />
-            </MudTd>
-        </RowTemplate>
-        <RowEditingTemplate>
-            <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
-            <MudTd DataLabel="Group" Style="text-align:left">
-                <MudSelect @bind-Value="@context.Group" Required="true">
-                    @foreach (WHMapper.Models.Db.Enums.WHSignatureGroup item in Enum.GetValues(typeof(WHMapper.Models.Db.Enums.WHSignatureGroup)))
-                    {
-                        <MudSelectItem Value="@item" Style="text-align:left">@GetDisplayText(item)</MudSelectItem>
-                    }
-                </MudSelect>
+        </MudTd>
+        <MudTd DataLabel="Created" Style="text-align:center">@(DateDiff(_currentDateTime,context.Created))</MudTd>
+        <MudTd DataLabel="Created by" Style="text-align:center">@context.CreatedBy</MudTd>
+        <MudTd DataLabel="Updated" Style="text-align:center">@(DateDiff(_currentDateTime,context.Updated))</MudTd>
+        <MudTd DataLabel="Updated by" Style="text-align:center">@context.UpdatedBy</MudTd>
+    </RowEditingTemplate>
+</MudTable>
 
-            </MudTd>
-            <MudTd DataLabel="Type" Style="text-align:left">
-                @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole)
-                {
-                    <MudSelect @bind-Value="@context.Type" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense">
-                        @foreach (WormholeTypeInfo wti in AnoikServices.GetWormholeTypes().Result)
-                        {
-                            <MudSelectItem Value="@wti.ToString()" Style="@($"color:{WHColorHelper.GetSystemTypeColor(wti.Destination)}; text-align:left")">@wti.ToString()</MudSelectItem>
-                        }
-                    </MudSelect>
-                }
-                else
-                {
-                    <MudTextField @bind-Value="@context.Type" Style="text-align:left" />
-                }
-            </MudTd>
-            <MudTd DataLabel="Created" Style="text-align:center">@(DateDiff(_currentDateTime,context.Created))</MudTd>
-            <MudTd DataLabel="Created by" Style="text-align:center">@context.CreatedBy</MudTd>
-            <MudTd DataLabel="Updated" Style="text-align:center">@(DateDiff(_currentDateTime,context.Updated))</MudTd>
-            <MudTd DataLabel="Updated by" Style="text-align:center">@context.UpdatedBy</MudTd>
-        </RowEditingTemplate>
-    </MudTable>
-</MudCard>

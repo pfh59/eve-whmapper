@@ -15,8 +15,6 @@ namespace WHMapper.Services.WHSignatures
 {
     public class WHSignatureHelper : IWHSignatureHelper
     {
-        private const string SCAN_VALIDATION_REGEX = "[a-zA-Z]{3}-[0-9]{3}\\s([a-zA-Z\\s]+)[0-9]*.[0-9]+%\\s[0-9]*.[0-9]+\\sAU";
-
         private IWHSignatureRepository _dbWHSignatures;
         
         public WHSignatureHelper(IWHSignatureRepository sigRepo)
@@ -30,7 +28,7 @@ namespace WHMapper.Services.WHSignatures
             {
                 if (!string.IsNullOrEmpty(scanResult))
                 {
-                    Match match = Regex.Match(scanResult, SCAN_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
+                    Match match = Regex.Match(scanResult, IWHSignatureHelper.SCAN_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
                     return match.Success;
                 }
                 return false;

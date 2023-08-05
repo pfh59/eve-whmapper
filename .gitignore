@@ -4,9 +4,6 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 
-#unzip SDE ressources
-Resources/SDE/universe/
-
 # User-specific files
 *.rsuser
 *.suo
@@ -15,6 +12,11 @@ Resources/SDE/universe/
 *.sln.docstates
 .vs
 .DS_Store
+**/appsettings.Development.json
+**/appsettings.Production.json
+#unzip SDE ressources
+**/Resources/SDE/universe/
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

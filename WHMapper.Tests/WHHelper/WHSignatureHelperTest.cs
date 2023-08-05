@@ -12,7 +12,7 @@ namespace WHMapper.Tests.WHHelper
 	{
         private const int WH_ID = 1;
         private const string SCAN_USER = "FOOBAR";
-        private const string DSCAN = "IGU-360\tCosmic Signature\t\t\t0,0%\t37,21 AU\nRNN-835\tCosmic Signature\t\t\t0,0%\t21,98 AU\nETT-010\tCosmic Signature\t\t\t0,0%\t27,03 AU\nHBO-538\tCosmic Signature\t\t\t0,0%\t38,17 AU\nOBF-800\tCosmic Signature\t\t\t0,0%\t35,48 AU\nBNU-740\tCosmic Signature\t\t\t0,0%\t34,86 AU\nAWU-108\tCosmic Signature\tGas Site\t\t0,0%\t26,19 AU\nDXY-229\tCosmic Signature\tGas Site\tSizeable Perimeter Reservoir\t100,0%\t28,07 AU\nQBJ-502\tCosmic Signature\tRelic Site\tRuined Guristas Monument Site\t100,0%\t25,45 AU\nXQX-010\tCosmic Signature\tWormhole\tUnstable Wormhole\t100,0%\t23,50 AU";
+        private const string DSCAN = "IGU-360\tCosmic Signature\t\t\t0,0%\t37,21 AU\nWAM-436\tCosmic Signature\tWormhole\tUnstable Wormhole\t100,0%\t101 km\nRNN-835\tCosmic Signature\t\t\t0,0%\t21,98 AU\nETT-010\tCosmic Signature\t\t\t0,0%\t27,03 AU\nHBO-538\tCosmic Signature\t\t\t0,0%\t38,17 AU\nOBF-800\tCosmic Signature\t\t\t0,0%\t35,48 AU\nBNU-740\tCosmic Signature\t\t\t0,0%\t34,86 AU\nAWU-108\tCosmic Signature\tGas Site\t\t0,0%\t26,19 AU\nDXY-229\tCosmic Signature\tGas Site\tSizeable Perimeter Reservoir\t100,0%\t28,07 AU\nQBJ-502\tCosmic Signature\tRelic Site\tRuined Guristas Monument Site\t100,0%\t25,45 AU\nXQX-010\tCosmic Signature\tWormhole\tUnstable Wormhole\t100,0%\t23,50 AU";
         private const string FIRST_SIG_NAME = "IGU-360";
         private const string LAST_SIG_NAME = "XQX-010";
         private const string UNSTABLE_WORMHOLE = "Unstable Wormhole";
@@ -46,7 +46,7 @@ namespace WHMapper.Tests.WHHelper
 
             var parseDSCAN1= await _whHelper.ParseScanResult(SCAN_USER, WH_ID,DSCAN);
             Assert.NotEmpty(parseDSCAN1);
-            Assert.Equal(10, parseDSCAN1.Count());
+            Assert.Equal(11, parseDSCAN1.Count());
 
             var firstSig = parseDSCAN1.First();
 

@@ -24,8 +24,6 @@ namespace WHMapper.Pages.Mapper.Signatures
     [Authorize(Policy = "Access")]
     public partial class Import : Microsoft.AspNetCore.Components.ComponentBase
     {
-        private const string _scanResultRegex = "[a-zA-Z]{3}-[0-9]{3}\\s([a-zA-Z\\s]+)[0-9]*.[0-9]+%\\s[0-9]*.[0-9]+\\sAU";
-
 
         [Inject]
         private IEveUserInfosServices UserService { get; set; } = null!;
@@ -48,7 +46,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         private FluentValueValidator<string> _ccValidator = new FluentValueValidator<string>(x => x
             .NotEmpty()
             .NotNull()
-            .Matches(_scanResultRegex));
+            .Matches(IWHSignatureHelper.SCAN_VALIDATION_REGEX));
 
         private string _scanResult = String.Empty;
         private bool _lazyDeleted = false;

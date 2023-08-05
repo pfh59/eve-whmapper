@@ -56,8 +56,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
-builder.Services.AddDbContext<WHMapperContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),ServiceLifetime.Transient);
+builder.Services.AddDbContextFactory<WHMapperContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSignalR();
 
@@ -99,6 +99,10 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 
 
 IConfigurationSection evessoConf = builder.Configuration.GetSection("EveSSO");
+IConfigurationSection evessoConfScopes = evessoConf.GetSection("DefaultScopes");
+
+
+
 AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
@@ -110,11 +114,11 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
     options.ClientSecret = evessoConf["Secret"];
     options.CallbackPath = new PathString("/sso/callback");
     options.Scope.Clear();
-    options.Scope.Add("esi-location.read_location.v1");
-    options.Scope.Add("esi-location.read_ship_type.v1");
-    options.Scope.Add("esi-ui.open_window.v1");
-    options.Scope.Add("esi-ui.write_waypoint.v1");
-    options.Scope.Add("esi-search.search_structures.v1");
+
+    foreach (string scope in evessoConfScopes.Get<string[]>())
+        options.Scope.Add(scope);
+
+
     options.SaveTokens = true;
     options.UsePkce = true;
 })

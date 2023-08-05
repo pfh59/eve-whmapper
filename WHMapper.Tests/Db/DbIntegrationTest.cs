@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
@@ -31,9 +33,10 @@ public class DbIntegrationTest
 
     private const int FOOBAR_SYSTEM_ID2 = 1234567;
     private const string FOOBAR_SHORT_UPDATED = "FooBarU";
-    private WHMapperContext _context;
+    private IDbContextFactory<WHMapperContext> _contextFactory;
 
-    
+
+
     public DbIntegrationTest()
     {
         //Create DB Context
@@ -42,10 +45,13 @@ public class DbIntegrationTest
             .AddEnvironmentVariables()
             .Build();
 
-        var optionBuilder = new DbContextOptionsBuilder<WHMapperContext>();
-        optionBuilder.UseNpgsql(configuration["ConnectionStrings:DefaultConnection"]);
+        var services = new ServiceCollection();
+        services.AddDbContextFactory<WHMapperContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-         _context = new WHMapperContext(optionBuilder.Options);
+        var provider = services.BuildServiceProvider();
+        _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+
     }
 
 
@@ -53,11 +59,14 @@ public class DbIntegrationTest
     [Fact, Priority(1)]
     public async Task DeleteAndCreateDatabse()
     {
-        //Delete all to make a fresh Db
-        bool dbDeleted = await _context.Database.EnsureDeletedAsync();
-        Assert.True(dbDeleted);
-        bool dbCreated = await _context.Database.EnsureCreatedAsync();
-        Assert.True(dbCreated);
+        using (var context = _contextFactory.CreateDbContext())
+        {
+            //Delete all to make a fresh Db
+            bool dbDeleted = await context.Database.EnsureDeletedAsync();
+            Assert.True(dbDeleted);
+            bool dbCreated = await context.Database.EnsureCreatedAsync();
+            Assert.True(dbCreated);
+        }
 
     }
 
@@ -65,7 +74,7 @@ public class DbIntegrationTest
     public async Task CRUD_WHMAP()
     {
         //Create IWHMapRepository
-        IWHMapRepository repo = new WHMapRepository(_context);
+        IWHMapRepository repo = new WHMapRepository(_contextFactory);
 
         //ADD WHMAP
         var result = await repo.Create(new WHMap(FOOBAR));
@@ -99,7 +108,7 @@ public class DbIntegrationTest
     {
         //init MAP
         //Create IWHMapRepository
-        IWHMapRepository repoMap = new WHMapRepository(_context);
+        IWHMapRepository repoMap = new WHMapRepository(_contextFactory);
 
         //ADD WHMAP
         var map = await repoMap.Create(new WHMap(FOOBAR));
@@ -107,7 +116,7 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR, map?.Name);
 
         //Create IWHMapRepository
-        IWHSystemRepository repo = new WHSystemRepository(_context);
+        IWHSystemRepository repo = new WHSystemRepository(_contextFactory);
 
 
         //GETALL system => return empty arry
@@ -173,7 +182,7 @@ public class DbIntegrationTest
     {
         //init MAP
         //Create IWHMapRepository
-        IWHMapRepository repoMap = new WHMapRepository(_context);
+        IWHMapRepository repoMap = new WHMapRepository(_contextFactory);
 
         //ADD WHMAP
         var map = await repoMap.Create(new WHMap(FOOBAR));
@@ -182,7 +191,7 @@ public class DbIntegrationTest
 
 
         //Create IWHMapRepository
-        IWHSystemRepository repoWH = new WHSystemRepository(_context);
+        IWHSystemRepository repoWH = new WHSystemRepository(_contextFactory);
         Assert.NotNull(map);
         var whSys1 = await repoWH.Create(new WHSystem(map.Id,FOOBAR_SYSTEM_ID, FOOBAR, 1));
         Assert.NotNull(whSys1);
@@ -201,7 +210,7 @@ public class DbIntegrationTest
 
 
         //Create IWHMapRepository
-        IWHSystemLinkRepository repo = new WHSystemLinkRepository(_context);
+        IWHSystemLinkRepository repo = new WHSystemLinkRepository(_contextFactory);
 
         //add whsystem link
         var link = await repo.Create(new WHSystemLink(map.Id,whSys1.Id, whSys2.Id));
@@ -249,7 +258,7 @@ public class DbIntegrationTest
     {
         //init MAP
         //Create IWHMapRepository
-        IWHMapRepository repoMap = new WHMapRepository(_context);
+        IWHMapRepository repoMap = new WHMapRepository(_contextFactory);
 
         //ADD WHMAP
         var map = await repoMap.Create(new WHMap(FOOBAR));
@@ -258,7 +267,7 @@ public class DbIntegrationTest
 
 
         //Create IWHMapRepository
-        IWHSystemRepository repoWH = new WHSystemRepository(_context);
+        IWHSystemRepository repoWH = new WHSystemRepository(_contextFactory);
         Assert.NotNull(map);
         var whSys1 = await repoWH.Create(new WHSystem(map.Id, FOOBAR_SYSTEM_ID, FOOBAR, 1));
         Assert.NotNull(whSys1);
@@ -269,7 +278,7 @@ public class DbIntegrationTest
 
 
         //Create IWHMapRepository
-        IWHSignatureRepository repo = new WHSignatureRepository(_context);
+        IWHSignatureRepository repo = new WHSignatureRepository(_contextFactory);
 
         //ADD WHSignature
         var result = await repo.Create(new WHSignature(whSys1.Id,FOOBAR));
@@ -356,7 +365,7 @@ public class DbIntegrationTest
     public async Task CRUD_WHAdmin()
     {
         //Create IWHMapRepository
-        IWHAdminRepository repo = new WHAdminRepository(_context);
+        IWHAdminRepository repo = new WHAdminRepository(_contextFactory);
 
         //ADD WHMAP
         var result = await repo.Create(new WHAdmin(EVE_CHARACTERE_ID, "TOTO"));
@@ -390,7 +399,7 @@ public class DbIntegrationTest
     public async Task CRUD_WHAccess()
     {
         //Create IWHMapRepository
-        IWHAccessRepository repo = new WHAccessRepository(_context);
+        IWHAccessRepository repo = new WHAccessRepository(_contextFactory);
 
         //ADD WHMAP
         var result = await repo.Create(new WHAccess(EVE_CORPO_ID,"TOTO", WHAccessEntity.Corporation));

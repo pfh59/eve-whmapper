@@ -5,7 +5,7 @@ namespace WHMapper.Services.SDE
 {
 	public interface ISDEServices
 	{
-		IEnumerable<SDESolarSystem> SearchSystem(string value);
+        Task<IEnumerable<SDESolarSystem>> SearchSystem(string value);
 	}
 }
 
