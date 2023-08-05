@@ -143,12 +143,12 @@ namespace WHMapper.Hubs
             }
         }
 
-        public async Task SendWormholeNameExtensionChanged(int mapId, int wowrmholeId)
+        public async Task SendWormholeNameExtensionChanged(int mapId, int wowrmholeId,bool increment)
         {
             string userName = CurrentUser();
             if (!string.IsNullOrEmpty(userName))
             {
-                await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionChanged(userName, mapId, wowrmholeId);
+                await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionChanged(userName, mapId, wowrmholeId,increment);
             }
 
         }
