@@ -6,6 +6,7 @@
 @using Blazor.Diagrams.Components;
 @using Blazor.Diagrams.Algorithms;
 @using WHMapper.Models.Db.Enums;
+@using Blazor.Diagrams.Components.Widgets; 
 
 
 
@@ -20,7 +21,7 @@
                         {
                             <div style="width: inherit; height: inherit" Class="Rounded">
                                 <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                    <CascadingValue Value="Diagram">
+                                    <CascadingValue Value="Diagram" IsFixed="true">
                                         <DiagramCanvas></DiagramCanvas>
                                     </CascadingValue>
                                 </MudTabPanel>

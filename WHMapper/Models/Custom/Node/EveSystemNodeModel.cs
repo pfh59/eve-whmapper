@@ -102,7 +102,7 @@ namespace WHMapper.Models.Custom.Node
             _wh = wh;
 
             Title = this.Name;
-            Class = whClass.ToUpper();
+            Class = (whClass != null ? whClass.ToUpper() : string.Empty);
             Effect = whEffects;
             EffectsInfos = whEffectsInfos;
             Statics = whStatics;

@@ -75,9 +75,9 @@
   <ItemGroup>
     <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.8" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.31.0" />
-    <PackageReference Include="Z.Blazor.Diagrams" Version="3.0.0-beta.7" />
-    <PackageReference Include="Z.Blazor.Diagrams.Algorithms" Version="3.0.0-beta.7" />
-    <PackageReference Include="Z.Blazor.Diagrams.Core" Version="3.0.0-beta.7" />
+    <PackageReference Include="Z.Blazor.Diagrams" Version="3.0.0" />
+    <PackageReference Include="Z.Blazor.Diagrams.Algorithms" Version="3.0.0" />
+    <PackageReference Include="Z.Blazor.Diagrams.Core" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.8" />
     <PackageReference Include="Npgsql" Version="7.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
@@ -85,13 +85,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="FluentValidation" Version="11.6.0" />
+    <PackageReference Include="FluentValidation" Version="11.7.1" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.31.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.8" />
-    <PackageReference Include="YamlDotNet" Version="13.1.1" />
-    <PackageReference Include="MudBlazor" Version="6.8.0" />
+    <PackageReference Include="YamlDotNet" Version="13.2.0" />
+    <PackageReference Include="MudBlazor" Version="6.9.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />

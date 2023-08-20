@@ -579,9 +579,7 @@ namespace WHMapper.Pages.Mapper
                 {
                     Logger.LogInformation("Start Init Diagram");
                     Diagram = new BlazorDiagram();
-                    //Diagram.UnregisterBehavior<SelectionBehavior>();
                     Diagram.UnregisterBehavior<DragMovablesBehavior>();
-                    //Diagram.RegisterBehavior(new CustomDiagramSelectionBehavior(Diagram));
                     Diagram.RegisterBehavior(new CustomDragMovablesBehavior(Diagram));
 
 
