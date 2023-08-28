@@ -22,6 +22,8 @@ namespace WHMapper.Services.SDE
 
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
 
+        private IDeserializer _deserializer;
+
         public SDEServices(ILogger<SDEServices> logger)
 		{
             _logger = logger;
@@ -35,6 +37,10 @@ namespace WHMapper.Services.SDE
                     archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
                 }
             }
+
+            _deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .Build();
         }
 
 
@@ -45,18 +51,7 @@ namespace WHMapper.Services.SDE
                 HashSet<SDESolarSystem> results = new HashSet<SDESolarSystem>();
                 var directories = (IEnumerable<string>)Directory.EnumerateDirectories(SDE_TARGET_DIRECTORY, $"{value}*", _directorySearchOptions) ;
 
-                var deserializer = new DeserializerBuilder()
-                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                    .Build();
 
-                /*
-                await Parallel.ForEachAsync(directories.Take(20), _options, async (allianceId, token) =>
-                {
-                    //var alliance = await EveAPIServices.AllianceServices.GetAlliance(allianceId);
-                    //_eveCharacterEntities.Add(new WHAccess(allianceId, alliance.Name, Models.Db.Enums.WHAccessEntity.Alliance));
-                });*/
-
-                //foreach (string directoryPath in directories)
                 await Parallel.ForEachAsync(directories.Take(20), _options, async (directoryPath, token) =>
                 {
                     var sdeFiles = Directory.GetFiles(directoryPath);
@@ -66,7 +61,7 @@ namespace WHMapper.Services.SDE
                         {
                             try
                             {
-                                var res = deserializer.Deserialize<SDESolarSystem>(text_reader);
+                                var res = _deserializer.Deserialize<SDESolarSystem>(text_reader);
                                 res.Name = Path.GetFileName(directoryPath);
                                 results.Add(res);
                             }

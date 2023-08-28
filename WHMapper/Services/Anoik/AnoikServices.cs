@@ -221,6 +221,12 @@ namespace WHMapper.Services.Anoik
             res = res.Append(new WormholeTypeInfo("K162", "LS", null));
             res = res.Append(new WormholeTypeInfo("K162", "NS", null));
             res = res.Append(new WormholeTypeInfo("K162", "C12", null));
+            //Add Potchven
+            res = res.Append(new WormholeTypeInfo("X450", "Pochven", null));
+            res = res.Append(new WormholeTypeInfo("R081", "Pochven", null));
+            res = res.Append(new WormholeTypeInfo("U372", "Pochven", null));
+            res = res.Append(new WormholeTypeInfo("F216", "Pochven", null));
+            res = res.Append(new WormholeTypeInfo("C729", "Pochven", null));
 
             return res.OrderBy(x => x.Name);
         }
