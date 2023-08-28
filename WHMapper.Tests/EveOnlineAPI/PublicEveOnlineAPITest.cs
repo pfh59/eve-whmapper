@@ -164,8 +164,6 @@ namespace WHMapper.Tests.EveOnlineAPI
             Assert.Equal(WORMHOLE_GROUP_NAME, whGroups.Name);
         }
 
-
-
         [Fact]
         public async Task Get_Universe_Types_And_Type()
         {

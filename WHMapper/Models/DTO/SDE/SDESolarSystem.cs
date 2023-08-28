@@ -36,7 +36,7 @@ namespace WHMapper.Models.DTO.SDE
         
         public float Security { get; set; }
 
-        public char SecurityClass { get; set; }
+        public string SecurityClass { get; set; }
 
         public int SolarSystemID { get;  set; }
 
