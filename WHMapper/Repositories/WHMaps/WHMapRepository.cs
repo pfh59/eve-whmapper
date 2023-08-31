@@ -41,19 +41,11 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    var deleteRow = await context.DbWHMaps.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    if (deleteRow > 0)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to delete WHMap id : {0}", id));
+                var deleteRow = await context.DbWHMaps.Where(x => x.Id == id).ExecuteDeleteAsync();
+                if (deleteRow > 0)
+                    return true;
+                else
                     return false;
-                }
             }
         }
 
@@ -61,23 +53,13 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-
-                    if (context.DbWHMaps.Count() == 0)
-                        return await context.DbWHMaps.ToListAsync();
-                    else
-                        return await context.DbWHMaps
-                                .Include(x => x.WHSystems)
-                                .Include(x => x.WHSystemLinks)
-                                .OrderBy(x => x.Name).ToListAsync();
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogError(ex, "Impossible to get all WHMaps");
-                    return null;
-                }
-
+                if (context.DbWHMaps.Count() == 0)
+                    return await context.DbWHMaps.ToListAsync();
+                else
+                    return await context.DbWHMaps
+                            .Include(x => x.WHSystems)
+                            .Include(x => x.WHSystemLinks)
+                            .OrderBy(x => x.Name).ToListAsync();
             }
         }
 
@@ -85,18 +67,10 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHMaps
-                                .Include(x => x.WHSystems)
-                                .Include(x => x.WHSystemLinks)
-                                .OrderBy(x => x.Name).FirstOrDefaultAsync(x => x.Id==id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHMap by id : {0}", id));
-                    return null;
-                }
+                return await context.DbWHMaps
+                            .Include(x => x.WHSystems)
+                            .Include(x => x.WHSystemLinks)
+                            .OrderBy(x => x.Name).FirstOrDefaultAsync(x => x.Id==id);
             }
         }
 

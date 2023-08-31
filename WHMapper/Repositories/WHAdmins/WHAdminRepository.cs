@@ -39,19 +39,11 @@ namespace WHMapper.Repositories.WHAdmins
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    var deleteRow = await context.DbWHAdmins.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    if (deleteRow > 0)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to delete WHAdmin access : {0}", id));
+                var deleteRow = await context.DbWHAdmins.Where(x => x.Id == id).ExecuteDeleteAsync();
+                if (deleteRow > 0)
+                    return true;
+                else
                     return false;
-                }
             }
         }
 
@@ -59,15 +51,7 @@ namespace WHMapper.Repositories.WHAdmins
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHAdmins.ToListAsync();
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogError(ex, "Impossible to get all WHAdmin accesses");
-                    return null;
-                }
+                return await context.DbWHAdmins.ToListAsync();
             }
         }
 
@@ -75,15 +59,7 @@ namespace WHMapper.Repositories.WHAdmins
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHAdmins.FindAsync(id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHAdmin access by id: {0}", id));
-                    return null;
-                }
+                return await context.DbWHAdmins.FindAsync(id);
             }
 
         }

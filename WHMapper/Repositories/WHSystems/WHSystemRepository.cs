@@ -41,19 +41,11 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    int deleteRow = await context.DbWHSystems.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    if (deleteRow > 0)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to delete WHSystem id : {0}", id));
+                int deleteRow = await context.DbWHSystems.Where(x => x.Id == id).ExecuteDeleteAsync();
+                if (deleteRow > 0)
+                    return true;
+                else
                     return false;
-                }
             }
         }
 
@@ -61,20 +53,12 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    if (context.DbWHSystems.Count() == 0)
-                        return await context.DbWHSystems.ToListAsync();
-                    else
-                        return await context.DbWHSystems.OrderBy(x => x.Name)
-                                .Include(x => x.WHSignatures)
-                                .ToListAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Impossible to get all WHSystems id : {0}");
-                    return null;
-                }
+                if (context.DbWHSystems.Count() == 0)
+                    return await context.DbWHSystems.ToListAsync();
+                else
+                    return await context.DbWHSystems.OrderBy(x => x.Name)
+                            .Include(x => x.WHSignatures)
+                            .ToListAsync();
             }
         }
 
@@ -82,19 +66,9 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    var res = await context.DbWHSystems
-                            .Include(x => x.WHSignatures)
-                            .SingleOrDefaultAsync(x => x.Id == id);
-
-                    return res;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHSystem by id : {0}", id));
-                    return null;
-                }
+                return await context.DbWHSystems
+                        .Include(x => x.WHSignatures)
+                        .SingleOrDefaultAsync(x => x.Id == id);
             }
 
         }
@@ -124,15 +98,7 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHSystems.Include(x => x.WHSignatures).FirstOrDefaultAsync(x => x.Name == name);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get by name WHSystem : {0}", name));
-                    return null;
-                }
+                return await context.DbWHSystems.Include(x => x.WHSignatures).FirstOrDefaultAsync(x => x.Name == name);
             }
         }
     }
