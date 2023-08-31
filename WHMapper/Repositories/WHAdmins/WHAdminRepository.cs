@@ -2,14 +2,16 @@
 using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHMaps;
+using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHAdmins
 {
 	public class WHAdminRepository : ADefaultRepository<WHMapperContext, WHAdmin, int>, IWHAdminRepository
     {
-        public WHAdminRepository(IDbContextFactory<WHMapperContext> context)
-            : base(context)
+        public WHAdminRepository(ILogger<WHAdminRepository> logger,IDbContextFactory<WHMapperContext> context)
+            : base(logger,context)
         {
         }
 
@@ -26,6 +28,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to create WHAdmin access : {0}", item.EveCharacterName));
                     return null;
                 }
             }
@@ -46,6 +49,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to delete WHAdmin access : {0}", id));
                     return false;
                 }
             }
@@ -61,6 +65,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch(Exception ex)
                 {
+                    _logger.LogError(ex, "Impossible to get all WHAdmin accesses");
                     return null;
                 }
             }
@@ -76,6 +81,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to get WHAdmin access by id: {0}", id));
                     return null;
                 }
             }
@@ -97,6 +103,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to update WHAdmin access : {0}", item.EveCharacterName));
                     return null;
                 }
             }

@@ -3,13 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHAdmins;
+using WHMapper.Services.EveAPI;
+using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHAccesses
 {
     public class WHAccessRepository : ADefaultRepository<WHMapperContext, WHAccess, int>, IWHAccessRepository
     {
-        public WHAccessRepository(IDbContextFactory<WHMapperContext> context)
-            : base(context)
+
+        public WHAccessRepository(ILogger<WHAccessRepository> logger,IDbContextFactory<WHMapperContext> context)
+            : base(logger,context)
         {
         }
 
@@ -26,6 +29,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to create WHAccess for : {0}",item.EveEntityName));
                     return null;
                 }
 
@@ -46,6 +50,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to delete WHAccess id : {0}", id));
                     return false;
                 }
             }
@@ -61,6 +66,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Impossible to get all WHAccesses");
                     return null;
                 }
             }
@@ -77,6 +83,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to get WHAccess by id : {0}", id));
                     return null;
                 }
             }
@@ -97,6 +104,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to update WHAccess : {0}", item.EveEntityName));
                     return null;
                 }
             }

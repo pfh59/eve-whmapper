@@ -1,15 +1,19 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Repositories.WHAccesses;
 using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHMaps
 {
     public class WHMapRepository : ADefaultRepository<WHMapperContext, WHMap, int>, IWHMapRepository
     {
-        public WHMapRepository(IDbContextFactory<WHMapperContext> context)
-            : base(context)
+
+        public WHMapRepository(ILogger<WHMapRepository> logger, IDbContextFactory<WHMapperContext> context)
+            : base(logger,context)
         {
         }
 
@@ -26,6 +30,7 @@ namespace WHMapper.Repositories.WHMaps
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to create WHMap : {0}", item.Name));
                     return null;
                 }
             }
@@ -46,6 +51,7 @@ namespace WHMapper.Repositories.WHMaps
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to delete WHMap id : {0}", id));
                     return false;
                 }
             }
@@ -68,6 +74,7 @@ namespace WHMapper.Repositories.WHMaps
                 }
                 catch(Exception ex)
                 {
+                    _logger.LogError(ex, "Impossible to get all WHMaps");
                     return null;
                 }
 
@@ -87,6 +94,7 @@ namespace WHMapper.Repositories.WHMaps
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to get WHMap by id : {0}", id));
                     return null;
                 }
             }
@@ -107,6 +115,7 @@ namespace WHMapper.Repositories.WHMaps
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to update WHMap : {0}", item.Name));
                     return null;
                 }
             }

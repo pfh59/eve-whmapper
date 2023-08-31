@@ -14,6 +14,7 @@ using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Character;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveMapper;
+using WHMapper.Services.SDE;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper
@@ -55,8 +56,8 @@ namespace WHMapper.Tests.WHHelper
 
 
             _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
-            _whAccessRepository = new WHAccessRepository(_contextFactory);
-            _whAdminRepository = new WHAdminRepository(_contextFactory);
+            _whAccessRepository = new WHAccessRepository(new NullLogger<WHAccessRepository>(),_contextFactory);
+            _whAdminRepository = new WHAdminRepository(new NullLogger<WHAdminRepository>(),_contextFactory);
             _accessHelper = new EveMapperAccessHelper(_whAccessRepository,_whAdminRepository, new CharacterServices(httpclientfactory.CreateClient()));
 
             

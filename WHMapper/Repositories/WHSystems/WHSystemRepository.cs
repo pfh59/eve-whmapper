@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Security.Cryptography.Xml;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Repositories.WHAccesses;
 using YamlDotNet.Core;
 using static MudBlazor.CategoryTypes;
 
@@ -10,8 +12,8 @@ namespace WHMapper.Repositories.WHSystems
 {
     public class WHSystemRepository : ADefaultRepository<WHMapperContext, WHSystem, int>, IWHSystemRepository
     {
-        public WHSystemRepository(IDbContextFactory<WHMapperContext> context)
-            : base(context)
+        public WHSystemRepository(ILogger<WHSystemRepository> logger,IDbContextFactory<WHMapperContext> context)
+            : base(logger,context)
         {
         }
 
@@ -29,7 +31,7 @@ namespace WHMapper.Repositories.WHSystems
                 }
                 catch (Exception ex)
                 {
-
+                    _logger.LogError(ex, String.Format("Impossible to create WHSystem : {0}", item.Name));
                     return null;
                 }
             }
@@ -41,11 +43,15 @@ namespace WHMapper.Repositories.WHSystems
             {
                 try
                 {
-                    await context.DbWHSystems.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    return true;
+                    int deleteRow = await context.DbWHSystems.Where(x => x.Id == id).ExecuteDeleteAsync();
+                    if (deleteRow > 0)
+                        return true;
+                    else
+                        return false;
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to delete WHSystem id : {0}", id));
                     return false;
                 }
             }
@@ -66,6 +72,7 @@ namespace WHMapper.Repositories.WHSystems
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Impossible to get all WHSystems id : {0}");
                     return null;
                 }
             }
@@ -85,7 +92,7 @@ namespace WHMapper.Repositories.WHSystems
                 }
                 catch (Exception ex)
                 {
-
+                    _logger.LogError(ex, String.Format("Impossible to get WHSystem by id : {0}", id));
                     return null;
                 }
             }
@@ -107,6 +114,7 @@ namespace WHMapper.Repositories.WHSystems
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to udpate WHSystem : {0}", item.Name));
                     return null;
                 }
             }
@@ -122,7 +130,7 @@ namespace WHMapper.Repositories.WHSystems
                 }
                 catch (Exception ex)
                 {
-
+                    _logger.LogError(ex, String.Format("Impossible to get by name WHSystem : {0}", name));
                     return null;
                 }
             }
