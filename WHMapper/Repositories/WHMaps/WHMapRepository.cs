@@ -67,7 +67,6 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-
                 return await context.DbWHMaps
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)

@@ -66,11 +66,9 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                var res = await context.DbWHSystems
+                return await context.DbWHSystems
                         .Include(x => x.WHSignatures)
                         .SingleOrDefaultAsync(x => x.Id == id);
-
-                return res;
             }
 
         }

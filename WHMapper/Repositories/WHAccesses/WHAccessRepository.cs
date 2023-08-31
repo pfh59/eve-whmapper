@@ -40,6 +40,7 @@ namespace WHMapper.Repositories.WHAccesses
         {
             using (var context = _contextFactory.CreateDbContext())
             {
+
                 var deleteRow = await context.DbWHAccesses.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
                     return true;
