@@ -1,7 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Repositories.WHAccesses;
 using static MudBlazor.CategoryTypes;
 
 
@@ -10,8 +12,8 @@ namespace WHMapper.Repositories.WHSignatures
 
     public class WHSignatureRepository : ADefaultRepository<WHMapperContext, WHSignature, int>, IWHSignatureRepository
     {
-        public WHSignatureRepository(IDbContextFactory<WHMapperContext> context)
-            : base(context)
+        public WHSignatureRepository(ILogger<WHSignatureRepository> logger,IDbContextFactory<WHMapperContext> context)
+            : base(logger,context)
         {
         }
 
@@ -29,6 +31,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to create WHSignature : {0}", item.Name));
                     return null;
                 }
             }
@@ -40,11 +43,15 @@ namespace WHMapper.Repositories.WHSignatures
             {
                 try
                 {
-                    await context.DbWHSignatures.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    return true;
+                    int rowDeleted = await context.DbWHSignatures.Where(x => x.Id == id).ExecuteDeleteAsync();
+                    if (rowDeleted > 0)
+                        return true;
+                    else
+                        return false;
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to delete WHSignature by id : {0}",id));
                     return false;
                 }
             }
@@ -64,6 +71,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch(Exception ex)
                 {
+                    _logger.LogError(ex, "Impossible to get all WHSignatures");
                     return null;
                 }
             }
@@ -79,6 +87,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to get WHSignature by id : {0}", id));
                     return null;
                 }
             }
@@ -99,6 +108,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to update WHSignature : {0}", item.Name));
                     return null;
                 }
             }
@@ -114,13 +124,14 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to get WHSignature by name : {0}", name));
                     return null;
                 }
             }
 
         }
 
-        public async Task<IEnumerable<WHSignature?>> Update(IEnumerable<WHSignature> whSignatures)
+        public async Task<IEnumerable<WHSignature?>?> Update(IEnumerable<WHSignature> whSignatures)
         {
             using (var context = _contextFactory.CreateDbContext())
             {
@@ -138,6 +149,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch(Exception ex)
                 {
+                    _logger.LogError(ex, "Impossible to update multiple WHSignatures");
                     return null;
                 }
             }
@@ -152,12 +164,16 @@ namespace WHMapper.Repositories.WHSignatures
                     if (context.DbWHSignatures.Count() == 0)
                         return await context.DbWHSignatures.ToListAsync();
                     else
+                    {
                         return await context.DbWHSignatures.Where(x => x.WHId == whid).OrderBy(x => x.Id)
                                 .ToListAsync();
+                    }
 
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to get WHSignature by WH id : {0}", whid));
+
                     return null;
                 }
             }
@@ -177,12 +193,14 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, String.Format("Impossible to delete WHSignature by WH id : {0}", whid));
+
                     return false;
                 }
             }
         }
 
-        public async Task<IEnumerable<WHSignature?>> Create(IEnumerable<WHSignature> whSignatures)
+        public async Task<IEnumerable<WHSignature?>?> Create(IEnumerable<WHSignature> whSignatures)
         {
             using (var context = _contextFactory.CreateDbContext())
             {
@@ -197,6 +215,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Impossible to create multiple WHSignatures");
                     return null;
                 }
             }

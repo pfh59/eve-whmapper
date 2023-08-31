@@ -15,6 +15,7 @@ namespace WHMapper.Repositories
     /// <typeparam name="U">type of Id of Object</typeparam>
     public abstract class ADefaultRepository<C,T, U>  where C : DbContext 
     {
+        protected readonly ILogger _logger;
         protected readonly IDbContextFactory<C> _contextFactory;
 
         protected abstract Task<IEnumerable<T>?> AGetAll();
@@ -23,9 +24,11 @@ namespace WHMapper.Repositories
         protected abstract Task<T?> AUpdate(U id, T item);
         protected abstract Task<bool> ADeleteById(U id);
 
-        public ADefaultRepository(IDbContextFactory<C> dbContext)
+        public ADefaultRepository(ILogger logger,IDbContextFactory<C> dbContext)
         {
-            _contextFactory = dbContext; 
+            _logger = logger;
+            _contextFactory = dbContext;
+
         }
 
         public async Task<T?> Create(T item)
