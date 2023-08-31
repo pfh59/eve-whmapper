@@ -23,10 +23,13 @@ namespace WHMapper.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<WHAccess>().ToTable("Accesses");
-            modelBuilder.Entity<WHAccess>().HasIndex(x => new { x.EveEntityId,x.EveEntity }).IsUnique(true);
+            modelBuilder.Entity<WHAccess>().HasIndex(x => new { x.EveEntityId }).IsUnique(true);
+            modelBuilder.Entity<WHAccess>().HasIndex(x => new { x.EveEntityName }).IsUnique(true);
+
 
             modelBuilder.Entity<WHAdmin>().ToTable("Admins");
             modelBuilder.Entity<WHAdmin>().HasIndex(x => new { x.EveCharacterId }).IsUnique(true);
+            modelBuilder.Entity<WHAdmin>().HasIndex(x => new { x.EveCharacterName }).IsUnique(true);
 
             modelBuilder.Entity<WHMap>().ToTable("Maps");
             modelBuilder.Entity<WHMap>().HasIndex(x => new { x.Name }).IsUnique(true);
@@ -46,7 +49,7 @@ namespace WHMapper.Data
       
 
             modelBuilder.Entity<WHSignature>().ToTable("Signatures");
-            modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.Name }).IsUnique(true);
+            modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.WHId,x.Name }).IsUnique(true);
             modelBuilder.Entity<WHSignature>().HasOne<WHSystem>().WithMany(x => x.WHSignatures).HasForeignKey(x=>x.WHId).IsRequired().OnDelete(DeleteBehavior.Cascade);
         }
     }

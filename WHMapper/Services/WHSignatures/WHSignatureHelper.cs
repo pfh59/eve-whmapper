@@ -104,8 +104,8 @@ namespace WHMapper.Services.WHSignatures
         public async Task<bool> ImportScanResult(string scanUser,int currentSystemScannedId,string? scanResult,bool lazyDeleted)
         {
             
-            bool sigUpdated = true;
-            bool sigAdded = true;
+            bool sigUpdated = false;
+            bool sigAdded = false;
 
             if (!await ValidateScanResult(scanResult))
                 throw new Exception("Bad signatures format");
