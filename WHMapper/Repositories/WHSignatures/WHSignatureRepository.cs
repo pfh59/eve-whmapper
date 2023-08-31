@@ -41,19 +41,11 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    int rowDeleted = await context.DbWHSignatures.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    if (rowDeleted > 0)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to delete WHSignature by id : {0}",id));
+                int rowDeleted = await context.DbWHSignatures.Where(x => x.Id == id).ExecuteDeleteAsync();
+                if (rowDeleted > 0)
+                    return true;
+                else
                     return false;
-                }
             }
         }
 
@@ -61,19 +53,11 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    if (context.DbWHSignatures.Count() == 0)
-                        return await context.DbWHSignatures.ToListAsync();
-                    else
-                        return await context.DbWHSignatures.OrderBy(x => x.Id)
-                                .ToListAsync();
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogError(ex, "Impossible to get all WHSignatures");
-                    return null;
-                }
+                if (context.DbWHSignatures.Count() == 0)
+                    return await context.DbWHSignatures.ToListAsync();
+                else
+                    return await context.DbWHSignatures.OrderBy(x => x.Id)
+                            .ToListAsync();
             }
         }
 
@@ -81,15 +65,7 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHSignatures.FindAsync(id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHSignature by id : {0}", id));
-                    return null;
-                }
+                return await context.DbWHSignatures.FindAsync(id);
             }
         }
 
@@ -118,15 +94,7 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHSignatures.FirstOrDefaultAsync(x => x.Name == name);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHSignature by name : {0}", name));
-                    return null;
-                }
+                return await context.DbWHSignatures.FirstOrDefaultAsync(x => x.Name == name);
             }
 
         }
@@ -159,22 +127,12 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
+                if (context.DbWHSignatures.Count() == 0)
+                    return await context.DbWHSignatures.ToListAsync();
+                else
                 {
-                    if (context.DbWHSignatures.Count() == 0)
-                        return await context.DbWHSignatures.ToListAsync();
-                    else
-                    {
-                        return await context.DbWHSignatures.Where(x => x.WHId == whid).OrderBy(x => x.Id)
-                                .ToListAsync();
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHSignature by WH id : {0}", whid));
-
-                    return null;
+                    return await context.DbWHSignatures.Where(x => x.WHId == whid).OrderBy(x => x.Id)
+                            .ToListAsync();
                 }
             }
         }
@@ -183,20 +141,11 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    int rowDeleted = await context.DbWHSignatures.Where(x => x.WHId == whid).ExecuteDeleteAsync();
-                    if (rowDeleted > 0)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to delete WHSignature by WH id : {0}", whid));
-
+                int rowDeleted = await context.DbWHSignatures.Where(x => x.WHId == whid).ExecuteDeleteAsync();
+                if (rowDeleted > 0)
+                    return true;
+                else
                     return false;
-                }
             }
         }
 

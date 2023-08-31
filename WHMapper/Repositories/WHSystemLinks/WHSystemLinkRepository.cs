@@ -39,19 +39,11 @@ namespace WHMapper.Repositories.WHSystemLinks
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    int rowDeleted = await context.DbWHSystemLinks.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    if (rowDeleted > 0)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to delete WHSystemLink id : {0}",id));
+                int rowDeleted = await context.DbWHSystemLinks.Where(x => x.Id == id).ExecuteDeleteAsync();
+                if (rowDeleted > 0)
+                    return true;
+                else
                     return false;
-                }
             }
         }
 
@@ -59,15 +51,7 @@ namespace WHMapper.Repositories.WHSystemLinks
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHSystemLinks.ToListAsync();
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogError(ex, "Impossible to get all WHSystemLinks");
-                    return null;
-                }
+                return await context.DbWHSystemLinks.ToListAsync();
             }
         }
 
@@ -75,15 +59,7 @@ namespace WHMapper.Repositories.WHSystemLinks
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHSystemLinks.FindAsync(id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHSystemLink by id : {0}", id));
-                    return null;
-                }
+                return await context.DbWHSystemLinks.FindAsync(id);
             }
         }
 

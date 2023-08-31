@@ -40,19 +40,11 @@ namespace WHMapper.Repositories.WHAccesses
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    var deleteRow = await context.DbWHAccesses.Where(x => x.Id == id).ExecuteDeleteAsync();
-                    if (deleteRow > 0)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to delete WHAccess id : {0}", id));
+                var deleteRow = await context.DbWHAccesses.Where(x => x.Id == id).ExecuteDeleteAsync();
+                if (deleteRow > 0)
+                    return true;
+                else
                     return false;
-                }
             }
         }
 
@@ -60,15 +52,7 @@ namespace WHMapper.Repositories.WHAccesses
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                try
-                {
-                    return await context.DbWHAccesses.ToListAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Impossible to get all WHAccesses");
-                    return null;
-                }
+                return await context.DbWHAccesses.ToListAsync();
             }
         }
 
@@ -76,16 +60,7 @@ namespace WHMapper.Repositories.WHAccesses
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-
-                try
-                {
-                    return await context.DbWHAccesses.FindAsync(id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, String.Format("Impossible to get WHAccess by id : {0}", id));
-                    return null;
-                }
+                return await context.DbWHAccesses.FindAsync(id);
             }
         }
 
