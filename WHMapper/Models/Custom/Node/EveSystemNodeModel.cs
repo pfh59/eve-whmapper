@@ -5,6 +5,7 @@ using Blazor.Diagrams.Core.Geometry;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
 using WHMapper.Models.Db;
+using WHMapper.Models.DTO.EveAPI.Universe;
 
 namespace WHMapper.Models.Custom.Node
 {
@@ -89,7 +90,9 @@ namespace WHMapper.Models.Custom.Node
 
         }
 
-        
+        public string RegionName { get; private set; }
+        public string ConstellationName { get; private set;}
+
         public String Class { get; private set; } = null!;
         public String Effect { get; private set; } = null!;
         public IEnumerable<KeyValuePair<string, string>> Statics { get; private set; } = null!;
@@ -97,9 +100,11 @@ namespace WHMapper.Models.Custom.Node
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
 
-        public EveSystemNodeModel(WHSystem wh, string whClass, string whEffects, IEnumerable<KeyValuePair<string, string>> whEffectsInfos, IEnumerable<KeyValuePair<string, string>> whStatics) 
+        public EveSystemNodeModel(WHSystem wh,string regionName, string constellationName,string whClass, string whEffects, IEnumerable<KeyValuePair<string, string>> whEffectsInfos, IEnumerable<KeyValuePair<string, string>> whStatics) 
         {
             _wh = wh;
+            RegionName = regionName;
+            ConstellationName = constellationName;
 
             Title = this.Name;
             Class = (whClass != null ? whClass.ToUpper() : string.Empty);
@@ -116,9 +121,12 @@ namespace WHMapper.Models.Custom.Node
 
         }
 
-        public EveSystemNodeModel(WHSystem wh)
+        public EveSystemNodeModel(WHSystem wh, string regionName, string constellationName)
         {
             _wh = wh;
+            RegionName = regionName;
+            ConstellationName = constellationName;
+
             Title = this.Name;
             Locked = wh.Locked;
 
