@@ -599,9 +599,9 @@ namespace WHMapper.Services.EveMapper
             if (IsWorhmole(systemName))//WH system
             {
                 IEnumerable<SDESolarSystem> sdeWormholesInfos = await _sdeServices.SearchSystem(systemName);
-                SDESolarSystem sdeInfos = sdeWormholesInfos.First();
+                SDESolarSystem? sdeInfos = sdeWormholesInfos?.FirstOrDefault();
 
-                if (sdeInfos.SecondarySun != null)
+                if (sdeInfos!=null && sdeInfos.SecondarySun != null)
                 {
                     var secondSunType = await _universeServices.GetType(sdeInfos.SecondarySun.TypeID);
                     effect = GetWHEffectValueDescription(secondSunType.Name);

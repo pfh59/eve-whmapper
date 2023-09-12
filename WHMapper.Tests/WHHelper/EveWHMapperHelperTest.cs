@@ -90,21 +90,7 @@ namespace WHMapper.Tests.WHHelper
                 new AnoikServices(loggerAnoik));
         }
 
-        [Fact]
-        public async Task Define_Eve_System_Node_Model()
-        {
-            var jita_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0f));
-            Assert.NotNull(jita_result);
-            Assert.Equal(Models.DTO.EveMapper.Enums.EveSystemType.HS, jita_result.SystemType);
-
-
-            var wh_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0f));
-            Assert.Equal(SOLAR_SYSTEM_WH_CLASS, wh_result.SystemType);
-            Assert.NotEqual(WHEffect.None, wh_result.Effect);
-            Assert.Equal(SOLAR_SYSTEM_WH_EFFECT, wh_result.Effect);
-        }
-
-        [Fact]
+        [Fact, Priority(1)]
         public async Task Is_Wormhole()
         {
             bool not_wh_result = _whEveMapper.IsWorhmole(SOLAR_SYSTEM_JITA_NAME);
@@ -115,7 +101,7 @@ namespace WHMapper.Tests.WHHelper
         }
 
 
-        [Fact]
+        [Fact, Priority(2)]
         public async Task Get_Wormhole_Class()
         {
             var result_HS = await _whEveMapper.GetWHClass(REGION_JITA_NAME, "UNUSED", SOLAR_SYSTEM_JITA_NAME);
@@ -162,6 +148,20 @@ namespace WHMapper.Tests.WHHelper
 
             var result_POCHVEN = await _whEveMapper.GetWHClass(REGION_WH_POCHVEN_NAME, "UNUSED", SOLAR_SYSTEM_WH_POCHVEN_NAME);
             Assert.Equal(EveSystemType.None, result_POCHVEN);
+        }
+
+        [Fact, Priority(3)]
+        public async Task Define_Eve_System_Node_Model()
+        {
+            var jita_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0f));
+            Assert.NotNull(jita_result);
+            Assert.Equal(Models.DTO.EveMapper.Enums.EveSystemType.HS, jita_result.SystemType);
+
+
+            var wh_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0f));
+            Assert.Equal(SOLAR_SYSTEM_WH_CLASS, wh_result.SystemType);
+            Assert.NotEqual(WHEffect.None, wh_result.Effect);
+            Assert.Equal(SOLAR_SYSTEM_WH_EFFECT, wh_result.Effect);
         }
     }
 }

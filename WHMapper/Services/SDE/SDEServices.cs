@@ -21,14 +21,14 @@ namespace WHMapper.Services.SDE
         private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.staticdata";
 
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
-
+        private static Mutex mut = new Mutex();
         private IDeserializer _deserializer;
 
         public SDEServices(ILogger<SDEServices> logger)
 		{
             _logger = logger;
             _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
-
+            mut.WaitOne();
             if (!Directory.Exists(SDE_TARGET_DIRECTORY))
             {
                 _logger.LogInformation("Extrat Eve SDE files");
@@ -37,7 +37,7 @@ namespace WHMapper.Services.SDE
                     archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
                 }
             }
-
+            mut.ReleaseMutex();
             _deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
