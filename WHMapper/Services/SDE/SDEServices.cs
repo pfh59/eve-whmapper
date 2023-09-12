@@ -26,21 +26,28 @@ namespace WHMapper.Services.SDE
 
         public SDEServices(ILogger<SDEServices> logger)
 		{
-            _logger = logger;
-            _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
-            mut.WaitOne();
-            if (!Directory.Exists(SDE_TARGET_DIRECTORY))
+            try
             {
-                _logger.LogInformation("Extrat Eve SDE files");
-                using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
+                _logger = logger;
+                _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
+                mut.WaitOne();
+                if (!Directory.Exists(SDE_TARGET_DIRECTORY))
                 {
-                    archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
+                    _logger.LogInformation("Extrat Eve SDE files");
+                    using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
+                    {
+                        archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
+                    }
                 }
+                
+                _deserializer = new DeserializerBuilder()
+                        .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                        .Build();
             }
-            mut.ReleaseMutex();
-            _deserializer = new DeserializerBuilder()
-                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                    .Build();
+            finally
+            {
+                mut.ReleaseMutex();
+            }
         }
 
 
