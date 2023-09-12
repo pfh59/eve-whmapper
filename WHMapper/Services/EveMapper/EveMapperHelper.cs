@@ -46,7 +46,6 @@ namespace WHMapper.Services.EveMapper
         private readonly ILogger _logger;
 
         private readonly IUniverseServices _universeServices = null!;
-        //private readonly IDogmaServices _dogmaServices = null!;
         private readonly IAnoikServices _anoikServices = null!;
         private readonly ISDEServices _sdeServices = null!;
 
@@ -54,7 +53,6 @@ namespace WHMapper.Services.EveMapper
         {
             _logger = logger;
             _universeServices = eveAPIServices.UniverseServices;
-            //_dogmaServices = eveAPIServices.DogmaServices;
             _sdeServices = sdeServices;
             _anoikServices = anoikServices;
 
@@ -65,7 +63,7 @@ namespace WHMapper.Services.EveMapper
             InitCataclysmicEffects();
             InitBlackHoleEffects();
 
-            InitWormholeTypeList();
+            Task.Run(async () => await InitWormholeTypeList());
         }
 
         #region Init WH effects

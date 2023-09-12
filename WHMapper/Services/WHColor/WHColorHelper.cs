@@ -57,7 +57,6 @@ namespace WHMapper.Services.WHColor
         private const string WH_CLASS_LS_COLOR = "#e28a0d";
         private const string WH_CLASS_NS_COLOR = SECUTIRTY_STATUS_00_COLOR;
         private const string WH_CLASS_00_COLOR = SECUTIRTY_STATUS_00_COLOR;
-
         private const string WH_CLASS_POCHVEN_COLOR = "#b10c0c";
 
         private const string WH_IS_EOL_COLOR = "#d747d6";
@@ -94,7 +93,7 @@ namespace WHMapper.Services.WHColor
             else if (secStatus <= SECUTIRTY_STATUS_00_VALUE)
                 return SECUTIRTY_STATUS_00_COLOR;
 
-            return string.Empty;
+            return IWHColorHelper.DEFAULT_COLOR;
         }
 
         public string GetSystemTypeColor(EveSystemType systemType)
