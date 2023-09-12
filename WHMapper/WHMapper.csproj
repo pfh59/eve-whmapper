@@ -71,6 +71,8 @@
     <None Remove="Resources\SDE\sde.zip" />
     <None Remove="Services\EveMapper\AuthorizationPolicies\" />
     <None Remove="Pages\Mapper\Administration\" />
+    <None Remove="Models\DTO\EveMapper\" />
+    <None Remove="Models\DTO\EveMapper\Enums\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.8" />
@@ -132,6 +134,8 @@
     <Folder Include="Services\EveMapper\" />
     <Folder Include="Services\EveMapper\AuthorizationPolicies\" />
     <Folder Include="Pages\Mapper\Administration\" />
+    <Folder Include="Models\DTO\EveMapper\" />
+    <Folder Include="Models\DTO\EveMapper\Enums\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\SDE\sde.zip">

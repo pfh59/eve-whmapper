@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Drawing;
+using WHMapper.Models.Custom.Node;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Services.WHColor
 {
     public class WHColorHelper : IWHColorHelper
     {
-
-        private const string WH_MAGNETAR = "Magnetar";
-        private const string WH_REDGIANT = "Red Giant";
-        private const string WH_PULSAR = "Pulsar";
-        private const string WH_WOLFRAYET = "Wolf-Rayet Star";
-        private const string WH_CATACLYSMIC= "Cataclysmic Variable";
-        private const string WH_BLACKHOLE = "Black Hole";
-
-
         private const string MAGNETAR_COLOR = "#e06fdf";
         private const string REDGIANT_COLOR = "#d9534f";
         private const string PULSAR_COLOR = "#428bca";
@@ -47,30 +40,25 @@ namespace WHMapper.Services.WHColor
         private const string SECUTIRTY_STATUS_09_COLOR = "#39bf99";
         private const string SECUTIRTY_STATUS_10_COLOR = "#28c0bf";
 
-
-        private const string WH_CLASS_C1_VALUE = "C1";
-        private const string WH_CLASS_C2_VALUE = "C2";
-        private const string WH_CLASS_C3_VALUE = "C3";
-        private const string WH_CLASS_C4_VALUE = "C4";
-        private const string WH_CLASS_C5_VALUE = "C5";
-        private const string WH_CLASS_C6_VALUE = "C6";
-        private const string WH_CLASS_HS_VALUE = "H";
-        private const string WH_CLASS_LS_VALUE = "L";
-        private const string WH_CLASS_NS_VALUE = "NS";
-        private const string WH_CLASS_00_VALUE = "0.0";
-
         private const string WH_CLASS_C1_COLOR = "#428bca";
         private const string WH_CLASS_C2_COLOR = "#428bca";
         private const string WH_CLASS_C3_COLOR = "#e28a0d";
         private const string WH_CLASS_C4_COLOR = "#e28a0d";
         private const string WH_CLASS_C5_COLOR = "#d9534f";
         private const string WH_CLASS_C6_COLOR = "#d9534f";
+        private const string WH_CLASS_C13_COLOR = "#f2e9f0";
+        private const string WH_CLASS_C14_COLOR = "#92ffde";
+        private const string WH_CLASS_C15_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_C16_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_C17_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_C18_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_THERA_COLOR = "#fff952";
         private const string WH_CLASS_HS_COLOR = "#5cb85c";
         private const string WH_CLASS_LS_COLOR = "#e28a0d";
         private const string WH_CLASS_NS_COLOR = SECUTIRTY_STATUS_00_COLOR;
         private const string WH_CLASS_00_COLOR = SECUTIRTY_STATUS_00_COLOR;
 
-
+        private const string WH_CLASS_POCHVEN_COLOR = "#b10c0c";
 
         private const string WH_IS_EOL_COLOR = "#d747d6";
         private const string WH_MASS_NORMAL_COLOR = "#3C3F41";
@@ -78,6 +66,8 @@ namespace WHMapper.Services.WHColor
         private const string WH_MASS_VERGE_COLOR = "#a52521";
 
         private const string SELECTED_LINK_COLOR= "white";
+
+        
 
         public string GetSecurityStatusColor(float secStatus)
         {
@@ -107,47 +97,68 @@ namespace WHMapper.Services.WHColor
             return string.Empty;
         }
 
-        public string GetSystemTypeColor(string systemType)
+        public string GetSystemTypeColor(EveSystemType systemType)
         {
-            if (systemType.Contains(WH_CLASS_C1_VALUE))
-                return WH_CLASS_C1_COLOR;
-            else if (systemType.Contains(WH_CLASS_C2_VALUE))
-                return WH_CLASS_C2_COLOR;
-            else if (systemType.Contains(WH_CLASS_C3_VALUE))
-                return WH_CLASS_C3_COLOR;
-            else if (systemType.Contains(WH_CLASS_C4_VALUE))
-                return WH_CLASS_C4_COLOR;
-            else if (systemType.Contains(WH_CLASS_C5_VALUE))
-                return WH_CLASS_C5_COLOR;
-            else if (systemType.Contains(WH_CLASS_C6_VALUE))
-                return WH_CLASS_C6_COLOR;
-            else if (systemType.Contains(WH_CLASS_HS_VALUE))
-                return WH_CLASS_HS_COLOR;
-            else if (systemType.Contains(WH_CLASS_LS_VALUE))
-                return WH_CLASS_LS_COLOR;
-            else if (systemType.Contains(WH_CLASS_NS_VALUE) || systemType.Contains(WH_CLASS_00_VALUE))
-                return WH_CLASS_NS_COLOR;
-
-            return String.Empty;
-            
+            switch (systemType)
+            {
+                case EveSystemType.HS:
+                    return WH_CLASS_HS_COLOR;
+                case EveSystemType.LS:
+                    return WH_CLASS_LS_COLOR;
+                case EveSystemType.NS:
+                    return WH_CLASS_NS_COLOR;
+                case EveSystemType.C1:
+                    return WH_CLASS_C1_COLOR;
+                case EveSystemType.C2:
+                    return WH_CLASS_C2_COLOR;
+                case EveSystemType.C3:
+                    return WH_CLASS_C3_COLOR;
+                case EveSystemType.C4:
+                    return WH_CLASS_C4_COLOR;
+                case EveSystemType.C5:
+                    return WH_CLASS_C5_COLOR;
+                case EveSystemType.C6:
+                    return WH_CLASS_C6_COLOR;
+                case EveSystemType.C13:
+                    return WH_CLASS_C13_COLOR;
+                case EveSystemType.C14:
+                    return WH_CLASS_C14_COLOR;
+                case EveSystemType.C15:
+                    return WH_CLASS_C15_COLOR;
+                case EveSystemType.C16:
+                    return WH_CLASS_C16_COLOR;
+                case EveSystemType.C17:
+                    return WH_CLASS_C17_COLOR;
+                case EveSystemType.C18:
+                    return WH_CLASS_C18_COLOR;
+                case EveSystemType.Thera:
+                    return WH_CLASS_THERA_COLOR;
+                case EveSystemType.Pochven:
+                    return WH_CLASS_POCHVEN_COLOR;
+                default:
+                    return IWHColorHelper.DEFAULT_COLOR;
+            }
         }
 
-        public string GetEffectColor(string effectName)
+        public string GetEffectColor(WHEffect effect)
         {
-            if (effectName == WH_PULSAR)
-                return PULSAR_COLOR;
-            else if (effectName == WH_REDGIANT)
-                return REDGIANT_COLOR;
-            else if (effectName == WH_BLACKHOLE)
-                return BLACKHOLE_COLOR;
-            else if (effectName == WH_MAGNETAR)
-                return  MAGNETAR_COLOR;
-            else if (effectName == WH_WOLFRAYET)
-                return  WOLFRAYER_COLOR;
-            else if (effectName == WH_CATACLYSMIC)
-                return  CATACLYSMIC_COLOR;
-
-            return String.Empty;
+            switch(effect)
+            {
+                case WHEffect.Magnetar:
+                    return MAGNETAR_COLOR;
+                case WHEffect.RedGiant:
+                    return REDGIANT_COLOR;
+                case WHEffect.Pulsar:
+                    return PULSAR_COLOR;
+                case WHEffect.WolfRayet:
+                    return WOLFRAYER_COLOR;
+                case WHEffect.BlackHole:
+                    return BLACKHOLE_COLOR;
+                case WHEffect.Cataclysmic:
+                    return CATACLYSMIC_COLOR;
+                default:
+                    return IWHColorHelper.DEFAULT_COLOR;
+            }
         }
 
 

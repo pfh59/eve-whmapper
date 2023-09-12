@@ -1,6 +1,6 @@
 @using Blazor.Diagrams.Components.Renderers;
 @using WHMapper.Models.Custom.Node;
-
+@using WHMapper.Models.DTO.EveMapper.Enums;
 
 
 <MudMenu PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true">
@@ -9,7 +9,7 @@
             <MudCardHeader Class="mb-n5">
                 <CardHeaderAvatar>
                     <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension Visible=@((Node.NameExtension!=null) ? true : false) Bordered="true" Color="Color.Dark">
-                        <MudAvatar class="mt-1" Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")" Size="Size.Small" Variant="Variant.Outlined">@Node.Class</MudAvatar>
+                        <MudAvatar class="mt-1" Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")" Size="Size.Small" Variant="Variant.Outlined">@Node.SystemType.ToDescriptionString()</MudAvatar>
                     </MudBadge>
                 </CardHeaderAvatar>
                 <CardHeaderContent>
@@ -20,17 +20,17 @@
                     {
                         <MudIcon Icon="@Icons.Material.Sharp.Lock" DisableElevation="true" Size="Size.Small" Style="margin-top:-3px" />
                     }
-                    @if (Node != null && !string.IsNullOrWhiteSpace(Node.Effect))
+                    @if (Node != null && Node.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
                     {
-                        <MudTooltip Text="@Node.Effect" Arrow="true" Placement="Placement.Bottom">
+                        <MudTooltip Text="@Node.Effect.ToString()" Arrow="true" Placement="Placement.Bottom">
                             <ChildContent>
                                 <MudIcon Icon="@Icons.Material.Filled.Square" DisableElevation="true" Style="@($"color:{_whEffectColor};")" Size="Size.Small" />
                             </ChildContent>
                             <TooltipContent>
                                 <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
-                                    @foreach (var effectInfo in Node.EffectsInfos)
+                                    @foreach (var effectInfo in Node.EffectDetails)
                                     {
-                                        <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Key : @effectInfo.Value</MudText>
+                                        <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name. : @effectInfo.Value%</MudText>
                                     }
                                 </MudPaper>
                             </TooltipContent>
@@ -68,7 +68,7 @@
                     {
                         @foreach (var item in Node.Statics)
                         {
-                            <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Value)};")">@item.Value</MudText>
+                            <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.EveSystemDestinationType)};")">@item.EveSystemDestinationType.ToString()</MudText>
                         }
                     }
                 </div>
