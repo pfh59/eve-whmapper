@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Xml.Linq;
 using Blazor.Diagrams.Core.Geometry;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.Db;
+using WHMapper.Models.DTO.EveAPI.Universe;
+using WHMapper.Models.DTO.EveMapper;
 
 namespace WHMapper.Models.Custom.Node
 {
@@ -89,22 +93,26 @@ namespace WHMapper.Models.Custom.Node
 
         }
 
-        
-        public String Class { get; private set; } = null!;
-        public String Effect { get; private set; } = null!;
-        public IEnumerable<KeyValuePair<string, string>> Statics { get; private set; } = null!;
-        public IEnumerable<KeyValuePair<string, string>> EffectsInfos { get; private set; } = null!;
+        public string RegionName { get; private set; }
+        public string ConstellationName { get; private set;}
+
+        public EveSystemType SystemType { get; private set; } = EveSystemType.None;
+        public WHEffect Effect { get; private set; } = WHEffect.None;
+        public IList<EveSystemEffect>? EffectDetails { get; private set; } = null!;
+        public IList<WHStatic>? Statics { get; private set; } = null!;
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
 
-        public EveSystemNodeModel(WHSystem wh, string whClass, string whEffects, IEnumerable<KeyValuePair<string, string>> whEffectsInfos, IEnumerable<KeyValuePair<string, string>> whStatics) 
+        public EveSystemNodeModel(WHSystem wh,string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
         {
             _wh = wh;
+            RegionName = regionName;
+            ConstellationName = constellationName;
 
             Title = this.Name;
-            Class = (whClass != null ? whClass.ToUpper() : string.Empty);
-            Effect = whEffects;
-            EffectsInfos = whEffectsInfos;
+            SystemType = systemType;
+            Effect = whEffect;
+            EffectDetails = effectDetails;
             Statics = whStatics;
             Locked = wh.Locked;
 
@@ -112,22 +120,25 @@ namespace WHMapper.Models.Custom.Node
             AddPort(PortAlignment.Top);
             AddPort(PortAlignment.Left);
             AddPort(PortAlignment.Right);
-
-
         }
 
-        public EveSystemNodeModel(WHSystem wh)
+        public EveSystemNodeModel(WHSystem wh, string regionName, string constellationName)
         {
             _wh = wh;
+            RegionName = regionName;
+            ConstellationName = constellationName;
+
             Title = this.Name;
             Locked = wh.Locked;
 
+            
             if (SecurityStatus >= 0.5)
-                Class = "H";
+                SystemType = EveSystemType.HS;
             else if (SecurityStatus < 0.5 && SecurityStatus > 0)
-                Class = "LS";
+                SystemType = EveSystemType.LS;
             else
-                Class = "0.0";
+                SystemType = EveSystemType.NS;
+            
 
             AddPort(PortAlignment.Bottom);
             AddPort(PortAlignment.Top);

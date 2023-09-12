@@ -71,26 +71,28 @@
     <None Remove="Resources\SDE\sde.zip" />
     <None Remove="Services\EveMapper\AuthorizationPolicies\" />
     <None Remove="Pages\Mapper\Administration\" />
+    <None Remove="Models\DTO\EveMapper\" />
+    <None Remove="Models\DTO\EveMapper\Enums\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.8" />
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.31.0" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.0.0" />
     <PackageReference Include="Z.Blazor.Diagrams" Version="3.0.0" />
     <PackageReference Include="Z.Blazor.Diagrams.Algorithms" Version="3.0.0" />
     <PackageReference Include="Z.Blazor.Diagrams.Core" Version="3.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.11" />
     <PackageReference Include="Npgsql" Version="7.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.8">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentValidation" Version="11.7.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.31.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.8" />
-    <PackageReference Include="YamlDotNet" Version="13.2.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.11" />
+    <PackageReference Include="YamlDotNet" Version="13.3.1" />
     <PackageReference Include="MudBlazor" Version="6.9.0" />
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +134,8 @@
     <Folder Include="Services\EveMapper\" />
     <Folder Include="Services\EveMapper\AuthorizationPolicies\" />
     <Folder Include="Pages\Mapper\Administration\" />
+    <Folder Include="Models\DTO\EveMapper\" />
+    <Folder Include="Models\DTO\EveMapper\Enums\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\SDE\sde.zip">

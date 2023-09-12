@@ -19,21 +19,18 @@ namespace WHMapper.Pages.Mapper.CustomNode
 {
     public partial class EveSystemNode : ComponentBase
     {
-        private const string DEFAULT_COLOR = "grey";
         private const string MENU_LOCK_SYSTEM_VALUE = "Lock";
         private const string MENU_UNLOCK_SYSTEM_VALUE = "Unlock";
 
 
         private EveSystemNodeModel _node = null!;
 
-        private string _secColor = DEFAULT_COLOR;
-        private string _systemColor = DEFAULT_COLOR;
-        private string _whEffectColor = DEFAULT_COLOR;
+        private string _secColor = IWHColorHelper.DEFAULT_COLOR;
+        private string _systemColor = IWHColorHelper.DEFAULT_COLOR;
+        private string _whEffectColor = IWHColorHelper.DEFAULT_COLOR;
         private string _menu_lock_value = MENU_LOCK_SYSTEM_VALUE;
         private string _menu_lock_icon_value = Icons.Material.Sharp.Lock;
 
-
-        
 
         [Inject]
         IEveAPIServices EveServices { get; set; } = null!;
@@ -62,12 +59,8 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 if(_node!=null)
                 {
                     _secColor = WHColorHelper.GetSecurityStatusColor(_node.SecurityStatus);
-
-                    if(_node.Class!=null)
-                        _systemColor = WHColorHelper.GetSystemTypeColor(_node.Class);
-
-                    if(_node.Effect!=null)
-                        _whEffectColor = WHColorHelper.GetEffectColor(_node.Effect);
+                    _systemColor = WHColorHelper.GetSystemTypeColor(_node.SystemType);
+                    _whEffectColor = WHColorHelper.GetEffectColor(_node.Effect);
 
                     Locked = _node.Locked;
 

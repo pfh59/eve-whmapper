@@ -14,6 +14,13 @@ namespace WHMapper.Tests.EveOnlineAPI
     public class PublicEveOnlineAPITest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;
+        private const int CONSTELLATION_ID = 20000020;
+        private const string CONSTELLATION_NAME = "Kimotoro";
+        private const int REGION_ID = 10000002;
+        private const string REGION_NAME = "The Forge";
+
+
+
         private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
 
         private const int SOLAR_SYSTEM_WH_ID = 31001123;
@@ -82,14 +89,25 @@ namespace WHMapper.Tests.EveOnlineAPI
         }
 
         [Fact]
-        public async Task Get_Universe_System_And_Star_And_Stargate()
+        public async Task Get_Universe_System_Constellation_Region_Star_And_Stargate()
         {
             //getsystems
             int[] systems = await _eveUniverseApi.GetSystems();
             Assert.NotNull(systems);
+            Assert.NotEmpty(systems);
             Assert.Contains(systems, item => SOLAR_SYSTEM_JITA_ID==item);
 
-             
+            //constellations
+            int[] constellations = await _eveUniverseApi.GetContellations();
+            Assert.NotNull(constellations);
+            Assert.NotEmpty(constellations);
+            Assert.Contains(constellations, item => CONSTELLATION_ID == item);
+
+            //regions
+            int[] regions = await _eveUniverseApi.GetRegions();
+            Assert.NotNull(regions);
+            Assert.NotEmpty(regions);
+            Assert.Contains(regions, item => REGION_ID == item);
 
 
             //test Jita
@@ -98,6 +116,13 @@ namespace WHMapper.Tests.EveOnlineAPI
             Assert.Equal(SOLAR_SYSTEM_JITA_NAME, jita.Name);
             Assert.NotNull(jita.Stargates);
 
+            var jita_constellation = await _eveUniverseApi.GetContellation(jita.ConstellationId);
+            Assert.NotNull(jita_constellation);
+            Assert.Equal(CONSTELLATION_NAME, jita_constellation.Name);
+
+            var jita_region= await _eveUniverseApi.GetRegion(jita_constellation.RegionId);
+            Assert.NotNull(jita_region);
+            Assert.Equal(jita_region.Name, jita_region.Name);
 
             //test Jita star
             var jitaStar = await _eveUniverseApi.GetStar(jita.StarId);

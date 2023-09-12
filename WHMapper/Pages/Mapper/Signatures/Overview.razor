@@ -1,10 +1,10 @@
-@using WHMapper.Models.DTO.Anoik;
-
+@using WHMapper.Models.DTO.EveMapper;
+@using WHMapper.Models.DTO.EveMapper.Enums
 
 
 <MudTable Class="@(CurrentSystemNodeId == null ? "invisible ma-2" : "visible ma-2")" Outlined="true" Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Height="30vh" style="width: 100%;" Virtualize="true" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
-            CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
-            RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true">
+          CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
+          RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true">
 
     <ColGroup>
         <col style="width: 120px;" />
@@ -35,7 +35,7 @@
         @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type) && context.Type.Contains(" -> "))
         {
             var splitRes = @context.Type.Split(" -> ");
-            <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(splitRes[1])}; text-align:left")">@context.Type</MudTd>
+            <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(Enum.Parse<EveSystemType>(splitRes[1]))}; text-align:left")">@context.Type</MudTd>
         }
         else
         {
@@ -64,7 +64,7 @@
             @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole)
             {
                 <MudSelect @bind-Value="@context.Type" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense">
-                    @foreach (WormholeTypeInfo wti in AnoikServices.GetWormholeTypes().Result)
+                    @foreach (WormholeType wti in EveMapperHelperServices.WormholeTypes)
                     {
                         <MudSelectItem Value="@wti.ToString()" Style="@($"color:{WHColorHelper.GetSystemTypeColor(wti.Destination)}; text-align:left")">@wti.ToString()</MudSelectItem>
                     }

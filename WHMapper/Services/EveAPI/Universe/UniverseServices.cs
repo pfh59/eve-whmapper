@@ -63,6 +63,30 @@ namespace WHMapper.Services.EveAPI.Universe
         {
             return await base.Execute<Stargate>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/universe/stargates/{0}/?datasource=tranquility", stargate_id));
         }
+
+        public async Task<int[]> GetContellations()
+        {
+            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, "/v1/universe/constellations/?datasource=tranquility");
+
+        }
+
+        public async Task<Constellation> GetContellation(int constellatio_id)
+        {
+            return await base.Execute<Constellation>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/universe/constellations/{0}/?datasource=tranquility", constellatio_id));
+
+        }
+
+        public async Task<int[]> GetRegions()
+        {
+            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, "/v1/universe/regions/?datasource=tranquility");
+
+        }
+
+        public async Task<Region> GetRegion(int region_id)
+        {
+            return await base.Execute<Region>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/universe/regions/{0}/?datasource=tranquility", region_id));
+
+        }
     }
 
 }

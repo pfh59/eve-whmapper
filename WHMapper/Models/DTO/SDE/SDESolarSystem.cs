@@ -32,7 +32,7 @@ namespace WHMapper.Models.DTO.SDE
         public bool Regional { get; set; }
 
         //Only on WH
-        public object SecondarySun { get; set; }
+        public SDESecondarySun SecondarySun { get; set; }
         
         public float Security { get; set; }
 

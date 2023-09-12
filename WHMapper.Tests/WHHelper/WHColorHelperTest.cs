@@ -1,5 +1,6 @@
 ﻿using System;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.WHColor;
 using Xunit.Priority;
@@ -50,17 +51,6 @@ namespace WHMapper.Tests.WHColorHelper
         private const string SECUTIRTY_STATUS_10_COLOR = "#28c0bf";
 
 
-        private const string WH_CLASS_C1_VALUE = "C1";
-        private const string WH_CLASS_C2_VALUE = "C2";
-        private const string WH_CLASS_C3_VALUE = "C3";
-        private const string WH_CLASS_C4_VALUE = "C4";
-        private const string WH_CLASS_C5_VALUE = "C5";
-        private const string WH_CLASS_C6_VALUE = "C6";
-        private const string WH_CLASS_HS_VALUE = "H";
-        private const string WH_CLASS_LS_VALUE = "L";
-        private const string WH_CLASS_NS_VALUE = "NS";
-        private const string WH_CLASS_00_VALUE = "0.0";
-
         private const string WH_CLASS_C1_COLOR = "#428bca";
         private const string WH_CLASS_C2_COLOR = "#428bca";
         private const string WH_CLASS_C3_COLOR = "#e28a0d";
@@ -69,8 +59,16 @@ namespace WHMapper.Tests.WHColorHelper
         private const string WH_CLASS_C6_COLOR = "#d9534f";
         private const string WH_CLASS_HS_COLOR = "#5cb85c";
         private const string WH_CLASS_LS_COLOR = "#e28a0d";
+        private const string WH_CLASS_C13_COLOR = "#f2e9f0";
+        private const string WH_CLASS_C14_COLOR = "#92ffde";
+        private const string WH_CLASS_C15_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_C16_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_C17_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_C18_COLOR = WH_CLASS_C14_COLOR;
+        private const string WH_CLASS_THERA_COLOR = "#fff952";
         private const string WH_CLASS_NS_COLOR = SECUTIRTY_STATUS_00_COLOR;
         private const string WH_CLASS_00_COLOR = SECUTIRTY_STATUS_00_COLOR;
+        private const string WH_CLASS_POCHVEN_COLOR = "#b10c0c";
 
         private const string WH_IS_EOL_COLOR = "#d747d6";
         private const string WH_MASS_NORMAL_COLOR = "#3C3F41";
@@ -100,33 +98,43 @@ namespace WHMapper.Tests.WHColorHelper
             Assert.Equal(SECUTIRTY_STATUS_08_COLOR, _whHelper.GetSecurityStatusColor(SECUTIRTY_STATUS_08_VALUE));
             Assert.Equal(SECUTIRTY_STATUS_09_COLOR, _whHelper.GetSecurityStatusColor(SECUTIRTY_STATUS_09_VALUE));
             Assert.Equal(SECUTIRTY_STATUS_10_COLOR, _whHelper.GetSecurityStatusColor(SECUTIRTY_STATUS_10_VALUE));
-            Assert.Equal(string.Empty, _whHelper.GetSecurityStatusColor(28));
+            Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetSecurityStatusColor(28));
 
         }
 
         [Fact]
         public void Get_System_Type_Color()
         {
-            Assert.Equal(WH_CLASS_C1_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C1_VALUE));
-            Assert.Equal(WH_CLASS_C2_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C2_VALUE));
-            Assert.Equal(WH_CLASS_C3_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C3_VALUE));
-            Assert.Equal(WH_CLASS_C4_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C4_VALUE));
-            Assert.Equal(WH_CLASS_C5_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C5_VALUE));
-            Assert.Equal(WH_CLASS_C6_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_C6_VALUE));
-            Assert.Equal(WH_CLASS_HS_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_HS_VALUE));
-            Assert.Equal(WH_CLASS_LS_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_LS_VALUE));
-            Assert.Equal(WH_CLASS_NS_COLOR, _whHelper.GetSystemTypeColor(WH_CLASS_NS_VALUE));
+            Assert.Equal(WH_CLASS_C1_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C1));
+            Assert.Equal(WH_CLASS_C2_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C2));
+            Assert.Equal(WH_CLASS_C3_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C3));
+            Assert.Equal(WH_CLASS_C4_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C4));
+            Assert.Equal(WH_CLASS_C5_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C5));
+            Assert.Equal(WH_CLASS_C6_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C6));
+            Assert.Equal(WH_CLASS_C13_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C13));
+            Assert.Equal(WH_CLASS_C14_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C14));
+            Assert.Equal(WH_CLASS_C15_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C15));
+            Assert.Equal(WH_CLASS_C16_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C16));
+            Assert.Equal(WH_CLASS_C17_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C17));
+            Assert.Equal(WH_CLASS_C18_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.C18));
+
+            Assert.Equal(WH_CLASS_HS_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.HS));
+            Assert.Equal(WH_CLASS_LS_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.LS));
+            Assert.Equal(WH_CLASS_NS_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.NS));
+            Assert.Equal(WH_CLASS_THERA_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.Thera));
+            Assert.Equal(WH_CLASS_POCHVEN_COLOR, _whHelper.GetSystemTypeColor(EveSystemType.Pochven));
         }
 
         [Fact]
         public void Get_Effect_Color()
         {
-            Assert.Equal(MAGNETAR_COLOR, _whHelper.GetEffectColor(WH_MAGNETAR));
-            Assert.Equal(REDGIANT_COLOR, _whHelper.GetEffectColor(WH_REDGIANT));
-            Assert.Equal(PULSAR_COLOR, _whHelper.GetEffectColor(WH_PULSAR));
-            Assert.Equal(WOLFRAYER_COLOR, _whHelper.GetEffectColor(WH_WOLFRAYET));
-            Assert.Equal(CATACLYSMIC_COLOR, _whHelper.GetEffectColor(WH_CATACLYSMIC));
-            Assert.Equal(BLACKHOLE_COLOR, _whHelper.GetEffectColor(WH_BLACKHOLE));
+            Assert.Equal(MAGNETAR_COLOR, _whHelper.GetEffectColor(WHEffect.Magnetar));
+            Assert.Equal(REDGIANT_COLOR, _whHelper.GetEffectColor(WHEffect.RedGiant));
+            Assert.Equal(PULSAR_COLOR, _whHelper.GetEffectColor(WHEffect.Pulsar));
+            Assert.Equal(WOLFRAYER_COLOR, _whHelper.GetEffectColor(WHEffect.WolfRayet));
+            Assert.Equal(CATACLYSMIC_COLOR, _whHelper.GetEffectColor(WHEffect.Cataclysmic));
+            Assert.Equal(BLACKHOLE_COLOR, _whHelper.GetEffectColor(WHEffect.BlackHole));
+            Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetEffectColor(WHEffect.None));
         }
 
         [Fact]

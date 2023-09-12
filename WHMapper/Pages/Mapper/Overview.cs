@@ -25,6 +25,8 @@ using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.EveMapper;
 using Blazor.Diagrams.Core.Behaviors;
+using WHMapper.Models.DTO.EveMapper.Enums;
+
 namespace WHMapper.Pages.Mapper
 {
 
@@ -69,7 +71,6 @@ namespace WHMapper.Pages.Mapper
 
         [Inject]
         IEveUserInfosServices UserInfos { get; set; } = null!;
-
 
         [Inject]
         IWHMapRepository DbWHMaps { get; set; } = null!;
@@ -1216,30 +1217,29 @@ namespace WHMapper.Pages.Mapper
                         //determine if source have same system link and get next unique ident
                         if(previousSystem != null && await IsRouteViaWH(previousSolarSystem, _currentSolarSystem))
                         {
-                            var whClass = AnoikServices.GetSystemClass(_currentSolarSystem.Name);
-                            if (!string.IsNullOrEmpty(whClass))
+                            //test is WH
+                            if(MapperServices.IsWorhmole(_currentSolarSystem.Name))
+                                newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id, _currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                            else
                             {
-                                int nbSameWHClassLink = Diagram.Links.Where(x => ((EveSystemNodeModel)x.Target.Model).Class.Contains(whClass) && ((EveSystemNodeModel)x.Source.Model).IdWH == previousSystem.IdWH).Count();
+                                //get whClass an determine if another connection to another wh with same class exist from previous system. Increment extension value in that case
+                                EveSystemType whClass = await MapperServices.GetWHClass(_currentSolarSystem);
+
+                                int nbSameWHClassLink = Diagram.Links.Where(x => ((EveSystemNodeModel)x.Target.Model).SystemType==whClass && ((EveSystemNodeModel)x.Source.Model).IdWH == previousSystem.IdWH).Count();
 
                                 if (nbSameWHClassLink > 0)
                                 {
                                     char extension = (Char)(Convert.ToUInt16('A') + nbSameWHClassLink);
-                                    newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId, _currentSolarSystem.Name, extension, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                                    newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id, _currentSolarSystem.SystemId, _currentSolarSystem.Name, extension, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                                 }
                                 else
-                                    newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                                    newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id, _currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                             }
-                            else
-                            {
-                                newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
-                            }
-
                         }
                         else
                             newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id,_currentSolarSystem.SystemId,_currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                         
 
-                           
                         if (newWHSystem!=null)
                         {
                             var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);

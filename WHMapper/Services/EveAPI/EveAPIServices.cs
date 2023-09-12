@@ -5,6 +5,7 @@ using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI.Alliance;
 using WHMapper.Services.EveAPI.Character;
 using WHMapper.Services.EveAPI.Corporation;
+using WHMapper.Services.EveAPI.Dogma;
 using WHMapper.Services.EveAPI.Location;
 using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
@@ -27,6 +28,7 @@ namespace WHMapper.Services.EveAPI
         public ICorporationServices CorporationServices { get; private set; }
         public ICharacterServices CharacterServices { get; private set; }
         public ISearchServices SearchServices { get;private set; }
+        public IDogmaServices DogmaServices { get; private set; }
 
         public EveAPIServices(ILogger<EveAPIServices> logger,IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)
         {
@@ -44,6 +46,7 @@ namespace WHMapper.Services.EveAPI
             CorporationServices = new CorporationServices(eveAPIClient);
             CharacterServices = new CharacterServices(eveAPIClient);
             SearchServices = new SearchServices(eveAPIClient, _tokenProvider, userService);
+            DogmaServices = new DogmaServices(eveAPIClient);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using WHMapper.Services.EveAPI.Alliance;
 using WHMapper.Services.EveAPI.Character;
 using WHMapper.Services.EveAPI.Corporation;
+using WHMapper.Services.EveAPI.Dogma;
 using WHMapper.Services.EveAPI.Location;
 using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
@@ -17,5 +18,6 @@ namespace WHMapper.Services.EveAPI
         ICorporationServices CorporationServices {get;}
         ICharacterServices CharacterServices { get; }
         ISearchServices SearchServices { get; }
+        IDogmaServices DogmaServices { get; }
     }
 }

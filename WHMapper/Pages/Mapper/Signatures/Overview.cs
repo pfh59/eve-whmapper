@@ -9,9 +9,12 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
+using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.Anoik;
+using WHMapper.Services.EveAPI;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
@@ -23,6 +26,8 @@ namespace WHMapper.Pages.Mapper.Signatures
     [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase,IAsyncDisposable
     {
+        private const int ESI_WH_GROUPE_ID = 988;
+
         [Inject]
         private IWHSignatureHelper SignatureHelper { get; set; } = null!;
 
@@ -38,8 +43,12 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Inject]
         private ISnackbar Snackbar { get; set; } = null!;
 
+        //[Inject]
+        //private IAnoikServices AnoikServices { get; set; } = null!;
+
         [Inject]
-        private IAnoikServices AnoikServices { get; set; } = null!;
+        private IEveMapperHelper EveMapperHelperServices { get; set; } = null!;
+        
 
         [Inject]
         private IWHColorHelper WHColorHelper { get; set; } = null!;
@@ -64,12 +73,22 @@ namespace WHMapper.Pages.Mapper.Signatures
         private CancellationTokenSource? _cts;
         private DateTime _currentDateTime;
 
+
+        protected override async Task OnInitializedAsync()
+        {
+            
+
+
+            await base.OnInitializedAsync();
+        }
+
         protected override async Task OnParametersSetAsync()
         {
             await Restore();
             HandleTimerAsync();
             await base.OnParametersSetAsync();
         }
+
 
 
         private async Task HandleTimerAsync()
@@ -115,8 +134,8 @@ namespace WHMapper.Pages.Mapper.Signatures
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
-            Type type = value.GetType();
-            if (Attribute.IsDefined(type, typeof(FlagsAttribute)))
+            System.Type type = value.GetType();
+            if (System.Attribute.IsDefined(type, typeof(FlagsAttribute)))
             {
                 var sb = new System.Text.StringBuilder();
 
@@ -131,7 +150,7 @@ namespace WHMapper.Pages.Mapper.Signatures
                             sb.Append(", ");
 
                         var f = type.GetField(field.ToString());
-                        var da = (DisplayAttribute)Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
+                        var da = (DisplayAttribute)System.Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
                         sb.Append(da?.ShortName ?? da?.Name ?? field.ToString());
                     }
                 }
@@ -143,7 +162,7 @@ namespace WHMapper.Pages.Mapper.Signatures
                 var f = type.GetField(value.ToString());
                 if (f != null)
                 {
-                    var da = (DisplayAttribute)Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
+                    var da = (DisplayAttribute)System.Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
                     if (da != null)
                         return da.ShortName ?? da.Name;
                 }
