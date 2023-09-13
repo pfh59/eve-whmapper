@@ -1218,7 +1218,7 @@ namespace WHMapper.Pages.Mapper
                         if(previousSystem != null && await IsRouteViaWH(previousSolarSystem, _currentSolarSystem))
                         {
                             //test is WH
-                            if(MapperServices.IsWorhmole(_currentSolarSystem.Name))
+                            if(!MapperServices.IsWorhmole(_currentSolarSystem.Name))
                                 newWHSystem = await DbWHSystems.Create(new WHSystem(_selectedWHMap.Id, _currentSolarSystem.SystemId, _currentSolarSystem.Name, _currentSolarSystem.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                             else
                             {
