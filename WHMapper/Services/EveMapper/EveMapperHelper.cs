@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -546,7 +546,7 @@ namespace WHMapper.Services.EveMapper
                 var system_constellation = await _universeServices.GetContellation(whSystem.ConstellationId);
                 var system_region = await _universeServices.GetRegion(system_constellation.RegionId);
 
-                return await GetWHClass(whSystem.Name, system_constellation.Name, system_region.Name);
+                return await GetWHClass(system_region.Name, system_constellation.Name, whSystem.Name);
             }
             return EveSystemType.None;
         }
@@ -787,4 +787,3 @@ namespace WHMapper.Services.EveMapper
 
     }
 }
-
