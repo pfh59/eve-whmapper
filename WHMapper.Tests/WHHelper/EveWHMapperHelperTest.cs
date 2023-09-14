@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Models.Db;
+using WHMapper.Models.DTO.EveAPI;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
@@ -28,6 +29,7 @@ namespace WHMapper.Tests.WHHelper
 
         private const int SOLAR_SYSTEM_WH_ID = 31001123;
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
+        private const int CONSTELLATION_WH_ID = 21000113;
         private const string CONSTELLATION_WH_NAME = "C-C00113";
         private const string REGION_WH_NAME = "C-R00012";
         private const EveSystemType SOLAR_SYSTEM_WH_CLASS = EveSystemType.C3;
@@ -104,6 +106,9 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(2)]
         public async Task Get_Wormhole_Class()
         {
+            var result_C3_Bis= await _whEveMapper.GetWHClass(new Models.DTO.EveAPI.Universe.SolarSystem(0, 31001123, SOLAR_SYSTEM_WH_NAME,null,-1.0f,string.Empty,CONSTELLATION_WH_ID,null,null));
+            Assert.Equal(EveSystemType.C3, result_C3_Bis);
+
             var result_HS = await _whEveMapper.GetWHClass(REGION_JITA_NAME, "UNUSED", SOLAR_SYSTEM_JITA_NAME);
             Assert.Equal(EveSystemType.None, result_HS);
 
