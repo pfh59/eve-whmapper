@@ -624,9 +624,17 @@ namespace WHMapper.Pages.Mapper
                     _selectedSystemLink = null;
 
                     if (((EveSystemNodeModel)item).Selected)
+                    {
                         _selectedSystemNode = (EveSystemNodeModel)item;
+                        Diagram.SendToFront(_selectedSystemNode);
+                    }
                     else
+                    {
+                        if(_selectedSystemNode!=null)
+                            Diagram.SendToBack(_selectedSystemNode);
+
                         _selectedSystemNode = null;
+                    }
 
                     StateHasChanged();
                     return;
