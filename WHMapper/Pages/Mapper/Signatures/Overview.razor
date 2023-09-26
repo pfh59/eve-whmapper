@@ -2,7 +2,7 @@
 @using WHMapper.Models.DTO.EveMapper.Enums
 
 
-<MudTable Class="@(CurrentSystemNodeId == null ? "invisible ma-2" : "visible ma-2")" Outlined="true" Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Height="30vh" style="width: 100%;" Virtualize="true" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
+<MudTable Class="@(CurrentSystemNodeId == null ? "invisible ma-2" : "visible ma-2")" AllowUnsorted="false" Outlined="true" Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Height="30vh" style="width: 100%;" Virtualize="true" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
           CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
           RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true">
 
