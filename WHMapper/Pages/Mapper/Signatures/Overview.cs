@@ -76,9 +76,6 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         protected override async Task OnInitializedAsync()
         {
-            
-
-
             await base.OnInitializedAsync();
         }
 

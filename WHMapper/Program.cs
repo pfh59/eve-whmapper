@@ -51,6 +51,7 @@ using WHMapper.Repositories.WHAccesses;
 using WHMapper.Services.EveAPI.Character;
 using System.Linq;
 using WHMapper.Services.EveMapper.AuthorizationPolicies;
+using WHMapper.Repositories.WHNotes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,6 +108,8 @@ AuthenticationBuilder authenticationBuilder = builder.Services.AddAuthentication
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
     options.SlidingExpiration = true;
+    //options.Cookie.SameSite = SameSiteMode.Strict;
+    //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 })
 .AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, options =>
 {
@@ -181,6 +184,7 @@ builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
 builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
 builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
 builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
+builder.Services.AddScoped<IWHNoteRepository, WHNoteRepository>();
 #endregion
 
 #region WH HELPER

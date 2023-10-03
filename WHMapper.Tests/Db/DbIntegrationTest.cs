@@ -10,6 +10,7 @@ using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Repositories.WHMaps;
+using WHMapper.Repositories.WHNotes;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
@@ -628,6 +629,80 @@ public class DbIntegrationTest
         //duplicate update
         result2.EveEntityId = EVE_ALLIANCE_ID;
         result2.EveEntity = WHAccessEntity.Alliance;
+        var resultUpdate2 = await repo.Update(result2.Id, result2);
+        Assert.Null(resultUpdate2);
+
+        //Delete
+        var resultdel1 = await repo.DeleteById(result1.Id);
+        Assert.True(resultdel1);
+
+        var resultdel2 = await repo.DeleteById(result2.Id);
+        Assert.True(resultdel2);
+
+        var resultBaddel = await repo.DeleteById(-10);
+        Assert.False(resultBaddel);
+    }
+
+    [Fact, Priority(8)]
+    public async Task CRUD_WHNote()
+    {
+        //Create AccessRepo
+        IWHNoteRepository repo = new WHNoteRepository(new NullLogger<WHNoteRepository>(), _contextFactory);
+
+        //get ALL empty
+        var results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.Empty(results);
+
+        //ADD Note1
+        var result1 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID,FOOBAR));
+        Assert.NotNull(result1);
+        Assert.Equal(FOOBAR_SYSTEM_ID, result1.SoloarSystemId);
+        Assert.Equal(FOOBAR, result1.Comment);
+
+        //ADD Note2
+        var result2 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2, FOOBAR2));
+        Assert.NotNull(result2);
+        Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SoloarSystemId);
+        Assert.Equal(FOOBAR2, result2.Comment);
+
+        //ADD Access dupkicate
+        var resultDuplicate = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2, FOOBAR));
+        Assert.Null(resultDuplicate);
+
+        //GetALL
+        results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.NotEmpty(results);
+
+
+        //GetbyID
+        var resultById = await repo.GetById(1);
+        Assert.NotNull(resultById);
+        Assert.Equal(FOOBAR_SYSTEM_ID, resultById.SoloarSystemId);
+        Assert.Equal(FOOBAR, resultById.Comment);
+
+        var resultBadById = await repo.GetById(-10);
+        Assert.Null(resultBadById);
+
+        //GetBySolarSystemId
+        var resultBySolarSystemId = await repo.GetBySolarSystemId(FOOBAR_SYSTEM_ID);
+        Assert.NotNull(resultBySolarSystemId);
+        Assert.Equal(FOOBAR_SYSTEM_ID, resultBySolarSystemId.SoloarSystemId);
+        Assert.Equal(FOOBAR, resultBySolarSystemId.Comment);
+
+        var resultBadBySolarSystemId = await repo.GetBySolarSystemId(-10);
+        Assert.Null(resultBadBySolarSystemId);
+
+
+        //update
+        result1.Comment = FOOBAR_SHORT_UPDATED;
+        var resultUpdate1 = await repo.Update(result1.Id, result1);
+        Assert.NotNull(resultUpdate1);
+        Assert.Equal(FOOBAR_SHORT_UPDATED, resultUpdate1.Comment);
+
+        //duplicate update
+        result2.SoloarSystemId = FOOBAR_SYSTEM_ID;
         var resultUpdate2 = await repo.Update(result2.Id, result2);
         Assert.Null(resultUpdate2);
 
