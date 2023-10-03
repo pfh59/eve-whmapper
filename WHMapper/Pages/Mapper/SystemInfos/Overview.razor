@@ -50,7 +50,7 @@
         </MudItem>
         <MudItem xs="0">
             <MudText Typo="Typo.body2" Class="d-inline-flex">@_effect</MudText>
-            @if (CurrentSystemNode?.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
+            @if (CurrentSystemNode != null && CurrentSystemNode?.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
             {
                 <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
                     <ChildContent>
@@ -60,7 +60,7 @@
                         <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
                             @if (CurrentSystemNode != null && CurrentSystemNode.EffectDetails != null)
                             {
-                                foreach (var effectInfo in CurrentSystemNode?.EffectDetails)
+                                foreach (var effectInfo in CurrentSystemNode.EffectDetails)
                                 {
                                     <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
                                 }

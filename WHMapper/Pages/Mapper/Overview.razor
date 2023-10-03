@@ -11,7 +11,7 @@
 
 
 <MudPaper Class="@(_loading ? "invisible" : "visible ma-2")" Outlined="true" Square="true" Height="60vh" MinHeight="60vh">
-    <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste" style="height: 100%; width: 100%;">
+    <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste" style="height: 100%; width: 100%;" @oncontextmenu="OnMenuOpen">
         <ActivatorContent>
             @if (!FeatureFlag.DISABLE_MULTI_MAP())
             {
@@ -78,6 +78,11 @@
                         </ChildContent>
                     </MudMenu>
                 </div>
+            }
+            @if (_selectedSystemNode != null)
+            {
+                <MudMenuItem Icon="@Icons.Material.Sharp.FlagCircle" Size="Size.Small" OnClick="@(() => SetSelectedSystemDestinationWaypoint())">Set Destination</MudMenuItem>
+                <MudMenuItem Icon="@_menu_lock_icon_value" Size="Size.Small" OnClick="@(() => ToggleSystemLock())">@_menu_lock_value</MudMenuItem>
             }
 
         </ChildContent>
