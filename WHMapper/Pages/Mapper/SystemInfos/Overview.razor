@@ -60,7 +60,7 @@
                         <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
                             @if (CurrentSystemNode != null && CurrentSystemNode.EffectDetails != null)
                             {
-                                foreach (var effectInfo in CurrentSystemNode?.EffectDetails)
+                                foreach (var effectInfo in CurrentSystemNode.EffectDetails)
                                 {
                                     <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
                                 }
