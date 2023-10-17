@@ -147,30 +147,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000001\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000002\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000003\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000004\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000005\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000006\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000007\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SDE\universe\abyssal\12000001\22000001\32000008\solarsystem.staticdata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 </Project>

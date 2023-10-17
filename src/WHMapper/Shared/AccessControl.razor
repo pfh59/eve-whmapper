@@ -1,0 +1,110 @@
+﻿@using WHMapper.Services.EveOnlineUserInfosProvider
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView>
+    <Authorized>
+        <MudMenu Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft">
+            <ActivatorContent>
+                <MudChip Icon="@Icons.Material.Filled.Person">@_username</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <form action="login?redirectUri=/" method="get" target="_blank">
+                    <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
+                    <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
+                        <MudText>Add Account</MudText>
+                    </MudButton>
+                </form>
+                @if (isAdmin)
+                {
+                    <form action="whmapperadmin" method="post">
+                        <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
+                        <MudButton StartIcon="@Icons.Material.Filled.SettingsAccessibility" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
+                            <MudText>Access List</MudText
+                        ></MudButton>
+                    </form>
+                }
+                <form action="logout" method="get">
+                    <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
+                    <MudButton StartIcon="@Icons.Material.Filled.Logout" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
+                        <MudText>Logout</MudText>
+                    </MudButton>
+                </form>
+            </ChildContent>
+        </MudMenu>
+    </Authorized>
+    <NotAuthorized>
+        <MudMenu Dense="true">
+            <ActivatorContent>
+                <MudChip Icon="@Icons.Material.Filled.Person">Account</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <form action="login?redirectUri=/" method="get">
+                    <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
+                    <MudButton StartIcon="@Icons.Material.Filled.Login" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
+                        <MudText>Login</MudText>
+                    </MudButton>
+                </form>
+            </ChildContent>
+        </MudMenu>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+@code
+{
+    private bool isAdmin = false;
+    private string _username = "Anonymous";
+
+    [Inject]
+    private IEveUserInfosServices UserService { get; set; } = null!;
+
+    [Inject]
+    private IAuthorizationService AuthorizationService { get; set; } = null!;
+
+    [Inject]
+    private Models.DTO.TokenProvider TokenProvider {get;set;} = null!;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+        protected override async Task OnInitializedAsync()
+        {
+            _username = await UserService.GetUserName();
+
+            var user = (await AuthenticationStateTask).User;
+
+            if ((await AuthorizationService.AuthorizeAsync(user, "Admin"))
+                .Succeeded)
+                isAdmin = true;
+            else
+                isAdmin = false;
+
+            StateHasChanged();
+            
+            await base.OnInitializedAsync();
+        }
+
+
+        /*
+            protected override async Task OnAfterRenderAsync(bool firstRender)
+            {
+                if (firstRender)
+                {
+                    _username = await UserService.GetUserName();
+
+                    var user = (await AuthenticationStateTask).User;
+
+                    if ((await AuthorizationService.AuthorizeAsync(user, "Admin"))
+                        .Succeeded)
+                        isAdmin = true;
+                    else
+                        isAdmin = false;
+
+                    StateHasChanged();
+                }
+
+                await base.OnAfterRenderAsync(firstRender);
+            }
+            */
+}

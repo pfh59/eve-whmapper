@@ -47,32 +47,48 @@ namespace WHMapper.Pages
         }
 
             
-        public async Task OnGet()
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> OnGetAsync()
         { 
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            try
+            {
             await RevokeTokken();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             _logger.LogInformation("User logged out.");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"Logout Error");
+            }
+            return LocalRedirect("/");
         }
 
         private async Task RevokeTokken()
         {
-            string accessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token");
-            string refreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token");
-
-
-            var body = $"token_type_hint=refresh_token&token={Uri.EscapeDataString(refreshToken)}";
-
-            HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-
-            var response = await _httpClient.PostAsync(revokendpoint, postBody);
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode != HttpStatusCode.OK)
+            try
             {
+                string accessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token");
+                string refreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token");
 
-                var error = JsonSerializerExtensions.DeserializeAnonymousType(content, new { error_description = string.Empty }).error_description;
-                throw new ArgumentException(error);
+
+                var body = $"token_type_hint=refresh_token&token={Uri.EscapeDataString(refreshToken)}";
+
+                HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
+
+                var response = await _httpClient.PostAsync(revokendpoint, postBody);
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+
+                    var error = JsonSerializerExtensions.DeserializeAnonymousType(content, new { error_description = string.Empty }).error_description;
+                    throw new ArgumentException(error);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"RevokeTokken Error");
             }
         }
 
