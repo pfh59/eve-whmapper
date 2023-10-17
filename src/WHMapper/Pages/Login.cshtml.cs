@@ -38,21 +38,11 @@ namespace WHMapper.Pages
         {
             // Get the information about the user from the external login provider
             var EveUser = this.User.Identities.FirstOrDefault();
-            if (EveUser.IsAuthenticated)
+            if (EveUser!=null && EveUser.IsAuthenticated)
             {
                 _logger.LogInformation("User authenticated");
 
-                /*
-                var authProperties = new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    RedirectUri = this.Request.Host.Value
-                };
 
-                await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(EveUser),
-                authProperties);*/
             }
             return LocalRedirect("/");
         }
