@@ -47,7 +47,7 @@ jobs:
           time: '5s'
 
       - name: Restore dependencies
-        run: dotnet restore 
+        run: dotnet restore src
         
       - name: Cache SonarCloud packages
         uses: actions/cache@v1

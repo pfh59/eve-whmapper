@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "vscode",
+        "projectKey": "pfh59_eve-whmapper"
+    }
+}

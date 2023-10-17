@@ -28,9 +28,12 @@
                             </ChildContent>
                             <TooltipContent>
                                 <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
-                                    @foreach (var effectInfo in Node.EffectDetails)
+                                    @if (Node != null && Node.EffectDetails!=null)
                                     {
-                                        <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name. : @effectInfo.Value%</MudText>
+                                        foreach (var effectInfo in Node.EffectDetails)
+                                        {
+                                            <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name. : @effectInfo.Value%</MudText>
+                                        }
                                     }
                                 </MudPaper>
                             </TooltipContent>
@@ -61,7 +64,7 @@
                     {
                         <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Transparent Size="Size.Small" />
                     }
-                    <MudText Class="align-self-stretch ml-1 mt-1" Typo="Typo.caption">@Node?.ConnectedUsers.FirstOrDefault()</MudText>
+                    <MudText Class="align-self-stretch ml-1 mt-1" Typo="Typo.caption">@Node?.ConnectedUsers?.FirstOrDefault()</MudText>
                 </div>
                 <div Class="d-flex justify-end">
                     @if (Node != null && Node.Statics != null && Node?.Statics.Count() > 0)
