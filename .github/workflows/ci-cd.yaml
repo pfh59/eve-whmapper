@@ -29,13 +29,6 @@ jobs:
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: ${{env.DOTNET_VERSION}}
-
-      - name: Check out code 
-        uses: actions/checkout@v3
-        with:
-          lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
-          fetch-depth: 0
     
       - name: Start Posgresql 
         run: |
@@ -61,6 +54,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: Setup
     steps:
+      - name: Check out code 
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+    
       - name: Restore dependencies
         run: dotnet restore src
       
