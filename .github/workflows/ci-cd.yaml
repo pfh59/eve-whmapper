@@ -16,8 +16,29 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  Setup:
+  build_test_package:
     runs-on: ubuntu-latest
+
+# Service containers to run with `runner-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: whmappertest 
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
     steps:
       - name: Setup JDK 11 🦴
         uses: actions/setup-java@v3
@@ -29,16 +50,14 @@ jobs:
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: ${{env.DOTNET_VERSION}}
-    
-      - name: Start Posgresql 
-        run: |
-          docker run --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=whmappertest -p 5432:5432 -d postgres
 
-      - name: Sleep for 5 seconds 
-        uses: jakejarvis/wait-action@master
+      - name: Check out code 
+        uses: actions/checkout@v3
         with:
-          time: '5s'
-
+          lfs: true
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+          
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
@@ -49,51 +68,19 @@ jobs:
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
-          
-  Build:
-    runs-on: ubuntu-latest
-    needs: Setup
-    steps:
-      - name: Check out code 
-        uses: actions/checkout@v3
-        with:
-          lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
-          fetch-depth: 0
-    
-      - name: Restore dependencies
-        run: dotnet restore src
-      
-      - name: SonarCloud Building 🚀
+      - name: SonarCloud Build and Analyze 🚀 🧪
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
+          ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=${{ secrets.POSTGRES_PASSWORD }}"
         run: |
           dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          dotnet restore src
           dotnet build src/WHMapper -c Release --no-restore
-          dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-      
-  Test:
-    runs-on: ubuntu-latest
-    needs: [Setup,Build]
-    steps:
-      - name: SonarCloud Testing 🧪
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
-        run: |
-          dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet-coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-    
+      
 
-
-  Package:
-    runs-on: ubuntu-latest
-    needs: [Setup,Build,Test]
-    steps:
       - name: Extract metadata (tags, labels) for Docker
         if: github.event_name != 'pull_request'
         id: meta
