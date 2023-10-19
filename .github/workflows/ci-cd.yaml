@@ -82,18 +82,19 @@ jobs:
 
 
       - name: Publish
+        #if: github.event_name != 'pull_request'
         run: dotnet publish src/WHMapper/WHMapper.csproj -c Release -o release --nologo
     
-      
-      - name: Upload artifact
+      - name: Upload Artifact
+        #if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
-          name: WHMapper-linux
+          name: WHMapper-linux-${{github.ref_name}}
           path: |
             /home/runner/work/eve-whmapper/eve-whmapper/release/
             !/home/runner/work/eve-whmapper/eve-whmapper/release/*.pdb
           if-no-files-found: error
-      
+    
 
       - name: Extract metadata (tags, labels) for Docker
         if: github.event_name != 'pull_request'
@@ -128,4 +129,38 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  release:
+      if: github.ref_type == 'tag'
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+      needs: build_test_package
+      steps: 
+        - name: Get Linux Artifact
+          uses: actions/download-artifact@v3
+          with:
+            name: WHMapper-linux-${{github.ref_name}}
+           
+        - name: release
+          uses: actions/create-release@v1
+          id: create_release
+          with:
+            draft: false
+            prerelease: false
+            release_name: ${{ steps.version.outputs.version }}
+            tag_name: ${{ github.ref }}
+            body_path: CHANGELOG.md
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+        
+        - name: Upload Linux Artifact
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: .WHMapper-linux-${{github.ref_name}}
+            asset_name: WHMapper-linux.zip
+            asset_content_type: application/gzip
 
