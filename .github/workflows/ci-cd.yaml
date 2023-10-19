@@ -79,6 +79,20 @@ jobs:
           dotnet build src/WHMapper -c Release --no-restore
           dotnet-coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+
+
+      - name: Publish
+        run: dotnet publish src/WHMapper/WHMapper.csproj -c Release -o release --nologo
+    
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: WHMapper-linux
+          path: |
+            /home/runner/work/WHMapper/WHMapper/release/
+            !D:\a\DumpReport\DumpReport\bin\x64\Release\*.pdb
+          if-no-files-found: error
       
 
       - name: Extract metadata (tags, labels) for Docker
@@ -114,3 +128,4 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
