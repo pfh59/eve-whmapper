@@ -90,8 +90,8 @@ jobs:
         with:
           name: WHMapper-linux
           path: |
-            /home/runner/work/WHMapper/WHMapper/release/
-            !D:\a\DumpReport\DumpReport\bin\x64\Release\*.pdb
+            /home/runner/work/eve-whmapper/eve-whmapper/release/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/*.pdb
           if-no-files-found: error
       
 
