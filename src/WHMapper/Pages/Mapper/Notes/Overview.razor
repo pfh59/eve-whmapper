@@ -1,0 +1,3 @@
+<MudPaper Class="@(CurrentSystemNode == null ? "invisible ma-2 align-self-stretch" : "visible ma-2")" Outlined="false" Width="300px">
+    <MudTextField class="align-self-stretch" Style="--mud-typography-body1-size: 10px;" Label="Notes"  T="string" Variant="Variant.Outlined" Immediate="true" @bind-Value=_solarSystemComment Lines="3" @onkeyup="@((e) => OnNoteChanged())"/>
+</MudPaper>

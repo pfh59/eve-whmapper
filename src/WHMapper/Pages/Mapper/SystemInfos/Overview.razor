@@ -1,91 +1,61 @@
-﻿<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-5 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" Height="30vh" Width="300px">
-    <MudGrid Justify="Justify.SpaceBetween">
-        <MudItem xs="1">
+﻿<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" Width="300px">
+    <MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2">Region:</MudText>
-        </MudItem>
-        <MudItem xs="0">
             <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.RegionName) ? CurrentSystemNode.RegionName : String.Empty)</MudText>
-        </MudItem>
-    </MudGrid>
-
-    <MudGrid Justify="Justify.SpaceBetween">
-        <MudItem xs="1">
-            <MudText Typo="Typo.body2">Constellation:</MudText>
-        </MudItem>
-        <MudItem xs="0">
-            <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.ConstellationName) ? CurrentSystemNode.ConstellationName : String.Empty)</MudText>
-        </MudItem>
-    </MudGrid>
-
-    <MudGrid Justify="Justify.SpaceBetween">
-        <MudItem xs="1">
+        </MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2">Constellation:</MudText>
+                <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.ConstellationName) ? CurrentSystemNode.ConstellationName : String.Empty)</MudText>
+        </MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2">Name:</MudText>
-        </MudItem>
-        <MudItem xs="0">
             <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Name) ? CurrentSystemNode.Name : String.Empty)</MudText>
-        </MudItem>
-    </MudGrid>
-
-    <MudGrid Justify="Justify.SpaceBetween">
-        <MudItem xs="1">
+        </MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2">Security:</MudText>
-        </MudItem>
-        <MudItem xs="0">
-            <MudText Typo="Typo.body2" Style="@($"color:{_secColor};")">@(CurrentSystemNode != null  ? CurrentSystemNode.SecurityStatus : String.Empty)</MudText>
-        </MudItem>
-    </MudGrid>
-
-    <MudGrid Justify="Justify.SpaceBetween">
-        <MudItem xs="1">
+            <MudText Typo="Typo.body2" Style="@($"color:{_secColor};")">@(CurrentSystemNode != null  ? CurrentSystemNode.SecurityStatus : String.Empty)</MudText>       
+        </MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2">Class:</MudText>
-        </MudItem>
-        <MudItem xs="0">
-            <MudText Typo="Typo.body2" Style="@($"color:{_systemColor}; font-weight:bold;")">@_systemType</MudText>
-        </MudItem>
-    </MudGrid>
-
-    <MudGrid Justify="Justify.SpaceBetween" Class="@((CurrentSystemNode != null && CurrentSystemNode?.Effect!=WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None) ? "visible" : "invisible")">
-        <MudItem xs="1">
-            <MudText Typo="Typo.body2">Effect:</MudText>
-        </MudItem>
-        <MudItem xs="0">
-            <MudText Typo="Typo.body2" Class="d-inline-flex">@_effect</MudText>
-            @if (CurrentSystemNode?.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
-            {
-                <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
-                    <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")" />
-                    </ChildContent>
-                    <TooltipContent>
-                        <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
-                            @if (CurrentSystemNode != null && CurrentSystemNode.EffectDetails != null)
-                            {
-                                foreach (var effectInfo in CurrentSystemNode.EffectDetails)
+            <MudText Typo="Typo.body2" Style="@($"color:{_systemColor}; font-weight:bold;")">@_systemType</MudText>    
+        </MudStack>
+        @if(CurrentSystemNode != null && CurrentSystemNode?.Effect!=WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
+        {
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2">Effect:</MudText>
+                    <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
+                        <ChildContent>
+                            <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")" />
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
+                                @if (CurrentSystemNode != null && CurrentSystemNode.EffectDetails != null)
                                 {
-                                    <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
+                                    foreach (var effectInfo in CurrentSystemNode.EffectDetails)
+                                    {
+                                        <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
+                                    }
                                 }
-                            }
-                        </MudPaper>
-                    </TooltipContent>
-                </MudTooltip>
-            }
-        </MudItem>
-    </MudGrid>
-
-    <MudGrid Justify="Justify.SpaceBetween" Class="@((CurrentSystemNode != null && CurrentSystemNode?.Effect!=WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None) ? "visible" : "invisible")">
-        <MudItem xs="1">
-            <MudText Typo="Typo.body2">Statics:</MudText>
-        </MudItem>
-        <MudItem xs="0">
-            @if (CurrentSystemNode != null && CurrentSystemNode.Statics != null && CurrentSystemNode.Statics.Count() > 0)
-            {
-                foreach (var item in CurrentSystemNode.Statics)
+                            </MudPaper>
+                        </TooltipContent>
+                    </MudTooltip> 
+            </MudStack>
+        }
+        @if((CurrentSystemNode != null && CurrentSystemNode?.Statics!=null && CurrentSystemNode.Statics.Count() > 0))
+        {
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2">Statics:</MudText>
+                
+                @foreach (var item in CurrentSystemNode.Statics)
                 {
-                    <MudText Typo="Typo.body2" Class="d-inline-flex ml-1">@item.WHName</MudText>
-                    <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.EveSystemDestinationType)}; font-weight:bold;")">@item.EveSystemDestinationType.ToString()</MudText>
+                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                        <MudText Typo="Typo.body2" Class="d-inline-flex ml-1">@item.WHName</MudText>
+                        <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.EveSystemDestinationType)}; font-weight:bold;")">@item.EveSystemDestinationType.ToString()</MudText>
+                    </MudStack>
                 }
-            }
-        </MudItem>
-    </MudGrid>
-    <MudTextField class="align-self-stretch" Style="--mud-typography-body1-size: 10px;" T="string" Variant="Variant.Outlined" Immediate="true" @bind-Value=_solarSystemComment Lines="3" @onkeypress="@((e) =>OnNoteChanged())"/>
+            </MudStack>
+        }
+
+    </MudStack>
 </MudPaper>
