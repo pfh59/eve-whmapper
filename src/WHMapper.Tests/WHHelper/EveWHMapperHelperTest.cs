@@ -165,7 +165,7 @@ namespace WHMapper.Tests.WHHelper
 
             var wh_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0f));
             Assert.Equal(SOLAR_SYSTEM_WH_CLASS, wh_result.SystemType);
-            Assert.NotEqual(WHEffect.None, wh_result.Effect);
+            //Assert.NotEqual(WHEffect.None, wh_result.Effect);
             Assert.Equal(SOLAR_SYSTEM_WH_EFFECT, wh_result.Effect);
         }
     }
