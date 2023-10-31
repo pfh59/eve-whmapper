@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using NuGet.Frameworks;
+using WHMapper.Pages.Mapper.Administration;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
@@ -8,6 +10,7 @@ using Xunit.Priority;
 namespace WHMapper.Tests.SDE
 {
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+    [Collection("Sequential")]
     public class SDEUniverseTest
     {
 
@@ -20,17 +23,43 @@ namespace WHMapper.Tests.SDE
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
         private const string SOLAR_SYSTEM_WH_PARTIAL_NAME = "J1651";
 
+        private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
+        private const string SDE_ZIP_MOVE_PATH = @"./Resources/SDE/sde2.zip";
+        private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
         private ISDEServices _services;
 
         public SDEUniverseTest()
         {
-            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-            _services = new SDEServices(logger);
+            if (Directory.Exists(SDE_TARGET_DIRECTORY))
+                Directory.Delete(SDE_TARGET_DIRECTORY,true);
+
+            if(File.Exists(SDE_ZIP_MOVE_PATH))
+                File.Delete(SDE_ZIP_MOVE_PATH);
         }
 
-        [Fact]
+
+        [Fact, Priority(1)]
+        public void Init_SDE_SERVICES()
+        {
+            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
+            File.Move(SDE_ZIP_PATH, SDE_ZIP_MOVE_PATH);
+            //test catch
+            _services = new SDEServices(logger);
+            Assert.False(_services.ExtractSuccess);
+
+            File.Move(SDE_ZIP_MOVE_PATH, SDE_ZIP_PATH);
+            _services = new SDEServices(logger);
+            Assert.True(_services.ExtractSuccess);
+        }
+
+
+        [Fact, Priority(2)]
         public async void Search_System()
         {
+            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
+            _services = new SDEServices(logger);
+            Assert.True(_services.ExtractSuccess);
+
             //TEST empty
             var empty_result = await _services.SearchSystem("");
             Assert.Null(empty_result);
@@ -67,9 +96,10 @@ namespace WHMapper.Tests.SDE
 
 
             //TESTABYSSAL
-
-
         }
+
+
+
     }
 }
 

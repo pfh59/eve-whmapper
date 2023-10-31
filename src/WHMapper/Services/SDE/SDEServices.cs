@@ -13,15 +13,17 @@ namespace WHMapper.Services.SDE
 	public class SDEServices : ISDEServices
 	{
         private readonly ILogger _logger;
-        private readonly ParallelOptions _options= new ParallelOptions { MaxDegreeOfParallelism = 4 };
-
+        private readonly ParallelOptions _options;
+        private readonly IDeserializer _deserializer;
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
         private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
         private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.staticdata";
 
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
         private static Mutex mut = new Mutex();
-        private IDeserializer _deserializer;
+
+        public bool ExtractSuccess {get; private set;}
+        
 
         public SDEServices(ILogger<SDEServices> logger)
 		{
@@ -30,6 +32,7 @@ namespace WHMapper.Services.SDE
             _deserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .Build();
+            ExtractSuccess= false;
             try
             {
                 mut.WaitOne();
@@ -41,10 +44,12 @@ namespace WHMapper.Services.SDE
                         archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
                     }
                 }
+                ExtractSuccess= true;
             }
             catch(Exception ex)
             {
                 logger.LogError("SDEServices",ex);
+                 ExtractSuccess= false;
             }
             finally
             {
@@ -55,6 +60,9 @@ namespace WHMapper.Services.SDE
 
         public async Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value)
         {
+            if(!ExtractSuccess)
+                _logger.LogError("Impossible to searchSystem, bad extract.");
+
             if (Directory.Exists(SDE_TARGET_DIRECTORY) && !String.IsNullOrEmpty(value) && value.Length > 2)
             {
                 HashSet<SDESolarSystem> results = new HashSet<SDESolarSystem>();
