@@ -1,5 +1,34 @@
 ﻿<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" Width="300px">
     <MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceAround">
+            <MudLink Href="@_linkToDotlan" Target="_blank">
+                <MudStack Row="true" Spacing=1>
+                    <MudImage Src="@DOTLAN_LOGO_PATH" Height="16" Width="16" ObjectFit="ObjectFit.Fill"  Class="rounded-lg"></MudImage>
+                    Dotlan
+                </MudStack>
+            </MudLink>
+            
+            <MudLink Href="@_linkToZKillboard" Target="_blank">
+                <MudStack Row="true" Spacing=1>
+                    <MudImage Src="@ZKILLBOARD_LOGO_PATH" Height="16" Width="16" ObjectFit="ObjectFit.Fill"  Class="rounded-lg"></MudImage>
+                    zKillboard
+                </MudStack>
+            </MudLink>
+            
+            @if(CurrentSystemNode != null && CurrentSystemNode.SystemType!=Models.DTO.EveMapper.Enums.EveSystemType.HS 
+            && CurrentSystemNode.SystemType!=Models.DTO.EveMapper.Enums.EveSystemType.LS
+            && CurrentSystemNode.SystemType!=Models.DTO.EveMapper.Enums.EveSystemType.NS
+            && CurrentSystemNode.SystemType!=Models.DTO.EveMapper.Enums.EveSystemType.Pochven
+            )
+            {
+                <MudLink Href="@_linkToAnoik" Target="_blank">
+                    <MudStack Row="true" Spacing=1>
+                        <MudImage Src="@ANOIK_LOGO_PATH" Height="16" Width="16" ObjectFit="ObjectFit.Fill"  Class="rounded-lg"></MudImage>
+                        Anoik
+                    </MudStack>
+                </MudLink>
+            }
+        </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2">Region:</MudText>
             <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.RegionName) ? CurrentSystemNode.RegionName : String.Empty)</MudText>

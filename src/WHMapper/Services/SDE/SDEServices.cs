@@ -44,6 +44,10 @@ namespace WHMapper.Services.SDE
                         .WithNamingConvention(CamelCaseNamingConvention.Instance)
                         .Build();
             }
+            catch(Exception ex)
+            {
+                logger.LogError("SDEServices",ex);
+            }
             finally
             {
                 mut.ReleaseMutex();
