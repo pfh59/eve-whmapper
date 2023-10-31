@@ -12,9 +12,8 @@ namespace WHMapper.Services.SDE
 {
 	public class SDEServices : ISDEServices
 	{
-        private readonly ParallelOptions _options;
-
         private readonly ILogger _logger;
+        private readonly ParallelOptions _options= new ParallelOptions { MaxDegreeOfParallelism = 4 };
 
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
         private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
@@ -26,10 +25,13 @@ namespace WHMapper.Services.SDE
 
         public SDEServices(ILogger<SDEServices> logger)
 		{
+            _logger = logger;
+            _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
+            _deserializer = new DeserializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
             try
             {
-                _logger = logger;
-                _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
                 mut.WaitOne();
                 if (!Directory.Exists(SDE_TARGET_DIRECTORY))
                 {
@@ -39,10 +41,6 @@ namespace WHMapper.Services.SDE
                         archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
                     }
                 }
-                
-                _deserializer = new DeserializerBuilder()
-                        .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                        .Build();
             }
             catch(Exception ex)
             {
@@ -55,7 +53,7 @@ namespace WHMapper.Services.SDE
         }
 
 
-        public async Task<IEnumerable<SDESolarSystem>> SearchSystem(string value)
+        public async Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value)
         {
             if (Directory.Exists(SDE_TARGET_DIRECTORY) && !String.IsNullOrEmpty(value) && value.Length > 2)
             {
