@@ -10,7 +10,7 @@ using Xunit.Priority;
 namespace WHMapper.Tests.SDE
 {
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("Sequential")]
+    [Collection("Sequential2")]
     public class SDEUniverseTest
     {
 
@@ -26,38 +26,38 @@ namespace WHMapper.Tests.SDE
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
         private const string SDE_ZIP_MOVE_PATH = @"./Resources/SDE/sde2.zip";
         private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
-        private ISDEServices _services;
-
         public SDEUniverseTest()
+        {
+
+        }
+
+
+        [Fact, Priority(1)]
+        public async Task Init_SDE_SERVICES()
         {
             if (Directory.Exists(SDE_TARGET_DIRECTORY))
                 Directory.Delete(SDE_TARGET_DIRECTORY,true);
 
             if(File.Exists(SDE_ZIP_MOVE_PATH))
                 File.Delete(SDE_ZIP_MOVE_PATH);
-        }
 
-
-        [Fact, Priority(1)]
-        public void Init_SDE_SERVICES()
-        {
             ILogger<SDEServices> logger = new NullLogger<SDEServices>();
             File.Move(SDE_ZIP_PATH, SDE_ZIP_MOVE_PATH);
             //test catch
-            _services = new SDEServices(logger);
-            Assert.False(_services.ExtractSuccess);
+            ISDEServices badServices = new SDEServices(logger);
+            Assert.False(badServices.ExtractSuccess);
 
             File.Move(SDE_ZIP_MOVE_PATH, SDE_ZIP_PATH);
-            _services = new SDEServices(logger);
-            Assert.True(_services.ExtractSuccess);
+            ISDEServices goodServices = new SDEServices(logger);
+            Assert.True(goodServices.ExtractSuccess);
         }
 
 
         [Fact, Priority(2)]
-        public async void Search_System()
+        public async Task Search_System()
         {
             ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-            _services = new SDEServices(logger);
+            ISDEServices _services = new SDEServices(logger);
             Assert.True(_services.ExtractSuccess);
 
             //TEST empty
