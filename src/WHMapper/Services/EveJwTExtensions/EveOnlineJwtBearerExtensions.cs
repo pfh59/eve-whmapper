@@ -19,7 +19,7 @@ namespace WHMapper.Services.EveJwkExtensions
         {
             HttpClient httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(EveOnlineJwkDefaults.SSOUrl);
-            httpClient.DefaultRequestHeaders.Host = EveOnlineJwkDefaults.ValideIssuer;
+            httpClient.DefaultRequestHeaders.Host = EveOnlineJwkDefaults.EVE_HOST;
 
             var response = httpClient.GetAsync(EveOnlineJwkDefaults.JWKEndpoint).Result.Content.ReadAsStringAsync().Result;
             var jwks = new JsonWebKeySet(response);
