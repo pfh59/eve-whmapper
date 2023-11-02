@@ -83,16 +83,28 @@ jobs:
 
       - name: Publish
         #if: github.event_name != 'pull_request'
-        run: dotnet publish src/WHMapper/WHMapper.csproj -c Release -o release --nologo
-    
-      - name: Upload Artifact
+        run: | 
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
+          
+      - name: Upload Linux Artifact
         #if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
-          name: WHMapper-linux-${{github.sha}}
+          name: WHMapper-linux
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/*.pdb
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
+          if-no-files-found: error
+
+      - name: Upload Windows Artifact
+        #if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v2
+        with:
+          name: WHMapper-win
+          path: |
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
           if-no-files-found: error
     
 
