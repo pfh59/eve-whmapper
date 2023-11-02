@@ -82,29 +82,29 @@ jobs:
 
 
       - name: Publish
-        #if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request'
         run: | 
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
           
       - name: Upload Linux Artifact
-        #if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
-          name: WHMapper-linux
+          name: WHMapper.linux-x64
           path: |
             /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
             !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
           if-no-files-found: error
 
       - name: Upload Windows Artifact
-        #if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
-          name: WHMapper-win
+          name: WHMapper.windows-x64
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
+            /home/runner/work/eve-whmapper/eve-whmapper/release/win/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/win/*.pdb
           if-no-files-found: error
     
 
@@ -152,9 +152,14 @@ jobs:
         - name: Get Linux Artifact
           uses: actions/download-artifact@v3
           with:
-            name: WHMapper-linux-${{github.ref_name}}
+            name: WHMapper.linux-x64
+
+        - name: Get Windows Artifact
+          uses: actions/download-artifact@v3
+          with:
+            name: WHMapper.windows-x64
            
-        - name: release
+        - name: Release
           uses: actions/create-release@v1
           id: create_release
           with:
@@ -172,7 +177,17 @@ jobs:
             GITHUB_TOKEN: ${{ github.token }}
           with:
             upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: .WHMapper-linux-${{github.ref_name}}
-            asset_name: WHMapper-linux.zip
+            asset_path: ./WHMapper.linux-x64.zip
+            asset_name: WHMapper.linux-x64.zip
+            asset_content_type: application/gzip
+
+        - name: Upload Windows Artifact
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: ./WHMapper.windows-x64.zip
+            asset_name: WHMapper.windows-x64.zip
             asset_content_type: application/gzip
 
