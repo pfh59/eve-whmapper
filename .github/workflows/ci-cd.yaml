@@ -89,7 +89,7 @@ jobs:
         #if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
-          name: WHMapper-linux-${{github.ref_name}}
+          name: WHMapper-linux-${{github.sha}}
           path: |
             /home/runner/work/eve-whmapper/eve-whmapper/release/
             !/home/runner/work/eve-whmapper/eve-whmapper/release/*.pdb
