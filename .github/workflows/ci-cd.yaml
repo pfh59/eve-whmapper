@@ -141,18 +141,22 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          #Cache export feature is currently not supported for docker driver
+          #cache-from: type=gha
+          #cache-to: type=gha,mode=max
 
       - name: Docker Scout
         id: docker-scout
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+        uses: docker/scout-action@v1
         with:
-          command: cves
+          command: compare
           image: ${{ steps.meta.outputs.tags }}
+          to: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.COMPARE_TAG }}
+          ignore-unchanged: true
           only-severities: critical,high
-          exit-code: true
+          write-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
       if: github.ref_type == 'tag'
