@@ -16,8 +16,29 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  build_test_package:
     runs-on: ubuntu-latest
+
+# Service containers to run with `runner-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: whmappertest 
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
     steps:
       - name: Setup JDK 11 🦴
         uses: actions/setup-java@v3
@@ -36,21 +57,9 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
-    
-      - name: Start Posgresql 
-        run: |
-          docker run --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=whmappertest -p 5432:5432 -d postgres
-
-      - name: Sleep for 5 seconds 
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '5s'
-
-      - name: Restore dependencies
-        run: dotnet restore src
-        
+          
       - name: Cache SonarCloud packages
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ~\sonar\cache
           key: ${{ runner.os }}-sonar
@@ -63,18 +72,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=mysecretpassword"
+          ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=${{ secrets.POSTGRES_PASSWORD }}"
         run: |
           dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          dotnet restore src
           dotnet build src/WHMapper -c Release --no-restore
           dotnet-coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-      
 
-  #publish_docker_images:
-  #  runs-on: ubuntu-latest
-  #  needs: build
-  #  steps:
+
+      - name: Publish
+        if: github.event_name != 'pull_request'
+        run: | 
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
+          
+      - name: Upload Linux Artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v2
+        with:
+          name: WHMapper.linux-x64
+          path: |
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
+          if-no-files-found: error
+
+      - name: Upload Windows Artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v2
+        with:
+          name: WHMapper.windows-x64
+          path: |
+            /home/runner/work/eve-whmapper/eve-whmapper/release/win/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/win/*.pdb
+          if-no-files-found: error
+    
+
       - name: Extract metadata (tags, labels) for Docker
         if: github.event_name != 'pull_request'
         id: meta
@@ -108,3 +141,65 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker Scout
+        id: docker-scout
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+        with:
+          command: cves
+          image: ${{ steps.meta.outputs.tags }}
+          only-severities: critical,high
+          exit-code: true
+
+  release:
+      if: github.ref_type == 'tag'
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+      needs: build_test_package
+      steps: 
+        - name: Get Linux Artifact
+          uses: actions/download-artifact@v3
+          with:
+            name: WHMapper.linux-x64
+
+        - name: Get Windows Artifact
+          uses: actions/download-artifact@v3
+          with:
+            name: WHMapper.windows-x64
+           
+        - name: Release
+          uses: actions/create-release@v1
+          id: create_release
+          with:
+            draft: false
+            prerelease: false
+            release_name: ${{ steps.version.outputs.version }}
+            tag_name: ${{ github.ref }}
+            body_path: CHANGELOG.md
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+        
+        - name: Upload Linux Artifact
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: ./WHMapper.linux-x64.zip
+            asset_name: WHMapper.linux-x64.zip
+            asset_content_type: application/gzip
+
+        - name: Upload Windows Artifact
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: ./WHMapper.windows-x64.zip
+            asset_name: WHMapper.windows-x64.zip
+            asset_content_type: application/gzip
+
