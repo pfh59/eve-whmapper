@@ -250,14 +250,16 @@ namespace WHMapper.Pages.Mapper
 
                     _hubConnection.On<IDictionary<string, string>>("NotifyUsersPosition", async (usersPosition) =>
                     {
-
                         try
                         {
                             await Parallel.ForEachAsync(usersPosition, async (item, cancellationToken) =>
                             {
-                                EveSystemNodeModel systemToAddUser = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).Title == item.Value);
-                                await systemToAddUser.AddConnectedUser(item.Key);
-                                systemToAddUser.Refresh();
+                                if(!string.IsNullOrEmpty(item.Value))
+                                {
+                                    EveSystemNodeModel systemToAddUser = (EveSystemNodeModel)Diagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).Title == item.Value);
+                                    await systemToAddUser.AddConnectedUser(item.Key);
+                                    systemToAddUser.Refresh();
+                                }
                             });
                         }
                         catch (Exception ex)
@@ -1331,6 +1333,8 @@ namespace WHMapper.Pages.Mapper
 
             if (_hubConnection is not null)
             {
+    
+                await _hubConnection.StopAsync();
                 await _hubConnection.DisposeAsync();
             }
 

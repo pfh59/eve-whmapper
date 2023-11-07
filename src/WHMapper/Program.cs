@@ -69,7 +69,15 @@ namespace WHMapper
             builder.Services.AddSignalR();
 
             builder.Services.AddRazorPages();
-            builder.Services.AddServerSideBlazor();
+            builder.Services.AddServerSideBlazor(options =>
+            {
+                options.DetailedErrors = false;
+                options.DisconnectedCircuitMaxRetained = 100;
+                options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromSeconds(30);
+                options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(15);
+                options.MaxBufferedUnacknowledgedRenderBatches = 10;
+            });
+
             builder.Services.AddMudServices(config =>
             {
                 config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -243,11 +251,7 @@ namespace WHMapper
 
             app.UseRouting();
             app.UseCookiePolicy();
-        /* app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                Secure = CookieSecurePolicy.Always,
-                MinimumSameSitePolicy = SameSiteMode.Lax
-            });*/
+
             app.UseAuthentication();
             app.UseAuthorization();
 

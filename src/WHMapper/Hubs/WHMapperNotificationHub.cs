@@ -16,8 +16,8 @@ namespace WHMapper.Hubs
     [Authorize(AuthenticationSchemes = EveOnlineJwkDefaults.AuthenticationScheme)]
     public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
     {
-        private const string UNDEFINE_POSITION = "Undefine Position";
-        private static ConcurrentDictionary<string, string> _connectedUserPosition = new ConcurrentDictionary<string, string>();
+        private readonly static ConnectionMapping<string> _connections = new ConnectionMapping<string>();
+        private readonly static ConcurrentDictionary<string, string> _connectedUserPosition = new ConcurrentDictionary<string, string>();
 
 
         private string CurrentUser()
@@ -34,42 +34,39 @@ namespace WHMapper.Hubs
         public override async Task OnConnectedAsync()
         {
             string userName = CurrentUser();
-            if (!string.IsNullOrEmpty(userName) && !_connectedUserPosition.ContainsKey(userName))
+            _connections.Add(userName, Context.ConnectionId);
+            
+            if(!_connectedUserPosition.ContainsKey(userName))
             {
-                while (!_connectedUserPosition.TryAdd(userName, UNDEFINE_POSITION))
-                    await Task.Delay(1);
+                while (!_connectedUserPosition.TryAdd(userName, string.Empty))
+                        await Task.Delay(1);
             }
-            else//add log
-            {
-
-            }
-
-            await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(userName);
             await base.OnConnectedAsync();
+            await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(userName);
+            await Clients.Caller.NotifyUsersPosition(_connectedUserPosition);
+            
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             string res = string.Empty;
             string userName = CurrentUser();
-            if (!string.IsNullOrEmpty(userName) && _connectedUserPosition.ContainsKey(userName))
+             _connections.Remove(userName, Context.ConnectionId);
+            
+            if (_connectedUserPosition.ContainsKey(userName))
             {
                 while (!_connectedUserPosition.TryRemove(userName, out res))
                     await Task.Delay(1);
             }
-            else//add log
-            {
 
-            }
             await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(userName);
-
             await base.OnDisconnectedAsync(exception);
         }
 
         public async Task SendUserPosition(string systemName)
         {
             string userName = CurrentUser();
-            if (!string.IsNullOrEmpty(userName) && _connectedUserPosition.ContainsKey(userName))
+            if (_connectedUserPosition.ContainsKey(userName))
             {
                 string res = string.Empty;
                 while (!_connectedUserPosition.TryGetValue(userName, out res))
@@ -78,13 +75,9 @@ namespace WHMapper.Hubs
                 while (!_connectedUserPosition.TryUpdate(userName, systemName, res))
                     await Task.Delay(1);
             }
-            else//add log
-            {
-
-            }
 
             await Clients.AllExcept(Context.ConnectionId).NotifyUserPosition(userName, systemName);
-            await Clients.Caller.NotifyUsersPosition(_connectedUserPosition);
+            //await Clients.Caller.NotifyUsersPosition(_connectedUserPosition);
         }
 
         public async Task SendWormholeAdded(int mapId, int wowrmholeId)
