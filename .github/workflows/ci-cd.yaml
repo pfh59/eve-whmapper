@@ -109,7 +109,7 @@ jobs:
     
 
       - name: Extract metadata (tags, labels) for Docker
-        if: github.event_name != 'pull_request'
+        #if: github.event_name != 'pull_request'
         id: meta
         uses: docker/metadata-action@v4
         with:
@@ -126,7 +126,7 @@ jobs:
 
           
       - name: Log in to the Container registry
-        if: github.event_name != 'pull_request'
+        #if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
@@ -134,12 +134,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push 📑
-        if: github.event_name != 'pull_request'
+        #if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           context: ./src/WHMapper/
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' }} #PUSH only on merging
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           #Cache export feature is currently not supported for docker driver
@@ -148,7 +148,7 @@ jobs:
 
       - name: Docker Scout
         id: docker-scout
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' }} # Analyse only on PR
         uses: docker/scout-action@v1
         with:
           command: cves,recommendations,compare
