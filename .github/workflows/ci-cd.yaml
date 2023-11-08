@@ -128,7 +128,7 @@ jobs:
           write-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-       - name: Generate Artifact
+      - name: Generate Artifact
         if: github.event_name != 'pull_request'
         run: | 
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
