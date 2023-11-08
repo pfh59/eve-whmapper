@@ -80,34 +80,6 @@ jobs:
           dotnet-coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
-
-      - name: Publish
-        if: github.event_name != 'pull_request'
-        run: | 
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
-          
-      - name: Upload Linux Artifact
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
-        with:
-          name: WHMapper.linux-x64
-          path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
-          if-no-files-found: error
-
-      - name: Upload Windows Artifact
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
-        with:
-          name: WHMapper.windows-x64
-          path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/win/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/win/*.pdb
-          if-no-files-found: error
-    
-
       - name: Extract metadata (tags, labels) for Docker
         #if: github.event_name != 'pull_request'
         id: meta
@@ -125,9 +97,9 @@ jobs:
             latest=false
 
           
-      - name: Log in to the Container registry
-        #if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -152,10 +124,35 @@ jobs:
         uses: docker/scout-action@v1
         with:
           command: cves,recommendations,compare
-          to-latest: true
-          ignore-base: true
-          ignore-unchanged: true
-          only-fixed: true
+          image: ${{ steps.meta.outputs.tags }}
+          write-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+       - name: Generate Artifact
+        if: github.event_name != 'pull_request'
+        run: | 
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
+          
+      - name: Upload Linux Artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v2
+        with:
+          name: WHMapper.linux-x64
+          path: |
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
+          if-no-files-found: error
+
+      - name: Upload Windows Artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v2
+        with:
+          name: WHMapper.windows-x64
+          path: |
+            /home/runner/work/eve-whmapper/eve-whmapper/release/win/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/win/*.pdb
+          if-no-files-found: error
 
   release:
       if: github.ref_type == 'tag'
