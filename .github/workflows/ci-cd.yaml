@@ -105,8 +105,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push 📑
-        #if: github.event_name != 'pull_request'
+      - name: Build and push only on merging 📑
         uses: docker/build-push-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -123,6 +122,8 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }} # Analyse only on PR
         uses: docker/scout-action@v1
         with:
+          dockerhub-user: ${{ secrets.DOCKERHUB_USER }}
+          dockerhub-password: ${{ secrets.DOCKERHUB_PASSWORD }}
           command: cves,recommendations,compare
           image: ${{ steps.meta.outputs.tags }}
           write-comment: true
