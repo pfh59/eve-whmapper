@@ -1,9 +1,15 @@
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY ["WHMapper.csproj", "."]
 RUN dotnet restore "WHMapper.csproj"
