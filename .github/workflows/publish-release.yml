@@ -41,8 +41,8 @@ jobs:
         run: |
             dotnet restore src
             dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
-            zip -r WHMapper.linux-x64.zip ./release/win -j
-            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-x64.zip
+            zip -r WHMapper.win-x64.zip ./release/win -j
+            gh release upload ${{github.event.release.tag_name}} WHMapper.win-x64.zip
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}
         shell: bash
