@@ -1,0 +1,48 @@
+name: Publish on release
+
+on:
+  release:
+    types: [published]
+    
+env:
+  DOTNET_VERSION: '7.0.x'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+   
+    steps:
+      - name: Setup .NET7 🦴
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{env.DOTNET_VERSION}}
+
+      - name: 📄 Checkout repository
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+
+      - name: 📦 Package linux x64
+        run: |
+            dotnet restore src
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
+            zip -r WHMapper.linux-x64.zip ./release/linux -j
+            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        shell: bash
+
+      - name: 📦 Package windows x64
+        run: |
+            dotnet restore src
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
+            zip -r WHMapper.linux-x64.zip ./release/win -j
+            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        shell: bash
+        
+        
+
