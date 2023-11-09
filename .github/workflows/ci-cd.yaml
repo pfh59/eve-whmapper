@@ -271,7 +271,7 @@ jobs:
             GITHUB_TOKEN: ${{ github.token }}
           with:
             upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: WHMapper.linux-x64
+            asset_path: /home/runner/work/eve-whmapper/eve-whmapper/WHMapper.linux-x64
             asset_name: WHMapper.linux-x64.zip
             asset_content_type: application/gzip
 
@@ -281,7 +281,7 @@ jobs:
             GITHUB_TOKEN: ${{ github.token }}
           with:
             upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: WHMapper.windows-x64
+            asset_path: /home/runner/work/eve-whmapper/eve-whmapper/WHMapper.windows-x64
             asset_name: WHMapper.windows-x64.zip
             asset_content_type: application/gzip
 
