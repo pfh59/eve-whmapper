@@ -3,6 +3,9 @@ name: Publish on release
 on:
   release:
     types: [published]
+
+permissions:
+  contents: write
     
 env:
   DOTNET_VERSION: '7.0.x'
