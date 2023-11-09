@@ -161,9 +161,9 @@ jobs:
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@v4.0.0
+        uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./src/WHMapper/
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -219,9 +219,8 @@ jobs:
             latest=false
 
       - name: Build and push 📑
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           context: ./src/WHMapper/
           push: ${{ github.event_name != 'pull_request' }} #PUSH only on merging
           tags: ${{ steps.meta.outputs.tags }}
