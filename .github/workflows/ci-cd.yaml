@@ -9,7 +9,6 @@ on:
   pull_request:
     branches:
       - "main"
-
 env:
   DOTNET_VERSION: '7.0.x'
   REGISTRY: ghcr.io
@@ -22,6 +21,7 @@ env:
 
 jobs:
   build_test_package:
+    if: github.ref_type != 'tag'
     runs-on: ubuntu-latest
 
 # Service containers to run with `runner-job`
@@ -225,63 +225,4 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }} #PUSH only on merging
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  release_tag:
-      if: github.ref_type == 'tag'
-      needs: [build_test_package,build_test_docker_image]
-      runs-on: ubuntu-latest
-      permissions:
-        contents: write
-      steps:     
-        - name: Get Linux Artifact
-          uses: actions/download-artifact@v3
-          with:
-            name: WHMapper.linux-x64
-            path: WHMapper.linux-x64
-
-        - name: Display structure of downloaded files
-          run: ls -R
-          working-directory: WHMapper.linux-x64
-
-        - name: Get Windows Artifact
-          uses: actions/download-artifact@v3
-          with:
-            name: WHMapper.windows-x64
-            path: WHMapper.windows-x64
-
-        - name: Display structure of downloaded files
-          run: ls -R
-          working-directory: WHMapper.windows-x64
-      
-        - name: Create Release
-          id: create_release
-          uses: actions/create-release@v1
-          env:
-            GITHUB_TOKEN: ${{ github.token }} 
-          with:
-            draft: false
-            prerelease: false
-            release_name: Release ${{ github.ref }}
-            tag_name: ${{ github.ref }}
-
-            
-        - name: Upload Linux Artifact
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ github.token }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: /home/runner/work/eve-whmapper/eve-whmapper/WHMapper.linux-x64
-            asset_name: WHMapper.linux-x64.zip
-            asset_content_type: application/gzip
-
-        - name: Upload Windows Artifact
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ github.token }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: /home/runner/work/eve-whmapper/eve-whmapper/WHMapper.windows-x64
-            asset_name: WHMapper.windows-x64.zip
-            asset_content_type: application/gzip
 
