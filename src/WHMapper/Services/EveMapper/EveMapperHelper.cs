@@ -336,7 +336,7 @@ namespace WHMapper.Services.EveMapper
                 new EveSystemEffect("Signature size", -50)
             });
 
-            _pulsarEffects.Add(EveSystemType.C18, new List<EveSystemEffect>(4)
+            _wolfRayetEffects.Add(EveSystemType.C18, new List<EveSystemEffect>(4)
             {
                 new EveSystemEffect("Armor HP", 44),
                 new EveSystemEffect("Shield resist", -22),
