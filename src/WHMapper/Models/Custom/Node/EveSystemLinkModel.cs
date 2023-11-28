@@ -46,7 +46,7 @@ namespace WHMapper.Models.Custom.Node
             set
             {
                 _whLink.Size = value;
-                SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
+                SetLabel(_whLink.Size);
             }
         }
 
@@ -63,7 +63,7 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
-        private void SetLabel(bool isEol,SystemLinkSize size)
+        private void SetLabel(SystemLinkSize size)
         {
             this.Labels.Clear();
             switch (size)
@@ -84,7 +84,7 @@ namespace WHMapper.Models.Custom.Node
             : base (sourcePort, targetPort)
         {
             _whLink = whLink;
-            SetLabel(_whLink.IsEndOfLifeConnection,_whLink.Size);
+            SetLabel(_whLink.Size);
 
         }
 

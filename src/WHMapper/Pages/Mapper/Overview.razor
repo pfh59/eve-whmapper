@@ -21,7 +21,7 @@
                             {
                                 <div style="width: inherit; height: inherit" Class="Rounded">
                                     <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                        <CascadingValue Value="Diagram" IsFixed="true">
+                                        <CascadingValue Value="_blazorDiagram" IsFixed="true">
                                             <DiagramCanvas></DiagramCanvas>
                                         </CascadingValue>
                                     </MudTabPanel>
@@ -43,7 +43,7 @@
                 else
                 {
                     <div style="width: 100%; height: 100%" Class="Rounded">
-                        <CascadingValue Value="Diagram">
+                        <CascadingValue Value="_blazorDiagram">
                             <DiagramCanvas></DiagramCanvas>
                         </CascadingValue>
                     </div>
