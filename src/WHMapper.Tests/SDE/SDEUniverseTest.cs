@@ -24,8 +24,12 @@ namespace WHMapper.Tests.SDE
         private const string SOLAR_SYSTEM_WH_PARTIAL_NAME = "J1651";
 
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
-        private const string SDE_ZIP_MOVE_PATH = @"./Resources/SDE/sde2.zip";
+        //private const string SDE_ZIP_MOVE_PATH = @"./Resources/SDE/sde2.zip";
         private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
+
+        private const string SDE_CHECKSUM_FILE = @"./Resources/SDE/checksum";
+        private const string SDE_CHECKSUM_CURRENT_FILE = @"./Resources/SDE/currentchecksum";
+
         public SDEUniverseTest()
         {
 
@@ -38,22 +42,52 @@ namespace WHMapper.Tests.SDE
             if (Directory.Exists(SDE_TARGET_DIRECTORY))
                 Directory.Delete(SDE_TARGET_DIRECTORY,true);
 
-            if(File.Exists(SDE_ZIP_MOVE_PATH))
-                File.Delete(SDE_ZIP_MOVE_PATH);
+            if(File.Exists(SDE_CHECKSUM_CURRENT_FILE))
+                File.Delete(SDE_CHECKSUM_CURRENT_FILE);
+
+            if(File.Exists(SDE_CHECKSUM_FILE))
+                File.Delete(SDE_CHECKSUM_FILE);
 
             ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-            File.Move(SDE_ZIP_PATH, SDE_ZIP_MOVE_PATH);
-            //test catch
-            ISDEServices badServices = new SDEServices(logger);
-            Assert.False(badServices.ExtractSuccess);
 
-            File.Move(SDE_ZIP_MOVE_PATH, SDE_ZIP_PATH);
+            //from scratch
             ISDEServices goodServices = new SDEServices(logger);
+            Assert.True(goodServices.ExtractSuccess);
+
+            //currentcheck not equal to download checksum
+            File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE,"azerty");
+            goodServices = new SDEServices(logger);
             Assert.True(goodServices.ExtractSuccess);
         }
 
-
         [Fact, Priority(2)]
+        public async Task Is_New_SDE_Available()
+        {
+            if (Directory.Exists(SDE_TARGET_DIRECTORY))
+                Directory.Delete(SDE_TARGET_DIRECTORY,true);
+
+            if(File.Exists(SDE_CHECKSUM_CURRENT_FILE))
+                File.Delete(SDE_CHECKSUM_CURRENT_FILE);
+
+            if(File.Exists(SDE_CHECKSUM_FILE))
+                File.Delete(SDE_CHECKSUM_FILE);
+
+            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
+
+            //from scratch
+            ISDEServices goodServices = new SDEServices(logger);
+            Assert.True(goodServices.ExtractSuccess);
+
+            bool sameSDE = goodServices.IsNewSDEAvailable();
+            Assert.False(sameSDE);
+
+            //currentcheck not equal to download checksum
+            File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE,"azerty");
+            bool newSDE = goodServices.IsNewSDEAvailable();
+            Assert.True(newSDE);
+        }
+
+        [Fact, Priority(3)]
         public async Task Search_System()
         {
             ILogger<SDEServices> logger = new NullLogger<SDEServices>();

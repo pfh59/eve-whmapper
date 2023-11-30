@@ -1,5 +1,6 @@
 ﻿using System.Reflection.Emit;
 using System.Xml.Linq;
+using Blazor.Diagrams.Core.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -152,6 +153,11 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 return false;
             }
          
+        }
+
+        public static implicit operator EveSystemNode?(NodeModel? v)
+        {
+            throw new NotImplementedException();
         }
     }
 }
