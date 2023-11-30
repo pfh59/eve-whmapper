@@ -18,6 +18,7 @@ namespace WHMapper.Services.SDE
         private const string SDE_CHECKSUM_FILE = @"./Resources/SDE/checksum";
         private const string SDE_CHECKSUM_CURRENT_FILE = @"./Resources/SDE/currentchecksum";
 
+        private const string SDE_DIRECTORY =@"./Resources/SDE/";
         private const string SDE_ZIP_URL= "https://eve-static-data-export.s3-eu-west-1.amazonaws.com/tranquility/sde.zip";
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
         private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
@@ -75,6 +76,9 @@ namespace WHMapper.Services.SDE
         {
             try
             {
+                if (!Directory.Exists(SDE_DIRECTORY))
+                    Directory.CreateDirectory(SDE_DIRECTORY);
+
                 using (var client = new HttpClient())
                 {
                     using (var s = client.GetStreamAsync(SDE_URL_CHECKSUM))
