@@ -68,7 +68,6 @@
     <None Remove="Services\SDE\" />
     <None Remove="Models\DTO\SDE\" />
     <None Remove="Services\EveMapper\" />
-    <None Remove="Resources\SDE\sde.zip" />
     <None Remove="Services\EveMapper\AuthorizationPolicies\" />
     <None Remove="Pages\Mapper\Administration\" />
     <None Remove="Models\DTO\EveMapper\" />
@@ -136,11 +135,6 @@
     <Folder Include="Pages\Mapper\Administration\" />
     <Folder Include="Models\DTO\EveMapper\" />
     <Folder Include="Models\DTO\EveMapper\Enums\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\SDE\sde.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Update="Pages\_Layout.cshtml">

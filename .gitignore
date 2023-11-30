@@ -14,8 +14,8 @@
 .DS_Store
 **/appsettings.Development.json
 **/appsettings.Production.json
-#unzip SDE ressources
-**/Resources/SDE/universe/
+#SDE ressources
+**/Resources/SDE/
 
 
 # User-specific files (MonoDevelop/Xamarin Studio)

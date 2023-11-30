@@ -599,10 +599,10 @@ namespace WHMapper.Pages.Mapper
 
         private async Task OnDiagramSelectionChanged(Blazor.Diagrams.Core.Models.Base.SelectableModel? item)
         {
-               // await _semaphoreSlim.WaitAsync();
+                await _semaphoreSlim.WaitAsync();
                 try
                 {
-                    //await InvokeAsync(() => {
+                    await InvokeAsync(() => {
 
                         if (item == null)
                             return;
@@ -646,7 +646,7 @@ namespace WHMapper.Pages.Mapper
                             return;
                         }
 
-                    //});
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -654,7 +654,7 @@ namespace WHMapper.Pages.Mapper
                 }
                 finally
                 {
-                   // _semaphoreSlim.Release();
+                    _semaphoreSlim.Release();
                 }
         }
 
@@ -875,6 +875,7 @@ namespace WHMapper.Pages.Mapper
                             whSysNode.OnLocked += OnWHSystemNodeLocked;
                             _blazorDiagram.Nodes.Add(whSysNode);
                     });
+                    StateHasChanged();
                 
 
                     if (_selectedWHMap.WHSystemLinks!=null && _selectedWHMap.WHSystemLinks.Count > 0)
@@ -905,10 +906,11 @@ namespace WHMapper.Pages.Mapper
                                 }
                             }
                         });
+                        StateHasChanged();
                     }
                 }
                 Logger.LogInformation("Restore Mapper Success");
-                StateHasChanged();
+                
                 return true;
                 
             }
@@ -1140,8 +1142,12 @@ namespace WHMapper.Pages.Mapper
 
                     //get whClass an determine if another connection to another wh with same class exist from previous system. Increment extension value in that case
                     EveSystemType whClass = await MapperServices.GetWHClass(src);
-
-                    nbSameWHClassLink = (int)(_blazorDiagram?.Links?.Where(x => ((EveSystemNodeModel)x.Target.Model).SystemType == whClass && ((EveSystemNodeModel)x.Source.Model).SolarSystemId == src.SystemId).Count());
+                    var sameWHClassWHList = _blazorDiagram?.Links?.Where(x =>  ((EveSystemNodeModel)(x.Target.Model)).SystemType == whClass && ((EveSystemNodeModel)x.Source.Model)?.SolarSystemId == src?.SystemId);
+                    
+                    if(sameWHClassWHList!=null)
+                        nbSameWHClassLink = sameWHClassWHList.Count();
+                    else
+                        nbSameWHClassLink=0;
 
                     if (nbSameWHClassLink > 1)
                     {
