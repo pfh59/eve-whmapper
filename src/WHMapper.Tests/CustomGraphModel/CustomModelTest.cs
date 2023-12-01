@@ -80,6 +80,13 @@ namespace WHMapper.Tests.CustomGraphModel
             Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
             Assert.Equal(SystemLinkSize.Large, link.Size);
 
+            link.Size= SystemLinkSize.Small;
+            link.MassStatus=SystemLinkMassStatus.Normal;
+            Assert.Equal(SystemLinkSize.Small, link.Size);
+            Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
+            Assert.NotEmpty(link.Labels);
+
+
         }
     }
 }

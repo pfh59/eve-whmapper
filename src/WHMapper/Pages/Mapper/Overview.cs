@@ -1285,11 +1285,10 @@ namespace WHMapper.Pages.Mapper
                 }
                 else// tartget system already added
                 {
-                    //await InvokeAsync(() => {
-                        srcNode?.RemoveConnectedUser(_userName);
-                        targetNode?.AddConnectedUser(_userName);
-                        NotifyUserPosition(targetSoloarSystem.Name);
-                    //});
+                    srcNode?.RemoveConnectedUser(_userName);
+                    targetNode?.AddConnectedUser(_userName);
+                    await NotifyUserPosition(targetSoloarSystem.Name);
+
                 }
 
                 _currentSoloarSystem = targetSoloarSystem;

@@ -172,8 +172,12 @@ namespace WHMapper.Models.Custom.Node
         public async Task AddConnectedUser(string userName)
         {
             if (!ConnectedUsers.Contains(userName))
+            {
                 while (!ConnectedUsers.TryAdd(userName))
                     await Task.Delay(1);
+
+                this.Refresh();
+            }
         }
 
         public async Task RemoveConnectedUser(string userName)
@@ -195,6 +199,8 @@ namespace WHMapper.Models.Custom.Node
                     }
                 } while (!(comparedItem.Equals(userName)));
                 Parallel.ForEach(itemsList, async t => await AddConnectedUser(t));
+
+                this.Refresh();
             }
         }
     }
