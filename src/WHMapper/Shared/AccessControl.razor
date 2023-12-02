@@ -84,27 +84,4 @@
             
             await base.OnInitializedAsync();
         }
-
-
-        /*
-            protected override async Task OnAfterRenderAsync(bool firstRender)
-            {
-                if (firstRender)
-                {
-                    _username = await UserService.GetUserName();
-
-                    var user = (await AuthenticationStateTask).User;
-
-                    if ((await AuthorizationService.AuthorizeAsync(user, "Admin"))
-                        .Succeeded)
-                        isAdmin = true;
-                    else
-                        isAdmin = false;
-
-                    StateHasChanged();
-                }
-
-                await base.OnAfterRenderAsync(firstRender);
-            }
-            */
 }

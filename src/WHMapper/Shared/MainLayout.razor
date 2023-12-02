@@ -4,7 +4,7 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout>
+<MudLayout @oncustompaste="HandleCustomPaste">
     <MudAppBar Elevation="1">
         <MudText Typo="Typo.h5" Class="ml-3">Wormhole Mapper</MudText>
         <MudSpacer />
@@ -26,6 +26,9 @@
 
     [Inject]
     private IAuthorizationService AuthorizationService { get; set; } = null!;
+
+    [Inject]
+    private IPasteServices PasteServices {get;set;} =null!;
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
@@ -76,6 +79,11 @@
         };
 
         return base.OnInitializedAsync();
+    }
+
+    private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)
+    {
+        await PasteServices.Paste(eventArgs.PastedData);
     }
 
 }

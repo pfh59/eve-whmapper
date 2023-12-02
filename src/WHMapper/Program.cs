@@ -194,6 +194,7 @@ namespace WHMapper
             builder.Services.AddScoped<ICharacterServices, CharacterServices>();
             builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
             builder.Services.AddSingleton<ISDEServices, SDEServices>();
+            
 
             #region DB Acess Repo
             builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
@@ -213,6 +214,7 @@ namespace WHMapper
             builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();
             #endregion
 
+            builder.Services.AddScoped<IPasteServices,PasteServices>();
 
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperAccessHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperAdminHandler>();
