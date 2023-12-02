@@ -11,7 +11,7 @@
 
 <MudStack Class="@(_loading ? "invisible" : "visible ma-2")">
     <MudPaper Outlined="true" Square="true" Height="60vh" MinHeight="60vh">
-        <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" @oncustompaste="HandleCustomPaste" style="height: 100%; width: 100%;">
+        <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" style="height: 100%; width: 100%;">
             <ActivatorContent>
                 @if (!FeatureFlag.DISABLE_MULTI_MAP())
                 {

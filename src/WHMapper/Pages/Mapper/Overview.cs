@@ -76,9 +76,6 @@ namespace WHMapper.Pages.Mapper
         IEveAPIServices EveServices { get; set; } = null!;
 
         [Inject]
-        IAnoikServices AnoikServices { get; set; } = null!;
-
-        [Inject]
         public ISnackbar Snackbar { get; set; } = null!;
 
         [Inject] IWHSignatureHelper SignatureHelper { get; set; } = null!; 
@@ -97,6 +94,9 @@ namespace WHMapper.Pages.Mapper
 
         [Inject]
         private IEveMapperTracker TrackerServices { get; set; } = null!;
+
+        [Inject]
+        private IPasteServices PasteServices {get;set;}=null!;
 
         private string _userName = string.Empty;
 
@@ -150,6 +150,8 @@ namespace WHMapper.Pages.Mapper
                         {
                             TrackerServices.SystemChanged+=OnSystemChanged;
                             await TrackerServices.StartTracking();
+
+                            PasteServices.Pasted+=OnPasted;
                         }
 
                         _loading = false;
@@ -1303,6 +1305,28 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
+        private async Task OnPasted(string? data)
+        {
+            if(_selectedSystemNode!=null)
+            {
+                try
+                {
+                    string scanUser = await UserInfos.GetUserName();
+                    if (await SignatureHelper.ImportScanResult(scanUser, _selectedSystemNode.IdWH, data,false))
+                    {
+                        Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
+                        await NotifyWormholeSignaturesChanged(_selectedWHMap.Id, _selectedSystemNode.IdWH);
+                    }
+                    else
+                        Snackbar?.Add("No signatures added/updated", Severity.Error);
+                }
+                catch(Exception ex)
+                {
+                    Logger.LogError(ex, "Handle Custom Paste error");
+                    Snackbar?.Add(ex.Message, Severity.Error);
+                }
+            }
+        }
         public async ValueTask DisposeAsync()
         {
             if(TrackerServices!=null)
@@ -1331,36 +1355,6 @@ namespace WHMapper.Pages.Mapper
         }
 
         #region Menu Actions
-
-        /// <summary>
-        /// Menu intercep paste
-        /// </summary>
-        /// <param name="eventArgs"></param>
-        /// <returns></returns>
-        private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)
-        {
-            if(_selectedSystemNode!=null)
-            {
-                try
-                {
-                    string scanUser = await UserInfos.GetUserName();
-                    string? message = eventArgs.PastedData;
-                    if (await SignatureHelper.ImportScanResult(scanUser, _selectedSystemNode.IdWH, message,false))
-                    {
-                        Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
-                        await NotifyWormholeSignaturesChanged(_selectedWHMap.Id, _selectedSystemNode.IdWH);
-                    }
-                    else
-                        Snackbar?.Add("No signatures added/updated", Severity.Error);
-                }
-                catch(Exception ex)
-                {
-                    Logger.LogError(ex, "Handle Custom Paste error");
-                    Snackbar?.Add(ex.Message, Severity.Error);
-                }
-            }
-        }
-
 
         public async Task<bool> ToggleSlectedSystemLinkEOL()
         {
@@ -1504,5 +1498,4 @@ namespace WHMapper.Pages.Mapper
         #endregion
 #endif
     }
-
 }
