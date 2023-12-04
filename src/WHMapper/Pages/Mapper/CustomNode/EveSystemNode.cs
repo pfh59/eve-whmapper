@@ -27,7 +27,6 @@ namespace WHMapper.Pages.Mapper.CustomNode
 
         private EveSystemNodeModel _node = null!;
 
-        private HubConnection _hubConnection=null!;
         private string _secColor = IWHColorHelper.DEFAULT_COLOR;
         private string _systemColor = IWHColorHelper.DEFAULT_COLOR;
         private string _whEffectColor = IWHColorHelper.DEFAULT_COLOR;
@@ -104,7 +103,41 @@ namespace WHMapper.Pages.Mapper.CustomNode
             }
         }
 
+        private String systemStyle
+        {
+            get
+            {
+                String systemStyle = "";
 
+                if (Node.Selected)
+                {
+                    systemStyle += " box-shadow: 0px 0px 12px #fff;";
+                }
+                var sysStatus = Node.SystemStatus;
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Unknown)
+                {
+                    systemStyle += " border-color:grey;";
+                }
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Friendly)
+                {
+                    systemStyle += " border-color:royalblue;";
+                }
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Occupied)
+                {
+                    systemStyle += " border-color:orange;";
+                }
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Hostile)
+                {
+                    systemStyle += " border-color:red;";
+                }
+
+                return systemStyle;
+            }
+        }
 
         private async Task<bool> SetSelectedSystemDestinationWaypoint()
         {
@@ -151,7 +184,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
                     
                     if(success)
                     {
-                        _node._note = note;
+                        _node.SystemStatus = systemStatus;
                         _node.Refresh();
                         return true;
                     }

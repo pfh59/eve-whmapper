@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Services.EveJwkExtensions;
 using WHMapper.Services.EveOnlineUserInfosProvider;
@@ -161,6 +162,15 @@ namespace WHMapper.Hubs
             if (!string.IsNullOrEmpty(userName))
             {
                 await Clients.AllExcept(Context.ConnectionId).NotifyWormholeLockChanged(userName, mapId, wormholeId, locked);
+            }
+        }
+
+        public async Task SendWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatusEnum systemStatus)
+        {
+            string userName = CurrentUser();
+            if (!string.IsNullOrEmpty(userName))
+            {
+                await Clients.AllExcept(Context.ConnectionId).NotifyWormholeSystemStatusChanged(userName, mapId, wormholeId, systemStatus);
             }
         }
     

@@ -16,10 +16,11 @@ namespace WHMapper.Models.Custom.Node
     public class EveSystemNodeModel : NodeModel
     {
         public event Action<EveSystemNodeModel>? OnLocked;
+        public event Action<EveSystemNodeModel>? OnSystemStatusChanged;
 
         private WHSystem _wh = null!;
         
-        public WHNote? _note;
+        private WHSystemStatusEnum systemStatus;
 
         public int IdWH
         {
@@ -100,11 +101,15 @@ namespace WHMapper.Models.Custom.Node
         {
             get
             {
-                if(_note != null) {
-                    return _note.SystemStatus;
+                return systemStatus;
+            }
+            set
+            {
+                if (systemStatus != value)
+                {
+                    systemStatus = value;
+                    OnSystemStatusChanged?.Invoke(this);
                 }
-                
-                return WHSystemStatusEnum.Unknown;
             }
         }
 
@@ -121,7 +126,10 @@ namespace WHMapper.Models.Custom.Node
         public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
         {
             _wh = wh;
-            _note = note;
+            if(note != null)
+            {
+                systemStatus = note.SystemStatus;
+            }
             RegionName = regionName;
             ConstellationName = constellationName;
 
@@ -141,7 +149,10 @@ namespace WHMapper.Models.Custom.Node
         public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName)
         {
             _wh = wh;
-            _note = note;
+            if(note != null)
+            {
+                systemStatus = note.SystemStatus;
+            }
             RegionName = regionName;
             ConstellationName = constellationName;
 

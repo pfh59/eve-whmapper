@@ -2,36 +2,6 @@
 @using WHMapper.Models.Custom.Node;
 @using WHMapper.Models.DTO.EveMapper.Enums;
 
-@{
-    var systemStyle = "";
-
-    if (Node.Selected)
-    {
-        systemStyle += " box-shadow: 0px 0px 12px #fff;";
-    }
-    var sysStatus = Node.SystemStatus;
-
-    if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Unknown)
-    {
-        systemStyle += " border-color:grey;";
-    }
-
-    if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Friendly)
-    {
-        systemStyle += " border-color:royalblue;";
-    }
-
-    if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Occupied)
-    {
-        systemStyle += " border-color:orange;";
-    }
-
-    if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Hostile)
-    {
-        systemStyle += " border-color:red;";
-    }
-}
-
 <MudMenu PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true">
     <ActivatorContent>
         <MudCard Outlined="true" Style="@systemStyle">
