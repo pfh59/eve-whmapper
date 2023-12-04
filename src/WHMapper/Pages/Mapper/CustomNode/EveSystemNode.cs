@@ -9,6 +9,7 @@ using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Repositories.WHNotes;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.SDE;
@@ -26,6 +27,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
 
         private EveSystemNodeModel _node = null!;
 
+        private HubConnection _hubConnection=null!;
         private string _secColor = IWHColorHelper.DEFAULT_COLOR;
         private string _systemColor = IWHColorHelper.DEFAULT_COLOR;
         private string _whEffectColor = IWHColorHelper.DEFAULT_COLOR;
@@ -38,6 +40,9 @@ namespace WHMapper.Pages.Mapper.CustomNode
 
         [Inject]
         IWHSystemRepository DbWHSystems { get; set; } = null!;
+
+        [Inject]
+        IWHNoteRepository DbNotes { get; set; } = null!;
 
         [Inject]
         public ILogger<EveSystemNode> Logger { get; set; } = null!;
@@ -121,6 +126,53 @@ namespace WHMapper.Pages.Mapper.CustomNode
             }
         }
 
+        private async Task<bool> SetSelectedSystemStatus(WHSystemStatusEnum systemStatus)
+        {
+            try
+            {
+                if (_node.Selected)
+                {
+                    var note = await DbNotes.GetBySolarSystemId(_node.SolarSystemId);
+
+                    bool success = false;
+
+                    if(note == null)
+                    {
+                        var newNote = new WHNote(_node.SolarSystemId, systemStatus);
+                        await DbNotes.Create(newNote);
+                        success = true;
+                    }
+                    else
+                    {
+                        note.SystemStatus = systemStatus;
+                        await DbNotes.Update(note.Id, note);
+                        success = true;
+                    }
+                    
+                    if(success)
+                    {
+                        _node._note = note;
+                        _node.Refresh();
+                        return true;
+                    }
+                    else
+                    {
+                        Logger.LogError("Could not update system status");
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Set system status error");
+                return false;
+            }
+        }
+
         private async Task<bool> ToggleSystemLock()
         {
             try
@@ -149,7 +201,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Toggle destination waypoint error");
+                Logger.LogError(ex, "Toggle system lock error");
                 return false;
             }
          

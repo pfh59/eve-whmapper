@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
+using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.WHColor;
@@ -26,6 +27,7 @@ namespace WHMapper.Pages.Mapper.Notes
 
         private WHNote? _note = null!;
         private string _solarSystemComment = string.Empty;
+        private WHSystemStatusEnum _systemStatus = WHSystemStatusEnum.Unknown;
 
         private PeriodicTimer _timer = null!;
         private CancellationTokenSource _cts = null!;
@@ -57,7 +59,10 @@ namespace WHMapper.Pages.Mapper.Notes
                     if (_note == null)
                         _solarSystemComment = string.Empty;
                     else
+                    {
                         _solarSystemComment = _note.Comment;
+                        _systemStatus = _note.SystemStatus;
+                    }
                 }
             }
         }
@@ -83,7 +88,7 @@ namespace WHMapper.Pages.Mapper.Notes
                 {
                     while (await _timer.WaitForNextTickAsync(_cts.Token))
                     {
-                        if(string.IsNullOrEmpty(_solarSystemComment))
+                        if(string.IsNullOrEmpty(_solarSystemComment) && _systemStatus.Equals(WHSystemStatusEnum.Unknown))
                         {
                             if(_note!=null)
                             {
@@ -113,7 +118,10 @@ namespace WHMapper.Pages.Mapper.Notes
                         {
                             if(_previousValue==_solarSystemComment)
                             {
-                                if (_note == null)
+                                
+                                var note = await DbWHNotes.GetBySolarSystemId(CurrentSystemNode.SolarSystemId);
+
+                                if (note == null)
                                 {
                                     try
                                     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Db
 {
@@ -14,6 +15,8 @@ namespace WHMapper.Models.Db
         [Required, StringLength(255, ErrorMessage = "Comment is too long.")]
         public String Comment { get; set; }
 
+        public WHSystemStatusEnum SystemStatus { get; set; } = WHSystemStatusEnum.Unknown;
+
         public WHNote()
 		{
 
@@ -23,6 +26,13 @@ namespace WHMapper.Models.Db
         {
             SoloarSystemId = soloarSystemId;
             Comment = comment;
+        }
+
+        public WHNote(int soloarSystemId, WHSystemStatusEnum systemStatus)
+        {
+            SoloarSystemId = soloarSystemId;
+            SystemStatus = systemStatus;
+            Comment = String.Empty;
         }
     }
 }

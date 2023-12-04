@@ -9,6 +9,7 @@ using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Custom.Node
 {
@@ -17,6 +18,8 @@ namespace WHMapper.Models.Custom.Node
         public event Action<EveSystemNodeModel>? OnLocked;
 
         private WHSystem _wh = null!;
+        
+        public WHNote? _note;
 
         public int IdWH
         {
@@ -93,6 +96,18 @@ namespace WHMapper.Models.Custom.Node
 
         }
 
+        public WHSystemStatusEnum SystemStatus
+        {
+            get
+            {
+                if(_note != null) {
+                    return _note.SystemStatus;
+                }
+                
+                return WHSystemStatusEnum.Unknown;
+            }
+        }
+
         public string RegionName { get; private set; }
         public string ConstellationName { get; private set;}
 
@@ -103,9 +118,10 @@ namespace WHMapper.Models.Custom.Node
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
 
-        public EveSystemNodeModel(WHSystem wh,string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
+        public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
         {
             _wh = wh;
+            _note = note;
             RegionName = regionName;
             ConstellationName = constellationName;
 
@@ -122,9 +138,10 @@ namespace WHMapper.Models.Custom.Node
             AddPort(PortAlignment.Right);
         }
 
-        public EveSystemNodeModel(WHSystem wh, string regionName, string constellationName)
+        public EveSystemNodeModel(WHSystem wh, WHNote note, string regionName, string constellationName)
         {
             _wh = wh;
+            _note = note;
             RegionName = regionName;
             ConstellationName = constellationName;
 
