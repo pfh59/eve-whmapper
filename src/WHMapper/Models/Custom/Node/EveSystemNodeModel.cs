@@ -138,7 +138,7 @@ namespace WHMapper.Models.Custom.Node
             AddPort(PortAlignment.Right);
         }
 
-        public EveSystemNodeModel(WHSystem wh, WHNote note, string regionName, string constellationName)
+        public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName)
         {
             _wh = wh;
             _note = note;

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveAPI;
 using WHMapper.Models.DTO.EveMapper.Enums;
+using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Universe;
@@ -90,7 +91,7 @@ namespace WHMapper.Tests.WHHelper
             _whEveMapper = new EveMapperHelper(loggerMapperHelper
                 , new EveAPIServices(loggerAPI, httpclientfactory, new Models.DTO.TokenProvider(), null)
                 , new SDEServices(loggerSDE),
-                new AnoikServices(loggerAnoik));
+                new AnoikServices(loggerAnoik), new WHNoteRepository(new NullLogger<WHNoteRepository>(), null));
         }
 
         [Fact, Priority(1)]
