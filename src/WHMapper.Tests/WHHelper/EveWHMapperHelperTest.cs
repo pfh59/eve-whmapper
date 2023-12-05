@@ -1,8 +1,11 @@
 using System;
 using System.Threading;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveAPI;
 using WHMapper.Models.DTO.EveMapper.Enums;
@@ -74,24 +77,36 @@ namespace WHMapper.Tests.WHHelper
 
         public EveWHMapperHelperTest()
         {
+            IDbContextFactory<WHMapperContext> _contextFactory;
+            //Create DB Context
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
+
+
+
+
             var services = new ServiceCollection();
             services.AddHttpClient();
+
+            services.AddDbContextFactory<WHMapperContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
             var provider = services.BuildServiceProvider();
             var httpclientfactory = provider.GetService<IHttpClientFactory>();
 
-
+             _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
 
             ILogger<SDEServices> loggerSDE = new NullLogger<SDEServices>();
             ILogger<AnoikServices> loggerAnoik = new NullLogger<AnoikServices>();
             ILogger<EveMapperHelper> loggerMapperHelper = new NullLogger<EveMapperHelper>();
             ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
 
-            
-
             _whEveMapper = new EveMapperHelper(loggerMapperHelper
                 , new EveAPIServices(loggerAPI, httpclientfactory, new Models.DTO.TokenProvider(), null)
                 , new SDEServices(loggerSDE),
-                new AnoikServices(loggerAnoik), new WHNoteRepository(new NullLogger<WHNoteRepository>(), null));
+                new AnoikServices(loggerAnoik), new WHNoteRepository(new NullLogger<WHNoteRepository>(), _contextFactory));
         }
 
         [Fact, Priority(1)]
