@@ -2,10 +2,9 @@
 @using WHMapper.Models.Custom.Node;
 @using WHMapper.Models.DTO.EveMapper.Enums;
 
-
 <MudMenu PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true">
     <ActivatorContent>
-        <MudCard Outlined="true" Style="@(Node.Selected ? "border-color:white;" : "border-color:grey;")">
+        <MudCard Outlined="true" Style="@systemStyle">
             <MudCardHeader Class="mb-n5">
                 <CardHeaderAvatar>
                     <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension Visible=@((Node.NameExtension!=null) ? true : false) Bordered="true" Color="Color.Dark">
@@ -81,6 +80,16 @@
     <ChildContent>
         <MudMenuItem OnClick="@(() =>SetSelectedSystemDestinationWaypoint())" Icon="@Icons.Material.Sharp.FlagCircle" Size="Size.Small">Set Destination</MudMenuItem>
         <MudMenuItem OnClick="@(() =>ToggleSystemLock())" Icon="@_menu_lock_icon_value" Size="Size.Small">@_menu_lock_value</MudMenuItem>
+        <div class="d-flex flex-column">
+            <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Label="System Status" EndIcon="@Icons.Material.Filled.ArrowRight" Class="mx-2" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(Models.Db.Enums.WHSystemStatusEnum.Unknown))">Unknown</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(Models.Db.Enums.WHSystemStatusEnum.Occupied))">Occupied</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(Models.Db.Enums.WHSystemStatusEnum.Hostile))">Hostile</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(Models.Db.Enums.WHSystemStatusEnum.Friendly))">Friendly</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        </div>
     </ChildContent>
 </MudMenu>
 

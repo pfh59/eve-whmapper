@@ -9,6 +9,7 @@ using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Repositories.WHNotes;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.SDE;
@@ -38,6 +39,9 @@ namespace WHMapper.Pages.Mapper.CustomNode
 
         [Inject]
         IWHSystemRepository DbWHSystems { get; set; } = null!;
+
+        [Inject]
+        IWHNoteRepository DbNotes { get; set; } = null!;
 
         [Inject]
         public ILogger<EveSystemNode> Logger { get; set; } = null!;
@@ -99,7 +103,41 @@ namespace WHMapper.Pages.Mapper.CustomNode
             }
         }
 
+        private String systemStyle
+        {
+            get
+            {
+                String systemStyle = "";
 
+                if (Node.Selected)
+                {
+                    systemStyle += " box-shadow: 0px 0px 12px #fff;";
+                }
+                var sysStatus = Node.SystemStatus;
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Unknown)
+                {
+                    systemStyle += " border-color:grey;";
+                }
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Friendly)
+                {
+                    systemStyle += " border-color:royalblue;";
+                }
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Occupied)
+                {
+                    systemStyle += " border-color:orange;";
+                }
+
+                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Hostile)
+                {
+                    systemStyle += " border-color:red;";
+                }
+
+                return systemStyle;
+            }
+        }
 
         private async Task<bool> SetSelectedSystemDestinationWaypoint()
         {
@@ -117,6 +155,53 @@ namespace WHMapper.Pages.Mapper.CustomNode
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Set destination waypoint error");
+                return false;
+            }
+        }
+
+        private async Task<bool> SetSelectedSystemStatus(WHSystemStatusEnum systemStatus)
+        {
+            try
+            {
+                if (_node.Selected)
+                {
+                    var note = await DbNotes.GetBySolarSystemId(_node.SolarSystemId);
+
+                    bool success = false;
+
+                    if(note == null)
+                    {
+                        var newNote = new WHNote(_node.SolarSystemId, systemStatus);
+                        await DbNotes.Create(newNote);
+                        success = true;
+                    }
+                    else
+                    {
+                        note.SystemStatus = systemStatus;
+                        await DbNotes.Update(note.Id, note);
+                        success = true;
+                    }
+                    
+                    if(success)
+                    {
+                        _node.SystemStatus = systemStatus;
+                        _node.Refresh();
+                        return true;
+                    }
+                    else
+                    {
+                        Logger.LogError("Could not update system status");
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Set system status error");
                 return false;
             }
         }
@@ -149,7 +234,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Toggle destination waypoint error");
+                Logger.LogError(ex, "Toggle system lock error");
                 return false;
             }
          

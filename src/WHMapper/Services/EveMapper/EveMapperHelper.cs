@@ -8,6 +8,7 @@ using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.SDE;
+using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Universe;
@@ -48,13 +49,15 @@ namespace WHMapper.Services.EveMapper
         private readonly IUniverseServices _universeServices = null!;
         private readonly IAnoikServices _anoikServices = null!;
         private readonly ISDEServices _sdeServices = null!;
+        private readonly IWHNoteRepository _noteService = null!;
 
-        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveAPIServices eveAPIServices, ISDEServices sdeServices, IAnoikServices anoikServices)
+        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveAPIServices eveAPIServices, ISDEServices sdeServices, IAnoikServices anoikServices, IWHNoteRepository noteService)
         {
             _logger = logger;
             _universeServices = eveAPIServices.UniverseServices;
             _sdeServices = sdeServices;
             _anoikServices = anoikServices;
+            _noteService = noteService;
 
             InitMagnetarEffects();
             InitRedGiantEffects();
@@ -641,7 +644,7 @@ namespace WHMapper.Services.EveMapper
             var system = await _universeServices.GetSystem(wh.SoloarSystemId);
             var system_constellation = await _universeServices.GetContellation(system.ConstellationId);
             var system_region = await _universeServices.GetRegion(system_constellation.RegionId);
-
+            var note = await _noteService.GetBySolarSystemId(system.SystemId);
 
             if (IsWorhmole(wh.Name))//WH system
             {
@@ -655,16 +658,16 @@ namespace WHMapper.Services.EveMapper
                 {
                     statics = whStatics.Select(x => new WHStatic(x.Key, Enum.Parse<EveSystemType>(x.Value, true))).ToList<WHStatic>();
                 }
-                
-                res = new EveSystemNodeModel(wh, system_region.Name, system_constellation.Name, whClass, whEffect, effectDetails, statics);
+
+                res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, whClass, whEffect, effectDetails, statics);
             }
             else if (system_region.Name == REGION_POCHVVEN_NAME)//trig system
             {
-                res = new EveSystemNodeModel(wh, system_region.Name, system_constellation.Name, EveSystemType.Pochven, WHEffect.None,null,null);
+                res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, EveSystemType.Pochven, WHEffect.None,null,null);
             }
             else// K-space
             {
-                res = new EveSystemNodeModel(wh, system_region.Name, system_constellation.Name);
+                res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name);
             }
 
             res.SetPosition(wh.PosX, wh.PosY);

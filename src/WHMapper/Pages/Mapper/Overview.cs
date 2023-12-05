@@ -271,6 +271,7 @@ namespace WHMapper.Pages.Mapper
 
                                 var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
                                 newSystemNode.OnLocked += OnWHSystemNodeLocked;
+                                newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChange;
                                 _selectedWHMap.WHSystems.Add(newWHSystem);
                                 _blazorDiagram?.Nodes?.Add(newSystemNode);
                             }
@@ -451,7 +452,7 @@ namespace WHMapper.Pages.Mapper
                     {
                         try
                         {
-                            if (_selectedWHMap != null && _selectedSystemNode != null && wormholeId > 0 && mapId == _selectedWHMap.Id)
+                            if (_selectedWHMap != null && wormholeId > 0 && mapId == _selectedWHMap.Id)
                             {
                                 _selectedWHMap = await DbWHMaps.GetById(mapId);
                                 EveSystemNodeModel whChangeLock = (EveSystemNodeModel)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
@@ -459,6 +460,28 @@ namespace WHMapper.Pages.Mapper
                                 {
                                     whChangeLock.Locked = locked;
                                     whChangeLock.Refresh();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "On NotifyWormholeLockChanged error");
+                        }
+
+                    });
+
+                    _hubConnection.On<string, int, int, WHSystemStatusEnum>("NotifyWormholeSystemStatusChanged", async (user, mapId, wormholeId, systemStatus) =>
+                    {
+                        try
+                        {
+                            if (_selectedWHMap != null && wormholeId > 0 && mapId == _selectedWHMap.Id)
+                            {
+                                _selectedWHMap = await DbWHMaps.GetById(mapId);
+                                EveSystemNodeModel whChangeSystemStatus = (EveSystemNodeModel)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
+                                if(whChangeSystemStatus!=null)
+                                {
+                                    whChangeSystemStatus.SystemStatus = systemStatus;
+                                    whChangeSystemStatus.Refresh();
                                 }
                             }
                         }
@@ -560,6 +583,14 @@ namespace WHMapper.Pages.Mapper
             if (_hubConnection is not null)
             {
                 await _hubConnection.SendAsync("SendWormholeLockChanged", mapId, wormholeId, locked);
+            }
+        }
+
+        private async Task NotifyWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatusEnum systemStatus)
+        {
+            if (_hubConnection is not null)
+            {
+                await _hubConnection.SendAsync("SendWormholeSystemStatusChanged", mapId, wormholeId, systemStatus);
             }
         }
 
@@ -875,6 +906,7 @@ namespace WHMapper.Pages.Mapper
                     {
                             EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
                             whSysNode.OnLocked += OnWHSystemNodeLocked;
+                            whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
                             _blazorDiagram.Nodes.Add(whSysNode);
                     });
                     StateHasChanged();
@@ -1167,6 +1199,8 @@ namespace WHMapper.Pages.Mapper
                 {
                     var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
                     newSystemNode.OnLocked += OnWHSystemNodeLocked;
+                    newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChange;
+                    
                     await newSystemNode.AddConnectedUser(_userName);
 
                     map.WHSystems.Add(newWHSystem);
@@ -1350,7 +1384,15 @@ namespace WHMapper.Pages.Mapper
         {
             if (whNodeModel != null)
             {
-                NotifyWormholeLockChanged(whNodeModel.IdWHMap, whNodeModel.IdWHMap, whNodeModel.Locked);
+                NotifyWormholeLockChanged(whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked);
+            }
+        }
+
+        private void OnWHSystemStatusChange(EveSystemNodeModel whNodeModel)
+        {
+            if (whNodeModel != null)
+            {
+                NotifyWormholeSystemStatusChanged(whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus);
             }
         }
 

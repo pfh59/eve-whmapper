@@ -9,14 +9,18 @@ using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Custom.Node
 {
     public class EveSystemNodeModel : NodeModel
     {
         public event Action<EveSystemNodeModel>? OnLocked;
+        public event Action<EveSystemNodeModel>? OnSystemStatusChanged;
 
         private WHSystem _wh = null!;
+        
+        private WHSystemStatusEnum systemStatus;
 
         public int IdWH
         {
@@ -93,6 +97,22 @@ namespace WHMapper.Models.Custom.Node
 
         }
 
+        public WHSystemStatusEnum SystemStatus
+        {
+            get
+            {
+                return systemStatus;
+            }
+            set
+            {
+                if (systemStatus != value)
+                {
+                    systemStatus = value;
+                    OnSystemStatusChanged?.Invoke(this);
+                }
+            }
+        }
+
         public string RegionName { get; private set; }
         public string ConstellationName { get; private set;}
 
@@ -103,9 +123,13 @@ namespace WHMapper.Models.Custom.Node
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
 
-        public EveSystemNodeModel(WHSystem wh,string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
+        public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
         {
             _wh = wh;
+            if(note != null)
+            {
+                systemStatus = note.SystemStatus;
+            }
             RegionName = regionName;
             ConstellationName = constellationName;
 
@@ -122,9 +146,13 @@ namespace WHMapper.Models.Custom.Node
             AddPort(PortAlignment.Right);
         }
 
-        public EveSystemNodeModel(WHSystem wh, string regionName, string constellationName)
+        public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName)
         {
             _wh = wh;
+            if(note != null)
+            {
+                systemStatus = note.SystemStatus;
+            }
             RegionName = regionName;
             ConstellationName = constellationName;
 
