@@ -64,9 +64,22 @@ namespace WHMapper.Tests.CustomGraphModel
 
             node.IncrementNameExtension();
             Assert.Equal("C",node.NameExtension);
+            for(int i=0; i<26;i++)
+                node.IncrementNameExtension();
+            Assert.Equal("Z",node.NameExtension);
 
             node.DecrementNameExtension();
-            Assert.Equal("B",node.NameExtension);
+            Assert.Equal("Y",node.NameExtension);
+            for(int i=0; i<26;i++)
+                node.DecrementNameExtension();
+            Assert.Null(node.NameExtension);
+
+            node.SystemStatus=WHSystemStatusEnum.Hostile;
+            Assert.Equal(WHSystemStatusEnum.Hostile,node.SystemStatus);
+
+            node.Locked=true;
+            Assert.True(node.Locked);
+
         }
 
         [Fact]
