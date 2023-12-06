@@ -83,6 +83,9 @@ namespace WHMapper.Models.Custom.Node
         public EveSystemLinkModel(WHSystemLink whLink,EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
             : base (sourcePort, targetPort)
         {
+            var linkMarker = new LinkMarker("M 0 4 C 1.5 5.5 3.5 6 6 6 L 6 -6 C 3.5 -6 1.5 -5.5 0 -4 L 0 4", 6);
+            SourceMarker = linkMarker;
+            TargetMarker = linkMarker;
             _whLink = whLink;
             SetLabel(_whLink.Size);
 
