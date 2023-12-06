@@ -40,7 +40,7 @@ namespace WHMapper.Tests.CustomGraphModel
         [Fact]
         public async Task Eve_System_Node_Model()
         {
-            var node = new EveSystemNodeModel(new Models.Db.WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, 1.0F), null, REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
+            var node = new EveSystemNodeModel(new Models.Db.WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, 1.0F), new Models.Db.WHNote(SOLAR_SYSTEM_JITA_ID,WHSystemStatusEnum.Friendly,SOLAR_SYSTEM_JITA_NAME), REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
             Assert.NotNull(node);
             Assert.Equal(0, node.IdWH);
             Assert.Equal(DEFAULT_MAP_ID, node.IdWHMap);
@@ -50,6 +50,7 @@ namespace WHMapper.Tests.CustomGraphModel
             Assert.Equal("B", node.NameExtension);
             Assert.Empty(node.ConnectedUsers);
             Assert.False(node.Locked);
+            Assert.Equal(WHSystemStatusEnum.Friendly,node.SystemStatus);
 
             await node.AddConnectedUser(USERNAME1);
             await node.AddConnectedUser(USERNAME2);
@@ -59,12 +60,33 @@ namespace WHMapper.Tests.CustomGraphModel
             await node.RemoveConnectedUser(USERNAME2);
             Assert.Contains(USERNAME1, node.ConnectedUsers);
             Assert.DoesNotContain(USERNAME2, node.ConnectedUsers);
+
+
+            node.IncrementNameExtension();
+            Assert.Equal("C",node.NameExtension);
+            for(int i=0; i<26;i++)
+                node.IncrementNameExtension();
+            Assert.Equal("Z",node.NameExtension);
+
+            node.DecrementNameExtension();
+            Assert.Equal("Y",node.NameExtension);
+            for(int i=0; i<26;i++)
+                node.DecrementNameExtension();
+            Assert.Null(node.NameExtension);
+
+            node.SystemStatus=WHSystemStatusEnum.Hostile;
+            Assert.Equal(WHSystemStatusEnum.Hostile,node.SystemStatus);
+
+            node.Locked=true;
+            Assert.True(node.Locked);
+
         }
 
         [Fact]
         public void Eve_System_Link_Model()
         {
             var node = new EveSystemNodeModel(new Models.Db.WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0F), null, REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
+             Assert.Equal(WHSystemStatusEnum.Unknown,node.SystemStatus);
             var node2 = new EveSystemNodeModel(new Models.Db.WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0F), null, REGION_WH_NAME, CONSTELLATION_WH_NAME,SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT,null, new List<WHStatic>() { new WHStatic(SOLAR_SYSTEM_WH_STATICS,EveSystemType.C3) }) ;
 
 
@@ -79,14 +101,13 @@ namespace WHMapper.Tests.CustomGraphModel
             Assert.False(link.IsEoL);
             Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
             Assert.Equal(SystemLinkSize.Large, link.Size);
+           
 
             link.Size= SystemLinkSize.Small;
             link.MassStatus=SystemLinkMassStatus.Normal;
             Assert.Equal(SystemLinkSize.Small, link.Size);
             Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
             Assert.NotEmpty(link.Labels);
-
-
         }
     }
 }

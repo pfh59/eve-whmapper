@@ -21,6 +21,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
 {
     public partial class EveSystemNode : ComponentBase
     {
+        private MudMenu ClickRightMenu { get; set; } = null!;
         private const string MENU_LOCK_SYSTEM_VALUE = "Lock";
         private const string MENU_UNLOCK_SYSTEM_VALUE = "Unlock";
 
@@ -167,35 +168,30 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 {
                     var note = await DbNotes.GetBySolarSystemId(_node.SolarSystemId);
 
-                    bool success = false;
-
                     if(note == null)
                     {
-                        var newNote = new WHNote(_node.SolarSystemId, systemStatus);
-                        await DbNotes.Create(newNote);
-                        success = true;
+                        note = await DbNotes.Create(new WHNote(_node.SolarSystemId, systemStatus));
                     }
                     else
                     {
                         note.SystemStatus = systemStatus;
-                        await DbNotes.Update(note.Id, note);
-                        success = true;
+                        note = await DbNotes.Update(note.Id, note);
                     }
-                    
-                    if(success)
-                    {
-                        _node.SystemStatus = systemStatus;
-                        _node.Refresh();
-                        return true;
-                    }
-                    else
+
+           
+                    if(note==null)
                     {
                         Logger.LogError("Could not update system status");
                         return false;
                     }
+                  
+                    _node.SystemStatus = systemStatus;
+                    _node.Refresh();
+                    return true;
                 }
                 else
                 {
+                    Logger.LogError("Set system status error, no node selected");
                     return false;
                 }
             }
@@ -203,6 +199,10 @@ namespace WHMapper.Pages.Mapper.CustomNode
             {
                 Logger.LogError(ex, "Set system status error");
                 return false;
+            }
+            finally
+            {
+                ClickRightMenu.CloseMenu();
             }
         }
 
@@ -238,11 +238,6 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 return false;
             }
          
-        }
-
-        public static implicit operator EveSystemNode?(NodeModel? v)
-        {
-            throw new NotImplementedException();
         }
     }
 }

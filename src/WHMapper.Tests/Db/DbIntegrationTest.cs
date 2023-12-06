@@ -659,12 +659,14 @@ public class DbIntegrationTest
         Assert.NotNull(result1);
         Assert.Equal(FOOBAR_SYSTEM_ID, result1.SoloarSystemId);
         Assert.Equal(FOOBAR, result1.Comment);
+        Assert.Equal(WHSystemStatusEnum.Unknown, result1.SystemStatus);
 
         //ADD Note2
-        var result2 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2, FOOBAR2));
+        var result2 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2,WHSystemStatusEnum.Hostile));
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SoloarSystemId);
-        Assert.Equal(FOOBAR2, result2.Comment);
+        Assert.Equal(string.Empty, result2.Comment);
+        Assert.Equal(WHSystemStatusEnum.Hostile,result2.SystemStatus);
 
         //ADD Access dupkicate
         var resultDuplicate = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2, FOOBAR));

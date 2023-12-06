@@ -20,7 +20,7 @@ namespace WHMapper.Models.Custom.Node
 
         private WHSystem _wh = null!;
         
-        private WHSystemStatusEnum systemStatus;
+        private WHSystemStatusEnum _systemStatus;
 
         public int IdWH
         {
@@ -101,13 +101,13 @@ namespace WHMapper.Models.Custom.Node
         {
             get
             {
-                return systemStatus;
+                return _systemStatus;
             }
             set
             {
-                if (systemStatus != value)
+                if (_systemStatus != value)
                 {
-                    systemStatus = value;
+                    _systemStatus = value;
                     OnSystemStatusChanged?.Invoke(this);
                 }
             }
@@ -127,9 +127,10 @@ namespace WHMapper.Models.Custom.Node
         {
             _wh = wh;
             if(note != null)
-            {
-                systemStatus = note.SystemStatus;
-            }
+                _systemStatus = note.SystemStatus;
+            else
+                _systemStatus=WHSystemStatusEnum.Unknown;
+            
             RegionName = regionName;
             ConstellationName = constellationName;
 
@@ -150,9 +151,11 @@ namespace WHMapper.Models.Custom.Node
         {
             _wh = wh;
             if(note != null)
-            {
-                systemStatus = note.SystemStatus;
-            }
+                _systemStatus = note.SystemStatus;
+            else
+                _systemStatus=WHSystemStatusEnum.Unknown;
+
+
             RegionName = regionName;
             ConstellationName = constellationName;
 

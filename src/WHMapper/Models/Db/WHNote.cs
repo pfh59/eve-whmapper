@@ -22,17 +22,24 @@ namespace WHMapper.Models.Db
 
         }
 
-        public WHNote(int soloarSystemId,string comment)
+        public WHNote(int soloarSystemId,string comment) 
+        : this(soloarSystemId,WHSystemStatusEnum.Unknown,comment)
         {
-            SoloarSystemId = soloarSystemId;
-            Comment = comment;
+
         }
 
         public WHNote(int soloarSystemId, WHSystemStatusEnum systemStatus)
+            :this(soloarSystemId,systemStatus,string.Empty)
+
+        {
+
+        }
+
+        public WHNote(int soloarSystemId, WHSystemStatusEnum systemStatus,string comment)
         {
             SoloarSystemId = soloarSystemId;
             SystemStatus = systemStatus;
-            Comment = String.Empty;
+            Comment = comment;
         }
     }
 }
