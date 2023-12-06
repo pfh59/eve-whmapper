@@ -60,6 +60,13 @@ namespace WHMapper.Tests.CustomGraphModel
             await node.RemoveConnectedUser(USERNAME2);
             Assert.Contains(USERNAME1, node.ConnectedUsers);
             Assert.DoesNotContain(USERNAME2, node.ConnectedUsers);
+
+
+            node.IncrementNameExtension();
+            Assert.Equal("C",node.NameExtension);
+
+            node.DecrementNameExtension();
+            Assert.Equal("B",node.NameExtension);
         }
 
         [Fact]
@@ -88,8 +95,6 @@ namespace WHMapper.Tests.CustomGraphModel
             Assert.Equal(SystemLinkSize.Small, link.Size);
             Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
             Assert.NotEmpty(link.Labels);
-
-
         }
     }
 }
