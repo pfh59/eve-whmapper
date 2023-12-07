@@ -1,3 +1,12 @@
 {
-   "signedContributors": []
+  "signedContributors": [
+    {
+      "name": "rdymade",
+      "id": 6643263,
+      "comment_id": 1843849936,
+      "created_at": "2023-12-06T23:26:00Z",
+      "repoId": 521683365,
+      "pullRequestNo": 188
+    }
+  ]
 }
