@@ -3,7 +3,7 @@
 
 
 ## Description
-s
+
 Eve wormhole mapper is a simple mapping tool for eve player. It was inspired by the popular [Pathfinder](https://github.com/exodus4d/pathfinder), but dit not evolved afterwards. Eve-whmapper is more : 
 - lightweight
 - simple to deploy
