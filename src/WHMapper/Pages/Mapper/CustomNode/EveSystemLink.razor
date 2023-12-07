@@ -1,4 +1,5 @@
 ﻿@using Blazor.Diagrams.Components.Renderers
+@using System.Globalization
 
 @{
     var result = Link.PathGeneratorResult;
@@ -6,6 +7,10 @@
         return;
 
     var d = result.FullPath.ToString();
+    var sourcePos = result.SourceMarkerPosition;
+    var sourceAng = result.SourceMarkerAngle;
+    var targetPos = result.TargetMarkerPosition;
+    var targetAng = result.TargetMarkerAngle;
 }
 
 
@@ -27,6 +32,13 @@
 
     <path d="@d" fill="none" stroke-width="4" stroke="@WHColorHelper?.GetLinkStatusColor(Link.MassStatus)" />
 
+    <g transform="translate(@sourcePos.X.ToString(CultureInfo.InvariantCulture), @sourcePos.Y.ToString(CultureInfo.InvariantCulture)) rotate(@sourceAng)">
+        <path d="@Link.SourceMarker.Path" fill="grey"/>
+    </g>
+
+    <g transform="translate(@targetPos.X.ToString(CultureInfo.InvariantCulture), @targetPos.Y.ToString(CultureInfo.InvariantCulture)) rotate(@targetAng)">
+        <path d="@Link.TargetMarker.Path" fill="grey"/>
+    </g>
 
     @foreach (var label in Link.Labels)
     {
