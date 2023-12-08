@@ -57,9 +57,9 @@ namespace WHMapper.Pages.Mapper.Signatures
 
 
         [Parameter]
-        public int? CurrentMapId { private get; set; } = null!;
+        public int? CurrentMapId {  get; set; } = null!;
         [Parameter]
-        public int? CurrentSystemNodeId { private get; set; } = null!;
+        public int? CurrentSystemNodeId {  get; set; } = null!;
         [Parameter]
         public HubConnection NotificationHub { private get; set; } = null!;
 
