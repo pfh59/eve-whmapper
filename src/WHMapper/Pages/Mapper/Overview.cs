@@ -434,7 +434,7 @@ namespace WHMapper.Pages.Mapper
                             if (DbWHMaps != null && _selectedWHMap != null && wormholeId > 0 && _selectedWHMap?.Id == mapId)
                             {
                                 _selectedWHMap = await DbWHMaps.GetById(mapId);
-                                if (_selectedSystemNode.IdWH == wormholeId)
+                                if(WHSignaturesView!=null && WHSignaturesView.CurrentSystemNodeId ==wormholeId)
                                 {
                                     await WHSignaturesView.Restore();
                                 }
@@ -1175,7 +1175,7 @@ namespace WHMapper.Pages.Mapper
                 {
 
                     //get whClass an determine if another connection to another wh with same class exist from previous system. Increment extension value in that case
-                    EveSystemType whClass = await MapperServices.GetWHClass(src);
+                    EveSystemType whClass = await MapperServices.GetWHClass(target);
                     var sameWHClassWHList = _blazorDiagram?.Links?.Where(x =>  ((EveSystemNodeModel)(x.Target.Model)).SystemType == whClass && ((EveSystemNodeModel)x.Source.Model)?.SolarSystemId == src?.SystemId);
                     
                     if(sameWHClassWHList!=null)
@@ -1183,9 +1183,9 @@ namespace WHMapper.Pages.Mapper
                     else
                         nbSameWHClassLink=0;
 
-                    if (nbSameWHClassLink > 1)
+                    if (nbSameWHClassLink > 0)
                     {
-                        extension = (Char)(Convert.ToUInt16('A') + (nbSameWHClassLink-1));
+                        extension = (Char)(Convert.ToUInt16('A') + (nbSameWHClassLink));
                         newWHSystem = await DbWHSystems.Create(new WHSystem(map.Id, target.SystemId, target.Name, extension, target.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                     }
                     else
@@ -1206,6 +1206,7 @@ namespace WHMapper.Pages.Mapper
                     map.WHSystems.Add(newWHSystem);
                     _blazorDiagram?.Nodes?.Add(newSystemNode);
                     await NotifyWormoleAdded(map.Id, newWHSystem.Id);
+                    
 
                     if (previousSystemNode != null)
                     {
@@ -1312,6 +1313,8 @@ namespace WHMapper.Pages.Mapper
                                 Snackbar?.Add("Add Wormhole Link error", Severity.Error);
                             }
                         }
+
+                        await NotifyUserPosition(targetSoloarSystem.Name);
                     }
                     else
                     {
@@ -1321,6 +1324,17 @@ namespace WHMapper.Pages.Mapper
                 }
                 else// tartget system already added
                 {
+                    //check if link already exist, if not create if
+                    if(srcNode!=null && !IsLinkExist(srcNode,targetNode))
+                    {
+                        if(!await AddSystemNodeLink(_selectedWHMap, _currentSoloarSystem, targetSoloarSystem))//create if new target system added from src
+                        {
+                            Logger.LogError("Add Wormhole Link error");
+                            Snackbar?.Add("Add Wormhole Link error", Severity.Error);
+                        }
+                    }
+
+
                     srcNode?.RemoveConnectedUser(_userName);
                     targetNode?.AddConnectedUser(_userName);
                     await NotifyUserPosition(targetSoloarSystem.Name);
@@ -1348,6 +1362,7 @@ namespace WHMapper.Pages.Mapper
                     string scanUser = await UserInfos.GetUserName();
                     if (await SignatureHelper.ImportScanResult(scanUser, _selectedSystemNode.IdWH, data,false))
                     {
+                        await WHSignaturesView.Restore();
                         Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
                         await NotifyWormholeSignaturesChanged(_selectedWHMap.Id, _selectedSystemNode.IdWH);
                     }
