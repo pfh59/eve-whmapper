@@ -204,6 +204,7 @@ namespace WHMapper
             builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
             builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
             builder.Services.AddScoped<IWHNoteRepository, WHNoteRepository>();
+            builder.Services.AddScoped<IWHRouteRepository, WHRouteRepository>();
             #endregion
 
             #region WH HELPER
