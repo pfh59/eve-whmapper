@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - "main"
-  pull_request_target:
   
 env:
   DOTNET_VERSION: '7.0.x'
@@ -20,17 +19,7 @@ env:
   COMPARE_TAG: latest
 
 jobs:
-  authorize:
-    environment:
-      ${{ github.event_name == 'pull_request_target' &&
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      'external' || 'internal' }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
-
   build_test_package:
-    needs: authorize
     runs-on: ubuntu-latest
 
 # Service containers to run with `runner-job`
@@ -122,7 +111,7 @@ jobs:
 
   build_test_docker_image:
     runs-on: ubuntu-latest
-    needs: [authorize,build_test_package]
+    needs: [build_test_package]
     permissions:
       contents: read
       packages: write
@@ -195,7 +184,7 @@ jobs:
 
   release_docker_image:
     if: github.event_name != 'pull_request'
-    needs: [authorize,build_test_package,build_test_docker_image]
+    needs: [build_test_package,build_test_docker_image]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
