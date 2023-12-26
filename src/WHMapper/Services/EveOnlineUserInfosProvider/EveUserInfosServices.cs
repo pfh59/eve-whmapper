@@ -23,10 +23,14 @@ namespace WHMapper.Services.EveOnlineUserInfosProvider
             return state?.User?.Identity?.Name ?? IEveUserInfosServices.ANONYMOUS_USERNAME;
         }
 
-        public async Task<string> GetCharactedID()
+        public async Task<int> GetCharactedID()
         {
             var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
-            return state?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty; ;
+            var characterId= state?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            if(string.IsNullOrEmpty(characterId))
+                return 0;
+            else
+                return Convert.ToInt32(characterId);
         }
     }
 }

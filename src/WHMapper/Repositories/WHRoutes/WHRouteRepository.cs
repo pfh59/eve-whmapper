@@ -12,6 +12,22 @@ namespace WHMapper
 
         }
 
+        public async Task<IEnumerable<WHRoute>> GetRoutesByEveEntityId(int eveEntityId)
+        {
+            using(var context = _contextFactory.CreateDbContext())
+            {
+                return await context.DbWHRoutes.Where(x => x.EveEntityId == eveEntityId).ToListAsync();
+            }
+        }
+
+        public async Task<IEnumerable<WHRoute>> GetRoutesForAll()
+        {
+            using(var context = _contextFactory.CreateDbContext())
+            {
+                return await context.DbWHRoutes.Where(x => x.EveEntityId==null).ToListAsync();
+            }
+        }
+
         protected override async Task<WHRoute?> ACreate(WHRoute item)
         {
             using (var context = _contextFactory.CreateDbContext())

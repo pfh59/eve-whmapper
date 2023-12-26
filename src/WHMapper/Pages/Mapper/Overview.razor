@@ -89,7 +89,10 @@
                 <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
                 <WHMapper.Pages.Mapper.Notes.Overview CurrentSystemNode="@_selectedSystemNode"/>
             </MudStack>
-            <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
+            <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Stretch">
+                <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
+                <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="@_selectedSystemNode"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
+            </MudStack>
         </MudStack>
     </MudPaper>
 </MudStack>

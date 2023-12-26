@@ -176,7 +176,7 @@ namespace WHMapper.Pages.Mapper
                 Snackbar.Add(MSG_SEARCH_ERROR, Severity.Error);
                 return null;
             }
-}
+        }
 
         private IEnumerable<string> Validate(string value)
         {

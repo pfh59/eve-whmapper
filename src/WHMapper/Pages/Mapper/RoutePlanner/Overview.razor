@@ -1,0 +1,35 @@
+﻿<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" Width="300px">
+    <MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceAround">
+            <MudText Typo="Typo.h6">Route Planner</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute())" />
+        </MudStack>
+    
+        @if(_globalRoutes!=null)
+        {
+            <MudList>
+                <MudListSubheader>Global Routes</MudListSubheader>
+                @foreach (var route in _globalRoutes)
+                {
+                    var name = EveAPIService.UniverseServices.GetSystem(route.SolarSystemId);
+                    <MudListItem Text=name Icon="@Icons.Material.Filled.Square" IconSize="Size.Small"/>
+                }
+            </MudList>
+        }
+
+        <MudDivider DividerType="DividerType.Middle"/>
+        @if(_myRoutes!=null)
+        {
+            <MudList>
+                <MudListSubheader>My Routes</MudListSubheader>
+                    @foreach (var route in _myRoutes)
+                    {
+                        var name = EveAPIService.UniverseServices.GetSystem(route.SolarSystemId);
+                        <MudListItem Text=name Icon="@Icons.Material.Filled.Square" IconSize="Size.Small"/>
+                    }
+            </MudList>
+        }
+    </MudStack>
+
+
+</MudPaper>
