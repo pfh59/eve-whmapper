@@ -14,6 +14,11 @@ namespace WHMapper.Tests.EveOnlineAPI
     public class PublicEveOnlineAPITest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;
+        private const int SOLAR_SYSTEM_AMARR_ID = 30002187;
+        private const int SOLAR_SYSTEM_AHBAZON_ID = 30005196;
+
+
+
         private const int CONSTELLATION_ID = 20000020;
         private const string CONSTELLATION_NAME = "Kimotoro";
         private const int REGION_ID = 10000002;
@@ -72,6 +77,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         private IAllianceServices _eveAllianceApi;
         private ICorporationServices _eveCorpoApi;
         private ICharacterServices _eveCharacterApi;
+        private IRouteServices _routeServices;
 
         public PublicEveOnlineAPITest()
         {
@@ -86,6 +92,7 @@ namespace WHMapper.Tests.EveOnlineAPI
             _eveAllianceApi = new AllianceServices(httpclientfactory.CreateClient());
             _eveCorpoApi = new CorporationServices(httpclientfactory.CreateClient());
             _eveCharacterApi = new CharacterServices(httpclientfactory.CreateClient());
+            _routeServices= new RouteServices(httpclientfactory.CreateClient());
         }
 
         [Fact]
@@ -243,6 +250,44 @@ namespace WHMapper.Tests.EveOnlineAPI
             Assert.Equal(ALLIANCE_GOONS_ID, character.AllianceId);
             Assert.Equal(CORPORATION_GOONS_ID, character.CorporationId);
             Assert.Equal(CHARACTER_GOONS_NAME, character.Name);
+        }
+
+        [Fact]
+        public async Task Get_Route()
+        {
+            //simple route in HS to HS via shortest path
+            var route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID);
+            Assert.NotNull(route);
+            Assert.NotEmpty(route);
+            Assert.Equal(24, route.Length);
+            Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[0]);
+            Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[23]);
+
+            //WH route to Jita without connections
+            route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID);
+            Assert.Null(route);
+
+            //WH route to Jita with connections by amarr
+            var connections = new int[][] { new int[] { SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_AMARR_ID } };
+
+            route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID, connections);
+            Assert.NotNull(route);
+            Assert.NotEmpty(route);
+            Assert.Equal(25, route.Length);
+            Assert.Equal(SOLAR_SYSTEM_WH_ID, route[0]);
+            Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[1]);
+            Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[24]);
+
+            //wh route from jita to amarr with avoid Ahbazon
+            var avoid = new int[] { SOLAR_SYSTEM_AHBAZON_ID };
+            route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, avoid);
+            Assert.NotNull(route);
+            Assert.NotEmpty(route);
+            Assert.Equal(24, route.Length);
+            Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[0]);
+            Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[23]);
+            Assert.DoesNotContain(SOLAR_SYSTEM_AHBAZON_ID, route);
+
         }
 
     }

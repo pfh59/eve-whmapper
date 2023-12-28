@@ -19,5 +19,6 @@ namespace WHMapper.Services.EveAPI
         ICharacterServices CharacterServices { get; }
         ISearchServices SearchServices { get; }
         IDogmaServices DogmaServices { get; }
+        IRouteServices RouteServices { get; }
     }
 }

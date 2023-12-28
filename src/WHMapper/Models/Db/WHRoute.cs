@@ -23,7 +23,7 @@ public class WHRoute
             SolarSystemId = solarSystemId;
         }
 
-        public WHRoute(int eveEntityId, int solarSystemId)
+        public WHRoute(int solarSystemId,int eveEntityId)
         {
             EveEntityId = eveEntityId;
             SolarSystemId = solarSystemId;

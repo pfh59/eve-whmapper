@@ -1,4 +1,6 @@
 ﻿
+using Blazor.Diagrams.Core.Layers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
@@ -6,16 +8,17 @@ using WHMapper.Services.EveAPI;
 
 namespace WHMapper.Pages.Mapper.RoutePlanner
 {
+    [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase
     {
-        private IEnumerable<WHRoute>? _myRoutes = null;
-        private IEnumerable<WHRoute>? _globalRoutes = null;
+        private IEnumerable<EveRoute>? _myRoutes = null;
+        private IEnumerable<EveRoute>? _globalRoutes = null;
+
+        private bool _isEditable = false;
 
         [Inject]
         private IEveMapperRoutePlannerHelper EveMapperRoutePlannerHelper { get; set; } = null!;
 
-        [Inject]
-        private  IEveAPIServices EveAPIService { get; set; } = null!;
         
         [Inject]
         private IDialogService DialogService { get; set; } = null!;
@@ -31,6 +34,9 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         [Parameter]
         public EveSystemNodeModel CurrentSystemNode { get; set; } = null!;
 
+        [Parameter]
+        public LinkLayer CurrentLinks { get; set; } = null!;
+
         protected override async Task OnInitializedAsync()
         {
             _logger.LogInformation("OnInitializedAsync");
@@ -38,18 +44,30 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
 
         protected async override Task OnParametersSetAsync()
         {
-
-            if (CurrentSystemNode != null)
-            {
-                await Restore();
-            }
+            await Restore();
         }
 
         private async Task Restore()
         {
-            _logger.LogInformation("LoadRoutes");
-            _myRoutes = await EveMapperRoutePlannerHelper.GetMyRoutes();
-            _globalRoutes = await EveMapperRoutePlannerHelper.GetRoutesForAll();
+            if (CurrentSystemNode != null && CurrentLinks!=null)
+            {
+                int[][]? mapConnections = null;
+                if(CurrentLinks.Count() > 0)
+                {
+                    int[][]  mapConnectionsSens1 = CurrentLinks.Select(x => new int [2] {((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SolarSystemId}).ToArray<int[]>();
+                    int[][]  mapConnectionsSens2 = CurrentLinks.Select(x => new int [2] {((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SolarSystemId}).ToArray<int[]>();
+                    mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToArray<int[]>(); 
+                }
+
+
+                _logger.LogInformation("Restore routes from {0}", CurrentSystemNode.Name);
+                _myRoutes = await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentSystemNode.SolarSystemId,mapConnections);
+                _globalRoutes = await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentSystemNode.SolarSystemId,mapConnections);
+            }
+            else
+            {
+                _logger.LogInformation("CurrentSystemNode is null");
+            }
         }
 
         private async Task AddRoute()
@@ -69,9 +87,27 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
 
             if (!result.Canceled)
             {
-                //await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
             }
+        }
+
+        private async Task DelRoute(EveRoute route)
+        {
+            var parameters = new DialogParameters();
+            parameters.Add("RouteId", route.Id);
+            var dialog = DialogService.Show<Delete>("Delete Route", parameters);
+            DialogResult result = await dialog.Result;
+            
+            if (!result.Canceled)
+            {
+                await Restore();
+            }
+        }
+
+        private async Task Edit()
+        {
+            _isEditable = !_isEditable;
+            await Task.CompletedTask;
         }
     }
 }

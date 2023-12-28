@@ -1,17 +1,31 @@
 ﻿<MudDialog>
     <DialogContent>
-        <MudForm @bind-IsValid="@_success" @ref="@_form">
-            <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
+        <AuthorizeView Policy="Admin">
+            <Authorized>
+                <MudForm @bind-IsValid="@_success" @ref="@_form">
+                    <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
+                                    Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
+                                    Validation="@(new Func<string, IEnumerable<string>>(Validate))"
+                                    AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="3" />
+
+                    
+                        <MudCheckBox T="bool" @bind-Value="_global"  Label="Global" Dense="true" Size="Size.Small"></MudCheckBox>
+                </MudForm>
+            </Authorized>
+            <NotAuthorized>
+                <MudForm @bind-IsValid="@_success" @ref="@_form">
+                    <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
                              Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
                              Validation="@(new Func<string, IEnumerable<string>>(Validate))"
                              AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="3" />
-
-            <MudCheckBox T="bool" @bind-Value="_global"  Label="Global"></MudCheckBox>
             
-        </MudForm>
+                </MudForm>
+            </NotAuthorized>
+        </AuthorizeView>
+
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Success" OnClick="Submit" Disabled="@(_success==false)">Add System</MudButton>
+        <MudButton Color="Color.Success" OnClick="Submit" Disabled="@(_success==false)">Add Route</MudButton>
     </DialogActions>
 </MudDialog>

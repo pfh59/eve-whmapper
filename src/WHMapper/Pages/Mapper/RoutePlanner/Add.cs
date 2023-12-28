@@ -1,5 +1,6 @@
 ﻿
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.DTO.SDE;
@@ -10,31 +11,27 @@ using WHMapper.Services.SDE;
 
 namespace WHMapper.Pages.Mapper.RoutePlanner
 {
+
+    [Authorize(Policy = "Admin, Access")]
     public partial class Add : ComponentBase
     {
 
         private const string MSG_SEARCH_ERROR = "Search System Error";
         private const string MSG_BAD_SOLAR_SYSTEM_NAME_ERROR = "Bad solar system name";
-        private const string MSG_ADD_WORHMOLE_DB_ERROR = "Add Wormhole db error";
+        private const string MSG_ADD_ROUTE_DB_ERROR = "Add route db error";
 
 
         [Inject]
         public ILogger<Add> Logger { get; set; } = null!;
 
         [Inject]
-        private IEveMapperHelper MapperServices { get; set; } = null!;
-
-        [Inject]
-        private IEveAPIServices EveServices { get; set; } = null!;
-
-        [Inject]
-        IWHSystemRepository DbWHSystems { get; set; } = null!;
-
-        [Inject]
         private ISnackbar Snackbar { get; set; } = null!;
 
         [Inject]
         private ISDEServices SDEServices { get; set; } = null!;
+
+        [Inject]
+        private IEveMapperRoutePlannerHelper EveMapperRoutePlannerHelper{ get; set; } = null!;
 
         [CascadingParameter]
         MudDialogInstance MudDialog { get; set; } = null!;
@@ -64,44 +61,29 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 await _semaphoreSlim.WaitAsync();
                 try
                 {
-                    /*
-                    if (CurrentWHMap == null || CurrentDiagram==null)//add log and message
-                    {
-                        Snackbar?.Add("CurrentWHMap or CurrentDiagram is null", Severity.Error);
-                        MudDialog.Close(DialogResult.Cancel);
-                    }
-
-
                     var sdeSolarSystem = _systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
-               
-                    if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem?.SolarSystemID).FirstOrDefault()!=null)
+
+                    if (sdeSolarSystem == null)
                     {
-                        Snackbar?.Add("Solar System is already added", Severity.Normal);
-                        MudDialog.Close(DialogResult.Ok(0));
+                        Logger.LogError(MSG_BAD_SOLAR_SYSTEM_NAME_ERROR);
+                        Snackbar?.Add(MSG_BAD_SOLAR_SYSTEM_NAME_ERROR, Severity.Error);
+                        return;
                     }
 
-                    var solarSystem = await EveServices.UniverseServices.GetSystem(sdeSolarSystem.SolarSystemID);
-                    var newWHSystem = await DbWHSystems.Create(new WHSystem(CurrentWHMap.Id,solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY)); //change position
+                    var route = await EveMapperRoutePlannerHelper.AddRoute(sdeSolarSystem.SolarSystemID, _global);
+                                     
 
 
-                    if (newWHSystem == null)
+                    if (route == null)
                     {
-                        Logger.LogError(MSG_ADD_WORHMOLE_DB_ERROR);
-                        Snackbar?.Add(MSG_ADD_WORHMOLE_DB_ERROR, Severity.Error);
+                        Logger.LogError(MSG_ADD_ROUTE_DB_ERROR);
+                        Snackbar?.Add(MSG_ADD_ROUTE_DB_ERROR, Severity.Error);
                         return;
                     }
 
 
-                   
-                    var nodeModel = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
-                    CurrentWHMap.WHSystems.Add(newWHSystem);
-                    CurrentDiagram?.Nodes.Add(nodeModel);
-
-                    Snackbar?.Add(String.Format("{0} solar system successfully added",nodeModel.Name), Severity.Success);
-                    MudDialog.Close(DialogResult.Ok(newWHSystem.Id));
-                    */
-
-
+                    Snackbar?.Add(String.Format("{0} route successfully added",sdeSolarSystem.Name), Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(route.Id));
                 }
                 catch (Exception ex)
                 {

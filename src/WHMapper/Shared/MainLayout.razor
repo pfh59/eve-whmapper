@@ -22,34 +22,9 @@
 @code
 {
     private MudTheme _currentTheme = null!;
-    private bool _isNotAuthoried = false;
-
-    [Inject]
-    private IAuthorizationService AuthorizationService { get; set; } = null!;
 
     [Inject]
     private IPasteServices PasteServices {get;set;} =null!;
-
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if(firstRender)
-        {
-            var user = (await AuthenticationStateTask).User;
-
-            if ((await AuthorizationService.AuthorizeAsync(user, "Admin"))
-                .Succeeded)
-                _isNotAuthoried = true;
-            else
-                _isNotAuthoried = false;
-
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
 
     protected override Task OnInitializedAsync()
     {

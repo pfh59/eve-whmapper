@@ -1,7 +1,9 @@
 ﻿
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.EveAPI;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper;
@@ -12,40 +14,85 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly ILogger<EveMapperRoutePlannerHelper> _logger;
     private readonly IEveUserInfosServices _eveUserInfosServices;
 
-    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices)
+    private readonly IEveMapperHelper _eveMapperHelper;
+
+    private readonly IEveAPIServices _eveAPIService;
+
+    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, IEveAPIServices eveAPIService, IEveMapperHelper eveMapperHelper )
     {
         _routeRepository = routeRepository;
         _logger = logger;
         _eveUserInfosServices = eveUserInfosServices;
+        _eveAPIService = eveAPIService;
+        _eveMapperHelper = eveMapperHelper;
     }
 
-    public async Task<IEnumerable<WHRoute>> GetMyRoutes()
+    public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId,int[][]? extraConnections=null)
     {
+        return await GetRoutes(fromSolarSystemId,extraConnections,false);
+    }
+
+    public async Task<IEnumerable<EveRoute>?> GetRoutesForAll(int fromSolarSystemId,int[][]? extraConnections)
+    {
+        return await GetRoutes(fromSolarSystemId,extraConnections,true);
+    }
+
+    private async Task<IEnumerable<EveRoute>?> GetRoutes(int fromSolarSystemId,int[][]? extraConnections,bool global)
+    {
+        IList<EveRoute> routes = new List<EveRoute>();
+        IEnumerable<WHRoute> whRoutes;
+
         if(_routeRepository == null)
         {
             _logger.LogError("Route Repository is null");
             return null;
         }
 
-
-        if(_eveUserInfosServices == null)
+        if(global)
+            whRoutes = await _routeRepository.GetRoutesForAll();
+        else
         {
-            _logger.LogError("EveUserInfosServices is null");
-            return null;
-        }
+            var characterId = await _eveUserInfosServices.GetCharactedID();
+            whRoutes = await _routeRepository.GetRoutesByEveEntityId(characterId);
+        }   
 
-        var characterId = await _eveUserInfosServices.GetCharactedID();
-        return await _routeRepository.GetRoutesByEveEntityId(characterId);    
+
+        foreach (var whRoute in whRoutes)
+        {
+            var destSystemInfo = await _eveAPIService.UniverseServices.GetSystem(whRoute.SolarSystemId);
+            var route = await _eveAPIService.RouteServices.GetRoute(fromSolarSystemId,whRoute.SolarSystemId,extraConnections);
+            routes.Add(new EveRoute(whRoute.Id,destSystemInfo.Name,route));
+        }
+        return routes;
     }
 
-    public Task<IEnumerable<WHRoute>> GetRoutesForAll()
+
+
+    public async Task<WHRoute> AddRoute(int soloarSystemId,bool global)
     {
-        if(_routeRepository == null)
+        WHRoute? route = null;
+                
+        if(global)
         {
-            _logger.LogError("Route Repository is null");
-            return null;
+            route = await _routeRepository.Create(new WHRoute(soloarSystemId));
+        }
+        else
+        {
+            var characterId = await _eveUserInfosServices.GetCharactedID();
+            route = await _routeRepository.Create(new WHRoute(soloarSystemId,characterId));
         }
 
-        return _routeRepository.GetRoutesForAll();
+        if(route == null)
+        {
+                _logger.LogError("Error creating route");
+                return null;
+        }
+        return route;
+    }
+
+    public Task<bool> DeleteRoute(int routeId)
+    {
+        return _routeRepository.DeleteById(routeId);
     }
 }
+

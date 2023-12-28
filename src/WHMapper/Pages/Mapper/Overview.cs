@@ -48,11 +48,6 @@ namespace WHMapper.Pages.Mapper
 
         private HubConnection _hubConnection=null!;
 
-        [Inject]
-        IAuthorizationService AuthorizationService { get; set; } = null!;
-
-        [CascadingParameter]
-        private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
         [Inject]
         AuthenticationStateProvider AuthState { get; set; } = null!;
@@ -124,7 +119,7 @@ namespace WHMapper.Pages.Mapper
         private bool _loading = true;
         public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
-        private bool _isAdmin = false;
+        //private bool _isAdmin = false;
 
 
         private SolarSystem? _currentSoloarSystem = null!;
@@ -134,33 +129,24 @@ namespace WHMapper.Pages.Mapper
         {
             if (await InitDiagram())
             {
-                var user = (await AuthenticationStateTask).User;
+                _userName = await UserInfos.GetUserName();
 
-                if ((await AuthorizationService.AuthorizeAsync(user, "Access"))
-                    .Succeeded)
+                if (await Restore())
                 {
-                    _isAdmin = (await AuthorizationService.AuthorizeAsync(user, "Admin"))
-                    .Succeeded;
-
-                    _userName = await UserInfos.GetUserName();
-
-                    if (await Restore())
+                    if (await InitNotificationHub())
                     {
-                        if (await InitNotificationHub())
-                        {
-                            TrackerServices.SystemChanged+=OnSystemChanged;
-                            await TrackerServices.StartTracking();
+                        TrackerServices.SystemChanged+=OnSystemChanged;
+                        await TrackerServices.StartTracking();
 
-                            PasteServices.Pasted+=OnPasted;
-                        }
+                        PasteServices.Pasted+=OnPasted;
+                    }
 
-                        _loading = false;
-                        StateHasChanged();
-                    }
-                    else
-                    {
-                        Snackbar?.Add("Mapper restore error", Severity.Error);
-                    }
+                    _loading = false;
+                    StateHasChanged();
+                }
+                else
+                {
+                    Snackbar?.Add("Mapper restore error", Severity.Error);
                 }
             }
             else

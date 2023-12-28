@@ -30,6 +30,8 @@ namespace WHMapper.Services.EveAPI
         public ISearchServices SearchServices { get;private set; }
         public IDogmaServices DogmaServices { get; private set; }
 
+        public IRouteServices RouteServices { get; private set; }
+
         public EveAPIServices(ILogger<EveAPIServices> logger,IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)
         {
             _httpClientFactory = httpClientFactory;
@@ -47,6 +49,7 @@ namespace WHMapper.Services.EveAPI
             CharacterServices = new CharacterServices(eveAPIClient);
             SearchServices = new SearchServices(eveAPIClient, _tokenProvider, userService);
             DogmaServices = new DogmaServices(eveAPIClient);
+            RouteServices = new RouteServices(eveAPIClient);
         }
     }
 }

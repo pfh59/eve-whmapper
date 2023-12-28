@@ -767,6 +767,7 @@ public class DbIntegrationTest
 
         //duplicate update
         result2.SolarSystemId = FOOBAR_SYSTEM_ID;
+        result2.EveEntityId = EVE_CHARACTERE_ID;
         var resultUpdate2 = await repo.Update(result2.Id, result2);
         Assert.Null(resultUpdate2);
 

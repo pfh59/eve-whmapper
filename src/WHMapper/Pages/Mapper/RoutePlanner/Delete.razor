@@ -1,0 +1,12 @@
+﻿<MudDialog>
+    <DialogContent>
+        @if (RouteId > 0)
+        {
+            <MudText>@MSG_DELETE_ROUTE</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Submit">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
