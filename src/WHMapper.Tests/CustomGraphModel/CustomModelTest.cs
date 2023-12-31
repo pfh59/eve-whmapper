@@ -1,4 +1,5 @@
-﻿using WHMapper.Models.Custom.Node;
+﻿using Blazor.Diagrams.Core.Models;
+using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO.EveMapper.Enums;
@@ -80,6 +81,10 @@ namespace WHMapper.Tests.CustomGraphModel
             node.Locked=true;
             Assert.True(node.Locked);
 
+            Assert.False(node.IsRouteWaypoint);
+            node.IsRouteWaypoint=true;
+            Assert.True(node.IsRouteWaypoint);
+
         }
 
         [Fact]
@@ -108,6 +113,9 @@ namespace WHMapper.Tests.CustomGraphModel
             Assert.Equal(SystemLinkSize.Small, link.Size);
             Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
             Assert.NotEmpty(link.Labels);
+            Assert.False(link.IsRouteWaypoint);
+            link.IsRouteWaypoint=true;
+            Assert.True(link.IsRouteWaypoint);
         }
     }
 }

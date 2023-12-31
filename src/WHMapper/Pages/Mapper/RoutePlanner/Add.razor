@@ -1,31 +1,20 @@
 ﻿<MudDialog>
     <DialogContent>
-        <AuthorizeView Policy="Admin">
-            <Authorized>
-                <MudForm @bind-IsValid="@_success" @ref="@_form">
-                    <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
-                                    Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
-                                    Validation="@(new Func<string, IEnumerable<string>>(Validate))"
-                                    AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="3" />
 
-                    
-                        <MudCheckBox T="bool" @bind-Value="_global"  Label="Global" Dense="true" Size="Size.Small"></MudCheckBox>
-                </MudForm>
-            </Authorized>
-            <NotAuthorized>
-                <MudForm @bind-IsValid="@_success" @ref="@_form">
-                    <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
-                             Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
-                             Validation="@(new Func<string, IEnumerable<string>>(Validate))"
-                             AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="3" />
-            
-                </MudForm>
-            </NotAuthorized>
-        </AuthorizeView>
+        <MudForm @bind-IsValid="@_success" @ref="@_form">
+            <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
+                            Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
+                            Validation="@(new Func<string, IEnumerable<string>>(Validate))"
+                            AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="3" />
 
+            <AuthorizeView Policy="Admin" Context="adminContext">
+                <MudCheckBox T="bool" Label="Global" @bind-Value="@_global" Dense="true" Size="Size.Small"></MudCheckBox>
+            </AuthorizeView>
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
         <MudButton Color="Color.Success" OnClick="Submit" Disabled="@(_success==false)">Add Route</MudButton>
     </DialogActions>
 </MudDialog>
+

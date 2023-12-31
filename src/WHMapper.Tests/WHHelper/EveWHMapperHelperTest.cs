@@ -32,6 +32,14 @@ namespace WHMapper.Tests.WHHelper
         private const string CONSTELLATION_JITA_NAME = "Kimotoro";
         private const string REGION_JITA_NAME = "The Forge";
 
+        private const string SOLAR_SYSTEM_AMAMAKE_NAME = "Amamake";
+        private const string CONSTELLATION_AMAMAKE_NAME = "Hed";
+        private const string REGION_AMAMAKE_NAME = "Heimatar";
+
+        private const string SOLAR_SYSTEM_FDMLJ_NAME = "FD-MLJ";
+        private const string CONSTELLATION_FDMLJ_NAME = "Z-6NQ6";
+        private const string REGION_FDMLJ_NAME = "Syndicate";
+
         private const int SOLAR_SYSTEM_WH_ID = 31001123;
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
         private const int CONSTELLATION_WH_ID = 21000113;
@@ -129,6 +137,12 @@ namespace WHMapper.Tests.WHHelper
             var result_HS = await _whEveMapper.GetWHClass(REGION_JITA_NAME, "UNUSED", SOLAR_SYSTEM_JITA_NAME,1.0f);
             Assert.Equal(EveSystemType.HS, result_HS);
 
+            var result_LS = await _whEveMapper.GetWHClass(REGION_AMAMAKE_NAME, "UNUSED", SOLAR_SYSTEM_AMAMAKE_NAME,0.4f);
+            Assert.Equal(EveSystemType.LS, result_LS);
+
+            var result_NS = await _whEveMapper.GetWHClass(REGION_FDMLJ_NAME, "UNUSED", SOLAR_SYSTEM_FDMLJ_NAME,0.0f);
+            Assert.Equal(EveSystemType.NS, result_NS);
+
             var result_C1 = await _whEveMapper.GetWHClass(REGION_WH_C1_NAME, "UNUSED", SOLAR_SYSTEM_WH_C1_NAME,-1.0f);
             Assert.Equal(EveSystemType.C1, result_C1);
 
@@ -169,7 +183,7 @@ namespace WHMapper.Tests.WHHelper
             Assert.Equal(EveSystemType.C18, result_C18);
 
             var result_POCHVEN = await _whEveMapper.GetWHClass(REGION_WH_POCHVEN_NAME, "UNUSED", SOLAR_SYSTEM_WH_POCHVEN_NAME,-1.0f);
-            Assert.Equal(EveSystemType.None, result_POCHVEN);
+            Assert.Equal(EveSystemType.Pochven, result_POCHVEN);
         }
 
         [Fact, Priority(3)]

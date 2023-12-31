@@ -43,14 +43,9 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         private string _searchResult = string.Empty;
         private bool _searchInProgress = false;
 
-        private bool _global = false;
+        public bool _global=false;
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-
-        protected override async Task OnInitializedAsync()
-        {
-            await base.OnInitializedAsync();
-        }
 
         private async Task Submit()
         {

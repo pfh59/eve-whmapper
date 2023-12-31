@@ -80,6 +80,8 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
+        public bool IsRouteWaypoint{get;set;} = false;
+
         public EveSystemLinkModel(WHSystemLink whLink,EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
             : base (sourcePort, targetPort)
         {

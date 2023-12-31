@@ -83,15 +83,13 @@
         </MudMenu>
     </MudPaper>
     <MudPaper Elevation="0">
-        <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Stretch">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Stretch">
             <MudStack>
                 <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
                 <WHMapper.Pages.Mapper.Notes.Overview CurrentSystemNode="@_selectedSystemNode"/>
             </MudStack>
-            <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Stretch">
-                <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
-                <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="@_selectedSystemNode" CurrentLinks="@_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
-            </MudStack>
+            <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
+            <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="@_selectedSystemNode" CurrentLinks="@_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
         </MudStack>
     </MudPaper>
 </MudStack>

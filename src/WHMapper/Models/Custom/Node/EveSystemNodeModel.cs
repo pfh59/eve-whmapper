@@ -122,6 +122,8 @@ namespace WHMapper.Models.Custom.Node
         public IList<WHStatic>? Statics { get; private set; } = null!;
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
+        public bool IsRouteWaypoint{get;set;} = false;
+
 
         public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
         {

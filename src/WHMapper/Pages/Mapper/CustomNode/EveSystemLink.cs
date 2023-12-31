@@ -13,7 +13,9 @@ namespace WHMapper.Pages.Mapper.CustomNode
 {
     public partial class EveSystemLink : ComponentBase
     {
-        public string? _eolColor;
+        private const string DEFAULT_COLOR = IWHColorHelper.DEFAULT_COLOR;
+        private string? _eolColor;
+        
 
         [Inject]
         public IWHColorHelper? WHColorHelper { get; set; }

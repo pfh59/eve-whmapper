@@ -100,14 +100,58 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             
             if (!result.Canceled)
             {
+                ShowRoute(route,false);
                 await Restore();
+
             }
+
+            _isEditable=false;
+            StateHasChanged();
+            
         }
 
         private async Task Edit()
         {
             _isEditable = !_isEditable;
             await Task.CompletedTask;
+        }
+
+
+        private async Task ToggleShowRoute(EveRoute route)
+        {
+            //search if route already showed
+            var routeShowed = _globalRoutes.Where(x=>x.IsShowed==true).FirstOrDefault();
+            if(routeShowed!=null && (routeShowed.Id!=route.Id))
+            {
+                    await ShowRoute(routeShowed,false);
+            }
+            else
+            {
+                routeShowed = _myRoutes.Where(x=>x.IsShowed==true).FirstOrDefault();
+                if(routeShowed!=null && (routeShowed.Id!=route.Id))
+                {
+
+                    await ShowRoute(routeShowed,false);
+                }
+            }
+
+            await ShowRoute(route,!route.IsShowed);
+        }
+
+        private async Task ShowRoute(EveRoute route,bool show)
+        {          
+            route.IsShowed=show;
+            var linkOnRoute = CurrentLinks.Where(x => route.Route.Contains(((EveSystemNodeModel)x.Source.Model).SolarSystemId) && route.Route.Contains(((EveSystemNodeModel)x.Target.Model).SolarSystemId));
+            foreach(var link in linkOnRoute)
+            {
+                ((EveSystemLinkModel)link).IsRouteWaypoint=show;
+                ((EveSystemNodeModel)link.Source.Model).IsRouteWaypoint=show;
+                ((EveSystemNodeModel)link.Target.Model).IsRouteWaypoint=show;
+
+                ((EveSystemLinkModel)link).Refresh();
+                ((EveSystemNodeModel)link.Source.Model).Refresh();
+                ((EveSystemNodeModel)link.Target.Model).Refresh();
+            }
         }
     }
 }
