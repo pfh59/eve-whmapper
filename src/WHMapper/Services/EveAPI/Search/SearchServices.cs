@@ -19,7 +19,7 @@ namespace WHMapper.Services.EveAPI.Search
         {
             if (_userService != null)
             {
-                string characterId = await _userService.GetCharactedID();
+                int characterId = await _userService.GetCharactedID();
                 return await base.Execute<SearchAllianceResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=alliance&strict={2}", characterId,searchValue,isStrict));
 
             }
@@ -30,7 +30,7 @@ namespace WHMapper.Services.EveAPI.Search
         {
             if (_userService != null)
             {
-                string characterId = await _userService.GetCharactedID();
+                int characterId = await _userService.GetCharactedID();
                 return await base.Execute<SearchCharacterResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=character&strict={2}", characterId, searchValue, isStrict));
 
             }
@@ -41,7 +41,7 @@ namespace WHMapper.Services.EveAPI.Search
         {
             if (_userService != null)
             {
-                string characterId = await _userService.GetCharactedID();
+                int characterId = await _userService.GetCharactedID();
                 return await base.Execute<SearchCoporationResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=corporation&strict={2}", characterId, searchValue, isStrict));
 
             }

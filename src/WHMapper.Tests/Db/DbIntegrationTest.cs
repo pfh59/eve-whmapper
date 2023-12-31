@@ -718,4 +718,68 @@ public class DbIntegrationTest
         var resultBaddel = await repo.DeleteById(-10);
         Assert.False(resultBaddel);
     }
+
+    [Fact, Priority(9)]
+    public async Task CRUD_WHRoute()
+    {
+        //Create AccessRepo
+        IWHRouteRepository repo = new WHRouteRepository(new NullLogger<WHRouteRepository>(), _contextFactory);
+
+        //get ALL empty
+        var results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.Empty(results);
+
+        //ADD Route1
+        var result1 = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID));
+        Assert.NotNull(result1);
+        Assert.Equal(FOOBAR_SYSTEM_ID, result1.SolarSystemId);
+        Assert.Null(result1.EveEntityId);
+
+        //ADD Route2
+        var result2 = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
+        Assert.NotNull(result2);
+        Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SolarSystemId);
+        Assert.Equal(EVE_CORPO_ID, result2.EveEntityId);
+
+        //ADD Route dupLicate
+        var resultDuplicate = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
+        Assert.Null(resultDuplicate);
+
+        //GetALL
+        results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.NotEmpty(results);
+
+        //GetbyID
+        var resultById = await repo.GetById(1);
+        Assert.NotNull(resultById);
+        Assert.Equal(FOOBAR_SYSTEM_ID, resultById.SolarSystemId);
+
+        var resultBadById = await repo.GetById(-10);
+        Assert.Null(resultBadById);
+
+        //update
+        result1.EveEntityId = EVE_CHARACTERE_ID;
+        var resultUpdate1 = await repo.Update(result1.Id, result1);
+        Assert.NotNull(resultUpdate1);
+        Assert.Equal(EVE_CHARACTERE_ID, result1.EveEntityId );
+
+        //duplicate update
+        result2.SolarSystemId = FOOBAR_SYSTEM_ID;
+        result2.EveEntityId = EVE_CHARACTERE_ID;
+        var resultUpdate2 = await repo.Update(result2.Id, result2);
+        Assert.Null(resultUpdate2);
+
+        //Delete
+        var resultdel1 = await repo.DeleteById(result1.Id);
+        Assert.True(resultdel1);
+
+        var resultdel2 = await repo.DeleteById(result2.Id);
+        Assert.True(resultdel2);
+
+        var resultBaddel = await repo.DeleteById(-10);
+        Assert.False(resultBaddel);
+
+    }
 }

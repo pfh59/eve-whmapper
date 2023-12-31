@@ -544,17 +544,17 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<EveSystemType> GetWHClass(SolarSystem whSystem)
         {
-            if (IsWorhmole(whSystem.Name))
-            {
+            //if (IsWorhmole(whSystem.Name))
+            //{
                 var system_constellation = await _universeServices.GetContellation(whSystem.ConstellationId);
                 var system_region = await _universeServices.GetRegion(system_constellation.RegionId);
 
-                return await GetWHClass(system_region.Name, system_constellation.Name, whSystem.Name);
-            }
-            return EveSystemType.None;
+                return await GetWHClass(system_region.Name, system_constellation.Name, whSystem.Name,whSystem.SecurityStatus);
+            //}
+            //return EveSystemType.None;
         }
 
-        public async Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName)
+        public async Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float SecurityStatus)
         {
             if(IsWorhmole(systemName))
             {
@@ -593,7 +593,17 @@ namespace WHMapper.Services.EveMapper
                         return EveSystemType.None;
                 }
             }
-            return EveSystemType.None; 
+            else if (regionName == REGION_POCHVVEN_NAME)//trig system
+                return EveSystemType.Pochven;
+            else
+            {
+                if (SecurityStatus >= 0.5)
+                    return EveSystemType.HS;
+                else if (SecurityStatus < 0.5 && SecurityStatus > 0)
+                    return EveSystemType.LS;
+                else
+                    return EveSystemType.NS;
+            }
         }
 
         private async Task<WHEffect> GetSystemEffect(string systemName)
@@ -648,7 +658,7 @@ namespace WHMapper.Services.EveMapper
 
             if (IsWorhmole(wh.Name))//WH system
             {
-                EveSystemType whClass = await GetWHClass(system_region.Name, system_constellation.Name, system.Name);
+                EveSystemType whClass = await GetWHClass(system_region.Name, system_constellation.Name, system.Name,system.SecurityStatus);
                 WHEffect whEffect = await GetSystemEffect(system.Name);
                 IList<EveSystemEffect>? effectDetails = GetWHEffectDetails(whEffect, whClass);
                 IList<WHStatic>? statics = null;

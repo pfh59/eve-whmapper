@@ -25,6 +25,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
         private const string MENU_LOCK_SYSTEM_VALUE = "Lock";
         private const string MENU_UNLOCK_SYSTEM_VALUE = "Unlock";
 
+    
 
         private EveSystemNodeModel _node = null!;
 
@@ -73,7 +74,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 }
             }
         }
-
+        
         private bool Locked
         {
             get
@@ -134,6 +135,15 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Hostile)
                 {
                     systemStyle += " border-color:red;";
+                }
+
+                if(Node.IsRouteWaypoint)
+                {
+                    systemStyle += " border-color:yellow;border-style:dotted;";
+                }
+                else
+                {
+                    systemStyle += " border-style:solid;";
                 }
 
                 return systemStyle;

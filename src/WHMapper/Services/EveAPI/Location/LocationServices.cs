@@ -22,7 +22,7 @@ namespace WHMapper.Services.EveAPI.Location
         {
             if (_userService != null)
             {
-                string characterId = await _userService.GetCharactedID();
+                int characterId = await _userService.GetCharactedID();
                 return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", characterId));
 
             }

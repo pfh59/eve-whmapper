@@ -8,6 +8,7 @@ namespace WHMapper.Services.WHColor
 {
     public class WHColorHelper : IWHColorHelper
     {
+
         private const string MAGNETAR_COLOR = "#e06fdf";
         private const string REDGIANT_COLOR = "#d9534f";
         private const string PULSAR_COLOR = "#428bca";

@@ -7,7 +7,7 @@ namespace WHMapper.Services.WHColor
 {
     public interface IWHColorHelper
     { 
-        public const string DEFAULT_COLOR = "grey";
+        const string DEFAULT_COLOR = "grey";
 
         string GetSecurityStatusColor(float secStatus);
         string GetSystemTypeColor(EveSystemType systemType);

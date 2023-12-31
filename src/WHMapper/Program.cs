@@ -204,12 +204,14 @@ namespace WHMapper
             builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
             builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
             builder.Services.AddScoped<IWHNoteRepository, WHNoteRepository>();
+            builder.Services.AddScoped<IWHRouteRepository, WHRouteRepository>();
             #endregion
 
             #region WH HELPER
             builder.Services.AddScoped<IEveMapperTracker, EveMapperTracker>();
             builder.Services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
             builder.Services.AddScoped<IEveMapperHelper, EveMapperHelper>();
+            builder.Services.AddScoped<IEveMapperRoutePlannerHelper, EveMapperRoutePlannerHelper>();
             builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();
             builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();
             #endregion

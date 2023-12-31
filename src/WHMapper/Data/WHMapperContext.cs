@@ -14,6 +14,7 @@ namespace WHMapper.Data
         public DbSet<WHSystemLink> DbWHSystemLinks { get; set; } = null!;
         public DbSet<WHSignature> DbWHSignatures { get; set; } = null!;
         public DbSet<WHNote> DbWHNotes { get; set; } = null!;
+        public DbSet<WHRoute> DbWHRoutes { get; set; } = null!;
 
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
@@ -56,6 +57,8 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHNote>().ToTable("Notes");
             modelBuilder.Entity<WHNote>().HasIndex(x => new { x.SoloarSystemId }).IsUnique(true);
 
+            modelBuilder.Entity<WHRoute>().ToTable("Routes");
+            modelBuilder.Entity<WHRoute>().HasIndex(x => new { x.SolarSystemId,x.EveEntityId }).IsUnique(true);
         }
     }
 }

@@ -1,0 +1,66 @@
+﻿<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" MinWidth="200px">
+    <MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceAround">
+            <MudText Typo="Typo.subtitle1">Routes :</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Add"  Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute())" Disabled="@(_isEditable)"/>
+            <AuthorizeView Policy="Admin" Context="adminContext">
+                <Authorized>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@((e) => Edit())"/>
+                </Authorized>
+                <NotAuthorized>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@((e) => Edit())" Disabled="@((_myRoutes!=null && _myRoutes.Count()>0) ? false : true)"/>
+                </NotAuthorized>
+            </AuthorizeView>
+
+            
+        </MudStack>
+        
+        @if(_globalRoutes!=null && _globalRoutes.Count() > 0)
+        {
+        <MudDivider/>
+         <MudStack>
+            <MudText Typo="Typo.subtitle2" Style="font-weight:bold;">Default Routes :</MudText>
+            @foreach (var route in _globalRoutes)
+            {
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudBadge Content="route.RouteLength" Overlap="false" Color="@(route.IsAvailable==true ? Color.Success : Color.Error )">
+                        <MudText Typo="Typo.body2">@route.DestinationName</MudText>
+                    </MudBadge>
+                    <MudIconButton class="mt-n1" Icon="@(route.IsShowed ? Icons.Material.Filled.GpsOff : @Icons.Material.Filled.GpsFixed)" Color="@(route.IsShowed ? Color.Error : Color.Success)" Size="Size.Small" Disabled="@(route.IsAvailable==false)" OnClick="@((e)=>ToggleShowRoute(route))"/>
+                    <AuthorizeView Policy="Admin" Context="adminContext">
+                    @if(_isEditable)
+                    {
+                        <MudIconButton class="mt-n1" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@((e) => DelRoute(route))"/>
+                    }  
+                    </AuthorizeView>
+                </MudStack>
+            }
+         </MudStack>
+        }
+
+        @if(_myRoutes!=null && _myRoutes.Count() > 0)
+        {
+        <MudDivider/>
+         <MudStack>
+            <MudText Typo="Typo.subtitle2">My Routes :</MudText>
+            @foreach (var route in _myRoutes)
+            {
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+
+                    <MudBadge Content="route.RouteLength" Overlap="false" Color="@(route.IsAvailable==true ? Color.Success : Color.Error )">
+                        <MudText Typo="Typo.body2">@route.DestinationName</MudText>
+                    </MudBadge>
+                    <MudIconButton class="mt-n1" Icon="@(route.IsShowed ? Icons.Material.Filled.GpsOff : @Icons.Material.Filled.GpsFixed)" Color="@(route.IsShowed ? Color.Error : Color.Success)" Size="Size.Small" Disabled="@(route.IsAvailable==false)" OnClick="@((e)=>ToggleShowRoute(route))"/>
+                    @if(_isEditable)
+                    {
+                        <MudIconButton class="mt-n1" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@((e) => DelRoute(route))"/>
+                    }           
+                </MudStack>
+            }
+         </MudStack>
+        }
+        
+    </MudStack>
+
+
+</MudPaper>

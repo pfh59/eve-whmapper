@@ -48,11 +48,6 @@ namespace WHMapper.Pages.Mapper
 
         private HubConnection _hubConnection=null!;
 
-        [Inject]
-        IAuthorizationService AuthorizationService { get; set; } = null!;
-
-        [CascadingParameter]
-        private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
         [Inject]
         AuthenticationStateProvider AuthState { get; set; } = null!;
@@ -124,7 +119,7 @@ namespace WHMapper.Pages.Mapper
         private bool _loading = true;
         public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
-        private bool _isAdmin = false;
+        //private bool _isAdmin = false;
 
 
         private SolarSystem? _currentSoloarSystem = null!;
@@ -134,33 +129,24 @@ namespace WHMapper.Pages.Mapper
         {
             if (await InitDiagram())
             {
-                var user = (await AuthenticationStateTask).User;
+                _userName = await UserInfos.GetUserName();
 
-                if ((await AuthorizationService.AuthorizeAsync(user, "Access"))
-                    .Succeeded)
+                if (await Restore())
                 {
-                    _isAdmin = (await AuthorizationService.AuthorizeAsync(user, "Admin"))
-                    .Succeeded;
-
-                    _userName = await UserInfos.GetUserName();
-
-                    if (await Restore())
+                    if (await InitNotificationHub())
                     {
-                        if (await InitNotificationHub())
-                        {
-                            TrackerServices.SystemChanged+=OnSystemChanged;
-                            await TrackerServices.StartTracking();
+                        TrackerServices.SystemChanged+=OnSystemChanged;
+                        await TrackerServices.StartTracking();
 
-                            PasteServices.Pasted+=OnPasted;
-                        }
+                        PasteServices.Pasted+=OnPasted;
+                    }
 
-                        _loading = false;
-                        StateHasChanged();
-                    }
-                    else
-                    {
-                        Snackbar?.Add("Mapper restore error", Severity.Error);
-                    }
+                    _loading = false;
+                    StateHasChanged();
+                }
+                else
+                {
+                    Snackbar?.Add("Mapper restore error", Severity.Error);
                 }
             }
             else
@@ -902,14 +888,17 @@ namespace WHMapper.Pages.Mapper
                 if (_selectedWHMap != null && _selectedWHMap.WHSystems!=null &&_selectedWHMap.WHSystems.Count > 0)
                 {
 
-                    await Parallel.ForEachAsync(_selectedWHMap.WHSystems, options, async (dbWHSys, token) =>
+                    //await Parallel.ForEachAsync(_selectedWHMap.WHSystems, options, async (dbWHSys, token) =>
+                    //{
+                    foreach(var dbWHSys in _selectedWHMap.WHSystems)
                     {
                             EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
                             whSysNode.OnLocked += OnWHSystemNodeLocked;
                             whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
                             _blazorDiagram.Nodes.Add(whSysNode);
-                    });
-                    StateHasChanged();
+                    }
+                    //});
+                    //StateHasChanged();
                 
 
                     if (_selectedWHMap.WHSystemLinks!=null && _selectedWHMap.WHSystemLinks.Count > 0)
@@ -917,7 +906,8 @@ namespace WHMapper.Pages.Mapper
                         EveSystemNodeModel? srcNode=null!;
                         EveSystemNodeModel? targetNode=null!;
 
-                        await Parallel.ForEachAsync(_selectedWHMap.WHSystemLinks, options, async (dbWHSysLink, token) =>
+                        //await Parallel.ForEachAsync(_selectedWHMap.WHSystemLinks, options, async (dbWHSysLink, token) =>
+                        foreach(var dbWHSysLink in _selectedWHMap.WHSystemLinks)
                         {
                             var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
                             var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
@@ -939,7 +929,8 @@ namespace WHMapper.Pages.Mapper
                                     _selectedWHMap.WHSystemLinks.Remove(dbWHSysLink);
                                 }
                             }
-                        });
+                        }
+                        //});
                         StateHasChanged();
                     }
                 }
