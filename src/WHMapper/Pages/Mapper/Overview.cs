@@ -218,6 +218,10 @@ namespace WHMapper.Pages.Mapper
                                 await systemToAddUser.AddConnectedUser(user);
                                 systemToAddUser.Refresh();
                             }
+                            else
+                            {
+                                Logger.LogWarning("On NotifyUserPosition, unable to find system to add user");
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -234,8 +238,11 @@ namespace WHMapper.Pages.Mapper
                                 if(!string.IsNullOrEmpty(item.Value))
                                 {
                                     EveSystemNodeModel systemToAddUser = (EveSystemNodeModel)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).Title == item.Value);
-                                    await systemToAddUser.AddConnectedUser(item.Key);
-                                    systemToAddUser.Refresh();
+                                    if(systemToAddUser!=null)
+                                    {
+                                        await systemToAddUser.AddConnectedUser(item.Key);
+                                        systemToAddUser.Refresh();
+                                    }
                                 }
                             });
                         }
@@ -964,7 +971,7 @@ namespace WHMapper.Pages.Mapper
                     return false;
                 }
 
-                if (await DbWHSystems.DeleteById(node.IdWH) != null)
+                if (await DbWHSystems.DeleteById(node.IdWH))
                 {
                     var whSystemToDelete = map.WHSystems.FirstOrDefault(x => x.Id == node.IdWH);
                     if(whSystemToDelete!=null)
