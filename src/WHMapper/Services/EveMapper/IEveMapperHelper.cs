@@ -15,7 +15,6 @@ namespace WHMapper.Services.EveMapper
         public bool IsWorhmole(string systemName);
         public Task<EveSystemType> GetWHClass(SolarSystem whSystem);
         public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName,float securityStatus);
-
     }
 }
 

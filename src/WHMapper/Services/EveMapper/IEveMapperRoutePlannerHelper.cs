@@ -1,4 +1,5 @@
-﻿namespace WHMapper;
+namespace WHMapper;
+
 
 public interface IEveMapperRoutePlannerHelper
 {

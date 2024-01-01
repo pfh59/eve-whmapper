@@ -717,6 +717,14 @@ public class DbIntegrationTest
 
         var resultBaddel = await repo.DeleteById(-10);
         Assert.False(resultBaddel);
+
+        //null update
+        var resultUpdateNull = await repo.Update(-10, null);
+        Assert.Null(resultUpdateNull);
+
+        //bad id update
+        var resultUpdateBadId = await repo.Update(-10, result1);
+        Assert.Null(resultUpdateBadId);
     }
 
     [Fact, Priority(9)]
@@ -742,6 +750,7 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SolarSystemId);
         Assert.Equal(EVE_CORPO_ID, result2.EveEntityId);
 
+    
         //ADD Route dupLicate
         var resultDuplicate = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
         Assert.Null(resultDuplicate);
@@ -780,6 +789,29 @@ public class DbIntegrationTest
 
         var resultBaddel = await repo.DeleteById(-10);
         Assert.False(resultBaddel);
+
+        //ADD Route1 with eveentityid
+        var result = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID, EVE_CHARACTERE_ID));
+        Assert.NotNull(result);
+        Assert.Equal(FOOBAR_SYSTEM_ID, result1.SolarSystemId);
+        Assert.Equal(EVE_CHARACTERE_ID,result1.EveEntityId);
+
+        //get by eveentityid
+        var resultByEveEntityId = await repo.GetRoutesByEveEntityId(EVE_CHARACTERE_ID);
+        Assert.NotNull(resultByEveEntityId);
+        Assert.NotEmpty(resultByEveEntityId);
+
+        //null update
+        var resultUpdateNull = await repo.Update(-10, null);
+        Assert.Null(resultUpdateNull);
+
+        //bad id update
+        var resultUpdateBadId = await repo.Update(-10, result1);
+        Assert.Null(resultUpdateBadId);
+
+        //Delete
+        var resultdel = await repo.DeleteById(result.Id);
+        Assert.True(resultdel);
 
     }
 }
