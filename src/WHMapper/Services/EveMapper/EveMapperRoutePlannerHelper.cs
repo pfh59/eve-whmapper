@@ -1,7 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
