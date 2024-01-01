@@ -75,17 +75,23 @@ namespace WHMapper
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                if (context.DbWHRoutes.Count() == 0)
-                    return await context.DbWHRoutes.Where(x => x.Id == id).FirstOrDefaultAsync();
-                else
-                    return await context.DbWHRoutes.Where(x => x.Id == id).FirstOrDefaultAsync();
+                return await context.DbWHRoutes.SingleOrDefaultAsync(x => x.Id == id);
             }
         }
 
         protected override async Task<WHRoute?> AUpdate(int id, WHRoute item)
         {
-            if (item == null && item.Id != id)
+            if (item == null)
+            {
+                _logger.LogError("Impossible to update WHRoute, item is null");
                 return null;
+            }
+
+            if(item.Id!=id)
+            {
+                _logger.LogError("Impossible to update WHRoute, item.Id is not equal to id");
+                return null;
+            }
 
             using (var context = _contextFactory.CreateDbContext())
             {

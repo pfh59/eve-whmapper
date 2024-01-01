@@ -57,6 +57,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                     int[][]  mapConnectionsSens1 = CurrentLinks.Select(x => new int [2] {((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SolarSystemId}).ToArray<int[]>();
                     int[][]  mapConnectionsSens2 = CurrentLinks.Select(x => new int [2] {((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SolarSystemId}).ToArray<int[]>();
                     mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToArray<int[]>(); 
+
                 }
 
 

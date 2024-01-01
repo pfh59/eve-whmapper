@@ -65,13 +65,22 @@ namespace WHMapper.Repositories.WHNotes
 
         protected override async Task<WHNote?> AUpdate(int id, WHNote item)
         {
+            if(item==null)
+            {
+                _logger.LogError("Impossible to update WHNote, item is null");
+                return null;
+            }
+
+            if (id != item.Id)
+            {
+                _logger.LogError("Impossible to update WHNote, id is different from item.Id");
+                return null;
+            }
+
             using (var context = _contextFactory.CreateDbContext())
             {
                 try
                 {
-                    if (id != item.Id)
-                        return null;
-
                     context.DbWHNotes.Update(item);
                     await context.SaveChangesAsync();
                     return item;

@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
@@ -14,17 +15,14 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly ILogger<EveMapperRoutePlannerHelper> _logger;
     private readonly IEveUserInfosServices _eveUserInfosServices;
 
-    private readonly IEveMapperHelper _eveMapperHelper;
-
     private readonly IEveAPIServices _eveAPIService;
 
-    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, IEveAPIServices eveAPIService, IEveMapperHelper eveMapperHelper )
+    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, IEveAPIServices eveAPIService)
     {
         _routeRepository = routeRepository;
         _logger = logger;
         _eveUserInfosServices = eveUserInfosServices;
         _eveAPIService = eveAPIService;
-        _eveMapperHelper = eveMapperHelper;
     }
 
     public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId,int[][]? extraConnections=null)
