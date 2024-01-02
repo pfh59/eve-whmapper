@@ -208,8 +208,9 @@ namespace WHMapper
             #endregion
 
             #region WH HELPER
-            builder.Services.AddScoped<IEveMapperTracker, EveMapperTracker>();
             builder.Services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
+            builder.Services.AddScoped<IEveMapperTracker, EveMapperTracker>();
+            builder.Services.AddScoped<IEveMapperSearch, EveMapperSearch>();
             builder.Services.AddScoped<IEveMapperHelper, EveMapperHelper>();
             builder.Services.AddScoped<IEveMapperRoutePlannerHelper, EveMapperRoutePlannerHelper>();
             builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();

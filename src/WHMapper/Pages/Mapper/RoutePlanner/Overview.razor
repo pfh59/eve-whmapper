@@ -1,6 +1,8 @@
-﻿<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" MinWidth="200px">
+﻿@using WHMapper.Models.DTO.EveAPI.Route.Enums;
+
+<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" MinWidth="300px">
     <MudStack>
-        <MudStack Row="true" Justify="Justify.SpaceAround">
+        <MudStack Row="true" Justify="Justify.FlexStart">
             <MudText Typo="Typo.subtitle1">Routes :</MudText>
             <MudIconButton Icon="@Icons.Material.Filled.Add"  Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute())" Disabled="@(_isEditable)"/>
             <AuthorizeView Policy="Admin" Context="adminContext">
@@ -11,10 +13,13 @@
                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@((e) => Edit())" Disabled="@((_myRoutes!=null && _myRoutes.Count()>0) ? false : true)"/>
                 </NotAuthorized>
             </AuthorizeView>
-
-            
         </MudStack>
-        
+        <MudRadioGroup @bind-Value="RType">
+            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Secure" Color="Color.Success" Size="Size.Small">Safer</MudRadio>
+            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Shortest"  Color="Color.Warning" Size="Size.Small">Shorter</MudRadio>
+            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Insecure"  Color="Color.Error" Size="Size.Small">Riskly</MudRadio>
+        </MudRadioGroup>
+
         @if(_globalRoutes!=null && _globalRoutes.Count() > 0)
         {
         <MudDivider/>

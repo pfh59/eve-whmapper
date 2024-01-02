@@ -15,10 +15,12 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
     [Authorize(Policy = "Admin, Access")]
     public partial class Add : ComponentBase
     {
-
         private const string MSG_SEARCH_ERROR = "Search System Error";
         private const string MSG_BAD_SOLAR_SYSTEM_NAME_ERROR = "Bad solar system name";
         private const string MSG_ADD_ROUTE_DB_ERROR = "Add route db error";
+
+        private MudForm _formRoutePlanner = null!;
+        private bool _formSuccessValidation = false;
 
 
         [Inject]
@@ -28,35 +30,31 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         private ISnackbar Snackbar { get; set; } = null!;
 
         [Inject]
-        private ISDEServices SDEServices { get; set; } = null!;
+        private IEveMapperRoutePlannerHelper EveMapperRoutePlannerHelper{ get; set; } = null!;
 
         [Inject]
-        private IEveMapperRoutePlannerHelper EveMapperRoutePlannerHelper{ get; set; } = null!;
+        private IEveMapperSearch EveMapperSearch { get; set; } = null!;
+
+        
 
         [CascadingParameter]
         MudDialogInstance MudDialog { get; set; } = null!;
 
-        private MudForm _form = null!;
-        private bool _success = false;
-
-        private HashSet<SDESolarSystem> _systems = null!;
         private string _searchResult = string.Empty;
-        private bool _searchInProgress = false;
-
         public bool _global=false;
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
         private async Task Submit()
         {
-            await _form.Validate();
+            await _formRoutePlanner.Validate();
 
-            if (_form.IsValid)
+            if (_formRoutePlanner.IsValid)
             {
                 await _semaphoreSlim.WaitAsync();
                 try
                 {
-                    var sdeSolarSystem = _systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
+                    var sdeSolarSystem = EveMapperSearch.Systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
 
                     if (sdeSolarSystem == null)
                     {
@@ -108,20 +106,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         {
             try
             {
-
-                if (string.IsNullOrEmpty(value) || SDEServices == null || value.Length < 3 || _searchInProgress)
-                    return null;
-
-                _systems?.Clear();
-                _searchInProgress = true;
-
-                _systems = (HashSet<SDESolarSystem>)await SDEServices.SearchSystem(value);
-
-                _searchInProgress = false;
-                if (_systems != null)
-                    return _systems.Select(x => x.Name);
-                else
-                    return null;
+                return await EveMapperSearch.SearchSystem(value);
             }
             catch(Exception ex)
             {
@@ -131,30 +116,6 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             }
         }
 
-        private IEnumerable<string> Validate(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                _searchInProgress = false;
-                yield return "The system solar name is required";
-                yield break;
-            }
-
-            if (value.Length<3)
-            {
-                _searchInProgress = false;
-                yield return "Please enter 3 or more characters";
-                yield break;
-            }
-
-            if(_systems==null || _systems.Where(x=>x.Name.ToLower() == value.ToLower()).FirstOrDefault()==null)
-            {
-                _searchInProgress = false;
-                yield return "Bad Solar system name";
-                yield break;
-            }
-
-        }
     }
 }
 

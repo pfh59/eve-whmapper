@@ -4,7 +4,7 @@
 
 <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true">
     <ActivatorContent>
-        <MudCard Outlined="true" Style="@systemStyle">
+        <MudCard Outlined="true" Style="@systemStyle" Class="_class">
             <MudCardHeader Class="mb-n5">
                 <CardHeaderAvatar>
                     <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension Visible=@((Node.NameExtension!=null) ? true : false) Bordered="true" Color="Color.Dark">

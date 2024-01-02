@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
@@ -24,17 +25,17 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         _eveAPIService = eveAPIService;
     }
 
-    public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId,int[][]? extraConnections=null)
+    public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId,RouteType routeType,int[][]? extraConnections=null)
     {
-        return await GetRoutes(fromSolarSystemId,extraConnections,false);
+        return await GetRoutes(fromSolarSystemId,routeType,extraConnections,false);
     }
 
-    public async Task<IEnumerable<EveRoute>?> GetRoutesForAll(int fromSolarSystemId,int[][]? extraConnections)
+    public async Task<IEnumerable<EveRoute>?> GetRoutesForAll(int fromSolarSystemId,RouteType routeType,int[][]? extraConnections)
     {
-        return await GetRoutes(fromSolarSystemId,extraConnections,true);
+        return await GetRoutes(fromSolarSystemId,routeType,extraConnections,true);
     }
 
-    private async Task<IEnumerable<EveRoute>?> GetRoutes(int fromSolarSystemId,int[][]? extraConnections,bool global)
+    private async Task<IEnumerable<EveRoute>?> GetRoutes(int fromSolarSystemId,RouteType routeType,int[][]? extraConnections,bool global)
     {
         IList<EveRoute> routes = new List<EveRoute>();
         IEnumerable<WHRoute> whRoutes;
@@ -49,6 +50,11 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             whRoutes = await _routeRepository.GetRoutesForAll();
         else
         {
+            if(_eveUserInfosServices == null)
+            {
+                _logger.LogError("EveUserInfosServices is null");
+                return null;
+            }
             var characterId = await _eveUserInfosServices.GetCharactedID();
             whRoutes = await _routeRepository.GetRoutesByEveEntityId(characterId);
         }   
@@ -57,7 +63,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         foreach (var whRoute in whRoutes)
         {
             var destSystemInfo = await _eveAPIService.UniverseServices.GetSystem(whRoute.SolarSystemId);
-            var route = await _eveAPIService.RouteServices.GetRoute(fromSolarSystemId,whRoute.SolarSystemId,extraConnections);
+            var route = await _eveAPIService.RouteServices.GetRoute(fromSolarSystemId,whRoute.SolarSystemId,routeType,null,extraConnections);
             routes.Add(new EveRoute(whRoute.Id,destSystemInfo.Name,route));
         }
         return routes;
@@ -75,6 +81,11 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         }
         else
         {
+            if(_eveUserInfosServices == null)
+            {
+                _logger.LogError("EveUserInfosServices is null");
+                return null;
+            }
             var characterId = await _eveUserInfosServices.GetCharactedID();
             route = await _routeRepository.Create(new WHRoute(soloarSystemId,characterId));
         }

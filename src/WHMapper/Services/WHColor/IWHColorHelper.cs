@@ -16,6 +16,8 @@ namespace WHMapper.Services.WHColor
         string GetLinkEOLColor();
         string GetLinkStatusColor(SystemLinkMassStatus status);
         string GetLinkSelectedColor();
+
+        string GetNodeStatusColor(WHSystemStatusEnum status);
     }
 }
 
