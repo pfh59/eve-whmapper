@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
+using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Services.EveAPI;
 
 namespace WHMapper.Pages.Mapper.RoutePlanner
@@ -13,6 +14,22 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
     {
         private IEnumerable<EveRoute>? _myRoutes = null;
         private IEnumerable<EveRoute>? _globalRoutes = null;
+
+        private EveRoute? _showedRoute = null!;
+
+        private RouteType _routeType = RouteType.Shortest;
+        private RouteType RType 
+        {
+            set
+            {
+                _routeType = value;
+                Restore();
+            }
+            get
+            {
+                return _routeType;
+            }
+        } 
 
         private bool _isEditable = false;
 
@@ -51,6 +68,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         {
             if (CurrentSystemNode != null && CurrentLinks!=null)
             {
+
                 int[][]? mapConnections = null;
                 if(CurrentLinks.Count() > 0)
                 {
@@ -61,8 +79,35 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
 
 
                 _logger.LogInformation("Restore routes from {0}", CurrentSystemNode.Name);
-                _myRoutes = await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentSystemNode.SolarSystemId,mapConnections);
-                _globalRoutes = await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentSystemNode.SolarSystemId,mapConnections);
+                var globalRouteTmp= await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentSystemNode.SolarSystemId,RType,mapConnections);
+                var myRoutesTmp= await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentSystemNode.SolarSystemId,RType,mapConnections);
+
+                if(_showedRoute!=null)
+                {
+                    var globalRouteShowed = globalRouteTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
+                    var myRouteShowed = myRoutesTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
+
+                    await ShowRoute(_showedRoute,false);
+                    
+                     _globalRoutes = globalRouteTmp;
+                    _myRoutes = myRoutesTmp;
+                   
+
+                    if(globalRouteShowed!=null)
+                        await ShowRoute(globalRouteShowed,true);
+                    
+
+                    if(myRouteShowed!=null)
+                        await ShowRoute(myRouteShowed,true);
+                    
+                }
+                else
+                {
+                     _globalRoutes = globalRouteTmp;
+                    _myRoutes = myRoutesTmp;
+                }
+
+                StateHasChanged();
             }
             else
             {
@@ -80,7 +125,6 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 FullWidth = true
             };
             var parameters = new DialogParameters();
-            //parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId);
 
             var dialog = DialogService.Show<Add>("Add Route", parameters, disableBackdropClick);
             DialogResult result = await dialog.Result;
@@ -151,6 +195,14 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 ((EveSystemLinkModel)link).Refresh();
                 ((EveSystemNodeModel)link.Source.Model).Refresh();
                 ((EveSystemNodeModel)link.Target.Model).Refresh();
+            }
+            if(show)
+            {
+                _showedRoute=route;
+            }
+            else
+            {
+                _showedRoute=null!;
             }
         }
     }

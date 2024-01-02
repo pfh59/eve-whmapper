@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
+using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
@@ -14,7 +15,7 @@ using Xunit.Priority;
 namespace WHMapper.Tests.WHHelper;
 
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-  [Collection("Sequential")]
+[Collection("Sequential")]
 public class EveWHMapperRoutePlannerHelperTest
 {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;
@@ -76,17 +77,17 @@ public class EveWHMapperRoutePlannerHelperTest
     public async Task Get_Route()
     {
 
-        var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID, null);
+        var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, null);
         Assert.NotNull(routes);
         Assert.Empty(routes);
 
         var result = await _eveMapperRoutePlannerHelper.AddRoute(SOLAR_SYSTEM_AHBAZON_ID,true);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID, null);
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, null);
         Assert.NotNull(routes);
         Assert.NotEmpty(routes);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID, new int[][] { new int[] { SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_AMARR_ID } });
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, new int[][] { new int[] { SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_AMARR_ID } });
         Assert.NotNull(routes);
         Assert.NotEmpty(routes);
 

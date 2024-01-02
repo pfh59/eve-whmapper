@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Services.EveAPI.Alliance;
 using WHMapper.Services.EveAPI.Character;
 using WHMapper.Services.EveAPI.Corporation;
@@ -287,6 +288,19 @@ namespace WHMapper.Tests.EveOnlineAPI
             Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[0]);
             Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[23]);
             Assert.DoesNotContain(SOLAR_SYSTEM_AHBAZON_ID, route);
+
+            //wh route from jita to amarr safer
+            route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Secure,null,null);
+            Assert.NotNull(route);
+            Assert.NotEmpty(route);
+            Assert.Equal(46, route.Length);
+
+
+            //wh route from jita to amarr safer
+            route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Insecure,null,null);
+            Assert.NotNull(route);
+            Assert.NotEmpty(route);
+            Assert.Equal(41, route.Length);
 
         }
 
