@@ -77,6 +77,11 @@ namespace WHMapper.Tests.WHColorHelper
 
         private const string SELECTED_LINK_COLOR = "white";
 
+        private const string NODE_STATUS_FRIENDLY_COLOR = "#428bca";
+        private const string NODE_STATUS_OCCUPIED_COLOR = "#e28a0d";
+        private const string NODE_STATUS_HOSTILE_COLOR = "#be0000";
+        private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
+
         private IWHColorHelper _whHelper;
 
         public WHColorHelperTest()
@@ -155,6 +160,15 @@ namespace WHMapper.Tests.WHColorHelper
         public void Get_Link_Selected_Color()
         {
             Assert.Equal(SELECTED_LINK_COLOR, _whHelper.GetLinkSelectedColor());
+        }
+
+        [Fact]
+        public void Get_Node_Status_Color()
+        {
+            Assert.Equal(NODE_STATUS_FRIENDLY_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Friendly));
+            Assert.Equal(NODE_STATUS_OCCUPIED_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Occupied));
+            Assert.Equal(NODE_STATUS_HOSTILE_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Hostile));
+            Assert.Equal(NODE_STATUS_UNKNOWN_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Unknown));
         }
     }
 }

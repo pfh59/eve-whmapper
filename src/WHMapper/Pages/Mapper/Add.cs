@@ -49,8 +49,9 @@ namespace WHMapper.Pages.Mapper
         [Inject]
         private ISnackbar Snackbar { get; set; } = null!;
 
+
         [Inject]
-        private ISDEServices SDEServices { get; set; } = null!;
+        private IEveMapperSearch EveMapperSearch { get; set; } = null!;
 
         [CascadingParameter]
         MudDialogInstance MudDialog { get; set; } = null!;
@@ -70,9 +71,8 @@ namespace WHMapper.Pages.Mapper
         private MudForm _form = null!;
         private bool _success = false;
 
-        private HashSet<SDESolarSystem> _systems = null!;
         private string _searchResult = string.Empty;
-        private bool _searchInProgress = false;
+
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
@@ -98,7 +98,7 @@ namespace WHMapper.Pages.Mapper
                     }
 
 
-                    var sdeSolarSystem = _systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
+                    var sdeSolarSystem = EveMapperSearch.Systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
                
                     if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem?.SolarSystemID).FirstOrDefault()!=null)
                     {
@@ -155,20 +155,7 @@ namespace WHMapper.Pages.Mapper
         {
             try
             {
-
-                if (string.IsNullOrEmpty(value) || SDEServices == null || value.Length < 3 || _searchInProgress)
-                    return null;
-
-                _systems?.Clear();
-                _searchInProgress = true;
-
-                _systems = (HashSet<SDESolarSystem>)await SDEServices.SearchSystem(value);
-
-                _searchInProgress = false;
-                if (_systems != null)
-                    return _systems.Select(x => x.Name);
-                else
-                    return null;
+                return await EveMapperSearch.SearchSystem(value);
             }
             catch(Exception ex)
             {
@@ -176,31 +163,6 @@ namespace WHMapper.Pages.Mapper
                 Snackbar.Add(MSG_SEARCH_ERROR, Severity.Error);
                 return null;
             }
-        }
-
-        private IEnumerable<string> Validate(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                _searchInProgress = false;
-                yield return "The system solar name is required";
-                yield break;
-            }
-
-            if (value.Length<3)
-            {
-                _searchInProgress = false;
-                yield return "Please enter 3 or more characters";
-                yield break;
-            }
-
-            if(_systems==null || _systems.Where(x=>x.Name.ToLower() == value.ToLower()).FirstOrDefault()==null)
-            {
-                _searchInProgress = false;
-                yield return "Bad Solar system name";
-                yield break;
-            }
-
         }
     }
 }

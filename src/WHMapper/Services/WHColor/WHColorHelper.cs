@@ -67,7 +67,32 @@ namespace WHMapper.Services.WHColor
 
         private const string SELECTED_LINK_COLOR= "white";
 
+
+        private const string NODE_STATUS_FRIENDLY_COLOR = "#428bca";
+        private const string NODE_STATUS_OCCUPIED_COLOR = "#e28a0d";
+        private const string NODE_STATUS_HOSTILE_COLOR = "#be0000";
+        private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
         
+
+
+
+        public string GetNodeStatusColor(WHSystemStatusEnum status)
+        {
+            switch (status)
+            {
+                case WHSystemStatusEnum.Unknown:
+                    return NODE_STATUS_UNKNOWN_COLOR;
+                case WHSystemStatusEnum.Friendly:
+                    return NODE_STATUS_FRIENDLY_COLOR;
+                case WHSystemStatusEnum.Occupied:
+                    return NODE_STATUS_OCCUPIED_COLOR;
+                case WHSystemStatusEnum.Hostile:
+                    return NODE_STATUS_HOSTILE_COLOR;
+                default:
+                    return IWHColorHelper.DEFAULT_COLOR;
+            }
+        }
+
 
         public string GetSecurityStatusColor(float secStatus)
         {

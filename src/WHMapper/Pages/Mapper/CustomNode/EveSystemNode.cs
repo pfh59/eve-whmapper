@@ -105,6 +105,8 @@ namespace WHMapper.Pages.Mapper.CustomNode
             }
         }
 
+
+        private String _class=string.Empty;
         private String systemStyle
         {
             get
@@ -115,35 +117,16 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 {
                     systemStyle += " box-shadow: 0px 0px 12px #fff;";
                 }
-                var sysStatus = Node.SystemStatus;
-
-                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Unknown)
-                {
-                    systemStyle += " border-color:grey;";
-                }
-
-                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Friendly)
-                {
-                    systemStyle += " border-color:royalblue;";
-                }
-
-                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Occupied)
-                {
-                    systemStyle += " border-color:orange;";
-                }
-
-                if (sysStatus == Models.Db.Enums.WHSystemStatusEnum.Hostile)
-                {
-                    systemStyle += " border-color:red;";
-                }
+                
+                systemStyle += " border-color:"+WHColorHelper.GetNodeStatusColor(Node.SystemStatus)+";";
 
                 if(Node.IsRouteWaypoint)
                 {
-                    systemStyle += " border-color:yellow;border-style:dotted;";
+                    systemStyle += "border-style:dashed;border-color:yellow;";
                 }
                 else
                 {
-                    systemStyle += " border-style:solid;";
+                    systemStyle += "border-style:solid;";
                 }
 
                 return systemStyle;

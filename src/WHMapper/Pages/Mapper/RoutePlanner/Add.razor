@@ -1,20 +1,20 @@
 ﻿<MudDialog>
     <DialogContent>
 
-        <MudForm @bind-IsValid="@_success" @ref="@_form">
-            <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="@Search" Margin="Margin.Dense" Dense="true"
+        <MudForm @bind-IsValid="@_formSuccessValidation" @ref="@_formRoutePlanner">
+            <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="Search" Margin="Margin.Dense" Dense="true"
                             Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
-                            Validation="@(new Func<string, IEnumerable<string>>(Validate))"
-                            AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="3" />
+                            Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
+                            AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="@Services.EveMapper.IEveMapperSearch.MIN_SEARCH_CHARACTERS" />
 
             <AuthorizeView Policy="Admin" Context="adminContext">
-                <MudCheckBox T="bool" Label="Global" @bind-Value="@_global" Dense="true" Size="Size.Small"></MudCheckBox>
+                <MudCheckBox T="bool" Label="As default route" @bind-Value="@_global" Dense="true" Size="Size.Small"></MudCheckBox>
             </AuthorizeView>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Success" OnClick="Submit" Disabled="@(_success==false)">Add Route</MudButton>
+        <MudButton Color="Color.Success" OnClick="Submit" Disabled="@(_formSuccessValidation==false)">Add Route</MudButton>
     </DialogActions>
 </MudDialog>
 

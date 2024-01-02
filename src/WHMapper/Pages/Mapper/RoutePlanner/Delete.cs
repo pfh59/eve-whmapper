@@ -52,7 +52,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 }
                 else
                 {
-                    Snackbar.Add("MSG_ROUTE_DEL_FAIL", Severity.Error);
+                    Snackbar.Add(MSG_ROUTE_DEL_FAIL, Severity.Error);
                     MudDialog?.Close(DialogResult.Ok(false));
                 }
             }
