@@ -93,11 +93,11 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                     _myRoutes = myRoutesTmp;
                    
 
-                    if(globalRouteShowed!=null)
+                    if(globalRouteShowed!=null && globalRouteShowed.IsAvailable)
                         await ShowRoute(globalRouteShowed,true);
                     
 
-                    if(myRouteShowed!=null)
+                    if(myRouteShowed!=null && myRouteShowed.IsAvailable)
                         await ShowRoute(myRouteShowed,true);
                     
                 }
@@ -108,10 +108,6 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 }
 
                 StateHasChanged();
-            }
-            else
-            {
-                _logger.LogInformation("CurrentSystemNode is null");
             }
         }
 
