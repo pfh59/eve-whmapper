@@ -1,5 +1,4 @@
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
-
 namespace WHMapper;
 
 

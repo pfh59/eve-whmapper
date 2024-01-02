@@ -76,8 +76,8 @@ public class EveWHMapperRoutePlannerHelperTest
     [Fact, Priority(2)]
     public async Task Get_Route()
     {
-
         var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, null);
+
         Assert.NotNull(routes);
         Assert.Empty(routes);
 
@@ -88,6 +88,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotEmpty(routes);
 
         routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, new int[][] { new int[] { SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_AMARR_ID } });
+
         Assert.NotNull(routes);
         Assert.NotEmpty(routes);
 
