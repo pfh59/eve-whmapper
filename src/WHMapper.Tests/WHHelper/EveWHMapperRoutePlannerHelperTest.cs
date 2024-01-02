@@ -68,6 +68,10 @@ public class EveWHMapperRoutePlannerHelperTest
 
         var result3 = await _eveMapperRoutePlannerHelper.DeleteRoute(-10);
         Assert.False(result3);
+
+        var myRouteNull = await _eveMapperRoutePlannerHelper.AddRoute(SOLAR_SYSTEM_AHBAZON_ID,false);
+        Assert.Null(myRouteNull);
+
     }
 
 
@@ -76,6 +80,12 @@ public class EveWHMapperRoutePlannerHelperTest
     [Fact, Priority(2)]
     public async Task Get_Route()
     {
+
+
+        var myRoutes = await _eveMapperRoutePlannerHelper.GetMyRoutes(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, null);
+        Assert.Null(myRoutes);
+
+
         var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, null);
 
         Assert.NotNull(routes);

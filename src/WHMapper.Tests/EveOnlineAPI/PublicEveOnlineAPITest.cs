@@ -289,6 +289,12 @@ namespace WHMapper.Tests.EveOnlineAPI
             Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[23]);
             Assert.DoesNotContain(SOLAR_SYSTEM_AHBAZON_ID, route);
 
+            //WH route to Jita with connections by amarr and avoid Ahbazon
+            route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, avoid,connections);
+            Assert.NotNull(route);
+            Assert.NotEmpty(route);
+
+
             //wh route from jita to amarr safer
             route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Secure,null,null);
             Assert.NotNull(route);

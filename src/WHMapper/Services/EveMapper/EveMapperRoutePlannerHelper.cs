@@ -50,6 +50,11 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             whRoutes = await _routeRepository.GetRoutesForAll();
         else
         {
+            if(_eveUserInfosServices == null)
+            {
+                _logger.LogError("EveUserInfosServices is null");
+                return null;
+            }
             var characterId = await _eveUserInfosServices.GetCharactedID();
             whRoutes = await _routeRepository.GetRoutesByEveEntityId(characterId);
         }   
@@ -76,6 +81,11 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         }
         else
         {
+            if(_eveUserInfosServices == null)
+            {
+                _logger.LogError("EveUserInfosServices is null");
+                return null;
+            }
             var characterId = await _eveUserInfosServices.GetCharactedID();
             route = await _routeRepository.Create(new WHRoute(soloarSystemId,characterId));
         }
