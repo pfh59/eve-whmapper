@@ -5,8 +5,7 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - "main"
+    types: [opened, synchronize, reopened]
   
 env:
   DOTNET_VERSION: '7.0.x'
@@ -31,7 +30,7 @@ jobs:
         # Provide the password for postgres
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          #POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: whmappertest 
         # Set health checks to wait until postgres has started
         options: >-
@@ -75,7 +74,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;Password=${{ secrets.POSTGRES_PASSWORD }}"
+          ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
         run: |
           dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet restore src
