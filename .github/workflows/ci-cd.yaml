@@ -31,6 +31,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           #POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_DB: whmappertest 
         # Set health checks to wait until postgres has started
         options: >-
