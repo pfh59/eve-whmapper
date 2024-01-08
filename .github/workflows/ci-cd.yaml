@@ -49,7 +49,7 @@ jobs:
           distribution: 'oracle'
           java-version: 17
 
-      - name: Setup .NET7 🦴
+      - name: Setup .NET8 🦴
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: ${{env.DOTNET_VERSION}}
