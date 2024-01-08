@@ -23,7 +23,8 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             set
             {
                 _routeType = value;
-                Restore();
+                Task.Run(async () => await Restore()).Wait();
+                StateHasChanged();
             }
             get
             {
@@ -47,22 +48,25 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         [Inject]
         private ILogger<Overview> _logger {get;set;} = null!;
 
-
+        private EveSystemNodeModel _currentSystemNode = null!;
         [Parameter]
-        public EveSystemNodeModel CurrentSystemNode { get; set; } = null!;
+        public EveSystemNodeModel CurrentSystemNode 
+        {
+             get
+             {
+                    return _currentSystemNode;
+             }
+             set
+             {
+                    _currentSystemNode=value;
+                    Task.Run(async () => await Restore()).Wait();
+                    StateHasChanged();
+             }
+        }
 
         [Parameter]
         public LinkLayer CurrentLinks { get; set; } = null!;
 
-        protected override async Task OnInitializedAsync()
-        {
-            _logger.LogInformation("OnInitializedAsync");
-        }
-
-        protected async override Task OnParametersSetAsync()
-        {
-            await Restore();
-        }
 
         private async Task Restore()
         {
@@ -106,8 +110,6 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                      _globalRoutes = globalRouteTmp;
                     _myRoutes = myRoutesTmp;
                 }
-
-                StateHasChanged();
             }
         }
 
@@ -129,6 +131,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             {
                 await Restore();
             }
+            StateHasChanged();
         }
 
         private async Task DelRoute(EveRoute route)
@@ -140,7 +143,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             
             if (!result.Canceled)
             {
-                ShowRoute(route,false);
+                await ShowRoute(route,false);
                 await Restore();
 
             }

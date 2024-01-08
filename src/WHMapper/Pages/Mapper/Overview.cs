@@ -926,7 +926,14 @@ namespace WHMapper.Pages.Mapper
                                 if(srcNode!=null && targetNode!=null)
                                     _blazorDiagram.Links.Add(new EveSystemLinkModel(dbWHSysLink, srcNode, targetNode));
                                 else
-                                    Logger.LogWarning("Bad Link, srcNode or Targetnode is null");
+                                {
+                                    Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
+                                    if(await DbWHSystemLinks.DeleteById(dbWHSysLink.Id))
+                                    {
+                                        _selectedWHMap.WHSystemLinks.Remove(dbWHSysLink);
+                                    }
+
+                                }
                             }
                             else
                             {

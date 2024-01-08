@@ -81,6 +81,9 @@ namespace WHMapper.Tests.WHHelper
         private const string C17_NAME = "J200727";
         private const string C18_NAME = "J174618";
 
+        //https://github.com/pfh59/eve-whmapper/issues/207
+        private const string C4_NAME_BUG_207 = "J1226-0";
+
         private IEveMapperHelper _whEveMapper;
 
         public EveWHMapperHelperTest()
@@ -198,6 +201,13 @@ namespace WHMapper.Tests.WHHelper
             Assert.Equal(SOLAR_SYSTEM_WH_CLASS, wh_result.SystemType);
             Assert.NotEqual(WHEffect.None, wh_result.Effect);
             Assert.Equal(SOLAR_SYSTEM_WH_EFFECT, wh_result.Effect);
+        }
+
+        [Fact,Priority(4)]
+        public async Task Test_BUG_207()
+        {
+            var result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, 31001531, C4_NAME_BUG_207, -1.0f));
+            Assert.Equal(EveSystemType.C4, result.SystemType);
         }
     }
 }
