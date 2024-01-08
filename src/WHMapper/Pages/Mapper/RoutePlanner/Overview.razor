@@ -1,6 +1,6 @@
 ﻿@using WHMapper.Models.DTO.EveAPI.Route.Enums;
 
-<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" MinWidth="300px">
+<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" MinWidth="220px">
     <MudStack>
         <MudStack Row="true" Justify="Justify.FlexStart">
             <MudText Typo="Typo.subtitle1">Routes :</MudText>
@@ -17,7 +17,7 @@
         <MudRadioGroup @bind-Value="RType">
             <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Secure" Color="Color.Success" Size="Size.Small">Safer</MudRadio>
             <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Shortest"  Color="Color.Warning" Size="Size.Small">Shorter</MudRadio>
-            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Insecure"  Color="Color.Error" Size="Size.Small">Riskly</MudRadio>
+            <!--<MudRadio Class="ma-0" T="RouteType" Value="RouteType.Insecure"  Color="Color.Error" Size="Size.Small">Riskly</MudRadio>-->
         </MudRadioGroup>
 
         @if(_globalRoutes!=null && _globalRoutes.Count() > 0)

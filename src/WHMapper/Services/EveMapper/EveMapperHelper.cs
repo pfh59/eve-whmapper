@@ -18,7 +18,7 @@ namespace WHMapper.Services.EveMapper
 {
     public class EveMapperHelper : IEveMapperHelper
     {
-        private const string WH_VALIDATION_REGEX = "J[0-9]{6}|Thera";
+        private const string WH_VALIDATION_REGEX = "J[0-9]{6}|Thera|J1226-0";
         private const string REGION_POCHVVEN_NAME = "Pochven";
 
 
