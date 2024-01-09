@@ -1317,6 +1317,10 @@ namespace WHMapper.Pages.Mapper
                                 Logger.LogError("Add Wormhole Link error");
                                 Snackbar?.Add("Add Wormhole Link error", Severity.Error);
                             }
+                            else
+                            {
+                                targetNode = (EveSystemNodeModel?)(_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).SolarSystemId == targetSoloarSystem.SystemId));
+                            }
                         }
 
                         await NotifyUserPosition(targetSoloarSystem.Name);
@@ -1347,6 +1351,7 @@ namespace WHMapper.Pages.Mapper
                 }
 
                 _currentSoloarSystem = targetSoloarSystem;
+                _blazorDiagram?.SelectModel(targetNode, true);
             }
             catch (Exception ex)
             {
