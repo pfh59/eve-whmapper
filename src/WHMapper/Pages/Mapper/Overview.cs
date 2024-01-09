@@ -1351,7 +1351,8 @@ namespace WHMapper.Pages.Mapper
                 }
 
                 _currentSoloarSystem = targetSoloarSystem;
-                _blazorDiagram?.SelectModel(targetNode, true);
+                if(targetNode!=null)
+                    _blazorDiagram?.SelectModel(targetNode, true);
             }
             catch (Exception ex)
             {
