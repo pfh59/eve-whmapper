@@ -122,7 +122,7 @@ namespace WHMapper.Pages.Mapper
         //private bool _isAdmin = false;
 
 
-        private SolarSystem? _currentSoloarSystem = null!;
+        private ESISolarSystem? _currentSoloarSystem = null!;
 
 
         protected override async Task OnInitializedAsync()
@@ -719,7 +719,6 @@ namespace WHMapper.Pages.Mapper
         {
             if (eventArgs.Code == "KeyL" && _selectedWHMap != null && _selectedSystemNodes != null && _selectedSystemNodes.Count() == 2)
             { 
-            
                 if (IsLinkExist(_selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1)))
                 {
                     Snackbar.Add("Nodes are already linked", Severity.Warning);
@@ -1108,7 +1107,7 @@ namespace WHMapper.Pages.Mapper
 
         }
 
-        private async Task<bool> IsRouteViaWH(SolarSystem src, SolarSystem dst)
+        private async Task<bool> IsRouteViaWH(ESISolarSystem src, ESISolarSystem dst)
         {
             if (src == null)
                 return false;
@@ -1147,7 +1146,7 @@ namespace WHMapper.Pages.Mapper
         }
 
 
-        private async Task<bool> AddSystemNode(WHMap map,SolarSystem? src,SolarSystem target)
+        private async Task<bool> AddSystemNode(WHMap map,ESISolarSystem? src,ESISolarSystem target)
         {
             EveSystemNodeModel? previousSystemNode = null;
             WHSystem? newWHSystem= null;
@@ -1238,7 +1237,7 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-        private async Task<bool> AddSystemNodeLink(WHMap map, SolarSystem src, SolarSystem target)
+        private async Task<bool> AddSystemNodeLink(WHMap map, ESISolarSystem src, ESISolarSystem target)
         {
             if (_blazorDiagram == null  || map == null || src == null || target == null)
             {
@@ -1263,6 +1262,12 @@ namespace WHMapper.Pages.Mapper
                     return false;
                 }
 
+                if(srcNode.SolarSystemId==targetNode.SolarSystemId)
+                {
+                    Logger.LogError("CreateLink src and target node are the same");
+                    return false;
+                }
+
                 var newLink = await DbWHSystemLinks.Create(new WHSystemLink(map.Id, srcNode.IdWH, targetNode.IdWH));
 
                 if (newLink != null)
@@ -1283,7 +1288,7 @@ namespace WHMapper.Pages.Mapper
 
 
 
-        private async Task OnSystemChanged(SolarSystem targetSoloarSystem)
+        private async Task OnSystemChanged(ESISolarSystem targetSoloarSystem)
         {
             EveSystemNodeModel? srcNode  = null;
             EveSystemNodeModel? targetNode = null;

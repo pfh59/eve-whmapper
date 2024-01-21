@@ -5,9 +5,16 @@ namespace WHMapper.Services.SDE
 {
 	public interface ISDEServices
 	{
-		public bool ExtractSuccess {get; }
-		public bool IsNewSDEAvailable();
-        Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value);
+		bool ExtractSuccess {get; }
+		bool IsNewSDEAvailable();
+    
+		Task<bool> DownloadSDE();
+		bool ExtractSDE();
+	 	Task<bool> Import();
+		Task<bool> ClearCache();
+		Task<IEnumerable<SDESolarSystem>?> GetSolarSystemList();
+		Task<IEnumerable<SolarSystemJump>?> GetSolarSystemJumpList();
+		Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value);
 	}
 }
 

@@ -1,14 +1,14 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.IO.Compression;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Server.IIS.Core;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.SDE;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
+using WHMapper.Services.EveAPI.Universe;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using MudBlazor.Extensions;
+using CachingFramework.Redis;
+using CachingFramework.Redis.Contracts.RedisObjects;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WHMapper.Services.SDE
 {
@@ -22,55 +22,40 @@ namespace WHMapper.Services.SDE
         private const string SDE_ZIP_URL= "https://eve-static-data-export.s3-eu-west-1.amazonaws.com/tranquility/sde.zip";
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
         private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
+
+        private const string SDE_EVE_TARGET_DIRECTORY= @"./Resources/SDE/universe/sde/fsd/universe/eve";
+        private const string SDE_WORMHOLE_TARGET_DIRECTORY= @"./Resources/SDE/universe/sde/fsd/universe/wormhole";
         private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.staticdata";
 
+        private const string REDIS_SOLAR_SYSTEM_JUMPS_KEY = "solarysystemjumps:list";
+        private const string REDIS_SDE_SOLAR_SYSTEMS_KEY = "solarsystems:list";
+
         private readonly ILogger _logger;
+        private readonly IUniverseServices _eveAPIService;
         private readonly ParallelOptions _options;
         private readonly IDeserializer _deserializer;
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
         private static Mutex mut = new Mutex();
 
-        public bool ExtractSuccess {get; private set;}
+        public bool ExtractSuccess 
+        {
+            get
+            {
+                return Directory.Exists(SDE_TARGET_DIRECTORY);
+            }
+        }
+
+
+        private RedisContext _context = new RedisContext();
         
         public SDEServices(ILogger<SDEServices> logger)
 		{
             _logger = logger;
+            _context= new RedisContext();
             _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
             _deserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-            ExtractSuccess= false;
-            if(mut.WaitOne())
-            {
-                try
-                {
-                    if(IsNewSDEAvailable())
-                    {
-                        if (Directory.Exists(SDE_TARGET_DIRECTORY))
-                            Directory.Delete(SDE_TARGET_DIRECTORY,true);
-                        DownloadSDE();
-                    }
-
-                    if (!Directory.Exists(SDE_TARGET_DIRECTORY))
-                    {
-                        _logger.LogInformation("Extrat Eve SDE files");
-                        using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
-                        {
-                            archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
-                        }
-                    }
-                    ExtractSuccess= true;
-                }
-                catch(Exception ex)
-                {
-                    logger.LogError("SDEServices",ex);
-                    ExtractSuccess= false;
-                }
-                finally
-                {
-                    mut.ReleaseMutex();
-                }
-            }
+                .Build(); 
         }
         public bool IsNewSDEAvailable()
         {
@@ -97,7 +82,10 @@ namespace WHMapper.Services.SDE
                 }
                 else
                 {
-                    return !File.ReadLines(SDE_CHECKSUM_CURRENT_FILE).SequenceEqual(File.ReadLines(SDE_CHECKSUM_FILE));
+                    bool isSame = !File.ReadLines(SDE_CHECKSUM_CURRENT_FILE).SequenceEqual(File.ReadLines(SDE_CHECKSUM_FILE));
+                    File.Delete(SDE_CHECKSUM_CURRENT_FILE);
+                    File.Move(SDE_CHECKSUM_FILE, SDE_CHECKSUM_CURRENT_FILE);
+                    return isSame;
                 }
             }
             catch (Exception ex)
@@ -106,78 +94,246 @@ namespace WHMapper.Services.SDE
                 return false;
             }
         }
-        
-        private void DownloadSDE()
+
+        public async Task<bool> DownloadSDE()
         {
-            using (var client = new HttpClient())
+            try
             {
-                using (var s = client.GetStreamAsync(SDE_ZIP_URL))
-                {
-                    using (var fs = new FileStream(SDE_ZIP_PATH, FileMode.OpenOrCreate))
-                    {
-                        s.Result.CopyTo(fs);
-                    }
-                }
+                _logger.LogInformation("Start to download Eve SDE files");
+                HttpClient client = new HttpClient();
+                Stream stream = await client.GetStreamAsync(SDE_ZIP_URL);
+                
+                FileStream fs = new FileStream(SDE_ZIP_PATH, FileMode.OpenOrCreate);
+                stream.CopyTo(fs);
+                _logger.LogInformation("Eve SDE files downloaded");
+                return true;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Download SDE");
+                return false;
             }
         }
-        
-        public async Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value)
+
+        public bool ExtractSDE()
         {
-            if(mut.WaitOne())
+            if (mut.WaitOne())
             {
                 try
                 {
-                    if(!ExtractSuccess)
+                    _logger.LogInformation("Start to extrat Eve SDE files");
+                    if (Directory.Exists(SDE_TARGET_DIRECTORY))
                     {
-                        _logger.LogError("Impossible to searchSystem, bad extract.");
-                        return null;
+                        _logger.LogInformation("Delete old Eve SDE files");
+                        Directory.Delete(SDE_TARGET_DIRECTORY, true);
                     }
 
-                    if (Directory.Exists(SDE_TARGET_DIRECTORY) && !String.IsNullOrEmpty(value) && value.Length > 2)
+                    if(!File.Exists(SDE_ZIP_PATH))
                     {
-                        HashSet<SDESolarSystem> results = new HashSet<SDESolarSystem>();
-                        var directories = (IEnumerable<string>)Directory.EnumerateDirectories(SDE_TARGET_DIRECTORY, $"{value}*", _directorySearchOptions) ;
-
-
-                        Parallel.ForEach(directories.Take(20), _options, async (directoryPath, token) =>
-                        {
-                            var sdeFiles = Directory.GetFiles(directoryPath);
-                            if (sdeFiles.Count() > 0 && sdeFiles.Any(x => x.Contains(SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE)))
-                            {
-                                using (TextReader text_reader = File.OpenText(sdeFiles[0]))
-                                {
-                                    try
-                                    {
-                                        var res = _deserializer.Deserialize<SDESolarSystem>(text_reader);
-                                        res.Name = Path.GetFileName(directoryPath);
-                                        results.Add(res);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        _logger.LogError(ex, String.Format("Parsing sdefiles {0} Error", sdeFiles[0]));
-                                    }
-                                }
-                            }
-                           await Task.Yield();
-                        });
-
-                        return results;
+                        _logger.LogError("Impossible to extract SDE, no zip file");
+                        return false;
                     }
-                    else
-                        return null;
+
+
+                    using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
+                    {
+                        archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
+                    }
+                    _logger.LogInformation("Eve SDE files extracted");
+
+                    return true;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    _logger.LogError("SearchSystem",ex);
-                    return null;
+                    _logger.LogError(ex, "Extract SDE");
+                    return false;
                 }
                 finally
                 {
                     mut.ReleaseMutex();
                 }
             }
-            return null;
+            return false;
+        }
+
+        public async Task<bool> ClearCache()
+        {
+            try
+            {
+                _context.Cache.Remove(REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                _context.Cache.Remove(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+                _logger.LogInformation("Redis cache cleared");
+                return true;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"ClearCache");
+                return false;
+            }
+        }
+
+        public async Task<bool> Import()
+        {
+            try
+            {
+                if(!ExtractSuccess)
+                {
+                    _logger.LogError("Impossible to import SDE, bad SDE extract.");
+                    return false;;
+                }
+
+             
+                BlockingCollection<SolarSystemJump> tmp = new BlockingCollection<SolarSystemJump>();
+                BlockingCollection<SDESolarSystem> SDESystems = new BlockingCollection<SDESolarSystem>();
+                var sdeFiles = Directory.GetFiles(SDE_TARGET_DIRECTORY, SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE, _directorySearchOptions);
+                if (sdeFiles.Count() > 0)
+                {
+                    Parallel.ForEach(sdeFiles, _options, async (directoryPath, token) =>
+                    {
+                        if(directoryPath.Contains(SDE_EVE_TARGET_DIRECTORY) || directoryPath.Contains(SDE_WORMHOLE_TARGET_DIRECTORY))
+                        {
+                            TextReader text_reader = File.OpenText(directoryPath);
+                            SDESolarSystem solarSystem = _deserializer.Deserialize<SDESolarSystem>(text_reader);
+                            solarSystem.Name = Path.GetFileName(Path.GetDirectoryName(directoryPath));
+                            
+                            while(!SDESystems.TryAdd(solarSystem))
+                                await Task.Delay(1);   
+
+                        }
+                        await Task.Yield();
+                    });
+
+
+
+                    //after all sde system loading build SolarSystemJumps
+                    Parallel.ForEach(SDESystems, _options, async (system, token) =>
+                    {
+                        SolarSystemJump solarSystemJump = null;
+                        if(system.Stargates==null || system.Stargates.Count==0)
+                            solarSystemJump = new SolarSystemJump(system.SolarSystemID,system.Security);
+                        else
+                        {
+                            var JumpSystemList = new List<SolarSystem>();
+                            Parallel.ForEach(system.Stargates.Values, _options, async (stargate, token) =>
+                            {
+                                var s =  SDESystems.FirstOrDefault(x=>x.Stargates.ContainsKey(stargate.Destination));
+                                JumpSystemList.Add(new SolarSystem(s.SolarSystemID,s.Security));
+
+                                await Task.Yield();
+                            });
+                            solarSystemJump = new SolarSystemJump(system.SolarSystemID,system.Security,JumpSystemList);
+                        }
+
+                        while(!tmp.TryAdd(solarSystemJump))
+                            await Task.Delay(1);  
+
+                        await Task.Yield();
+
+                    });
+
+                    
+                    //clean old cache and add new one
+                    await ClearCache();
+                    IRedisList<SDESolarSystem>? solarSystems = _context.Collections.GetRedisList<SDESolarSystem>(REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                    IRedisList<SolarSystemJump>? solarSystemJumps = _context.Collections.GetRedisList<SolarSystemJump>(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+
+                    if(solarSystemJumps==null || solarSystems==null)
+                    {
+                        _logger.LogError("Redis error, impossible to import solarSystemJumps or solarSystems");
+                        return false;
+                    }
+
+                    await solarSystems.AddRangeAsync(SDESystems);
+                    await solarSystemJumps.AddRangeAsync(tmp);
+                   
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("Impossible to importSolarSystemJumpList, bad SDE extract.");
+                    return false;
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"Import SolarSystemJumpLis and SolarSystemList");
+                return false;
+            }
+        }
+
+        public async Task<IEnumerable<SDESolarSystem>?> GetSolarSystemList() 
+        {
+            try
+            {
+                IRedisList<SDESolarSystem>? results = _context.Collections.GetRedisList<SDESolarSystem>(REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                if(results==null)
+                    return null;
+
+                return results;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"GetSolarSystemList");
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<SolarSystemJump>?> GetSolarSystemJumpList() 
+        {
+            try
+            {
+                IRedisList<SolarSystemJump>? results = _context.Collections.GetRedisList<SolarSystemJump>(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+                if(results==null)
+                    return null;
+
+                return results;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"GetSolarSystemJumpList");
+                return null;
+            }
+        }  
+
+
+
+        public async Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value)
+        {
+            try
+            {
+                if(!ExtractSuccess)
+                {
+                    _logger.LogError("Impossible to searchSystem, bad SDE extract.");
+                    return null;
+                }
+
+                var SDESystems = await GetSolarSystemList();
+                if(SDESystems==null)
+                {
+                    _logger.LogError("Impossible to searchSystem, Empty SDE solar system list.");
+                    return null;
+                }
+
+               
+                if (!String.IsNullOrEmpty(value) && value.Length > 2)
+                {
+                    BlockingCollection<SDESolarSystem> results = new BlockingCollection<SDESolarSystem>();
+                    SDESystems.AsParallel().Where(x => x.Name.ToLower().Contains(value.ToLower())).ForAll(x => results.Add(x));
+
+                    return results;
+                }
+                else
+                    return null;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("SearchSystem",ex);
+                return null;
+            }
         }
     }
 }
+
+
+
 

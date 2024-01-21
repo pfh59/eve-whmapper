@@ -1,10 +1,13 @@
 ﻿
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using Blazor.Diagrams.Core.Layers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
+using WHMapper.Models.DTO.RoutePlanner;
 using WHMapper.Services.EveAPI;
 
 namespace WHMapper.Pages.Mapper.RoutePlanner
@@ -73,12 +76,21 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             if (CurrentSystemNode != null && CurrentLinks!=null)
             {
 
-                int[][]? mapConnections = null;
+                FrozenSet<RouteConnection> mapConnections = null;
                 if(CurrentLinks.Count() > 0)
                 {
-                    int[][]  mapConnectionsSens1 = CurrentLinks.Select(x => new int [2] {((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SolarSystemId}).ToArray<int[]>();
-                    int[][]  mapConnectionsSens2 = CurrentLinks.Select(x => new int [2] {((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SolarSystemId}).ToArray<int[]>();
-                    mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToArray<int[]>(); 
+                    var  mapConnectionsSens1 = CurrentLinks.Select(x=> new RouteConnection(
+                            ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus,
+                            ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus
+                        )).ToList();
+
+                    var  mapConnectionsSens2 = CurrentLinks.Select(x=> new RouteConnection(
+                            ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus,
+                            ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus
+                            
+                       )).ToList();
+                    
+                     mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToFrozenSet();
                 }
 
 

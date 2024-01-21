@@ -1,34 +1,45 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using YamlDotNet.Serialization;
 
 namespace WHMapper.Models.DTO.SDE
 {
 	public class SDESolarSystem
 	{
-
+        [JsonIgnore]
         public bool Border { get; set; }
+        [JsonIgnore]
         public IEnumerable<double> Center { get; set; }
+        [JsonIgnore]
         public bool corridor { get; set; }
+        
+        [JsonIgnore]
+        public int descriptionID {get;set;}
+        public int factionID{get;set;}
 
+        [JsonIgnore]
         public IEnumerable<int>  DisallowedAnchorCategories { get; set; }
-
+        [JsonIgnore]
+        public IEnumerable<int> DisallowedAnchorGroups { get; set; }
+        [JsonIgnore]
         public bool Fringe { get; set; }
-
+        [JsonIgnore]
         public bool Hub { get; set; }
-
+        [JsonIgnore]
         public bool International { get; set; }
-
+        [JsonIgnore]
         public float Luminosity { get; set; }
-
+        [JsonIgnore]
         public IEnumerable<double> Max { get; set; }
-
+        [JsonIgnore]
         public IEnumerable<double> Min { get; set; }
        
         //TODO implement SDEPlanet object
+        [JsonIgnore]
         public IDictionary<int,object> Planets { get; set; }
-
+        [JsonIgnore]
         public double Radius { get; set; }
-
+        [JsonIgnore]
         public bool Regional { get; set; }
 
         //Only on WH
@@ -46,11 +57,12 @@ namespace WHMapper.Models.DTO.SDE
         public object Star { get; set; }
 
         //TODO implement SDEStargate object
-        public IDictionary<int, object> Stargates { get; set; }
+        public IDictionary<int, SDEStargate> Stargates { get; set; }
 
         public int SunTypeID { get; set; }
 
         //Unknow type?
+        [JsonIgnore]
         public object VisualEffect { get; set; }
 
         //present in 0.0 solar system????

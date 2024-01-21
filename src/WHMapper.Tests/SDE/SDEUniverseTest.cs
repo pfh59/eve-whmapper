@@ -16,6 +16,7 @@ namespace WHMapper.Tests.SDE
 
         private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
         private const string SOLAR_SYSTEM_JIT_NAME = "jit";
+        private const int SOLAR_SYSTEM_JITA_ID = 30000142;
 
         private const string SOLAR_SYSTEM_AMARR_NAME = "Amarr";
         private const string SOLAR_SYSTEM_AMA_NAME = "ama";
@@ -30,37 +31,16 @@ namespace WHMapper.Tests.SDE
         private const string SDE_CHECKSUM_FILE = @"./Resources/SDE/checksum";
         private const string SDE_CHECKSUM_CURRENT_FILE = @"./Resources/SDE/currentchecksum";
 
+        private readonly ISDEServices _services;
+
         public SDEUniverseTest()
         {
-
+            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
+            _services = new SDEServices(logger);
         }
 
 
         [Fact, Priority(1)]
-        public async Task Init_SDE_SERVICES()
-        {
-            if (Directory.Exists(SDE_TARGET_DIRECTORY))
-                Directory.Delete(SDE_TARGET_DIRECTORY,true);
-
-            if(File.Exists(SDE_CHECKSUM_CURRENT_FILE))
-                File.Delete(SDE_CHECKSUM_CURRENT_FILE);
-
-            if(File.Exists(SDE_CHECKSUM_FILE))
-                File.Delete(SDE_CHECKSUM_FILE);
-
-            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-
-            //from scratch
-            ISDEServices goodServices = new SDEServices(logger);
-            Assert.True(goodServices.ExtractSuccess);
-
-            //currentcheck not equal to download checksum
-            File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE,"azerty");
-            goodServices = new SDEServices(logger);
-            Assert.True(goodServices.ExtractSuccess);
-        }
-
-        [Fact, Priority(2)]
         public async Task Is_New_SDE_Available()
         {
             if (Directory.Exists(SDE_TARGET_DIRECTORY))
@@ -72,28 +52,84 @@ namespace WHMapper.Tests.SDE
             if(File.Exists(SDE_CHECKSUM_FILE))
                 File.Delete(SDE_CHECKSUM_FILE);
 
-            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-
             //from scratch
-            ISDEServices goodServices = new SDEServices(logger);
-            Assert.True(goodServices.ExtractSuccess);
+            Assert.False(_services.ExtractSuccess);
 
-            bool sameSDE = goodServices.IsNewSDEAvailable();
-            Assert.False(sameSDE);
+            bool newSDEavailable = _services.IsNewSDEAvailable();
+            Assert.True(newSDEavailable);
+
+            bool noSDEavailable = _services.IsNewSDEAvailable();
+            Assert.False(noSDEavailable);
 
             //currentcheck not equal to download checksum
             File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE,"azerty");
-            bool newSDE = goodServices.IsNewSDEAvailable();
-            Assert.True(newSDE);
+            bool otherSDEavailable = _services.IsNewSDEAvailable();
+            Assert.True(otherSDEavailable);
+        }
+
+        [Fact, Priority(2)]
+        public async Task Download_And_Extrat_SDE()
+        {
+            if(File.Exists(SDE_ZIP_PATH))
+                File.Delete(SDE_ZIP_PATH);
+
+
+            bool badExtract = _services.ExtractSDE();
+            Assert.False(badExtract);
+
+            bool downloadSuccess = await _services.DownloadSDE();
+            Assert.True(downloadSuccess);
+            Assert.True(File.Exists(SDE_ZIP_PATH));
+
+            bool goodExtract = _services.ExtractSDE();
+            Assert.True(goodExtract);
+            Assert.True(Directory.Exists(SDE_TARGET_DIRECTORY));
+            Assert.True(_services.ExtractSuccess);
         }
 
         [Fact, Priority(3)]
+        public async Task Import_SDE_And_Get()
+        {
+            if (Directory.Exists(SDE_TARGET_DIRECTORY))
+                Directory.Delete(SDE_TARGET_DIRECTORY,true);
+            
+            bool cacheClear = await _services.ClearCache();
+            Assert.True(cacheClear);
+
+            var solarsystems = await _services.GetSolarSystemList();
+            Assert.NotNull(solarsystems);
+            Assert.Empty(solarsystems);
+
+            var solarsystemjumps = await _services.GetSolarSystemJumpList();
+            Assert.NotNull(solarsystemjumps);
+            Assert.Empty(solarsystemjumps);
+
+            bool basImport = await _services.Import();
+            Assert.False(basImport);
+
+            bool goodExtract = _services.ExtractSDE();
+            Assert.True(goodExtract);
+            Assert.True(Directory.Exists(SDE_TARGET_DIRECTORY));
+
+            bool importSuccess = await _services.Import();
+            Assert.True(importSuccess);
+
+            solarsystems = await _services.GetSolarSystemList();
+            Assert.NotNull(solarsystems);
+            Assert.NotEmpty(solarsystems);
+            Assert.Equal(8036,solarsystems.Count()); //k-space+WH
+
+            solarsystemjumps = await _services.GetSolarSystemJumpList();
+            Assert.NotNull(solarsystemjumps);
+            Assert.NotEmpty(solarsystemjumps);
+            Assert.Equal(8036,solarsystemjumps.Count()); //k-space+WH
+        }
+
+
+
+        [Fact, Priority(4)]
         public async Task Search_System()
         {
-            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-            ISDEServices _services = new SDEServices(logger);
-            Assert.True(_services.ExtractSuccess);
-
             //TEST empty
             var empty_result = await _services.SearchSystem("");
             Assert.Null(empty_result);
@@ -131,9 +167,6 @@ namespace WHMapper.Tests.SDE
 
             //TESTABYSSAL
         }
-
-
-
     }
 }
 

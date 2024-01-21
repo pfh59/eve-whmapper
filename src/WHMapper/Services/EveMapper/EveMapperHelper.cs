@@ -542,7 +542,7 @@ namespace WHMapper.Services.EveMapper
             }
         }
 
-        public async Task<EveSystemType> GetWHClass(SolarSystem whSystem)
+        public async Task<EveSystemType> GetWHClass(ESISolarSystem whSystem)
         {
             //if (IsWorhmole(whSystem.Name))
             //{

@@ -7,7 +7,7 @@ namespace WHMapper.Services.EveAPI.Universe
     {
 
         Task<int[]> GetSystems();
-        Task<SolarSystem> GetSystem(int system_id);
+        Task<ESISolarSystem> GetSystem(int system_id);
         Task<Star> GetStar(int star_id);
         Task<Group> GetGroup(int group_id);
         Task<int[]> GetGroups();

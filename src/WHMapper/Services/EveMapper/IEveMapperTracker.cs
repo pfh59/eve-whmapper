@@ -4,7 +4,7 @@ using WHMapper.Models.DTO.EveAPI.Universe;
 namespace WHMapper;
 
 public interface IEveMapperTracker
-{    event Func<SolarSystem, Task> SystemChanged;
+{    event Func<ESISolarSystem, Task> SystemChanged;
 
     Task StartTracking();
     Task StopTracking();

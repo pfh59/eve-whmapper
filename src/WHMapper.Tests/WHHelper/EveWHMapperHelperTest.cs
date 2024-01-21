@@ -134,7 +134,7 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(2)]
         public async Task Get_Wormhole_Class()
         {
-            var result_C3_Bis= await _whEveMapper.GetWHClass(new Models.DTO.EveAPI.Universe.SolarSystem(0, 31001123, SOLAR_SYSTEM_WH_NAME,null,-1.0f,string.Empty,CONSTELLATION_WH_ID,null,null));
+            var result_C3_Bis= await _whEveMapper.GetWHClass(new Models.DTO.EveAPI.Universe.ESISolarSystem(0, 31001123, SOLAR_SYSTEM_WH_NAME,null,-1.0f,string.Empty,CONSTELLATION_WH_ID,null,null));
             Assert.Equal(EveSystemType.C3, result_C3_Bis);
 
             var result_HS = await _whEveMapper.GetWHClass(REGION_JITA_NAME, "UNUSED", SOLAR_SYSTEM_JITA_NAME,1.0f);

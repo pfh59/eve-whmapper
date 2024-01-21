@@ -2,7 +2,7 @@
 
 namespace WHMapper.Models.DTO.EveAPI.Universe
 {
-    public class SolarSystem
+    public class ESISolarSystem
     {
         
         [JsonPropertyName("star_id")]
@@ -38,7 +38,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
         [JsonPropertyName("stations")]
         public int[] Stations { get; private set; }
 
-        public SolarSystem(int starId, int systemId, string name, Position position, float securityStatus, string securityClass, int constellationId/*, ICollection<Planet> planets*/ ,int[] stargates, int[] stations)
+        public ESISolarSystem(int starId, int systemId, string name, Position position, float securityStatus, string securityClass, int constellationId/*, ICollection<Planet> planets*/ ,int[] stargates, int[] stations)
             => (StarId, SystemId, Name, Position, SecurityStatus, SecurityClass, ConstellationId/*, Planets*/,Stargates, Stations) = (starId, systemId, name, position, securityStatus, securityClass, constellationId/*, planets*/,stargates, stations);
 
     }
