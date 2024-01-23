@@ -4,27 +4,60 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout @oncustompaste="HandleCustomPaste">
-    <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h5" Class="ml-3">Wormhole Mapper</MudText>
-        <MudSpacer />
-        <AccessControl />
-    </MudAppBar>
-    <MudMainContent>
-        <AuthorizeView>
-            <Authorized>
-                @Body
-            </Authorized>
-        </AuthorizeView>
-    </MudMainContent>
-</MudLayout>
+
+    @if(_loading)
+    {
+        <MudPaper Class="d-flex align-center justify-center" Height="100vh" Width="100%">
+            <MudCard Outlined="true">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Initialization</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Align="Align.Center">EVE Wormhole mapper, require SDE package.</MudText>
+                    <MudText class="py-1" Typo="Typo.body2">@String.Format("{0}, please wait ...",_init_process_msg)
+                        <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Small" />
+                    </MudText>
+                  
+                </MudCardContent>
+            </MudCard>
+        </MudPaper>
+}
+    else
+    {
+        <MudLayout @oncustompaste="HandleCustomPaste">
+            <MudAppBar Elevation="1">
+                <MudText Typo="Typo.h5" Class="ml-3">Wormhole Mapper</MudText>
+                <MudSpacer />
+                <AccessControl />
+            </MudAppBar>
+            <MudMainContent>
+                <AuthorizeView>
+                    <Authorized>
+                        @Body
+                    </Authorized>
+                </AuthorizeView>
+            
+            </MudMainContent>
+        </MudLayout>
+    }
+
 
 @code
 {
     private MudTheme _currentTheme = null!;
+    private bool _loading = true;
+    private string _init_process_msg = string.Empty;
+
+    [Inject]
+    private ISnackbar Snackbar {get;set;} =null!;
 
     [Inject]
     private IPasteServices PasteServices {get;set;} =null!;
+
+    [Inject]
+    private Services.SDE.ISDEServices SDEServices {get;set;} =null!;
 
     protected override Task OnInitializedAsync()
     {
@@ -53,7 +86,67 @@
             }
         };
 
+        if(SDEServices.ExtractSuccess)
+        {
+            _loading = false;
+        }  
+        else
+        {
+            Task.Run(() => DownloadExtractImportSDE());
+        }   
+
         return base.OnInitializedAsync();
+    }
+
+    private async Task SetProcessMessage(string message)
+    {
+        await InvokeAsync(() => {
+            _init_process_msg = message;
+            StateHasChanged();
+        });
+    }
+
+    private async Task SetLoading(bool loading)
+    {
+        await InvokeAsync(() => {
+            _loading = loading;
+            StateHasChanged();
+        });
+    }
+
+    private async Task Cleaning()
+    {
+        await SetProcessMessage("Cleaning ... ");
+        await SDEServices.ClearCache();
+    }
+
+    private async Task DownloadExtractImportSDE()
+    {
+       if(await SDEServices.IsNewSDEAvailable())
+       {
+            await SetProcessMessage("Download SDE package (1/3)");
+            if(!await SDEServices.DownloadSDE())
+            {
+                Snackbar.Add("Download SDE package failed.", Severity.Error);
+                await Cleaning();
+                return;
+            }
+            await SetProcessMessage("Extract SDE package (2/3)");
+            if(!await SDEServices.ExtractSDE())
+            {
+                Snackbar.Add("Extract SDE package failed.", Severity.Error);
+                await Cleaning();
+                return;
+            }
+            await SetProcessMessage("Initialize SDE cache (3/3)");
+            if(!await SDEServices.Import())
+            {
+                Snackbar.Add("Initialize SDE cache failed.", Severity.Error);
+                await Cleaning();
+                return;
+            }
+        }
+        await SetLoading(false);    
     }
 
     private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)

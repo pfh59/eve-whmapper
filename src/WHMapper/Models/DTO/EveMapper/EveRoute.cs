@@ -13,7 +13,9 @@ public class EveRoute
             if(Route == null)
                 return 0;
             else
-                return Route.Length-1;//-1 because the first system is the current system
+            {
+                return Route.Length;
+            }
         }
     }
 

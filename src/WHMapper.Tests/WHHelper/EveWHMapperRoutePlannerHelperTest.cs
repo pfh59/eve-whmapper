@@ -20,17 +20,17 @@ namespace WHMapper.Tests.WHHelper;
 [Collection("Sequential2")]
 public class EveWHMapperRoutePlannerHelperTest
 {
-        private const int SOLAR_SYSTEM_JITA_ID = 30000142;
-        private const int SOLAR_SYSTEM_AMARR_ID = 30002187;
-        private const int SOLAR_SYSTEM_AHBAZON_ID = 30005196;
+    private const int SOLAR_SYSTEM_JITA_ID = 30000142;
+    private const int SOLAR_SYSTEM_AMARR_ID = 30002187;
+    private const int SOLAR_SYSTEM_AHBAZON_ID = 30005196;
 
-        private const int SOLAR_SYSTEM_WH_ID = 31001123;
+    private const int SOLAR_SYSTEM_WH_ID = 31001123;
 
     private IEveMapperRoutePlannerHelper _eveMapperRoutePlannerHelper;
 
     public EveWHMapperRoutePlannerHelperTest()
     {
-        IDbContextFactory<WHMapperContext> _contextFactory;
+        IDbContextFactory<WHMapperContext>? _contextFactory;
         //Create DB Context
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
@@ -44,18 +44,20 @@ public class EveWHMapperRoutePlannerHelperTest
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         var provider = services.BuildServiceProvider();
-        var httpclientfactory = provider.GetService<IHttpClientFactory>();
 
-            _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+        _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
 
-        
-        ILogger<EveMapperRoutePlannerHelper> logger = new NullLogger<EveMapperRoutePlannerHelper>();
-        ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
-        ILogger<SDEServices> loggerSDE = new NullLogger<SDEServices>();
+        if(_contextFactory != null)
+        {
 
-        _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger, 
-            new WHRouteRepository(new NullLogger<WHRouteRepository>(), _contextFactory),
-            null, new EveAPIServices(loggerAPI, httpclientfactory, new Models.DTO.TokenProvider(), null),new SDEServices(loggerSDE));
+            ILogger<EveMapperRoutePlannerHelper> logger = new NullLogger<EveMapperRoutePlannerHelper>();
+            ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
+            ILogger<SDEServices> loggerSDE = new NullLogger<SDEServices>();
+
+            _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger, 
+                new WHRouteRepository(new NullLogger<WHRouteRepository>(), _contextFactory),
+                null,new SDEServices(loggerSDE));
+        }
     }
 
     [Fact, Priority(1)]

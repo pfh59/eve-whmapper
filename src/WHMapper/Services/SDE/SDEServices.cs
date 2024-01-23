@@ -1,14 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
 using WHMapper.Models.DTO.SDE;
-using WHMapper.Services.EveAPI.Universe;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using MudBlazor.Extensions;
 using CachingFramework.Redis;
 using CachingFramework.Redis.Contracts.RedisObjects;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
 
 namespace WHMapper.Services.SDE
 {
@@ -31,7 +27,6 @@ namespace WHMapper.Services.SDE
         private const string REDIS_SDE_SOLAR_SYSTEMS_KEY = "solarsystems:list";
 
         private readonly ILogger _logger;
-        private readonly IUniverseServices _eveAPIService;
         private readonly ParallelOptions _options;
         private readonly IDeserializer _deserializer;
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
@@ -55,9 +50,10 @@ namespace WHMapper.Services.SDE
             _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
             _deserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .IgnoreUnmatchedProperties()
                 .Build(); 
         }
-        public bool IsNewSDEAvailable()
+        public Task<bool> IsNewSDEAvailable()
         {
             try
             {
@@ -78,20 +74,39 @@ namespace WHMapper.Services.SDE
                 if (!File.Exists(SDE_CHECKSUM_CURRENT_FILE))
                 {
                     File.Move(SDE_CHECKSUM_FILE, SDE_CHECKSUM_CURRENT_FILE);
-                    return true;
+                    return Task.FromResult(true);
                 }
                 else
                 {
                     bool isSame = !File.ReadLines(SDE_CHECKSUM_CURRENT_FILE).SequenceEqual(File.ReadLines(SDE_CHECKSUM_FILE));
                     File.Delete(SDE_CHECKSUM_CURRENT_FILE);
                     File.Move(SDE_CHECKSUM_FILE, SDE_CHECKSUM_CURRENT_FILE);
-                    return isSame;
+                    return Task.FromResult(isSame);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Check SDE");
-                return false;
+                return Task.FromResult(false);
+            }
+        }
+
+        public Task<bool> ClearSDERessources()
+        {
+            try
+            {
+                if (Directory.Exists(SDE_DIRECTORY))
+                {
+                    _logger.LogInformation("Delete old Eve SDE files");
+                    Directory.Delete(SDE_DIRECTORY, true);
+                }
+
+                return Task.FromResult(true);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "ClearSDERessources");
+                return Task.FromResult(false);
             }
         }
 
@@ -99,6 +114,9 @@ namespace WHMapper.Services.SDE
         {
             try
             {
+                if(!Directory.Exists(SDE_DIRECTORY))
+                    Directory.CreateDirectory(SDE_DIRECTORY);
+
                 _logger.LogInformation("Start to download Eve SDE files");
                 HttpClient client = new HttpClient();
                 Stream stream = await client.GetStreamAsync(SDE_ZIP_URL);
@@ -115,7 +133,7 @@ namespace WHMapper.Services.SDE
             }
         }
 
-        public bool ExtractSDE()
+        public Task<bool> ExtractSDE()
         {
             if (mut.WaitOne())
             {
@@ -131,7 +149,7 @@ namespace WHMapper.Services.SDE
                     if(!File.Exists(SDE_ZIP_PATH))
                     {
                         _logger.LogError("Impossible to extract SDE, no zip file");
-                        return false;
+                        return Task.FromResult(false);
                     }
 
 
@@ -141,34 +159,34 @@ namespace WHMapper.Services.SDE
                     }
                     _logger.LogInformation("Eve SDE files extracted");
 
-                    return true;
+                    return Task.FromResult(true);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Extract SDE");
-                    return false;
+                    return Task.FromResult(false);
                 }
                 finally
                 {
                     mut.ReleaseMutex();
                 }
             }
-            return false;
+            return Task.FromResult(false);
         }
 
-        public async Task<bool> ClearCache()
+        public  Task<bool> ClearCache()
         {
             try
             {
                 _context.Cache.Remove(REDIS_SDE_SOLAR_SYSTEMS_KEY);
                 _context.Cache.Remove(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
                 _logger.LogInformation("Redis cache cleared");
-                return true;
+                return Task.FromResult(true);
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex,"ClearCache");
-                return false;
+                return Task.FromResult(false);
             }
         }
 
@@ -193,7 +211,11 @@ namespace WHMapper.Services.SDE
                         if(directoryPath.Contains(SDE_EVE_TARGET_DIRECTORY) || directoryPath.Contains(SDE_WORMHOLE_TARGET_DIRECTORY))
                         {
                             TextReader text_reader = File.OpenText(directoryPath);
-                            SDESolarSystem solarSystem = _deserializer.Deserialize<SDESolarSystem>(text_reader);
+                            var deserializer = new DeserializerBuilder()
+                                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                                .IgnoreUnmatchedProperties()
+                                .Build(); 
+                            SDESolarSystem solarSystem = deserializer.Deserialize<SDESolarSystem>(text_reader);
                             solarSystem.Name = Path.GetFileName(Path.GetDirectoryName(directoryPath));
                             
                             while(!SDESystems.TryAdd(solarSystem))
@@ -261,40 +283,66 @@ namespace WHMapper.Services.SDE
             }
         }
 
-        public async Task<IEnumerable<SDESolarSystem>?> GetSolarSystemList() 
+        public Task<IEnumerable<SDESolarSystem>?> GetSolarSystemList() 
         {
             try
             {
                 IRedisList<SDESolarSystem>? results = _context.Collections.GetRedisList<SDESolarSystem>(REDIS_SDE_SOLAR_SYSTEMS_KEY);
                 if(results==null)
-                    return null;
+                    return Task.FromResult<IEnumerable<SDESolarSystem>?>(null);
 
-                return results;
+                return Task.FromResult<IEnumerable<SDESolarSystem>?>(results);
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex,"GetSolarSystemList");
-                return null;
+                return Task.FromResult<IEnumerable<SDESolarSystem>?>(null);
             }
         }
 
-        public async Task<IEnumerable<SolarSystemJump>?> GetSolarSystemJumpList() 
+        public  Task<IEnumerable<SolarSystemJump>?> GetSolarSystemJumpList() 
         {
             try
             {
                 IRedisList<SolarSystemJump>? results = _context.Collections.GetRedisList<SolarSystemJump>(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
                 if(results==null)
-                    return null;
+                    return Task.FromResult<IEnumerable<SolarSystemJump>?>(null);
 
-                return results;
+                return Task.FromResult<IEnumerable<SolarSystemJump>?>(results);
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex,"GetSolarSystemJumpList");
-                return null;
+                return Task.FromResult<IEnumerable<SolarSystemJump>?>(null);
             }
         }  
 
+        public async Task<SDESolarSystem?> SearchSystemById(int value)
+        {
+            try
+            {
+                if(!ExtractSuccess)
+                {
+                    _logger.LogError("Impossible to searchSystem, bad SDE extract.");
+                    return null;
+                }
+
+                var SDESystems = await GetSolarSystemList();
+                if(SDESystems==null)
+                {
+                    _logger.LogError("Impossible to searchSystem, Empty SDE solar system list.");
+                    return null;
+                }
+
+                var result = SDESystems.Where(x => x.SolarSystemID==value).FirstOrDefault();
+                return result;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"SearchSystem");
+                return null;
+            }
+        }
 
 
         public async Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value)
@@ -319,7 +367,6 @@ namespace WHMapper.Services.SDE
                 {
                     BlockingCollection<SDESolarSystem> results = new BlockingCollection<SDESolarSystem>();
                     SDESystems.AsParallel().Where(x => x.Name.ToLower().Contains(value.ToLower())).ForAll(x => results.Add(x));
-
                     return results;
                 }
                 else
@@ -327,7 +374,7 @@ namespace WHMapper.Services.SDE
             }
             catch(Exception ex)
             {
-                _logger.LogError("SearchSystem",ex);
+                _logger.LogError(ex,"SearchSystem");
                 return null;
             }
         }

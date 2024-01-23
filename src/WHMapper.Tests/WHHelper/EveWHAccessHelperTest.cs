@@ -29,10 +29,10 @@ namespace WHMapper.Tests.WHHelper
         private int EVE_CORPO_ID = 1344654522;
         private int EVE_ALLIANCE_ID = 1354830081;
 
-        IDbContextFactory<WHMapperContext> _contextFactory;
-        private IEveMapperAccessHelper _accessHelper;
-        private IWHAccessRepository _whAccessRepository;
-        private IWHAdminRepository _whAdminRepository;
+        IDbContextFactory<WHMapperContext>? _contextFactory;
+        private IEveMapperAccessHelper? _accessHelper;
+        private IWHAccessRepository? _whAccessRepository;
+        private IWHAdminRepository? _whAdminRepository;
 
         
 
@@ -51,14 +51,19 @@ namespace WHMapper.Tests.WHHelper
 
             services.AddHttpClient();
 
+
             var provider = services.BuildServiceProvider();
-            var httpclientfactory = provider.GetService<IHttpClientFactory>();
-
-
-            _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
-            _whAccessRepository = new WHAccessRepository(new NullLogger<WHAccessRepository>(),_contextFactory);
-            _whAdminRepository = new WHAdminRepository(new NullLogger<WHAdminRepository>(),_contextFactory);
-            _accessHelper = new EveMapperAccessHelper(_whAccessRepository,_whAdminRepository, new CharacterServices(httpclientfactory.CreateClient()));
+            if (provider != null)
+            {
+                var httpclientfactory = provider.GetService<IHttpClientFactory>();
+                _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+                if (_contextFactory != null && httpclientfactory != null)
+                {
+                    _whAccessRepository = new WHAccessRepository(new NullLogger<WHAccessRepository>(), _contextFactory);
+                    _whAdminRepository = new WHAdminRepository(new NullLogger<WHAdminRepository>(), _contextFactory);
+                    _accessHelper = new EveMapperAccessHelper(_whAccessRepository, _whAdminRepository, new CharacterServices(httpclientfactory.CreateClient()));
+                }
+            }
 
             
         }
@@ -66,6 +71,7 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(1)]
         public async Task Delete_And_Create_DB()
         {
+            Assert.NotNull(_contextFactory);
             //Delete all to make a fresh Db
 
             using (var context = _contextFactory.CreateDbContext())
@@ -81,6 +87,9 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(2)]
         public async Task Eve_Mapper_User_Access()
         {
+            Assert.NotNull(_accessHelper);
+            Assert.NotNull(_whAccessRepository);
+
             var fullAuthorize = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
             Assert.True(fullAuthorize);
 
@@ -101,6 +110,9 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(3)]
         public async Task Eve_Mapper_Corpo_Access()
         {
+            Assert.NotNull(_accessHelper);
+            Assert.NotNull(_whAccessRepository);
+
             var corpo = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_CORPO_ID, "TOTO",WHAccessEntity.Corporation));
             Assert.NotNull(corpo);
             Assert.Equal(EVE_CORPO_ID, corpo.EveEntityId);
@@ -117,6 +129,9 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(4)]
         public async Task Eve_Mapper_Alliance_Access()
         {
+            Assert.NotNull(_accessHelper);
+            Assert.NotNull(_whAccessRepository);
+
             var alliance = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_ALLIANCE_ID, "TOTO",WHAccessEntity.Alliance));
             Assert.NotNull(alliance);
             Assert.Equal(EVE_ALLIANCE_ID, alliance.EveEntityId);
@@ -133,6 +148,9 @@ namespace WHMapper.Tests.WHHelper
         [Fact, Priority(5)]
         public async Task Eve_Mapper_Admin_Access()
         {
+            Assert.NotNull(_accessHelper);
+            Assert.NotNull(_whAdminRepository);
+
             var fullAuthorize = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID);
             Assert.True(fullAuthorize);
 

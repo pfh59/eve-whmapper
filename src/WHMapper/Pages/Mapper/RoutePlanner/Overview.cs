@@ -15,25 +15,26 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
     [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase
     {
+        private bool _loading =true;
         private IEnumerable<EveRoute>? _myRoutes = null;
         private IEnumerable<EveRoute>? _globalRoutes = null;
 
         private EveRoute? _showedRoute = null!;
 
         private RouteType _routeType = RouteType.Shortest;
-        private RouteType RType 
-        {
-            set
-            {
-                _routeType = value;
-                Task.Run(async () => await Restore()).Wait();
-                StateHasChanged();
-            }
+        private RouteType RType {
             get
             {
                 return _routeType;
             }
-        } 
+            set
+            {
+                _routeType=value;
+                Task.Run(() => Restore());
+            }
+        }
+        
+
 
         private bool _isEditable = false;
 
@@ -51,77 +52,95 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         [Inject]
         private ILogger<Overview> _logger {get;set;} = null!;
 
-        private EveSystemNodeModel _currentSystemNode = null!;
         [Parameter]
-        public EveSystemNodeModel CurrentSystemNode 
-        {
-             get
-             {
-                    return _currentSystemNode;
-             }
-             set
-             {
-                    _currentSystemNode=value;
-                    Task.Run(async () => await Restore()).Wait();
-                    StateHasChanged();
-             }
-        }
+        public EveSystemNodeModel CurrentSystemNode {get;set;} = null!;
+
 
         [Parameter]
         public LinkLayer CurrentLinks { get; set; } = null!;
 
+        protected override Task OnParametersSetAsync()
+        {
+            Task.Run(() => Restore());
+
+            return base.OnParametersSetAsync();
+        }
+
+
 
         private async Task Restore()
         {
-            if (CurrentSystemNode != null && CurrentLinks!=null)
+            try
             {
-
-                FrozenSet<RouteConnection> mapConnections = null;
-                if(CurrentLinks.Count() > 0)
+                var currentSystem = CurrentSystemNode;
+                var currentLinks = CurrentLinks;
+                if (currentSystem != null && currentLinks!=null)
                 {
-                    var  mapConnectionsSens1 = CurrentLinks.Select(x=> new RouteConnection(
-                            ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus,
-                            ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus
+                    _loading=true;
+                    await InvokeAsync(() => {
+                        StateHasChanged();
+                    });
+                    FrozenSet<RouteConnection> mapConnections = null;
+                    if(currentLinks.Count() > 0)
+                    {
+                        var  mapConnectionsSens1 = currentLinks.Select(x=> new RouteConnection(
+                                ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus,
+                                ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus
+                            )).ToList();
+
+                        var  mapConnectionsSens2 = currentLinks.Select(x=> new RouteConnection(
+                                ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus,
+                                ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus
+                                
                         )).ToList();
+                        
+                        mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToFrozenSet();
+                    }
 
-                    var  mapConnectionsSens2 = CurrentLinks.Select(x=> new RouteConnection(
-                            ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus,
-                            ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus
-                            
-                       )).ToList();
+
+                    _logger.LogInformation("Restore routes from {0}", currentSystem.Name);
+                    var globalRouteTmp= await EveMapperRoutePlannerHelper.GetRoutesForAll(currentSystem.SolarSystemId,RType,mapConnections);
+                    var myRoutesTmp= await EveMapperRoutePlannerHelper.GetMyRoutes(currentSystem.SolarSystemId,RType,mapConnections);
+
+                    if(_showedRoute!=null)
+                    {
+                        var globalRouteShowed = globalRouteTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
+                        var myRouteShowed = myRoutesTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
+
+                        await ShowRoute(_showedRoute,false);
+                        
+                        _globalRoutes = globalRouteTmp;
+                        _myRoutes = myRoutesTmp;
                     
-                     mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToFrozenSet();
+
+                        if(globalRouteShowed!=null && globalRouteShowed.IsAvailable)
+                            await ShowRoute(globalRouteShowed,true);
+                        
+
+                        if(myRouteShowed!=null && myRouteShowed.IsAvailable)
+                            await ShowRoute(myRouteShowed,true);
+                        
+                    }
+                    else
+                    {
+                        _globalRoutes = globalRouteTmp;
+                        _myRoutes = myRoutesTmp;
+                    }
+
+    
+                    await InvokeAsync(() => {
+                        _loading=false;
+                        StateHasChanged();
+                    });
                 }
-
-
-                _logger.LogInformation("Restore routes from {0}", CurrentSystemNode.Name);
-                var globalRouteTmp= await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentSystemNode.SolarSystemId,RType,mapConnections);
-                var myRoutesTmp= await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentSystemNode.SolarSystemId,RType,mapConnections);
-
-                if(_showedRoute!=null)
-                {
-                    var globalRouteShowed = globalRouteTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
-                    var myRouteShowed = myRoutesTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
-
-                    await ShowRoute(_showedRoute,false);
-                    
-                     _globalRoutes = globalRouteTmp;
-                    _myRoutes = myRoutesTmp;
-                   
-
-                    if(globalRouteShowed!=null && globalRouteShowed.IsAvailable)
-                        await ShowRoute(globalRouteShowed,true);
-                    
-
-                    if(myRouteShowed!=null && myRouteShowed.IsAvailable)
-                        await ShowRoute(myRouteShowed,true);
-                    
-                }
-                else
-                {
-                     _globalRoutes = globalRouteTmp;
-                    _myRoutes = myRoutesTmp;
-                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"Error on restore routes");
+                 await InvokeAsync(() => {
+                    _loading=false;
+                    StateHasChanged();
+                });
             }
         }
 

@@ -26,7 +26,7 @@ jobs:
       # posgres db service
       postgres:
         # Docker Hub image
-        image: postgres
+        image: postgres:15-alpine
         # Provide the password for postgres
         env:
           POSTGRES_USER: postgres
@@ -44,7 +44,7 @@ jobs:
 
       # redis service
       redis:
-        image: redis
+        image: redis:7-alpine
         ports:
           - 6379:6379
         # Set health checks to wait until redis has started 

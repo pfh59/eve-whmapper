@@ -72,10 +72,6 @@ namespace WHMapper.Pages.Mapper.Signatures
         private DateTime _currentDateTime;
 
 
-        protected override async Task OnInitializedAsync()
-        {
-            await base.OnInitializedAsync();
-        }
 
         protected override async Task OnParametersSetAsync()
         {

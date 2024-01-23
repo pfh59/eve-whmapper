@@ -18,22 +18,20 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly ILogger<EveMapperRoutePlannerHelper> _logger;
     private readonly IEveUserInfosServices _eveUserInfosServices;
 
-    private readonly IEveAPIServices _eveAPIService;
 
     private readonly ISDEServices _sdeServices;
-
-    //private readonly int[][] _solarSystemJumpConnections;
     private readonly IEnumerable<SolarSystemJump> _solarSystemJumpConnections;
 
-    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, IEveAPIServices eveAPIService, ISDEServices sdeServices)
+    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEServices sdeServices)
     {
         _routeRepository = routeRepository;
         _logger = logger;
         _eveUserInfosServices = eveUserInfosServices;
-        _eveAPIService = eveAPIService;
+        //_eveAPIService = eveAPIService;
         _sdeServices = sdeServices;
 
-        _solarSystemJumpConnections = _sdeServices.GetSolarSystemJumpList().Result.ToArray();
+        var solarSystemJumpList = _sdeServices.GetSolarSystemJumpList().Result;
+        _solarSystemJumpConnections = solarSystemJumpList != null ? solarSystemJumpList.ToArray() : new SolarSystemJump[0];
     }
 
 
@@ -75,10 +73,9 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
         foreach (var whRoute in whRoutes)
         {
-            var destSystemInfo = await _eveAPIService.UniverseServices.GetSystem(whRoute.SolarSystemId);
-            //var route = await _eveAPIService.RouteServices.GetRoute(fromSolarSystemId,whRoute.SolarSystemId,routeType,null,_solarSystemJumpConnections);
+            var destSystemInfo = await _sdeServices.SearchSystemById(whRoute.SolarSystemId);
             var route = await CalculateRoute(fromSolarSystemId,whRoute.SolarSystemId,routeType,extraConnections);
-            routes.Add(new EveRoute(whRoute.Id,destSystemInfo.Name,route));
+            routes.Add(new EveRoute(whRoute.Id,destSystemInfo?.Name,route));
         }
         return routes;
     }
@@ -127,7 +124,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
         if(fromSolarSystemJump.JumpList.Count() == 0)
         {
-            _logger.LogError("No connection from solar system {0}",fromSolarSystemId);
+            _logger.LogWarning("No connection from solar system {0}",fromSolarSystemId);
             return new int[0];
         }
 
@@ -165,10 +162,14 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
                 break;
 
 
-            IEnumerable<SolarSystem>? nextSystems = extendedSolarSystemJumps.Where(x=>x.System.SolarSystemId == currentSystem).SelectMany(x=>x.JumpList).ToArray();
+            IEnumerable<SolarSystem>? nextSystems = extendedSolarSystemJumps.Where(x=>x.System.SolarSystemId == currentSystem && x.JumpList!=null).SelectMany(x=>x.JumpList).ToArray();
            
             foreach (SolarSystem nextSystem in nextSystems)
             {
+                //case of wh with no link on map
+                if(nextSystem==null)
+                    continue;
+
                 //system already view
                 if(previousSystems.ContainsKey(nextSystem.SolarSystemId)) 
                     continue;

@@ -22,25 +22,25 @@ namespace WHMapper.Services.WHSignatures
             _dbWHSignatures = sigRepo;
         }
 
-        public async Task<bool> ValidateScanResult(string? scanResult)
+        public Task<bool> ValidateScanResult(string? scanResult)
         {
             try
             {
                 if (!string.IsNullOrEmpty(scanResult))
                 {
                     Match match = Regex.Match(scanResult, IWHSignatureHelper.SCAN_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
-                    return match.Success;
+                    return Task.FromResult<bool>(match.Success);
                 }
-                return false;
+                return Task.FromResult<bool>(false);
             }
             catch(RegexMatchTimeoutException)
             {
-                return false;
+                return Task.FromResult<bool>(false);
             }
 
         }
 
-        public async Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser,int currentSystemScannedId,string? scanResult)
+        public  Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser,int currentSystemScannedId,string? scanResult)
         {
             string sigName = string.Empty;
             WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
@@ -62,7 +62,7 @@ namespace WHMapper.Services.WHSignatures
                 }
                 catch (RegexMatchTimeoutException)
                 {
-                    return null;
+                    return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
                 }
 
                 foreach (string sigValue in sigvalues)
@@ -76,7 +76,7 @@ namespace WHMapper.Services.WHSignatures
                     }
                     catch (RegexMatchTimeoutException)
                     {
-                        return null;
+                        return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
                     }
 
                     sigName = splittedSig[0];
@@ -97,7 +97,7 @@ namespace WHMapper.Services.WHSignatures
                 }
             }
 
-            return sigResult;
+            return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(sigResult);
 
         }
 

@@ -55,44 +55,51 @@ namespace WHMapper.Tests.SDE
             //from scratch
             Assert.False(_services.ExtractSuccess);
 
-            bool newSDEavailable = _services.IsNewSDEAvailable();
+            bool newSDEavailable = await _services.IsNewSDEAvailable();
             Assert.True(newSDEavailable);
 
-            bool noSDEavailable = _services.IsNewSDEAvailable();
+            bool noSDEavailable = await _services.IsNewSDEAvailable();
             Assert.False(noSDEavailable);
 
             //currentcheck not equal to download checksum
             File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE,"azerty");
-            bool otherSDEavailable = _services.IsNewSDEAvailable();
+            bool otherSDEavailable = await _services.IsNewSDEAvailable();
             Assert.True(otherSDEavailable);
         }
 
         [Fact, Priority(2)]
         public async Task Download_And_Extrat_SDE()
         {
-            if(File.Exists(SDE_ZIP_PATH))
-                File.Delete(SDE_ZIP_PATH);
+            bool clearRessources = await _services.ClearSDERessources();
+            Assert.True(clearRessources);
 
 
-            bool badExtract = _services.ExtractSDE();
+            bool badExtract = await _services.ExtractSDE();
             Assert.False(badExtract);
 
             bool downloadSuccess = await _services.DownloadSDE();
             Assert.True(downloadSuccess);
             Assert.True(File.Exists(SDE_ZIP_PATH));
 
-            bool goodExtract = _services.ExtractSDE();
+            bool goodExtract = await _services.ExtractSDE();
             Assert.True(goodExtract);
             Assert.True(Directory.Exists(SDE_TARGET_DIRECTORY));
             Assert.True(_services.ExtractSuccess);
         }
 
+
+
         [Fact, Priority(3)]
         public async Task Import_SDE_And_Get()
         {
-            if (Directory.Exists(SDE_TARGET_DIRECTORY))
-                Directory.Delete(SDE_TARGET_DIRECTORY,true);
-            
+            bool clearRessources = await _services.ClearSDERessources();
+            Assert.True(clearRessources);
+
+            bool badImport = await _services.Import();
+            Assert.False(badImport);
+
+            await Download_And_Extrat_SDE();
+           
             bool cacheClear = await _services.ClearCache();
             Assert.True(cacheClear);
 
@@ -104,12 +111,6 @@ namespace WHMapper.Tests.SDE
             Assert.NotNull(solarsystemjumps);
             Assert.Empty(solarsystemjumps);
 
-            bool basImport = await _services.Import();
-            Assert.False(basImport);
-
-            bool goodExtract = _services.ExtractSDE();
-            Assert.True(goodExtract);
-            Assert.True(Directory.Exists(SDE_TARGET_DIRECTORY));
 
             bool importSuccess = await _services.Import();
             Assert.True(importSuccess);
@@ -163,9 +164,28 @@ namespace WHMapper.Tests.SDE
             var wh_partial_result = await _services.SearchSystem(SOLAR_SYSTEM_WH_PARTIAL_NAME);
             Assert.NotNull(wh_partial_result);
             Assert.Contains(wh_partial_result, x => x.Name.Contains(SOLAR_SYSTEM_WH_NAME, StringComparison.OrdinalIgnoreCase));
+        }
 
+        [Fact, Priority(5)]
+        public async Task Search_System_By_Id()
+        {
+            //TEST bad value
+            var bad_result = await _services.SearchSystemById(-1);
+            Assert.Null(bad_result);
 
-            //TESTABYSSAL
+            //TEST empty
+            var empty_result = await _services.SearchSystemById(0);
+            Assert.Null(empty_result);
+            //TEST JITA
+            var jita_result = await _services.SearchSystemById(SOLAR_SYSTEM_JITA_ID);
+            Assert.NotNull(jita_result);
+            Assert.Equal(SOLAR_SYSTEM_JITA_ID,jita_result.SolarSystemID);
+
+            //TEST HW
+            var wh_result = await _services.SearchSystemById(31001123);
+            Assert.NotNull(wh_result);
+            Assert.Equal(31001123,wh_result.SolarSystemID);
+
         }
     }
 }

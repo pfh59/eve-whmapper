@@ -73,12 +73,12 @@ namespace WHMapper.Tests.EveOnlineAPI
         private const int TYPE_CATACLYSMIC_ID = 30670;//Cataclysmic Variable
 
         //public API
-        private IUniverseServices _eveUniverseApi;
-        private IDogmaServices _eveDogmaApi;
-        private IAllianceServices _eveAllianceApi;
-        private ICorporationServices _eveCorpoApi;
-        private ICharacterServices _eveCharacterApi;
-        private IRouteServices _routeServices;
+        private IUniverseServices? _eveUniverseApi;
+        private IDogmaServices? _eveDogmaApi;
+        private IAllianceServices? _eveAllianceApi;
+        private ICorporationServices? _eveCorpoApi;
+        private ICharacterServices? _eveCharacterApi;
+        private IRouteServices? _routeServices;
 
         public PublicEveOnlineAPITest()
         {
@@ -87,18 +87,21 @@ namespace WHMapper.Tests.EveOnlineAPI
             var provider = services.BuildServiceProvider();
             var httpclientfactory = provider.GetService<IHttpClientFactory>();
 
-
-            _eveUniverseApi = new UniverseServices(httpclientfactory.CreateClient());
-            _eveDogmaApi = new DogmaServices(httpclientfactory.CreateClient());
-            _eveAllianceApi = new AllianceServices(httpclientfactory.CreateClient());
-            _eveCorpoApi = new CorporationServices(httpclientfactory.CreateClient());
-            _eveCharacterApi = new CharacterServices(httpclientfactory.CreateClient());
-            _routeServices= new RouteServices(httpclientfactory.CreateClient());
+            if (httpclientfactory != null)
+            {
+                _eveUniverseApi = new UniverseServices(httpclientfactory.CreateClient());
+                _eveDogmaApi = new DogmaServices(httpclientfactory.CreateClient());
+                _eveAllianceApi = new AllianceServices(httpclientfactory.CreateClient());
+                _eveCorpoApi = new CorporationServices(httpclientfactory.CreateClient());
+                _eveCharacterApi = new CharacterServices(httpclientfactory.CreateClient());
+                _routeServices = new RouteServices(httpclientfactory.CreateClient());
+            }
         }
 
         [Fact]
         public async Task Get_Universe_System_Constellation_Region_Star_And_Stargate()
         {
+            Assert.NotNull(_eveUniverseApi);
             //getsystems
             int[] systems = await _eveUniverseApi.GetSystems();
             Assert.NotNull(systems);
@@ -160,6 +163,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         [Fact]
         public async Task Get_Universe_Categories_And_Category()
         {
+            Assert.NotNull(_eveUniverseApi);
             int[] categories = await _eveUniverseApi.GetCategories();
             Assert.NotNull(categories);
 
@@ -174,6 +178,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         [Fact]
         public async Task Get_Universe_Groups_And_Group()
         {
+            Assert.NotNull(_eveUniverseApi);
             int[] groups = await _eveUniverseApi.GetGroups();
             Assert.NotNull(groups);
 
@@ -200,6 +205,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         [Fact]
         public async Task Get_Universe_Types_And_Type()
         {
+            Assert.NotNull(_eveUniverseApi);
             int[] types = await _eveUniverseApi.GetTypes();
             Assert.NotNull(types);
 
@@ -212,6 +218,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         [Fact]
         public async Task Get_Dogma_Attributes_And_Effects()
         {
+            Assert.NotNull(_eveDogmaApi);
             var attributes = await _eveDogmaApi.GetAttributes();
             Assert.NotNull(attributes);
 
@@ -223,6 +230,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         [Fact]
         public async Task Get_Alliances_And_Alliance()
         {
+            Assert.NotNull(_eveAllianceApi);
             int[] alliances = await _eveAllianceApi.GetAlliances();
             Assert.NotNull(alliances);
             Assert.NotEmpty(alliances);
@@ -236,6 +244,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         [Fact]
         public async Task Get_Corporation()
         {
+            Assert.NotNull(_eveCorpoApi);
             var corpo = await _eveCorpoApi.GetCorporation(CORPORATION_GOONS_ID);
             Assert.NotNull(corpo);
             Assert.Equal(ALLIANCE_GOONS_ID, corpo.AllianceId);
@@ -246,6 +255,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         [Fact]
         public async Task Get_Character()
         {
+            Assert.NotNull(_eveCharacterApi);
             var character = await _eveCharacterApi.GetCharacter(CHARACTER_GOONS_ID);
             Assert.NotNull(character);
             Assert.Equal(ALLIANCE_GOONS_ID, character.AllianceId);
@@ -257,6 +267,7 @@ namespace WHMapper.Tests.EveOnlineAPI
         public async Task Get_Route()
         {
             //simple route in HS to HS via shortest path
+            Assert.NotNull(_routeServices);
             var route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID);
             Assert.NotNull(route);
             Assert.NotEmpty(route);
