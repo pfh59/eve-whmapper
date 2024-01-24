@@ -367,7 +367,7 @@ namespace WHMapper.Services.SDE
                 {
                     BlockingCollection<SDESolarSystem> results = new BlockingCollection<SDESolarSystem>();
                     SDESystems.AsParallel().Where(x => x.Name.ToLower().Contains(value.ToLower())).ForAll(x => results.Add(x));
-                    return results;
+                    return results.OrderBy(x => x.Name);
                 }
                 else
                     return null;

@@ -16,13 +16,13 @@
             </AuthorizeView>
         </MudStack>
         <MudRadioGroup @bind-Value="RType">
-            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Secure" Color="Color.Success" Size="Size.Small" Disabled=_loading>Safer</MudRadio>
-            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Shortest"  Color="Color.Warning" Size="Size.Small" Disabled=_loading>Shorter</MudRadio>
+            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Secure" Color="Color.Success" Size="Size.Small">Safer</MudRadio>
+            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Shortest"  Color="Color.Warning" Size="Size.Small">Shorter</MudRadio>
             <!--<MudRadio Class="ma-0" T="RouteType" Value="RouteType.Insecure"  Color="Color.Error" Size="Size.Small">Riskly</MudRadio>-->
         </MudRadioGroup>
             @if(_loading)
             {
-                 <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Medium" />
+                 <MudProgressCircular Class="align-self-center" Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Medium" />
             }
             else
             {
