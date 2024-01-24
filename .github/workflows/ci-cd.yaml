@@ -47,13 +47,6 @@ jobs:
         image: redis:7-alpine
         ports:
           - 6379:6379
-        # Set health checks to wait until redis has started 
-        options: >-
-          --health-cmd redis-cli ping
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Setup JDK 11 🦴
         uses: actions/setup-java@v3
