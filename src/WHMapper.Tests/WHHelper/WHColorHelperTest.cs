@@ -8,6 +8,7 @@ using Xunit.Priority;
 namespace WHMapper.Tests.WHColorHelper
 {
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+    [Collection("Color")]
     public class WHColorHelperTest
 	{
         private const string WH_MAGNETAR = "Magnetar";

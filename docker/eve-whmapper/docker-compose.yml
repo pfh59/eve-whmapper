@@ -14,6 +14,12 @@ services:
     networks:
      - net
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    networks:
+     - net
+
   whmapper:
     image: ghcr.io/pfh59/eve-whmapper:1.0 #Release version change to latest to have all version
     restart: unless-stopped

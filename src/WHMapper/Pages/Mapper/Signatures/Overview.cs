@@ -26,8 +26,6 @@ namespace WHMapper.Pages.Mapper.Signatures
     [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase,IAsyncDisposable
     {
-        private const int ESI_WH_GROUPE_ID = 988;
-
         [Inject]
         private IWHSignatureHelper SignatureHelper { get; set; } = null!;
 
@@ -74,10 +72,6 @@ namespace WHMapper.Pages.Mapper.Signatures
         private DateTime _currentDateTime;
 
 
-        protected override async Task OnInitializedAsync()
-        {
-            await base.OnInitializedAsync();
-        }
 
         protected override async Task OnParametersSetAsync()
         {

@@ -21,9 +21,9 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
 
 
     private EveLocation? _currentLocation = null!;
-    private SolarSystem? _currentSolarSystem = null!;
+    private ESISolarSystem? _currentSolarSystem = null!;
 
-    public event Func< SolarSystem, Task> SystemChanged;
+    public event Func< ESISolarSystem, Task> SystemChanged;
 
     public EveMapperTracker(ILogger<EveMapperTracker> logger,AuthenticationStateProvider authState,IEveAPIServices eveAPI)
     {

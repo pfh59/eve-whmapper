@@ -23,10 +23,10 @@ jobs:
 
 # Service containers to run with `runner-job`
     services:
-      # Label used to access the service container
+      # posgres db service
       postgres:
         # Docker Hub image
-        image: postgres
+        image: postgres:15-alpine
         # Provide the password for postgres
         env:
           POSTGRES_USER: postgres
@@ -40,8 +40,13 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          # Maps tcp port 5432 on service container to the host
           - 5432:5432
+
+      # redis service
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
     steps:
       - name: Setup JDK 11 🦴
         uses: actions/setup-java@v3

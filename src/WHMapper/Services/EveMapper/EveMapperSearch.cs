@@ -19,7 +19,7 @@ public class EveMapperSearch : IEveMapperSearch
     private ISDEServices _sdeServices = null!;
 
 
-    public HashSet<SDESolarSystem> Systems {get;set;}=null!;
+    public IEnumerable<SDESolarSystem>? Systems {get;private set;}=null!;
 
     public EveMapperSearch(ILogger<EveMapperSearch> logger,ISDEServices sdeServices)
     {
@@ -34,10 +34,9 @@ public class EveMapperSearch : IEveMapperSearch
         if (string.IsNullOrEmpty(value) || _sdeServices == null || value.Length < 3 || _searchInProgress)
             return null;
 
-        Systems?.Clear();
         _searchInProgress = true;
 
-        Systems = (HashSet<SDESolarSystem>)await _sdeServices.SearchSystem(value);
+        Systems = await _sdeServices.SearchSystem(value);
 
         _searchInProgress = false;
         if (Systems != null)

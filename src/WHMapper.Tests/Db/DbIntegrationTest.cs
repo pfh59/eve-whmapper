@@ -21,7 +21,7 @@ using static MudBlazor.CategoryTypes;
 namespace WHMapper.Tests.Db;
 
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-[Collection("Sequential")]
+[Collection("Database")]
 public class DbIntegrationTest
 {
     private int EVE_CHARACTERE_ID = 2113720458;
@@ -45,7 +45,7 @@ public class DbIntegrationTest
     private const int FOOBAR_SYSTEM_ID2 = 1234567;
     private const int FOOBAR_SYSTEM_ID3 = 987456;
     private const string FOOBAR_SHORT_UPDATED = "FooBarU";
-    private IDbContextFactory<WHMapperContext> _contextFactory;
+    private IDbContextFactory<WHMapperContext>? _contextFactory;
 
 
 
@@ -62,7 +62,11 @@ public class DbIntegrationTest
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         var provider = services.BuildServiceProvider();
-        _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+        if(provider!=null)
+        {
+            _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+        }
+
 
     }
 
@@ -71,6 +75,7 @@ public class DbIntegrationTest
     [Fact, Priority(1)]
     public async Task DeleteAndCreateDatabse()
     {
+        Assert.NotNull(_contextFactory);
         using (var context = _contextFactory.CreateDbContext())
         {
             //Delete all to make a fresh Db
@@ -85,6 +90,7 @@ public class DbIntegrationTest
     [Fact, Priority(2)]
     public async Task CRUD_WHMAP()
     {
+        Assert.NotNull(_contextFactory);
         //Create IWHMapRepository
         IWHMapRepository repo = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
 
@@ -156,6 +162,7 @@ public class DbIntegrationTest
     [Fact, Priority(3)]
     public async Task CRUD_WHSystem()
     {
+        Assert.NotNull(_contextFactory);
         //init MAP
         //Create IWHMapRepository
         IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
@@ -249,6 +256,7 @@ public class DbIntegrationTest
     [Fact, Priority(4)]
     public async Task CRUD_WHLink()
     {
+        Assert.NotNull(_contextFactory);
         //init MAP
         //Create IWHMapRepository
         IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
@@ -365,6 +373,7 @@ public class DbIntegrationTest
     [Fact, Priority(5)]
     public async Task CRUD_WHSignature()
     {
+        Assert.NotNull(_contextFactory);
         //init MAP
         //Create IWHMapRepository
         IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
@@ -510,6 +519,7 @@ public class DbIntegrationTest
     [Fact, Priority(6)]
     public async Task CRUD_WHAdmin()
     {
+        Assert.NotNull(_contextFactory);
         //Create IWHMapRepository
         IWHAdminRepository repo = new WHAdminRepository(new NullLogger<WHAdminRepository>(),_contextFactory);
 
@@ -576,6 +586,7 @@ public class DbIntegrationTest
     [Fact, Priority(7)]
     public async Task CRUD_WHAccess()
     {
+        Assert.NotNull(_contextFactory);
         //Create AccessRepo
         IWHAccessRepository repo = new WHAccessRepository(new NullLogger<WHAccessRepository>(),_contextFactory);
 
@@ -646,6 +657,7 @@ public class DbIntegrationTest
     [Fact, Priority(8)]
     public async Task CRUD_WHNote()
     {
+        Assert.NotNull(_contextFactory);
         //Create AccessRepo
         IWHNoteRepository repo = new WHNoteRepository(new NullLogger<WHNoteRepository>(), _contextFactory);
 
@@ -730,6 +742,7 @@ public class DbIntegrationTest
     [Fact, Priority(9)]
     public async Task CRUD_WHRoute()
     {
+        Assert.NotNull(_contextFactory);
         //Create AccessRepo
         IWHRouteRepository repo = new WHRouteRepository(new NullLogger<WHRouteRepository>(), _contextFactory);
 

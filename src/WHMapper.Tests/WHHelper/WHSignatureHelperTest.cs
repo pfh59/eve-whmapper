@@ -8,6 +8,7 @@ using Xunit.Priority;
 namespace WHMapper.Tests.WHHelper
 {
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+    [Collection("Signature")]
     public class WHSignatureHelperTest
 	{
         private const int WH_ID = 1;

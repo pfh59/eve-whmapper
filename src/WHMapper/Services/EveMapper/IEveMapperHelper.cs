@@ -13,7 +13,7 @@ namespace WHMapper.Services.EveMapper
         public ReadOnlyCollection<WormholeType> WormholeTypes { get; }
         public Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh);
         public bool IsWorhmole(string systemName);
-        public Task<EveSystemType> GetWHClass(SolarSystem whSystem);
+        public Task<EveSystemType> GetWHClass(ESISolarSystem whSystem);
         public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName,float securityStatus);
     }
 }

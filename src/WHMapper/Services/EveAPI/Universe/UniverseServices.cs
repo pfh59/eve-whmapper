@@ -16,9 +16,9 @@ namespace WHMapper.Services.EveAPI.Universe
             return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, "/v1/universe/systems/?datasource=tranquility");
         }
 
-        public async Task<SolarSystem> GetSystem(int system_id)
+        public async Task<ESISolarSystem> GetSystem(int system_id)
         {
-            return await base.Execute<SolarSystem>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v4/universe/systems/{0}/?datasource=tranquility", system_id));
+            return await base.Execute<ESISolarSystem>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v4/universe/systems/{0}/?datasource=tranquility", system_id));
 
         }
 

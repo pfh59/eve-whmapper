@@ -6,7 +6,7 @@ namespace WHMapper.Services.EveMapper
     {
         public const int MIN_SEARCH_CHARACTERS = 3;
 
-        HashSet<SDESolarSystem> Systems {get;}
+        IEnumerable<SDESolarSystem>? Systems {get;}
 
         Task<IEnumerable<string>?> SearchSystem(string value);
         IEnumerable<string> ValidateSearchType(string value);
