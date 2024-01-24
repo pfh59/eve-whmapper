@@ -21,8 +21,8 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper
 {
+    [Collection("SDE")]
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("Sequential2")]
     public class EveWHMapperHelperTest
     {
         private const int DEFAULT_MAP_ID = 1;

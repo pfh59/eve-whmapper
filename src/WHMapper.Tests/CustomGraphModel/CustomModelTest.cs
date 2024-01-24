@@ -8,6 +8,7 @@ using Xunit.Priority;
 namespace WHMapper.Tests.CustomGraphModel
 {
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+    [Collection("CustomGraphModel")]
     public class CustomModelTest
     {
         private const int DEFAULT_MAP_ID = 1;

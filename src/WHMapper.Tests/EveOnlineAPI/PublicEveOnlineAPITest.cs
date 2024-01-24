@@ -12,6 +12,7 @@ namespace WHMapper.Tests.EveOnlineAPI
 {
 
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+    [Collection("EVEAPI")]
     public class PublicEveOnlineAPITest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;

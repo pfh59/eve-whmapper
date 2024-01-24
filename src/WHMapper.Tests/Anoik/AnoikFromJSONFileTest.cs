@@ -8,6 +8,7 @@ namespace WHMapper.Tests.Anoik
 {
 
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+    [Collection("Anoik")]
     public class AnoikFromJSONFileTest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;

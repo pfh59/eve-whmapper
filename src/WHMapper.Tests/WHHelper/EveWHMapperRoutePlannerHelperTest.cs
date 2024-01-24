@@ -16,8 +16,8 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;
 
+[Collection("SDE")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-[Collection("Sequential2")]
 public class EveWHMapperRoutePlannerHelperTest
 {
     private const int SOLAR_SYSTEM_JITA_ID = 30000142;

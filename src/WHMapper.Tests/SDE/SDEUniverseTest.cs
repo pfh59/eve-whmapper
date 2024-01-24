@@ -9,8 +9,8 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.SDE
 {
+    [Collection("SDE")]
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("Sequential2")]
     public class SDEUniverseTest
     {
 

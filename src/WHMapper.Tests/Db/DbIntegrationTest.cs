@@ -21,7 +21,7 @@ using static MudBlazor.CategoryTypes;
 namespace WHMapper.Tests.Db;
 
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-[Collection("Sequential")]
+[Collection("Database")]
 public class DbIntegrationTest
 {
     private int EVE_CHARACTERE_ID = 2113720458;

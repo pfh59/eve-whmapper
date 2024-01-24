@@ -20,7 +20,7 @@ using Xunit.Priority;
 namespace WHMapper.Tests.WHHelper
 {
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("Sequential")]
+    [Collection("Database")]
     public class EveWHAccessHelperTest
     {
         private int EVE_CHARACTERE_ID = 2113720458;
