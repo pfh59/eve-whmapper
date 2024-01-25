@@ -2,10 +2,12 @@ name: CI-CD
 
 on:
   push:
+    paths-ignore: ['**.md', '.vscode/**','docs/**','docker/**']
     branches:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+    paths-ignore: ['**.md', '.vscode/**','docs/**','docker/**']
   
 env:
   DOTNET_VERSION: '8.0.x'
@@ -82,11 +84,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           ConnectionStrings__DefaultConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
         run: |
-          dotnet-sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-          dotnet restore src
-          dotnet build src/WHMapper -c Release --no-restore
-          dotnet-coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
-          dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+          dotnet sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          dotnet build src/WHMapper -c Release -no-incremental
+          dotnet coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
+          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Generate Artifact
         if: github.event_name != 'pull_request'

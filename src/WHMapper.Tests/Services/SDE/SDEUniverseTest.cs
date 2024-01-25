@@ -9,7 +9,8 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.Services;
 
-[Collection("Services")]
+
+[Collection("C4-Services")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
 public class SDEUniverseTest
 {

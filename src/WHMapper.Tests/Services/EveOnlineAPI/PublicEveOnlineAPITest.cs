@@ -10,8 +10,7 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.Services;
 
-
-[Collection("Services")]
+[Collection("C3-Services")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
 public class PublicEveOnlineAPITest
 {

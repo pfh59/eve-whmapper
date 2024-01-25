@@ -27,7 +27,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         _routeRepository = routeRepository;
         _logger = logger;
         _eveUserInfosServices = eveUserInfosServices;
-        //_eveAPIService = eveAPIService;
         _sdeServices = sdeServices;
 
         var solarSystemJumpList = _sdeServices.GetSolarSystemJumpList().Result;

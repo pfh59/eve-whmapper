@@ -1,2 +1,6 @@
 ﻿global using Xunit;
-[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly, DisableTestParallelization = false)]
+using Xunit.Priority;
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+[assembly: TestCollectionOrderer("WHMapper.Tests.DisplayNameOrderer", "WHMapper.Tests")]
+[assembly: TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
+
