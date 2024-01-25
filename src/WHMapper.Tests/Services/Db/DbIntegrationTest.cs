@@ -84,7 +84,6 @@ public class DbIntegrationTest
             bool dbCreated = await context.Database.EnsureCreatedAsync();
             Assert.True(dbCreated);
         }
-
     }
 
     [Fact, Priority(2)]

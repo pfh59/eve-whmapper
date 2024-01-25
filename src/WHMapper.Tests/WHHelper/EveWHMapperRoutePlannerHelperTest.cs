@@ -16,7 +16,7 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;
 
-    [Collection("WHHelper")]
+[Collection("Services")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
 public class EveWHMapperRoutePlannerHelperTest
 {
