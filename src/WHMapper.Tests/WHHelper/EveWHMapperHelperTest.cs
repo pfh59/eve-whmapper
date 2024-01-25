@@ -21,7 +21,7 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper
 {
-    [Collection("SDE")]
+    [Collection("Services")]
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class EveWHMapperHelperTest
     {

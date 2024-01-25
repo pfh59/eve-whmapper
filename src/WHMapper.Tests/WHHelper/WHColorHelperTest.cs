@@ -5,10 +5,9 @@ using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.WHColor;
 using Xunit.Priority;
 
-namespace WHMapper.Tests.WHColorHelper
+namespace WHMapper.Tests.WHHelper
 {
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("Color")]
     public class WHColorHelperTest
 	{
         private const string WH_MAGNETAR = "Magnetar";

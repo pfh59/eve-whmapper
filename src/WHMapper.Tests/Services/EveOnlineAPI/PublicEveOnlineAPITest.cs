@@ -8,11 +8,11 @@ using WHMapper.Services.EveAPI.Dogma;
 using WHMapper.Services.EveAPI.Universe;
 using Xunit.Priority;
 
-namespace WHMapper.Tests.EveOnlineAPI
+namespace WHMapper.Tests.Services
 {
 
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("EVEAPI")]
+    [Collection("Services")]
     public class PublicEveOnlineAPITest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;

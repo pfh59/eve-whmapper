@@ -7,9 +7,9 @@ using WHMapper.Services.Anoik;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
 
-namespace WHMapper.Tests.SDE
+namespace WHMapper.Tests.Services
 {
-    [Collection("SDE")]
+    [Collection("Services")]
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
     public class SDEUniverseTest
     {
