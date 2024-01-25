@@ -239,8 +239,9 @@ namespace WHMapper.Services.SDE
                             Parallel.ForEach(system.Stargates.Values, _options, async (stargate, token) =>
                             {
                                 var s =  SDESystems.FirstOrDefault(x=>x.Stargates.ContainsKey(stargate.Destination));
-                                JumpSystemList.Add(new SolarSystem(s.SolarSystemID,s.Security));
-
+                                if(s!=null)
+                                    JumpSystemList.Add(new SolarSystem(s.SolarSystemID,s.Security));
+                                
                                 await Task.Yield();
                             });
                             solarSystemJump = new SolarSystemJump(system.SolarSystemID,system.Security,JumpSystemList);
