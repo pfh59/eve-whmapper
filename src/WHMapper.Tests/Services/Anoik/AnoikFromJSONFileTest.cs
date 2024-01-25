@@ -4,11 +4,11 @@ using WHMapper.Services.Anoik;
 using Xunit.Priority;
 using static MudBlazor.Colors;
 
-namespace WHMapper.Tests.Anoik
+namespace WHMapper.Tests.Services
 {
 
+    [Collection("Services")]
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("Anoik")]
     public class AnoikFromJSONFileTest
     {
         private const int SOLAR_SYSTEM_JITA_ID = 30000142;

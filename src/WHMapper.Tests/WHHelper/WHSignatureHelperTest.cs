@@ -7,8 +7,8 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper
 {
+    [Collection("Services")]
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-    [Collection("Signature")]
     public class WHSignatureHelperTest
 	{
         private const int WH_ID = 1;
@@ -22,7 +22,7 @@ namespace WHMapper.Tests.WHHelper
 
         public WHSignatureHelperTest()
 		{
-            _whHelper = new WHSignatureHelper(null);
+            _whHelper = new WHSignatureHelper(null!);
         }
 
 
@@ -46,6 +46,7 @@ namespace WHMapper.Tests.WHHelper
             Assert.Empty(emptyRes);
 
             var parseDSCAN1= await _whHelper.ParseScanResult(SCAN_USER, WH_ID,DSCAN);
+            Assert.NotNull(parseDSCAN1);
             Assert.NotEmpty(parseDSCAN1);
             Assert.Equal(11, parseDSCAN1.Count());
 

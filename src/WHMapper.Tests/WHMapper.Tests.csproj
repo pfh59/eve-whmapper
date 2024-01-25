@@ -42,6 +42,7 @@
     <Folder Include="Db\" />
     <Folder Include="EveOnlineAPI\" />
     <Folder Include="Anoik\" />
+    <Folder Include="Services/" />
     <Folder Include="WHHelper\" />
     <Folder Include="SDE\" />
   </ItemGroup>

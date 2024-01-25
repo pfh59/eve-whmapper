@@ -18,10 +18,10 @@ using WHMapper.Services.SDE;
 using Xunit.Priority;
 using static MudBlazor.CategoryTypes;
 
-namespace WHMapper.Tests.Db;
+namespace WHMapper.Tests.Services;
 
+[Collection("Services")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-[Collection("Database")]
 public class DbIntegrationTest
 {
     private int EVE_CHARACTERE_ID = 2113720458;
