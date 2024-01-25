@@ -218,7 +218,7 @@ namespace WHMapper.Models.Custom.Node
             if (ConnectedUsers.Contains(userName))
             {
 
-                string comparedItem;
+                string? comparedItem;
                 var itemsList = new List<string>();
                 do
                 {

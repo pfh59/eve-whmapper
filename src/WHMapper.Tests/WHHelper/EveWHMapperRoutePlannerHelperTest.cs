@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,7 @@ using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Models.DTO.RoutePlanner;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
+using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.SDE;
@@ -27,11 +29,10 @@ public class EveWHMapperRoutePlannerHelperTest
 
     private const int SOLAR_SYSTEM_WH_ID = 31001123;
 
-    private IEveMapperRoutePlannerHelper _eveMapperRoutePlannerHelper;
+    private IEveMapperRoutePlannerHelper _eveMapperRoutePlannerHelper = null!;
 
     public EveWHMapperRoutePlannerHelperTest()
     {
-        IDbContextFactory<WHMapperContext>? _contextFactory;
         //Create DB Context
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
@@ -42,22 +43,31 @@ public class EveWHMapperRoutePlannerHelperTest
         services.AddHttpClient();
 
         services.AddDbContextFactory<WHMapperContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection")));
+
+        services.AddStackExchangeRedisCache(option =>
+        {
+            option.Configuration = configuration.GetConnectionString("RedisConnection");
+            option.InstanceName = "WHMapper";
+        });
 
         var provider = services.BuildServiceProvider();
 
-        _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+        IDbContextFactory<WHMapperContext>? _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
+        IDistributedCache? _distriCache = provider.GetService<IDistributedCache>();
 
-        if(_contextFactory != null)
+        if(_contextFactory != null && _distriCache != null)
         {
 
             ILogger<EveMapperRoutePlannerHelper> logger = new NullLogger<EveMapperRoutePlannerHelper>();
             ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
             ILogger<SDEServices> loggerSDE = new NullLogger<SDEServices>();
+            ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
+            ILogger<WHRouteRepository> loggerWHRouteRepository = new NullLogger<WHRouteRepository>();
 
-            _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger, 
-                new WHRouteRepository(new NullLogger<WHRouteRepository>(), _contextFactory),
-                null!,new SDEServices(loggerSDE));
+            _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
+                new WHRouteRepository(loggerWHRouteRepository, _contextFactory),
+                null!,new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache)));       
         }
     }
 

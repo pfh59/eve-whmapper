@@ -52,6 +52,7 @@ using WHMapper.Services.EveAPI.Character;
 using System.Linq;
 using WHMapper.Services.EveMapper.AuthorizationPolicies;
 using WHMapper.Repositories.WHNotes;
+using WHMapper.Services.Cache;
 
 namespace WHMapper
 {
@@ -64,7 +65,13 @@ namespace WHMapper
 
             // Add services to the container.
             builder.Services.AddDbContextFactory<WHMapperContext>(options =>
-                    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
+
+            builder.Services.AddStackExchangeRedisCache(option =>
+            {
+                option.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+                option.InstanceName = "WHMapper";
+            });
 
             builder.Services.AddSignalR();
 
@@ -154,9 +161,6 @@ namespace WHMapper
                     policy.Requirements.Add(new EveMapperAdminRequirement()));
             });
 
-
-
-
             using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
             {
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -186,14 +190,17 @@ namespace WHMapper
             builder.Services.AddHttpClient();
 
             builder.Services.AddScoped<TokenProvider>();
+            builder.Services.AddScoped<ICacheService, CacheService>();
 
             builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStateProvider>();
+            
+
 
             builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
             builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();
             builder.Services.AddScoped<ICharacterServices, CharacterServices>();
-            builder.Services.AddSingleton<IAnoikServices, AnoikServices>();
-            builder.Services.AddSingleton<ISDEServices, SDEServices>();
+            builder.Services.AddScoped<IAnoikServices, AnoikServices>();
+            builder.Services.AddScoped<ISDEServices, SDEServices>();
             
 
             #region DB Acess Repo

@@ -59,7 +59,7 @@ public class DbIntegrationTest
 
         var services = new ServiceCollection();
         services.AddDbContextFactory<WHMapperContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection")));
 
         var provider = services.BuildServiceProvider();
         if(provider!=null)
@@ -730,7 +730,7 @@ public class DbIntegrationTest
         Assert.False(resultBaddel);
 
         //null update
-        var resultUpdateNull = await repo.Update(-10, null);
+        var resultUpdateNull = await repo.Update(-10, null!);
         Assert.Null(resultUpdateNull);
 
         //bad id update
@@ -814,7 +814,7 @@ public class DbIntegrationTest
         Assert.NotEmpty(resultByEveEntityId);
 
         //null update
-        var resultUpdateNull = await repo.Update(-10, null);
+        var resultUpdateNull = await repo.Update(-10, null!);
         Assert.Null(resultUpdateNull);
 
         //bad id update

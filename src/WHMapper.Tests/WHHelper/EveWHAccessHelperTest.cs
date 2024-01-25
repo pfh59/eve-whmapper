@@ -47,7 +47,7 @@ public class EveWHAccessHelperTest
 
         var services = new ServiceCollection();
         services.AddDbContextFactory<WHMapperContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection")));
 
         services.AddHttpClient();
 

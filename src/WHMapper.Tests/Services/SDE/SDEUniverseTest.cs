@@ -1,9 +1,13 @@
 ﻿using System;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NuGet.Frameworks;
 using WHMapper.Pages.Mapper.Administration;
 using WHMapper.Services.Anoik;
+using WHMapper.Services.Cache;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
 
@@ -36,8 +40,27 @@ public class SDEUniverseTest
 
     public SDEUniverseTest()
     {
+
+        var services = new ServiceCollection();
+
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .AddEnvironmentVariables()
+            .Build();
+
+
+        services.AddStackExchangeRedisCache(option =>
+        {
+            option.Configuration = configuration.GetConnectionString("RedisConnection");
+            option.InstanceName = "WHMapper";
+        });
+
+        var provider = services.BuildServiceProvider();
+
+        IDistributedCache? _distriCache = provider.GetService<IDistributedCache>();
         ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-        _services = new SDEServices(logger);
+        ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
+        _services = new SDEServices(logger,new CacheService(loggerCache,_distriCache));
     }
 
 

@@ -56,7 +56,7 @@ namespace WHMapper.Hubs
             
             if (_connectedUserPosition.ContainsKey(userName))
             {
-                while (!_connectedUserPosition.TryRemove(userName, out res))
+                while (!_connectedUserPosition.TryRemove(userName, out _))
                     await Task.Delay(1);
             }
 

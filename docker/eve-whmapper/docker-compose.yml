@@ -26,7 +26,8 @@ services:
     environment:
      - EveSSO__ClientId=xxxxxxxxx
      - EveSSO__Secret=xxxxxxxxx
-     - ConnectionStrings__DefaultConnection=server=db;port=5432;database=whmapper;User Id=postgres;Password=secret
+     - ConnectionStrings__DatabaseConnection=server=db;port=5432;database=whmapper;User Id=postgres;Password=secret
+     - ConnectionStrings__RedisConnection=redis:6379
      - Logging__LogLevel__Default=Warning
      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
     links:

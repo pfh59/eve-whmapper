@@ -5,6 +5,7 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using CachingFramework.Redis;
 using CachingFramework.Redis.Contracts.RedisObjects;
+using WHMapper.Services.Cache;
 
 namespace WHMapper.Services.SDE
 {
@@ -32,6 +33,8 @@ namespace WHMapper.Services.SDE
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
         private static Mutex mut = new Mutex();
 
+        private readonly ICacheService _cacheService;
+
         public bool ExtractSuccess 
         {
             get
@@ -39,14 +42,11 @@ namespace WHMapper.Services.SDE
                 return Directory.Exists(SDE_TARGET_DIRECTORY);
             }
         }
-
-
-        private RedisContext _context = new RedisContext();
-        
-        public SDEServices(ILogger<SDEServices> logger)
+       
+        public SDEServices(ILogger<SDEServices> logger,ICacheService cacheService)
 		{
             _logger = logger;
-            _context= new RedisContext();
+            _cacheService=cacheService;
             _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
             _deserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
@@ -174,19 +174,19 @@ namespace WHMapper.Services.SDE
             return Task.FromResult(false);
         }
 
-        public  Task<bool> ClearCache()
+        public  async Task<bool> ClearCache()
         {
             try
             {
-                _context.Cache.Remove(REDIS_SDE_SOLAR_SYSTEMS_KEY);
-                _context.Cache.Remove(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
-                _logger.LogInformation("Redis cache cleared");
-                return Task.FromResult(true);
+                 await _cacheService.Remove(REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                 await _cacheService.Remove(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+                
+                return true;
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex,"ClearCache");
-                return Task.FromResult(false);
+                return false;
             }
         }
 
@@ -257,17 +257,8 @@ namespace WHMapper.Services.SDE
                     
                     //clean old cache and add new one
                     await ClearCache();
-                    IRedisList<SDESolarSystem>? solarSystems = _context.Collections.GetRedisList<SDESolarSystem>(REDIS_SDE_SOLAR_SYSTEMS_KEY);
-                    IRedisList<SolarSystemJump>? solarSystemJumps = _context.Collections.GetRedisList<SolarSystemJump>(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
-
-                    if(solarSystemJumps==null || solarSystems==null)
-                    {
-                        _logger.LogError("Redis error, impossible to import solarSystemJumps or solarSystems");
-                        return false;
-                    }
-
-                    await solarSystems.AddRangeAsync(SDESystems);
-                    await solarSystemJumps.AddRangeAsync(tmp);
+                    await _cacheService.Set(REDIS_SDE_SOLAR_SYSTEMS_KEY,SDESystems);
+                    await _cacheService.Set(REDIS_SOLAR_SYSTEM_JUMPS_KEY,tmp);
                    
                     return true;
                 }
@@ -284,37 +275,37 @@ namespace WHMapper.Services.SDE
             }
         }
 
-        public Task<IEnumerable<SDESolarSystem>?> GetSolarSystemList() 
+        public async Task<IEnumerable<SDESolarSystem>?> GetSolarSystemList() 
         {
             try
             {
-                IRedisList<SDESolarSystem>? results = _context.Collections.GetRedisList<SDESolarSystem>(REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                IEnumerable<SDESolarSystem>? results = await _cacheService.Get<IEnumerable<SDESolarSystem>?>(REDIS_SDE_SOLAR_SYSTEMS_KEY);
                 if(results==null)
-                    return Task.FromResult<IEnumerable<SDESolarSystem>?>(null);
+                    return new List<SDESolarSystem>();
 
-                return Task.FromResult<IEnumerable<SDESolarSystem>?>(results);
+                return results;
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex,"GetSolarSystemList");
-                return Task.FromResult<IEnumerable<SDESolarSystem>?>(null);
+                return null;
             }
         }
 
-        public  Task<IEnumerable<SolarSystemJump>?> GetSolarSystemJumpList() 
+        public async Task<IEnumerable<SolarSystemJump>?> GetSolarSystemJumpList() 
         {
             try
             {
-                IRedisList<SolarSystemJump>? results = _context.Collections.GetRedisList<SolarSystemJump>(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+                IEnumerable<SolarSystemJump>? results = await _cacheService.Get<IEnumerable<SolarSystemJump>?>(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
                 if(results==null)
-                    return Task.FromResult<IEnumerable<SolarSystemJump>?>(null);
+                    return new List<SolarSystemJump>();
 
-                return Task.FromResult<IEnumerable<SolarSystemJump>?>(results);
+                return results;
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex,"GetSolarSystemJumpList");
-                return Task.FromResult<IEnumerable<SolarSystemJump>?>(null);
+                return null;
             }
         }  
 
