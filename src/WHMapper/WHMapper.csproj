@@ -74,7 +74,6 @@
     <None Remove="Models\DTO\EveMapper\Enums\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CachingFramework.Redis" Version="15.0.2" />
     <PackageReference Include="FibonacciHeap" Version="2.0.2" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.1" />
     <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.8" />

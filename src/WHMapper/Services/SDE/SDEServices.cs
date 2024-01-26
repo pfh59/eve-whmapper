@@ -3,8 +3,6 @@ using System.IO.Compression;
 using WHMapper.Models.DTO.SDE;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using CachingFramework.Redis;
-using CachingFramework.Redis.Contracts.RedisObjects;
 using WHMapper.Services.Cache;
 
 namespace WHMapper.Services.SDE
