@@ -127,33 +127,38 @@ namespace WHMapper.Pages.Mapper
 
         protected override async Task OnInitializedAsync()
         {
-            if (await InitDiagram())
+            _userName = await UserInfos.GetUserName();
+            if(await InitDiagram())
             {
-                _userName = await UserInfos.GetUserName();
-
-                if (await Restore())
-                {
-                    if (await InitNotificationHub())
-                    {
-                        TrackerServices.SystemChanged+=OnSystemChanged;
-                        await TrackerServices.StartTracking();
-
-                        PasteServices.Pasted+=OnPasted;
-                    }
-
-                    _loading = false;
-                    StateHasChanged();
-                }
-                else
-                {
-                    Snackbar?.Add("Mapper restore error", Severity.Error);
-                }
-            }
+                _ = Task.Run(Init);
+            }    
             else
             {
                 Snackbar?.Add("Mapper Initialization error", Severity.Error);
-            }
+            }      
+        }
 
+        private async Task Init()
+        {
+            if (await Restore())
+            {
+                if (await InitNotificationHub())
+                {
+                    TrackerServices.SystemChanged+=OnSystemChanged;
+                    await TrackerServices.StartTracking();
+
+                    PasteServices.Pasted+=OnPasted;
+                }
+
+                _loading = false;
+                await InvokeAsync(() => {
+                    StateHasChanged();
+                });
+            }
+            else
+            {
+                Snackbar?.Add("Mapper restore error", Severity.Error);
+            }
         }
 
         #region Hub methodes

@@ -20,7 +20,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
 
     private readonly ISDEServices _sdeServices;
-    private readonly IEnumerable<SolarSystemJump> _solarSystemJumpConnections;
+    private IEnumerable<SolarSystemJump> _solarSystemJumpConnections;
 
     public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEServices sdeServices)
     {
@@ -28,9 +28,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         _logger = logger;
         _eveUserInfosServices = eveUserInfosServices;
         _sdeServices = sdeServices;
-
-        var solarSystemJumpList = _sdeServices.GetSolarSystemJumpList().Result;
-        _solarSystemJumpConnections = solarSystemJumpList != null ? solarSystemJumpList.ToArray() : new SolarSystemJump[0];
     }
 
 
@@ -91,6 +88,12 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     /// <returns></returns>
     private async Task<int[]?> CalculateRoute(int fromSolarSystemId,int toSolarSystemId,RouteType routeType,IEnumerable<RouteConnection>? extraConnections)
     {
+        if(_solarSystemJumpConnections == null)
+        {
+            var solarSystemJumpList = await _sdeServices.GetSolarSystemJumpList();
+            _solarSystemJumpConnections = solarSystemJumpList != null ? solarSystemJumpList.ToArray() : new SolarSystemJump[0];
+        }
+
         IEnumerable<SolarSystemJump> extendedSolarSystemJumps = _solarSystemJumpConnections;
         if(extraConnections!=null)
         {
