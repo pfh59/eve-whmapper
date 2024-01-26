@@ -949,7 +949,9 @@ namespace WHMapper.Pages.Mapper
                             }
                         }
                         //});
-                        StateHasChanged();
+                        await InvokeAsync(() => {
+                            StateHasChanged();
+                        });
                     }
                 }
                 Logger.LogInformation("Restore Mapper Success");
