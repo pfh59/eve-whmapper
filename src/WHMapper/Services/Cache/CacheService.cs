@@ -34,7 +34,7 @@ public class CacheService : ICacheService
         }
     }
 
-    public async Task Set<T>(string key, T value, TimeSpan? absoluteExpirationRelativeToNow = null)
+    public async Task<bool> Set<T>(string key, T value, TimeSpan? absoluteExpirationRelativeToNow = null)
     {
         try
         {
@@ -46,23 +46,27 @@ public class CacheService : ICacheService
             }
 
             await _cache.SetStringAsync(key, JsonSerializer.Serialize(value), options);
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error setting cache key {key}");
+            return false;
         }
     }
 
-    public async Task Remove(string key)
+    public async Task<bool> Remove(string key)
     {
         try
         {
             _logger.LogInformation($"Removing cache key {key}");
             await _cache.RemoveAsync(key);
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error removing cache key {key}");
+            return false;
         }
     }
 

@@ -56,11 +56,16 @@ public class SDEUniverseTest
         });
 
         var provider = services.BuildServiceProvider();
-
+        
         IDistributedCache? _distriCache = provider.GetService<IDistributedCache>();
+        
+        if(_distriCache != null)
+        {
         ILogger<SDEServices> logger = new NullLogger<SDEServices>();
         ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
         _services = new SDEServices(logger,new CacheService(loggerCache,_distriCache));
+        }
+
     }
 
 
