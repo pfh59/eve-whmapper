@@ -9,7 +9,7 @@ permissions:
   packages: write
     
 env:
-  DOTNET_VERSION: '7.0.x'
+  DOTNET_VERSION: '8.0.x'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
    
     steps:
-      - name: Setup .NET7 🦴
+      - name: Setup .NET8 🦴
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: ${{env.DOTNET_VERSION}}
