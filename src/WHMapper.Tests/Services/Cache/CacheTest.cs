@@ -10,7 +10,7 @@ namespace WHMapper.Tests.Services;
 [Collection("C1-Services")]
 public class CacheTest
 {
-    private readonly ICacheService _services=null!;
+    private readonly ICacheService _services;
 
     public CacheTest()
     {
@@ -22,6 +22,12 @@ public class CacheTest
             .AddEnvironmentVariables()
             .Build();
 
+        services.AddStackExchangeRedisCache(option =>
+        {
+            option.Configuration = configuration.GetConnectionString("RedisConnection");
+            option.InstanceName = "WHMapper";
+        });
+
   
         var provider = services.BuildServiceProvider();
         if(provider != null)
@@ -30,7 +36,11 @@ public class CacheTest
             ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
 
             if(_distriCache != null && loggerCache != null)
+            {
                 _services = new CacheService(loggerCache,_distriCache);
+                Assert.NotNull(_services);
+            }
+
         }
     }
 
@@ -53,7 +63,7 @@ public class CacheTest
         bool successSetTimed = await _services.Set(key2,value2,TimeSpan.FromSeconds(5));
         Assert.True(successSetTimed);
 
-        await Task.Delay(TimeSpan.FromSeconds(6));
+        await Task.Delay(TimeSpan.FromSeconds(7));
 
         var result2 = await _services.Get<string>(key2);
         Assert.Null(result2);
