@@ -154,7 +154,7 @@ public class EveWHMapperRoutePlannerHelperTest
         var route_JITA_AMARR = routes.FirstOrDefault();
         Assert.NotNull(route_JITA_AMARR);
         Assert.NotNull(route_JITA_AMARR.Route);
-        Assert.Equal(41,route_JITA_AMARR.Route.Length);
+        Assert.Equal(46,route_JITA_AMARR.Route.Length);
 
         result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result.Id);
         Assert.True(result2);

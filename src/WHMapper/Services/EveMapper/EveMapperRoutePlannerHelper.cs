@@ -94,7 +94,8 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             _solarSystemJumpConnections = solarSystemJumpList != null ? solarSystemJumpList.ToArray() : new SolarSystemJump[0];
         }
 
-        IEnumerable<SolarSystemJump> extendedSolarSystemJumps = _solarSystemJumpConnections;
+        IEnumerable<SolarSystemJump> extendedSolarSystemJumps = _solarSystemJumpConnections.Select(x=>new SolarSystemJump(x.System.SolarSystemId,x.System.Security,x.JumpList.ToArray())).ToArray();
+
         if(extraConnections!=null)
         {
             foreach (var extraConnection in extraConnections)
@@ -224,12 +225,12 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             case RouteType.Shortest:
                 return 1.0f;
             case RouteType.Secure:
-                if(security >= 0.45f)
+                if(security < 0.45f)
                     return 50000.0f;
 
                 return 1.0f;
             case RouteType.Insecure:
-                if(security < 0.45f)
+                if(security >= 0.45f)
                     return 50000.0f;
 
                 return 1.0f;
