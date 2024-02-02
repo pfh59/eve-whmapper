@@ -1,5 +1,6 @@
-﻿<MudPaper Class="@(CurrentSystemNode == null ? "invisible pa-2 ma-2 align-self-stretch" : "visible pa-2 ma-2")" Outlined="true" Width="300px">
-    <MudStack>
+﻿
+<MudPaper Outlined="true" hidden="@(CurrentSystemNode == null)" class="d-flex flex-column justify-space-between">
+    <MudStack class="pa-2" Spacing="1">
         <MudStack Row="true" Justify="Justify.SpaceAround">
             <MudLink Href="@_linkToDotlan" Target="_blank">
                 <MudStack Row="true" Spacing=1>
@@ -49,42 +50,41 @@
             <MudText Typo="Typo.body2">Class:</MudText>
             <MudText Typo="Typo.body2" Style="@($"color:{_systemColor}; font-weight:bold;")">@_systemType</MudText>    
         </MudStack>
-        @if(CurrentSystemNode != null && CurrentSystemNode?.Effect!=WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
-        {
-            <MudStack Row="true" Justify="Justify.SpaceBetween">
-                <MudText Typo="Typo.body2">Effect:</MudText>
-                    <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
-                        <ChildContent>
-                            <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")" />
-                        </ChildContent>
-                        <TooltipContent>
-                            <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
-                                @if (CurrentSystemNode != null && CurrentSystemNode.EffectDetails != null)
+      
+        <MudStack Row="true" Justify="Justify.SpaceBetween" hidden="@(CurrentSystemNode == null || CurrentSystemNode.Effect==WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)">
+            <MudText Typo="Typo.body2">Effect:</MudText>
+                <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
+                    <ChildContent>
+                        <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")" />
+                    </ChildContent>
+                    <TooltipContent>
+                        <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
+                            @if (CurrentSystemNode != null && CurrentSystemNode.EffectDetails != null)
+                            {
+                                foreach (var effectInfo in CurrentSystemNode.EffectDetails)
                                 {
-                                    foreach (var effectInfo in CurrentSystemNode.EffectDetails)
-                                    {
-                                        <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
-                                    }
+                                    <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
                                 }
-                            </MudPaper>
-                        </TooltipContent>
-                    </MudTooltip> 
-            </MudStack>
-        }
-        @if((CurrentSystemNode != null && CurrentSystemNode?.Statics!=null && CurrentSystemNode.Statics.Count() > 0))
-        {
-            <MudStack Row="true" Justify="Justify.SpaceBetween">
-                <MudText Typo="Typo.body2">Statics:</MudText>
-                
+                            }
+                        </MudPaper>
+                    </TooltipContent>
+                </MudTooltip> 
+        </MudStack>
+        
+
+        <MudStack Row="true" Justify="Justify.SpaceBetween" hidden="@(CurrentSystemNode == null || CurrentSystemNode.Statics==null || CurrentSystemNode.Statics.Count() == 0)">
+            <MudText Typo="Typo.body2">Statics:</MudText>
+            @if (CurrentSystemNode != null && CurrentSystemNode.Statics != null)
+            {
                 @foreach (var item in CurrentSystemNode.Statics)
                 {
-                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="1">
                         <MudText Typo="Typo.body2" Class="d-inline-flex ml-1">@item.WHName</MudText>
                         <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.EveSystemDestinationType)}; font-weight:bold;")">@item.EveSystemDestinationType.ToString()</MudText>
                     </MudStack>
                 }
-            </MudStack>
-        }
-
+            }
+        </MudStack>
     </MudStack>
+    <WHMapper.Pages.Mapper.Notes.Overview CurrentSystemNode="@CurrentSystemNode"/>
 </MudPaper>

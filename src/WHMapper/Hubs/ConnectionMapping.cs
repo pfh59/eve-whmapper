@@ -1,6 +1,6 @@
 ﻿namespace WHMapper.Hubs;
 
-public class ConnectionMapping<T> 
+public class ConnectionMapping<T> where T : notnull
 {
     private readonly Dictionary<T, HashSet<string>> _connections = new Dictionary<T, HashSet<string>>();
 
@@ -16,7 +16,7 @@ public class ConnectionMapping<T>
     {
         lock (_connections)
         {
-            HashSet<string> connections;
+            HashSet<string>? connections=null;
             if (!_connections.TryGetValue(key, out connections))
             {
                 connections = new HashSet<string>();
@@ -32,7 +32,7 @@ public class ConnectionMapping<T>
 
     public IEnumerable<string> GetConnections(T key)
     {
-        HashSet<string> connections;
+        HashSet<string>? connections=null;
         if (_connections.TryGetValue(key, out connections))
         {
             return connections;
@@ -45,7 +45,7 @@ public class ConnectionMapping<T>
     {
         lock (_connections)
         {
-            HashSet<string> connections;
+            HashSet<string>? connections=null;
             if (!_connections.TryGetValue(key, out connections))
             {
                 return;

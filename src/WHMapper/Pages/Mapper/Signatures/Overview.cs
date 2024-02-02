@@ -71,6 +71,8 @@ namespace WHMapper.Pages.Mapper.Signatures
         private CancellationTokenSource? _cts;
         private DateTime _currentDateTime;
 
+        private MudTable<WHSignature> _signatureTable { get; set; }
+
 
 
         protected override async Task OnParametersSetAsync()
@@ -187,6 +189,10 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         public async Task Restore()
         {
+            if(_signatureTable is not null)
+                _signatureTable.SetEditingItem(null);
+
+
             if (DbWHSignatures!=null && CurrentSystemNodeId != null && CurrentSystemNodeId > 0)
             {
                 var sigs = await DbWHSignatures.GetByWHId(CurrentSystemNodeId.Value);

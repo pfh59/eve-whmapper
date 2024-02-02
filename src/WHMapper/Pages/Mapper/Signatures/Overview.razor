@@ -1,19 +1,18 @@
 @using WHMapper.Models.DTO.EveMapper;
 @using WHMapper.Models.DTO.EveMapper.Enums
 
-
-<MudTable Class="@(CurrentSystemNodeId == null ? "invisible ma-2" : "visible ma-2")" Outlined="true" Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Height="30vh" style="width: 100%;" Virtualize="true" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
+<MudPaper hidden="@(CurrentSystemNodeId == null)"Outlined="true">
+<MudTable @ref="_signatureTable" Outlined="true" Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By"  Virtualize="true" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
           CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
           RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true">
-
     <ColGroup>
-        <col style="width: 120px;" />
-        <col style="width: 140px;" />
         <col />
+        <col style="width: 150px;"/>
+        <col style="width: 165px;"/>
+        <col style="width: 170px;"/>
+        <col style="width: 150px;"/>
         <col />
-        <col style="width: 120px;" />
-        <col />
-        <col style="width: 120px;" />
+        <col style="width: 150px;"/>
         <col />
     </ColGroup>
     <HeaderContent>
@@ -24,9 +23,11 @@
         <MudTh Style="text-align:center">Created by</MudTh>
         <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Updated)">Updated</MudTableSortLabel></MudTh>
         <MudTh Style="text-align:center">Updated by</MudTh>
-        <MudTh Style="text-align:right">
-            <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true)" />
-            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllSignature())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true || Signatures==null || Signatures.Count()==0)"></MudIconButton>
+        <MudTh>
+            <MudStack Row="true">
+                <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true)" />
+                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllSignature())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true || Signatures==null || Signatures.Count()==0)"></MudIconButton>
+            </MudStack>
         </MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -42,9 +43,9 @@
             <MudTd DataLabel="Type" Style="text-align:left">@context.Type</MudTd>
         }
         <MudTd DataLabel="Created" Style="text-align:center">@(DateDiff(_currentDateTime,context.Created))</MudTd>
-        <MudTd DataLabel="Created by">@context.CreatedBy</MudTd>
+        <MudTd DataLabel="Created by" HideSmall="true">@context.CreatedBy</MudTd>
         <MudTd DataLabel="Updated" Style="text-align:center">@(DateDiff(_currentDateTime,context.Updated))</MudTd>
-        <MudTd DataLabel="Updated by">@context.UpdatedBy</MudTd>
+        <MudTd DataLabel="Updated by" HideSmall="true">@context.UpdatedBy</MudTd>
         <MudTd Style="text-align:center">
             <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteSignature(@context.Id))" Disabled="@(_isEditingSignature==true)" />
         </MudTd>
@@ -52,7 +53,7 @@
     <RowEditingTemplate>
         <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
         <MudTd DataLabel="Group" Style="text-align:left">
-            <MudSelect @bind-Value="@context.Group" Required="true">
+            <MudSelect @bind-Value="@context.Group" Dense="true" Margin="Margin.Dense" Required="true">
                 @foreach (WHMapper.Models.Db.Enums.WHSignatureGroup item in Enum.GetValues(typeof(WHMapper.Models.Db.Enums.WHSignatureGroup)))
                 {
                     <MudSelectItem Value="@item" Style="text-align:left">@GetDisplayText(item)</MudSelectItem>
@@ -63,7 +64,7 @@
         <MudTd DataLabel="Type" Style="text-align:left">
             @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole)
             {
-                <MudSelect @bind-Value="@context.Type" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense">
+                <MudSelect @bind-Value="@context.Type" AnchorOrigin="Origin.BottomCenter" Dense="true" Margin="Margin.Dense">
                     @foreach (WormholeType wti in EveMapperHelperServices.WormholeTypes)
                     {
                         <MudSelectItem Value="@wti.ToString()" Style="@($"color:{WHColorHelper.GetSystemTypeColor(wti.Destination)}; text-align:left")">@wti.ToString()</MudSelectItem>
@@ -81,4 +82,5 @@
         <MudTd DataLabel="Updated by" Style="text-align:center">@context.UpdatedBy</MudTd>
     </RowEditingTemplate>
 </MudTable>
+</MudPaper>
 
