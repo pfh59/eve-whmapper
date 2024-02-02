@@ -69,7 +69,7 @@ namespace WHMapper.Hubs
             string userName = CurrentUser();
             if (_connectedUserPosition.ContainsKey(userName))
             {
-                string res = string.Empty;
+                string? res = string.Empty;
                 while (!_connectedUserPosition.TryGetValue(userName, out res))
                     await Task.Delay(1);
 

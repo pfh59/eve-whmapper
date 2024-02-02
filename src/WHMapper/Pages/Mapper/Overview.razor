@@ -9,9 +9,11 @@
 @using Blazor.Diagrams.Components.Widgets; 
 
 
-<MudStack Class="@(_loading ? "invisible" : "visible ma-2")">
-    <MudPaper Outlined="true" Square="true" Height="60vh" MinHeight="60vh">
-        <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" style="height: 100%; width: 100%;">
+
+<MudPaper class="d-flex flex-column flex-grow-1 gap-2" Width="100%" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" hidden="@(_loading)">
+    <MudPaper Class="flex-1 d-flex pa-1" Width="100%" Outlined="true" Square="true">
+        <!-- map zone-->
+        <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" class="mud-height-full mud-width-full">
             <ActivatorContent>
                 @if (!FeatureFlag.DISABLE_MULTI_MAP())
                 {
@@ -41,7 +43,7 @@
                 }
                 else
                 {
-                    <div style="width: 100%; height: 100%" Class="Rounded">
+                    <div Class="mud-height-full mud-width-full Rounded">
                         <CascadingValue Value="_blazorDiagram">
                             <DiagramCanvas></DiagramCanvas>
                         </CascadingValue>
@@ -82,17 +84,18 @@
             </ChildContent>
         </MudMenu>
     </MudPaper>
-    <MudPaper Elevation="0">
-        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Stretch">
-            <MudStack>
-                <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
-                <WHMapper.Pages.Mapper.Notes.Overview CurrentSystemNode="@_selectedSystemNode"/>
-            </MudStack>
+    <!-- tools zone-->
+    <MudPaper Class="flex-none" Width="100%" Height="325px">
+        <MudStack Row="true" Justify="Justify.Center" class="mud-height-full mud-width-full">
+            <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
             <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
             <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="@_selectedSystemNode" CurrentLinks="@_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
         </MudStack>
     </MudPaper>
-</MudStack>
-<MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
-    <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
-</MudOverlay>
+</MudPaper>
+@if(_loading)
+{
+    <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
+    </MudOverlay>
+}

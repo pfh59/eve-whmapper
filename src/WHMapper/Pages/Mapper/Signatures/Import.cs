@@ -87,9 +87,10 @@ namespace WHMapper.Pages.Mapper.Signatures
             }
         }
 
-        private async Task Cancel()
+        private Task Cancel()
         {
             MudDialog.Cancel();
+            return Task.CompletedTask;
         }
 
     }

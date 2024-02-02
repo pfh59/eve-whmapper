@@ -1435,7 +1435,6 @@ namespace WHMapper.Pages.Mapper
         }
 
         #region Menu Actions
-
         public async Task<bool> ToggleSlectedSystemLinkEOL()
         {
             try
@@ -1535,7 +1534,6 @@ namespace WHMapper.Pages.Mapper
             }
         }
        
-
         private async Task<bool> OpenSearchAndAddDialog(MouseEventArgs args)
         {
             DialogOptions disableBackdropClick = new DialogOptions()

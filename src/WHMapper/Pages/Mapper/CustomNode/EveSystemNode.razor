@@ -26,7 +26,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.Square" DisableElevation="true" Style="@($"color:{_whEffectColor};")" Size="Size.Small" />
                             </ChildContent>
                             <TooltipContent>
-                                <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
+                                <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
                                     @if (Node != null && Node.EffectDetails!=null)
                                     {
                                         foreach (var effectInfo in Node.EffectDetails)
@@ -50,7 +50,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Default Size="Size.Small" />
                             </ChildContent>
                             <TooltipContent>
-                                <MudPaper Class="d-flex flex-column flex-grow-1 gap-1" Elevation="0">
+                                <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
                                     @foreach (var user in @Node.ConnectedUsers)
                                     {
                                         <MudText class="ml-1 mr-1" Typo="Typo.caption">@user</MudText>

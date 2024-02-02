@@ -7,9 +7,10 @@ public class PasteServices : IPasteServices
 {
     public event Func<string?, Task> Pasted;
 
-    public async Task Paste(string? value)
+    public Task Paste(string? value)
     {
         Pasted?.Invoke(value);
+        return Task.CompletedTask;
     }
 }
 

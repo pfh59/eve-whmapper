@@ -13,13 +13,13 @@ namespace WHMapper.Models.Db
         public int SoloarSystemId { get; set; } = -1;
 
         [Required, StringLength(255, ErrorMessage = "Comment is too long.")]
-        public String Comment { get; set; }
+        public String Comment { get; set; } = string.Empty;
 
         public WHSystemStatusEnum SystemStatus { get; set; } = WHSystemStatusEnum.Unknown;
 
         public WHNote()
 		{
-
+            
         }
 
         public WHNote(int soloarSystemId,string comment) 
