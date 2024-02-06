@@ -18,7 +18,7 @@ namespace WHMapper.Models.Db
 
         [Required]
         [StringLength(7, ErrorMessage = "Bad Signature Format")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
 
         private WHSignatureGroup _sigGroup = WHSignatureGroup.Unknow;

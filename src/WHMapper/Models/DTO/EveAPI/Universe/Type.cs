@@ -10,13 +10,13 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
 
         [JsonInclude]
         [JsonPropertyName("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [JsonPropertyName("dogma_attributes")]
-        public Attribute[] DogmaAttributes { get; set; }
+        public Attribute[] DogmaAttributes { get; set; } =null!;
 
         [JsonPropertyName("dogma_effects")]
-        public Effect[] DogmaEffects { get; set; }
+        public Effect[] DogmaEffects { get; set; } = null!;
 
         [JsonPropertyName("graphic_id")]
         public int GraphicId { get; set; }
@@ -36,7 +36,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
 
         [JsonInclude]
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [JsonPropertyName("packaged_volume")]
         public float PackagedVolume { get; set; }

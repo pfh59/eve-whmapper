@@ -18,27 +18,25 @@ namespace WHMapper.Pages
             _logger = logger;
         }
 
-
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> OnGetAsync(string redirectUri)
+        public IActionResult OnGet(string redirectUri)
         {
             // Request a redirect to the external login provider.
             var authenticationProperties = new AuthenticationProperties
             {
-                RedirectUri = Url.Page("./Login", 
-                pageHandler: "Callback", 
+                RedirectUri = Url.Page("./Login",
+                pageHandler: "Callback",
                 values: new { redirectUri }),
             };
 
             return new ChallengeResult(EVEOnlineAuthenticationDefaults.AuthenticationScheme, authenticationProperties);
         }
 
-        public async Task<IActionResult> OnGetCallbackAsync(
-            string returnUrl = null, string remoteError = null)
+        public IActionResult OnGetCallback(
+            string returnUrl = null!, string remoteError = null!)
         {
             // Get the information about the user from the external login provider
             var EveUser = this.User.Identities.FirstOrDefault();
-            if (EveUser!=null && EveUser.IsAuthenticated)
+            if (EveUser != null && EveUser.IsAuthenticated)
             {
                 _logger.LogInformation("User authenticated");
 
@@ -47,6 +45,6 @@ namespace WHMapper.Pages
             return LocalRedirect("/");
         }
 
-    
+
     }
 }

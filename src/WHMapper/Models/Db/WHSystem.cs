@@ -17,7 +17,7 @@ namespace WHMapper.Models.Db
         public int SoloarSystemId { get; set; } = -1;
 
         [Required , StringLength(255, ErrorMessage = "Map name is too long.")]
-        public String Name { get; set; }
+        public String Name { get; set; } = string.Empty;
 
         public byte NameExtension { get; set; }
 

@@ -24,7 +24,7 @@ public interface IEveMapperRoutePlannerHelper
     /// <returns></returns>
     Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId,RouteType routeType,IEnumerable<RouteConnection>? extraConnections);
     
-    Task<WHRoute> AddRoute(int soloarSystemId,bool global);
+    Task<WHRoute?> AddRoute(int soloarSystemId,bool global);
    
     Task<bool> DeleteRoute(int routeId);
 }

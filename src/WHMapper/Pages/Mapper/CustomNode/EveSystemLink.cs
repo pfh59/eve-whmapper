@@ -20,22 +20,19 @@ namespace WHMapper.Pages.Mapper.CustomNode
         [Inject]
         public IWHColorHelper? WHColorHelper { get; set; }
 
-        private EveSystemLinkModel _link;
+
         [Parameter]
-        public EveSystemLinkModel Link
+        public EveSystemLinkModel Link {get;set;}=null!;
+
+
+        protected override Task OnParametersSetAsync()
         {
-            get
+            if (Link != null)
             {
-                return _link;
+                _eolColor = WHColorHelper?.GetLinkEOLColor();
             }
-            set
-            {
-                _link = value;
-                if (_link != null)
-                {
-                    _eolColor = WHColorHelper?.GetLinkEOLColor();
-                }
-            }
+
+            return base.OnParametersSetAsync();
         }
     }
 }

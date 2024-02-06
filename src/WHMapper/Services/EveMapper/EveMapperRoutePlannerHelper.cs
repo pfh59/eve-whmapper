@@ -20,7 +20,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
 
     private readonly ISDEServices _sdeServices;
-    private IEnumerable<SolarSystemJump> _solarSystemJumpConnections;
+    private IEnumerable<SolarSystemJump> _solarSystemJumpConnections =null!;
 
     public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEServices sdeServices)
     {
@@ -108,7 +108,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
                 }
                 else
                 {
-                    if(solarSystem.JumpList?.FirstOrDefault(x=>x.SolarSystemId==toSolarSystemId)==null)
+                    if(solarSystem.JumpList!=null && solarSystem.JumpList?.FirstOrDefault(x=>x.SolarSystemId==toSolarSystemId)==null)
                     {
                         solarSystem.JumpList=solarSystem.JumpList.Append(new SolarSystem(extraConnection.ToSolarSystemId,extraConnection.ToSecurity));
                     }
@@ -240,7 +240,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     }
 
 
-    public async Task<WHRoute> AddRoute(int soloarSystemId,bool global)
+    public async Task<WHRoute?> AddRoute(int soloarSystemId,bool global)
     {
         WHRoute? route = null;
                 

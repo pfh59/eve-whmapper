@@ -98,7 +98,14 @@ namespace WHMapper.Pages.Mapper
                     }
 
 
-                    var sdeSolarSystem = EveMapperSearch.Systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
+                    SDESolarSystem? sdeSolarSystem = null;
+                    if(EveMapperSearch!=null && EveMapperSearch.Systems!=null)
+                    {
+                        var sdeSolarSystems = EveMapperSearch.Systems.Where(x => x.Name.ToLower() == _searchResult.ToLower());
+                        sdeSolarSystem = sdeSolarSystems.FirstOrDefault();
+                    }
+                    
+                    
                
                     if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem?.SolarSystemID).FirstOrDefault()!=null)
                     {

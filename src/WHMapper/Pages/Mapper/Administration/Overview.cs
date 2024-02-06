@@ -266,7 +266,7 @@ namespace WHMapper.Pages.Mapper.Administration
                     if(await DbWHAccesses.Create(_searchResultAccess) !=null)
                     {
                         await Restore();
-                        _searchResultAccess = null;
+                        _searchResultAccess = null!;
                     }
                     else
                     {
@@ -299,7 +299,7 @@ namespace WHMapper.Pages.Mapper.Administration
                     if (await DbWHAdmin.Create(_searchResultAdmin) != null)
                     {
                         await Restore();
-                        _searchResultAdmin = null;
+                        _searchResultAdmin = null!;
                     }
                     else
                     {
@@ -330,7 +330,7 @@ namespace WHMapper.Pages.Mapper.Administration
             var dialog = DialogService.Show<Delete>("Delete WHMapper Access", parameters, options);
             DialogResult result = await dialog.Result;
 
-            if (result!=null && !result.Canceled != null)
+            if (result!=null && !result.Canceled)
                 await Restore();
         }
 
@@ -345,7 +345,7 @@ namespace WHMapper.Pages.Mapper.Administration
             var dialog = DialogService.Show<Delete>("Delete WHMapper Admin", parameters, options);
             DialogResult result = await dialog.Result;
 
-            if (result != null && !result.Canceled != null)
+            if (result != null && !result.Canceled)
                 await Restore();
         }
     }

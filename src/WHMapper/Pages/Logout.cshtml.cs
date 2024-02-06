@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
@@ -47,7 +46,6 @@ namespace WHMapper.Pages
         }
 
             
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnGetAsync()
         { 
             try
@@ -67,17 +65,26 @@ namespace WHMapper.Pages
         {
             try
             {
-                string accessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token");
-                string refreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token");
+                string? accessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token");
+                string? refreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token");
 
+                if(string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+                {
+                    throw new ArgumentException("No token found");
+                }
 
                 var body = $"token_type_hint=refresh_token&token={Uri.EscapeDataString(refreshToken)}";
 
                 HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
+                if(_httpClient == null)
+                {
+                    throw new ArgumentException("No http client found");
+                }
+
                 var response = await _httpClient.PostAsync(revokendpoint, postBody);
 
-                var content = await response.Content.ReadAsStringAsync();
+                string content = await response.Content.ReadAsStringAsync();
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {

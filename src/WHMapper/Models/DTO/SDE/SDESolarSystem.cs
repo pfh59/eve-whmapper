@@ -46,11 +46,11 @@ namespace WHMapper.Models.DTO.SDE
         public bool Regional { get; set; }*/
 
         //Only on WH
-        public SDESecondarySun SecondarySun { get; set; }
+        public SDESecondarySun SecondarySun { get; set; }= null!;
         
         public float Security { get; set; }
 
-        public string SecurityClass { get; set; }
+        public string SecurityClass { get; set; } = string.Empty;
 
         public int SolarSystemID { get;  set; }
 
@@ -61,7 +61,7 @@ namespace WHMapper.Models.DTO.SDE
         public object Star { get; set; }
         */
 
-        public ConcurrentDictionary<int, SDEStargate> Stargates { get; set; }
+        public ConcurrentDictionary<int, SDEStargate> Stargates { get; set; } = null!;
 
         public int SunTypeID { get; set; }
 
@@ -74,7 +74,7 @@ namespace WHMapper.Models.DTO.SDE
         public int WormholeClassID { get; set; }
         
         [YamlIgnore]
-        public string Name { get;  set; }
+        public string Name { get;  set; } = string.Empty;
 
         public SDESolarSystem() { }
         /*

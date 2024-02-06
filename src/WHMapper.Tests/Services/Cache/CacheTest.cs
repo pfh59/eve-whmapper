@@ -10,8 +10,8 @@ namespace WHMapper.Tests.Services;
 [Collection("C1-Services")]
 public class CacheTest
 {
-    private readonly ICacheService _services;
-
+    private readonly ICacheService? _services;
+    private readonly ICacheService? _badServices;
     public CacheTest()
     {
         var services = new ServiceCollection();
@@ -39,8 +39,10 @@ public class CacheTest
             {
                 _services = new CacheService(loggerCache,_distriCache);
                 Assert.NotNull(_services);
+                
+                _badServices = new CacheService(loggerCache,null!);
+                Assert.NotNull(_badServices);
             }
-
         }
     }
 
@@ -52,6 +54,8 @@ public class CacheTest
 
         var key2 = "test2";
         var value2 = "test2";
+
+        Assert.NotNull(_services);
 
         bool successSet = await _services.Set(key,value);
         Assert.True(successSet);
@@ -71,4 +75,33 @@ public class CacheTest
         bool successDel = await _services.Remove(key);
         Assert.True(successDel);
     }
+
+    [Fact]
+    public async Task Set_Get_Remove_With_Bad_Config()
+    {
+        
+
+        var key = "test";
+        var value = "test";
+
+        var key2 = "test2";
+        var value2 = "test2";
+
+        Assert.NotNull(_badServices);
+        bool badSet = await _badServices.Set(key,value);
+        Assert.False(badSet);
+
+        var result = await _badServices.Get<string>(key);
+        Assert.Null(result);
+
+        bool badSetTimed = await _badServices.Set(key2,value2,TimeSpan.FromSeconds(5));
+        Assert.False(badSetTimed);
+
+        var result2 = await _badServices.Get<string>(key2);
+        Assert.Null(result2);
+
+        bool badDel = await _badServices.Remove(key);
+        Assert.False(badDel);
+    }
+
 }

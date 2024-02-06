@@ -35,20 +35,19 @@ namespace WHMapper.Models.DTO.EveMapper.Enums
         public static string ToDescriptionString(this EveSystemType This)
         {
             Type type = This.GetType();
+            
+            string? name = Enum.GetName(type, This);
+            if (name == null)
+                return string.Empty;
+            else
+            {
+                var members=type.GetMembers();
+                MemberInfo member = members.Where(w => w.Name == name).FirstOrDefault();
 
-            string name = Enum.GetName(type, This);
+                DescriptionAttribute attribute = member != null ? member.GetCustomAttributes(true).Where(w => w.GetType() == typeof(DescriptionAttribute)).FirstOrDefault() as DescriptionAttribute : null;
 
-            MemberInfo member = type.GetMembers()
-                .Where(w => w.Name == name)
-                .FirstOrDefault();
-
-            DescriptionAttribute attribute = member != null
-                ? member.GetCustomAttributes(true)
-                    .Where(w => w.GetType() == typeof(DescriptionAttribute))
-                    .FirstOrDefault() as DescriptionAttribute
-                : null;
-
-            return attribute != null ? attribute.Description : name;
+                return attribute != null ? attribute.Description : name;
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
     public class Star
     {
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [JsonPropertyName("solar_system_id")]
         public int SolarSystemId { get; set; }
@@ -23,7 +23,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
         public long Radius { get; set; }
 
         [JsonPropertyName("spectral_class")]
-        public string SpectralClass { get; set; }
+        public string SpectralClass { get; set; } = string.Empty;
 
         [JsonPropertyName("temperature")]
         public int Temperature { get; set; }

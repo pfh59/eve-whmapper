@@ -506,18 +506,31 @@ namespace WHMapper.Services.EveMapper
 
         private WHEffect GetWHEffectValueDescription(string description)
         {
+            object? res = null;
             foreach (var field in typeof(WHEffect).GetFields())
             {
-                if (System.Attribute.GetCustomAttribute(field,
-                typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
+                if (System.Attribute.GetCustomAttribute(field,typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
                 {
                     if (attribute.Description == description)
-                        return (WHEffect)field.GetValue(null);
+                    {
+                        res = field.GetValue(null);
+                        if(res is WHEffect)
+                            return (WHEffect)res;
+                        else
+                            return WHEffect.None;
+                    }
+
                 }
                 else
                 {
                     if (field.Name == description)
-                        return (WHEffect)field.GetValue(null);
+                    {
+                        res = field.GetValue(null);
+                        if(res is WHEffect)
+                            return (WHEffect)res;
+                        else
+                            return WHEffect.None;
+                    }
                 }
             }
 
@@ -554,55 +567,55 @@ namespace WHMapper.Services.EveMapper
             //return EveSystemType.None;
         }
 
-        public async Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float SecurityStatus)
+        public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float SecurityStatus)
         {
             if(IsWorhmole(systemName))
             {
                 switch (regionName.First())
                 {
                     case 'A':
-                        return EveSystemType.C1;
+                        return Task.FromResult(EveSystemType.C1);
                     case 'B':
-                        return EveSystemType.C2;
+                        return Task.FromResult(EveSystemType.C2);
                     case 'C':
-                        return EveSystemType.C3;
+                        return Task.FromResult(EveSystemType.C3);
                     case 'D':
-                        return EveSystemType.C4;
+                        return Task.FromResult(EveSystemType.C4);
                     case 'E':
-                        return EveSystemType.C5;
+                        return Task.FromResult(EveSystemType.C5);
                     case 'F':
-                        return EveSystemType.C6;
+                        return Task.FromResult(EveSystemType.C6);
                     case 'G':
-                        return EveSystemType.Thera;
+                        return Task.FromResult(EveSystemType.Thera);
                     case 'H':
-                        return EveSystemType.C13;
+                        return Task.FromResult(EveSystemType.C13);
                     case 'K':
                         if (systemName == C14_NAME)
-                            return EveSystemType.C14;
+                            return Task.FromResult(EveSystemType.C14);
                         else if (systemName == C15_NAME)
-                            return EveSystemType.C15;
+                            return Task.FromResult(EveSystemType.C15);
                         else if (systemName == C16_NAME)
-                            return EveSystemType.C16;
+                            return Task.FromResult(EveSystemType.C16);
                         else if (systemName == C17_NAME)
-                            return EveSystemType.C17;
+                            return Task.FromResult(EveSystemType.C17);
                         else if (systemName == C18_NAME)
-                            return EveSystemType.C18;
+                            return Task.FromResult(EveSystemType.C18);
                         else
-                            return EveSystemType.None;
+                            return Task.FromResult(EveSystemType.None);
                     default:
-                        return EveSystemType.None;
+                        return Task.FromResult(EveSystemType.None);
                 }
             }
             else if (regionName == REGION_POCHVVEN_NAME)//trig system
-                return EveSystemType.Pochven;
+                return Task.FromResult(EveSystemType.Pochven);
             else
             {
                 if (SecurityStatus >= 0.5)
-                    return EveSystemType.HS;
+                    return Task.FromResult(EveSystemType.HS);
                 else if (SecurityStatus < 0.5 && SecurityStatus > 0)
-                    return EveSystemType.LS;
+                    return Task.FromResult(EveSystemType.LS);
                 else
-                    return EveSystemType.NS;
+                    return Task.FromResult(EveSystemType.NS);
             }
         }
 

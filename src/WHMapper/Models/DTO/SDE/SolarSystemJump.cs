@@ -3,8 +3,8 @@
 
 public class SolarSystemJump
 {
-    public SolarSystem System { get;  set; }
-    public  IEnumerable<SolarSystem> JumpList { get;  set; }
+    public SolarSystem System { get;  set; } = null!;
+    public  IEnumerable<SolarSystem> JumpList { get;  set; } = null!;
 
     public SolarSystemJump()
     {

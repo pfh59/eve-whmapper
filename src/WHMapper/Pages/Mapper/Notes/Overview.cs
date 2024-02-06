@@ -67,7 +67,7 @@ namespace WHMapper.Pages.Mapper.Notes
             }
         }
 
-        private async Task OnNoteChanged()
+        private Task OnNoteChanged()
         {
             if (_timer == null)
             {
@@ -75,6 +75,7 @@ namespace WHMapper.Pages.Mapper.Notes
                 _cts = new CancellationTokenSource();
                 Task.Run(() => HandleTimerAsync());
             }
+            return Task.CompletedTask;
         }
 
         private async Task HandleTimerAsync()
@@ -136,7 +137,7 @@ namespace WHMapper.Pages.Mapper.Notes
                                     }
                                     catch(Exception autoSaveEx)
                                     {
-                                        Logger.LogError(MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_ERROR, autoSaveEx);
+                                        Logger.LogError(autoSaveEx,MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_ERROR);
                                         Snackbar.Add(MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_ERROR, Severity.Error);
                                     }
                                 }
@@ -156,7 +157,7 @@ namespace WHMapper.Pages.Mapper.Notes
                                     }
                                     catch (Exception exAutoSave)
                                     {
-                                        Logger.LogError(MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_ERROR, exAutoSave);
+                                        Logger.LogError(exAutoSave,MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_ERROR);
                                         Snackbar.Add(MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_ERROR, Severity.Error);
                                     }
                                 }

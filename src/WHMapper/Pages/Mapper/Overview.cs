@@ -79,7 +79,7 @@ namespace WHMapper.Pages.Mapper
         public NavigationManager Navigation { get; set; } = null!;
 
         [Inject]
-        public ILogger<EveAPIServices> Logger { get; set; } = null!;
+        public ILogger<Overview> Logger { get; set; } = null!;
 
         [Inject]
         private IDialogService DialogService { get; set; } = null!;
@@ -594,7 +594,7 @@ namespace WHMapper.Pages.Mapper
 
         #endregion
 
-        private async Task<bool> InitDiagram()
+        private Task<bool> InitDiagram()
         {
             try
             {
@@ -619,12 +619,12 @@ namespace WHMapper.Pages.Mapper
                     _blazorDiagram.RegisterComponent<EveSystemLinkModel, EveSystemLink>();
                 }
 
-                return true;
+                return Task.FromResult(true);
             }            
             catch(Exception ex)
             {
                 Logger.LogError(ex, "Init Diagram Error");
-                return false;
+                return Task.FromResult(false);
             }
         }
 
@@ -1552,7 +1552,7 @@ namespace WHMapper.Pages.Mapper
             var dialog = DialogService.Show<Add>("Search and Add System Dialog", parameters, disableBackdropClick);
             DialogResult result = await dialog.Result;
 
-            if (!result.Cancelled)
+            if (!result.Canceled && result.Data != null)
             {
                 int whAddedId = (int)result.Data;
                 if (whAddedId > 0)
@@ -1569,9 +1569,9 @@ namespace WHMapper.Pages.Mapper
         #region Tabs Actions
 
         [Authorize(Policy = "Access")]
-        private async Task AddNewMap()
+        private Task AddNewMap()
         {
-
+            return Task.CompletedTask;
         }
         #endregion
 #endif

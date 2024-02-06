@@ -228,7 +228,7 @@ namespace WHMapper.Services.SDE
                     //after all sde system loading build SolarSystemJumps
                     Parallel.ForEach(SDESystems, _options, async (system, token) =>
                     {
-                        SolarSystemJump solarSystemJump = null;
+                        SolarSystemJump? solarSystemJump = null;
                         if(system.Stargates==null || system.Stargates.Count==0)
                             solarSystemJump = new SolarSystemJump(system.SolarSystemID,system.Security);
                         else
