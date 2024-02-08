@@ -108,7 +108,7 @@ namespace WHMapper.Pages.Mapper.Notes
                                 }
                                 catch(Exception autoDelNote)
                                 {
-                                    Logger.LogError(MSG_SOLAR_SYSTEM_COMMENT_AUTODEL_ERROR, autoDelNote);
+                                    Logger.LogError(autoDelNote,MSG_SOLAR_SYSTEM_COMMENT_AUTODEL_ERROR);
                                     Snackbar.Add(MSG_SOLAR_SYSTEM_COMMENT_AUTODEL_ERROR, Severity.Error);
                                 }
                             }
@@ -145,10 +145,18 @@ namespace WHMapper.Pages.Mapper.Notes
                                 {
                                     try
                                     {
-                                        _note.Comment = _solarSystemComment;
-                                        _note = await DbWHNotes.Update(_note.Id, _note);
-                                        if (_note != null)
-                                            Snackbar.Add(MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_SUCCESS, Severity.Success);
+                                        if(_note!=null)
+                                        {
+                                            _note.Comment = _solarSystemComment;
+                                            _note = await DbWHNotes.Update(_note.Id, _note);
+                                            if (_note != null)
+                                                Snackbar.Add(MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_SUCCESS, Severity.Success);
+                                            else
+                                            {
+                                                Logger.LogError(MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_ERROR);
+                                                Snackbar.Add(MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_ERROR, Severity.Error);
+                                            }
+                                        }
                                         else
                                         {
                                             Logger.LogError(MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_ERROR);
@@ -176,7 +184,7 @@ namespace WHMapper.Pages.Mapper.Notes
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(MSG_AUTOSAVE_OR_UPDATE_ERROR, ex);
+                    Logger.LogError(ex,MSG_AUTOSAVE_OR_UPDATE_ERROR);
                 }
                 finally
                 {

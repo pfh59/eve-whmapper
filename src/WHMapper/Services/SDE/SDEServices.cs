@@ -214,7 +214,8 @@ namespace WHMapper.Services.SDE
                                 .IgnoreUnmatchedProperties()
                                 .Build(); 
                             SDESolarSystem solarSystem = deserializer.Deserialize<SDESolarSystem>(text_reader);
-                            solarSystem.Name = Path.GetFileName(Path.GetDirectoryName(directoryPath));
+                            var systemName = Path.GetFileName(Path.GetDirectoryName(directoryPath));
+                            solarSystem.Name = (string.IsNullOrEmpty(systemName)) ? "Unknown" : systemName;
                             
                             while(!SDESystems.TryAdd(solarSystem))
                                 await Task.Delay(1);   

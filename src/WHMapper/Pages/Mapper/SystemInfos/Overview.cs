@@ -51,7 +51,7 @@ namespace WHMapper.Pages.Mapper.SystemInfos
         public EveSystemNodeModel CurrentSystemNode { get; set; } = null!;
 
 
-        protected async override Task OnParametersSetAsync()
+        protected override Task OnParametersSetAsync()
         {
 
             if (CurrentSystemNode != null)
@@ -83,6 +83,7 @@ namespace WHMapper.Pages.Mapper.SystemInfos
                 else
                     _effect = GetWHEffectValueAsString(CurrentSystemNode.Effect);
             }
+            return base.OnParametersSetAsync();
         }
 
         private string GetWHEffectValueAsString(WHEffect effect)
@@ -92,7 +93,8 @@ namespace WHMapper.Pages.Mapper.SystemInfos
 
             if (customAttributes != null && customAttributes.Length > 0)
             {
-                return (customAttributes[0] as DescriptionAttribute).Description;
+                var descriptionAttr = customAttributes[0] as DescriptionAttribute;
+                return ((descriptionAttr==null) ? string.Empty : descriptionAttr.Description);
             }
             else
             {

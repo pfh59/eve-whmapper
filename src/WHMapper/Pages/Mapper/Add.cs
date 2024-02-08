@@ -27,7 +27,7 @@ using static MudBlazor.Colors;
 namespace WHMapper.Pages.Mapper
 {
     [Authorize(Policy = "Access")]
-    public partial class Add : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class Add :ComponentBase
     {
         private const string MSG_SEARCH_ERROR = "Search System Error";
         private const string MSG_BAD_SOLAR_SYSTEM_NAME_ERROR = "Bad solar system name";
@@ -93,6 +93,7 @@ namespace WHMapper.Pages.Mapper
                     
                     if (CurrentWHMap == null || CurrentDiagram==null)//add log and message
                     {
+                        Logger.LogError("CurrentWHMap or CurrentDiagram is null");
                         Snackbar?.Add("CurrentWHMap or CurrentDiagram is null", Severity.Error);
                         MudDialog.Close(DialogResult.Cancel);
                     }
@@ -104,34 +105,49 @@ namespace WHMapper.Pages.Mapper
                         var sdeSolarSystems = EveMapperSearch.Systems.Where(x => x.Name.ToLower() == _searchResult.ToLower());
                         sdeSolarSystem = sdeSolarSystems.FirstOrDefault();
                     }
-                    
-                    
+
+                    if(sdeSolarSystem==null)
+                    {
+                        Logger.LogError("Solar System not found");
+                        Snackbar?.Add("Solar System not found", Severity.Error);
+                        MudDialog.Close(DialogResult.Ok(0));
+                    }
+
+                                    
                
                     if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem?.SolarSystemID).FirstOrDefault()!=null)
                     {
                         Snackbar?.Add("Solar System is already added", Severity.Normal);
-                        MudDialog.Close(DialogResult.Ok(0));
+                        MudDialog.Close(DialogResult.Cancel);
                     }
 
-                    var solarSystem = await EveServices.UniverseServices.GetSystem(sdeSolarSystem.SolarSystemID);
-                    var newWHSystem = await DbWHSystems.Create(new WHSystem(CurrentWHMap.Id,solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY)); //change position
+                    int solarSystemId = ((sdeSolarSystem==null) ? -1 : sdeSolarSystem.SolarSystemID);
+                    int currentMapId = ((CurrentWHMap == null) ? -1 : CurrentWHMap.Id);
+                    var solarSystem = await EveServices.UniverseServices.GetSystem(solarSystemId);
+                    WHSystem? newWHSystem=null!;
+                    if (solarSystem == null)
+                    {
+                        Logger.LogError("Solar System not found");
+                        Snackbar?.Add("Solar System not found", Severity.Error);
+                        MudDialog.Close(DialogResult.Cancel);
+                    }
+                    else
+                        newWHSystem = await DbWHSystems.Create(new WHSystem(currentMapId,solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY)); //change position
 
 
                     if (newWHSystem == null)
                     {
                         Logger.LogError(MSG_ADD_WORHMOLE_DB_ERROR);
                         Snackbar?.Add(MSG_ADD_WORHMOLE_DB_ERROR, Severity.Error);
-                        return;
+                        MudDialog.Close(DialogResult.Cancel);
                     }
 
-
-                   
-                    var nodeModel = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
-                    CurrentWHMap.WHSystems.Add(newWHSystem);
+                    EveSystemNodeModel nodeModel = await MapperServices.DefineEveSystemNodeModel(newWHSystem!);
+                    CurrentWHMap?.WHSystems.Add(newWHSystem!);
                     CurrentDiagram?.Nodes.Add(nodeModel);
 
                     Snackbar?.Add(String.Format("{0} solar system successfully added",nodeModel.Name), Severity.Success);
-                    MudDialog.Close(DialogResult.Ok(newWHSystem.Id));
+                    MudDialog.Close(DialogResult.Ok(newWHSystem!.Id));
 
                 }
                 catch (Exception ex)

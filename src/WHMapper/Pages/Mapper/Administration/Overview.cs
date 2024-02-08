@@ -125,7 +125,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(allianceResults.Alliances.Take(20), _options, async (allianceId, token) =>
                         {
                             var alliance = await EveAPIServices.AllianceServices.GetAlliance(allianceId);
-                            _eveCharacterEntities.Add(new WHAccess(allianceId, alliance.Name, Models.Db.Enums.WHAccessEntity.Alliance));
+                            _eveCharacterEntities.Add(new WHAccess(allianceId, alliance!.Name, Models.Db.Enums.WHAccessEntity.Alliance));
                         });
 
                     }
@@ -135,7 +135,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(coorpoResults.Corporations.Take(20), _options, async (corpoId, token) =>
                         {
                             var corpo = await EveAPIServices.CorporationServices.GetCorporation(corpoId);
-                            _eveCharacterEntities.Add(new WHAccess(corpoId, corpo.Name, Models.Db.Enums.WHAccessEntity.Corporation));
+                            _eveCharacterEntities.Add(new WHAccess(corpoId, corpo!.Name, Models.Db.Enums.WHAccessEntity.Corporation));
                         });
                     }
 
@@ -144,7 +144,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(characterResults.Characters.Take(20), _options, async (characterId, token) =>
                         {
                             var character = await EveAPIServices.CharacterServices.GetCharacter(characterId);
-                            _eveCharacterEntities.Add(new WHAccess(characterId, character.Name, Models.Db.Enums.WHAccessEntity.Character));
+                            _eveCharacterEntities.Add(new WHAccess(characterId, character!.Name, Models.Db.Enums.WHAccessEntity.Character));
                         });
                     }
                 }
@@ -183,7 +183,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(characterResults.Characters.Take(20), _options, async (characterId, token) =>
                         {
                             var character = await EveAPIServices.CharacterServices.GetCharacter(characterId);
-                            _eveCharacters.Add(new WHAdmin(characterId, character.Name));
+                            _eveCharacters.Add(new WHAdmin(characterId, character!.Name));
                         });
                     }
                 }

@@ -7,10 +7,7 @@ namespace WHMapper.Services.EveOAuthProvider
 {
     public class EVEOnlinePostConfigureOptions : IPostConfigureOptions<EVEOnlineAuthenticationOptions>
     {
-        /// <inheritdoc />
-        public void PostConfigure(
-            [NotNull] string name,
-            [NotNull] EVEOnlineAuthenticationOptions options)
+        public void PostConfigure(string? name, EVEOnlineAuthenticationOptions options)
         {
             if (options.SecurityTokenHandler == null)
             {

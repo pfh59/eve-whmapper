@@ -70,8 +70,9 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         foreach (var whRoute in whRoutes)
         {
             var destSystemInfo = await _sdeServices.SearchSystemById(whRoute.SolarSystemId);
+            string destName = (destSystemInfo != null) ? destSystemInfo.Name : string.Empty; 
             var route = await CalculateRoute(fromSolarSystemId,whRoute.SolarSystemId,routeType,extraConnections);
-            routes.Add(new EveRoute(whRoute.Id,destSystemInfo?.Name,route));
+            routes.Add(new EveRoute(whRoute.Id,destName,route));
         }
         return routes;
     }
@@ -110,7 +111,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
                 {
                     if(solarSystem.JumpList!=null && solarSystem.JumpList?.FirstOrDefault(x=>x.SolarSystemId==toSolarSystemId)==null)
                     {
-                        solarSystem.JumpList=solarSystem.JumpList.Append(new SolarSystem(extraConnection.ToSolarSystemId,extraConnection.ToSecurity));
+                        solarSystem.JumpList=solarSystem!.JumpList!.Append(new SolarSystem(extraConnection.ToSolarSystemId,extraConnection.ToSecurity));
                     }
                 }
             }

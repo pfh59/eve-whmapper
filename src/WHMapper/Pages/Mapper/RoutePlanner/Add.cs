@@ -54,7 +54,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 await _semaphoreSlim.WaitAsync();
                 try
                 {
-                    var sdeSolarSystem = EveMapperSearch.Systems.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
+                    SDESolarSystem? sdeSolarSystem = EveMapperSearch?.Systems?.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
 
                     if (sdeSolarSystem == null)
                     {

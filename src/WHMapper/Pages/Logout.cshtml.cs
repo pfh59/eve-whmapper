@@ -77,19 +77,14 @@ namespace WHMapper.Pages
 
                 HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
-                if(_httpClient == null)
-                {
-                    throw new ArgumentException("No http client found");
-                }
-
-                var response = await _httpClient.PostAsync(revokendpoint, postBody);
+                var response = await _httpClient!.PostAsync(revokendpoint, postBody);
 
                 string content = await response.Content.ReadAsStringAsync();
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
 
-                    var error = JsonSerializerExtensions.DeserializeAnonymousType(content, new { error_description = string.Empty }).error_description;
+                    var error = JsonSerializerExtensions.DeserializeAnonymousType(content, new { error_description = string.Empty })?.error_description;
                     throw new ArgumentException(error);
                 }
             }

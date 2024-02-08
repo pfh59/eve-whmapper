@@ -152,7 +152,10 @@ namespace WHMapper.Pages.Mapper.Signatures
                 {
                     var da = (DisplayAttribute)System.Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
                     if (da != null)
-                        return da.ShortName ?? da.Name;
+                    {
+                         var res = da.ShortName ?? da.Name;
+                         return (res==null ? string.Empty : res);
+                    }
                 }
             }
 
@@ -204,19 +207,27 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async Task DeleteSignature(int id)
         {
-            var parameters = new DialogParameters();
-            parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
-            parameters.Add("SignatureId", id);
-
-            var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
-
-            var dialog = DialogService.Show<Delete>("Delete", parameters, options);
-            DialogResult result = await dialog.Result;
-
-            if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
+            if(CurrentSystemNodeId!=null)
             {
-                await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
-                await Restore();
+                var parameters = new DialogParameters();
+                parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
+                parameters.Add("SignatureId", id);
+
+                var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+                var dialog = DialogService.Show<Delete>("Delete", parameters, options);
+                DialogResult result = await dialog.Result;
+
+                if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
+                {
+                    await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                    await Restore();
+                }
+            }
+            else
+            {
+                Logger.LogError("No system selected");
+                Snackbar.Add("No system selected", Severity.Error);
             }
         }
 
@@ -228,6 +239,7 @@ namespace WHMapper.Pages.Mapper.Signatures
                 parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
             else
             {
+                Logger.LogError("No system selected");
                 Snackbar.Add("No system selected", Severity.Error);
                 return;
             }

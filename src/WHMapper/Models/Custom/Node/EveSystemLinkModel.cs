@@ -14,7 +14,7 @@ namespace WHMapper.Models.Custom.Node
     {
         private WHSystemLink _whLink;
 
-        public int Id
+        public new int Id
         {
             get
             {

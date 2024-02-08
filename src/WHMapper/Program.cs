@@ -49,9 +49,11 @@ namespace WHMapper
             builder.Services.AddDbContextFactory<WHMapperContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
 
-              builder.Services.AddDataProtection()
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection"));
+
+            builder.Services.AddDataProtection()
                 .SetApplicationName("WHMapper")
-                .PersistKeysToStackExchangeRedis(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection")), "DataProtection-Keys");
+                .PersistKeysToStackExchangeRedis(redis);
 
 
             builder.Services.AddStackExchangeRedisCache(option =>

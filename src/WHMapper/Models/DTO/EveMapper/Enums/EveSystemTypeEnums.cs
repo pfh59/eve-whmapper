@@ -42,11 +42,11 @@ namespace WHMapper.Models.DTO.EveMapper.Enums
             else
             {
                 var members=type.GetMembers();
-                MemberInfo member = members.Where(w => w.Name == name).FirstOrDefault();
+                MemberInfo? member = members.Where(w => w.Name == name).FirstOrDefault();
 
-                DescriptionAttribute attribute = member != null ? member.GetCustomAttributes(true).Where(w => w.GetType() == typeof(DescriptionAttribute)).FirstOrDefault() as DescriptionAttribute : null;
+                DescriptionAttribute? attribute = ((member != null) ? member.GetCustomAttributes(true).Where(w => w.GetType() == typeof(DescriptionAttribute)).FirstOrDefault() as DescriptionAttribute : null);
 
-                return attribute != null ? attribute.Description : name;
+                return ((attribute != null) ? attribute.Description : name);
             }
         }
     }
