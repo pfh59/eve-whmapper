@@ -103,19 +103,19 @@ public class PublicEveOnlineAPITest
     {
         Assert.NotNull(_eveUniverseApi);
         //getsystems
-        int[] systems = await _eveUniverseApi.GetSystems();
+        int[]? systems = await _eveUniverseApi.GetSystems();
         Assert.NotNull(systems);
         Assert.NotEmpty(systems);
         Assert.Contains(systems, item => SOLAR_SYSTEM_JITA_ID==item);
 
         //constellations
-        int[] constellations = await _eveUniverseApi.GetContellations();
+        int[]? constellations = await _eveUniverseApi.GetContellations();
         Assert.NotNull(constellations);
         Assert.NotEmpty(constellations);
         Assert.Contains(constellations, item => CONSTELLATION_ID == item);
 
         //regions
-        int[] regions = await _eveUniverseApi.GetRegions();
+        int[]? regions = await _eveUniverseApi.GetRegions();
         Assert.NotNull(regions);
         Assert.NotEmpty(regions);
         Assert.Contains(regions, item => REGION_ID == item);
@@ -164,7 +164,7 @@ public class PublicEveOnlineAPITest
     public async Task Get_Universe_Categories_And_Category()
     {
         Assert.NotNull(_eveUniverseApi);
-        int[] categories = await _eveUniverseApi.GetCategories();
+        int[]? categories = await _eveUniverseApi.GetCategories();
         Assert.NotNull(categories);
 
         //Test Celestial
@@ -179,7 +179,7 @@ public class PublicEveOnlineAPITest
     public async Task Get_Universe_Groups_And_Group()
     {
         Assert.NotNull(_eveUniverseApi);
-        int[] groups = await _eveUniverseApi.GetGroups();
+        int[]? groups = await _eveUniverseApi.GetGroups();
         Assert.NotNull(groups);
 
         //test sun
@@ -206,7 +206,7 @@ public class PublicEveOnlineAPITest
     public async Task Get_Universe_Types_And_Type()
     {
         Assert.NotNull(_eveUniverseApi);
-        int[] types = await _eveUniverseApi.GetTypes();
+        int[]? types = await _eveUniverseApi.GetTypes();
         Assert.NotNull(types);
 
         var res = await _eveUniverseApi.GetType(TYPE_F135_ID);
@@ -231,7 +231,7 @@ public class PublicEveOnlineAPITest
     public async Task Get_Alliances_And_Alliance()
     {
         Assert.NotNull(_eveAllianceApi);
-        int[] alliances = await _eveAllianceApi.GetAlliances();
+        int[]? alliances = await _eveAllianceApi.GetAlliances();
         Assert.NotNull(alliances);
         Assert.NotEmpty(alliances);
         Assert.Contains<int>(ALLIANCE_GOONS_ID, alliances);

@@ -116,7 +116,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.True(route_JITA_AHBAZON.IsAvailable);
         Assert.False(route_JITA_AHBAZON.IsShowed);
         Assert.NotNull(route_JITA_AHBAZON.Route);
-        Assert.Equal(5,route_JITA_AHBAZON.Route.Length);
+        Assert.Equal(5,route_JITA_AHBAZON.RouteLength);
 
         routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, new BlockingCollection<Models.DTO.RoutePlanner.RouteConnection> 
         {
@@ -130,7 +130,7 @@ public class EveWHMapperRoutePlannerHelperTest
         var route_WH_AHBAZON = routes.FirstOrDefault();
         Assert.NotNull(route_WH_AHBAZON);
         Assert.NotNull(route_WH_AHBAZON.Route);
-        Assert.Equal(2,route_WH_AHBAZON.Route.Length);
+        Assert.Equal(2,route_WH_AHBAZON.RouteLength);
 
         routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest,new BlockingCollection<Models.DTO.RoutePlanner.RouteConnection> 
         {
@@ -146,9 +146,9 @@ public class EveWHMapperRoutePlannerHelperTest
         var route_JITA_WH_AHBAZON = routes.FirstOrDefault();
         Assert.NotNull(route_JITA_WH_AHBAZON);
         Assert.NotNull(route_JITA_WH_AHBAZON.Route);
-        Assert.Equal(3,route_JITA_WH_AHBAZON.Route.Length);
+        Assert.Equal(3,route_JITA_WH_AHBAZON.RouteLength);
 
-        var result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result.Id);
+        var result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result!.Id);
         Assert.True(result2);
 
         result = await _eveMapperRoutePlannerHelper.AddRoute(SOLAR_SYSTEM_AMARR_ID,true);
@@ -161,9 +161,9 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.True(route_JITA_AMARR.IsAvailable);
         Assert.False(route_JITA_AMARR.IsShowed);
         Assert.NotNull(route_JITA_AMARR.Route);
-        Assert.Equal(46,route_JITA_AMARR.Route.Length);
+        Assert.Equal(46,route_JITA_AMARR.RouteLength);
 
-        result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result.Id);
+        result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result!.Id);
         Assert.True(result2);
     }   
 

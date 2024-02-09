@@ -36,12 +36,13 @@ public class SDEUniverseTest
     private const string SDE_CHECKSUM_FILE = @"./Resources/SDE/checksum";
     private const string SDE_CHECKSUM_CURRENT_FILE = @"./Resources/SDE/currentchecksum";
 
-    private readonly ISDEServices _services;
+    private readonly ISDEServices? _services = null!;
 
     public SDEUniverseTest()
     {
 
         var services = new ServiceCollection();
+        
 
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
@@ -72,6 +73,8 @@ public class SDEUniverseTest
     [Fact, Priority(1)]
     public async Task Is_New_SDE_Available()
     {
+        Assert.NotNull(_services);
+
         if (Directory.Exists(SDE_TARGET_DIRECTORY))
             Directory.Delete(SDE_TARGET_DIRECTORY,true);
 
@@ -99,6 +102,8 @@ public class SDEUniverseTest
     [Fact, Priority(2)]
     public async Task Download_And_Extrat_SDE()
     {
+        Assert.NotNull(_services);
+
         bool clearRessources = await _services.ClearSDERessources();
         Assert.True(clearRessources);
 
@@ -121,6 +126,8 @@ public class SDEUniverseTest
     [Fact, Priority(3)]
     public async Task Import_SDE_And_Get()
     {
+        Assert.NotNull(_services);
+
         bool clearRessources = await _services.ClearSDERessources();
         Assert.True(clearRessources);
 
@@ -160,6 +167,7 @@ public class SDEUniverseTest
     [Fact, Priority(4)]
     public async Task Search_System()
     {
+        Assert.NotNull(_services);
         //TEST empty
         var empty_result = await _services.SearchSystem("");
         Assert.Null(empty_result);
@@ -198,6 +206,7 @@ public class SDEUniverseTest
     [Fact, Priority(5)]
     public async Task Search_System_By_Id()
     {
+        Assert.NotNull(_services);
         //TEST bad value
         var bad_result = await _services.SearchSystemById(-1);
         Assert.Null(bad_result);

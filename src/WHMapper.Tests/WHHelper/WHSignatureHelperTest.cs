@@ -44,6 +44,7 @@ public class WHSignatureHelperTest
     public async Task Parse_Scan_Result_Test()
     {
         var emptyRes = await _whHelper.ParseScanResult(SCAN_USER, WH_ID,string.Empty);
+        Assert.NotNull(emptyRes);
         Assert.Empty(emptyRes);
 
         var parseDSCAN1= await _whHelper.ParseScanResult(SCAN_USER, WH_ID,DSCAN);
