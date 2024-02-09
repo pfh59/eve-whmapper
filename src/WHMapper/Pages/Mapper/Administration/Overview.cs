@@ -125,7 +125,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(allianceResults.Alliances.Take(20), _options, async (allianceId, token) =>
                         {
                             var alliance = await EveAPIServices.AllianceServices.GetAlliance(allianceId);
-                            _eveCharacterEntities.Add(new WHAccess(allianceId, alliance.Name, Models.Db.Enums.WHAccessEntity.Alliance));
+                            _eveCharacterEntities.Add(new WHAccess(allianceId, alliance!.Name, Models.Db.Enums.WHAccessEntity.Alliance));
                         });
 
                     }
@@ -135,7 +135,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(coorpoResults.Corporations.Take(20), _options, async (corpoId, token) =>
                         {
                             var corpo = await EveAPIServices.CorporationServices.GetCorporation(corpoId);
-                            _eveCharacterEntities.Add(new WHAccess(corpoId, corpo.Name, Models.Db.Enums.WHAccessEntity.Corporation));
+                            _eveCharacterEntities.Add(new WHAccess(corpoId, corpo!.Name, Models.Db.Enums.WHAccessEntity.Corporation));
                         });
                     }
 
@@ -144,7 +144,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(characterResults.Characters.Take(20), _options, async (characterId, token) =>
                         {
                             var character = await EveAPIServices.CharacterServices.GetCharacter(characterId);
-                            _eveCharacterEntities.Add(new WHAccess(characterId, character.Name, Models.Db.Enums.WHAccessEntity.Character));
+                            _eveCharacterEntities.Add(new WHAccess(characterId, character!.Name, Models.Db.Enums.WHAccessEntity.Character));
                         });
                     }
                 }
@@ -183,7 +183,7 @@ namespace WHMapper.Pages.Mapper.Administration
                         await Parallel.ForEachAsync(characterResults.Characters.Take(20), _options, async (characterId, token) =>
                         {
                             var character = await EveAPIServices.CharacterServices.GetCharacter(characterId);
-                            _eveCharacters.Add(new WHAdmin(characterId, character.Name));
+                            _eveCharacters.Add(new WHAdmin(characterId, character!.Name));
                         });
                     }
                 }
@@ -266,7 +266,7 @@ namespace WHMapper.Pages.Mapper.Administration
                     if(await DbWHAccesses.Create(_searchResultAccess) !=null)
                     {
                         await Restore();
-                        _searchResultAccess = null;
+                        _searchResultAccess = null!;
                     }
                     else
                     {
@@ -299,7 +299,7 @@ namespace WHMapper.Pages.Mapper.Administration
                     if (await DbWHAdmin.Create(_searchResultAdmin) != null)
                     {
                         await Restore();
-                        _searchResultAdmin = null;
+                        _searchResultAdmin = null!;
                     }
                     else
                     {
@@ -330,7 +330,7 @@ namespace WHMapper.Pages.Mapper.Administration
             var dialog = DialogService.Show<Delete>("Delete WHMapper Access", parameters, options);
             DialogResult result = await dialog.Result;
 
-            if (result!=null && !result.Canceled != null)
+            if (result!=null && !result.Canceled)
                 await Restore();
         }
 
@@ -345,7 +345,7 @@ namespace WHMapper.Pages.Mapper.Administration
             var dialog = DialogService.Show<Delete>("Delete WHMapper Admin", parameters, options);
             DialogResult result = await dialog.Result;
 
-            if (result != null && !result.Canceled != null)
+            if (result != null && !result.Canceled)
                 await Restore();
         }
     }

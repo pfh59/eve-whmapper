@@ -96,6 +96,9 @@ public class EveWHMapperRoutePlannerHelperTest
     [Fact, Priority(2)]
     public async Task Get_Route()
     {
+        var badRoute = await _eveMapperRoutePlannerHelper.GetMyRoutes(123456789,RouteType.Shortest, null);
+        Assert.Null(badRoute);
+
         var myRoutes = await _eveMapperRoutePlannerHelper.GetMyRoutes(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, null);
         Assert.Null(myRoutes);
 
@@ -110,6 +113,8 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotEmpty(routes);
         var route_JITA_AHBAZON = routes.FirstOrDefault();
         Assert.NotNull(route_JITA_AHBAZON);
+        Assert.True(route_JITA_AHBAZON.IsAvailable);
+        Assert.False(route_JITA_AHBAZON.IsShowed);
         Assert.NotNull(route_JITA_AHBAZON.Route);
         Assert.Equal(5,route_JITA_AHBAZON.Route.Length);
 
@@ -153,6 +158,8 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotEmpty(routes);
         var route_JITA_AMARR = routes.FirstOrDefault();
         Assert.NotNull(route_JITA_AMARR);
+        Assert.True(route_JITA_AMARR.IsAvailable);
+        Assert.False(route_JITA_AMARR.IsShowed);
         Assert.NotNull(route_JITA_AMARR.Route);
         Assert.Equal(46,route_JITA_AMARR.Route.Length);
 

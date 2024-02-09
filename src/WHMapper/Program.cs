@@ -1,10 +1,6 @@
-﻿using System.Text;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 using WHMapper.Data;
 using WHMapper.Models.DTO;
@@ -14,30 +10,14 @@ using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveOAuthProvider;
-using static System.Net.WebRequestMethods;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using WHMapper.Services.EveJwtAuthenticationStateProvider;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http;
-using Microsoft.Extensions.Options;
 using WHMapper.Services.WHColor;
 using WHMapper.Repositories.WHSystemLinks;
-using System;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 using WHMapper.Hubs;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Server.Circuits;
 using WHMapper.Services.EveJwkExtensions;
 using System.Net;
 using WHMapper.Services.EveOnlineUserInfosProvider;
@@ -49,10 +29,12 @@ using WHMapper.Services.EveMapper;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Services.EveAPI.Character;
-using System.Linq;
 using WHMapper.Services.EveMapper.AuthorizationPolicies;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Cache;
+using Microsoft.AspNetCore.DataProtection;
+using StackExchange.Redis;
+
 
 namespace WHMapper
 {
@@ -66,6 +48,13 @@ namespace WHMapper
             // Add services to the container.
             builder.Services.AddDbContextFactory<WHMapperContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
+
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection"));
+
+            builder.Services.AddDataProtection()
+                .SetApplicationName("WHMapper")
+                .PersistKeysToStackExchangeRedis(redis);
+
 
             builder.Services.AddStackExchangeRedisCache(option =>
             {
@@ -161,6 +150,8 @@ namespace WHMapper
                     policy.Requirements.Add(new EveMapperAdminRequirement()));
             });
 
+
+        
             using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
             {
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -170,7 +161,7 @@ namespace WHMapper
 
                 while (!db.CanConnect())
                 {
-                    logger.LogInformation("Database not ready yet; waiting...");
+                    logger.LogWarning("Database not ready yet; waiting...");
                     Thread.Sleep(1000);
                 }
 

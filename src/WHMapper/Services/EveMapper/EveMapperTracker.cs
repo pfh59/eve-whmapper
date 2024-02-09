@@ -14,7 +14,7 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
     private const int TRACK_HIT_IN_MS = 1000;
     private readonly ILogger _logger;
     private readonly AuthenticationStateProvider _authState ;
-    private readonly IEveAPIServices _eveAPIServices;
+    private readonly IEveAPIServices? _eveAPIServices;
 
 
     private System.Timers.Timer? _timer=null!;
@@ -23,7 +23,7 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
     private EveLocation? _currentLocation = null!;
     private ESISolarSystem? _currentSolarSystem = null!;
 
-    public event Func< ESISolarSystem, Task> SystemChanged;
+    public event Func< ESISolarSystem, Task> SystemChanged =null!;
 
     public EveMapperTracker(ILogger<EveMapperTracker> logger,AuthenticationStateProvider authState,IEveAPIServices eveAPI)
     {
@@ -72,17 +72,16 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
         try
         {
             var state = await _authState.GetAuthenticationStateAsync();
-            if (!string.IsNullOrEmpty(state?.User?.Identity?.Name))
+            if (!string.IsNullOrEmpty(state?.User?.Identity?.Name) && _eveAPIServices!=null && _eveAPIServices.LocationServices!=null)
             {
-                EveLocation el = await _eveAPIServices.LocationServices.GetLocation();
+                EveLocation? el = await _eveAPIServices.LocationServices.GetLocation();
                 if (el != null && (_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) )
                 {   
                     _logger.LogInformation("System Changed");
                     _currentLocation = el;
                     _currentSolarSystem = await _eveAPIServices.UniverseServices.GetSystem(el.SolarSystemId);
-                    
-                    
-                    SystemChanged?.Invoke(_currentSolarSystem);
+                    if(_currentSolarSystem!=null)
+                        SystemChanged?.Invoke(_currentSolarSystem);
                 }
             }
 

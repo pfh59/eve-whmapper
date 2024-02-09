@@ -10,27 +10,27 @@ public class RouteServices : AEveApiServices,IRouteServices
     {
     }
 
-    public async Task<int[]> GetRoute(int from, int to)
+    public async Task<int[]?> GetRoute(int from, int to)
     {
         return await GetRoute(from, to, null,null);
     }
 
-    public async Task<int[]> GetRoute(int from, int to, int[]? avoid)
+    public async Task<int[]?> GetRoute(int from, int to, int[]? avoid)
     {
         return await GetRoute(from, to, avoid,null);
     }
 
-    public async Task<int[]> GetRoute(int from, int to, int[][]? connections)
+    public async Task<int[]?> GetRoute(int from, int to, int[][]? connections)
     {
         return await GetRoute(from, to, null, connections);
     }
 
-    public async Task<int[]> GetRoute(int from, int to, int[]? avoid, int[][]? connections)
+    public async Task<int[]?> GetRoute(int from, int to, int[]? avoid, int[][]? connections)
     {
         return await GetRoute(from, to, RouteType.Shortest, avoid, connections);
     }
 
-    public async Task<int[]> GetRoute(int from, int to, RouteType routeType, int[]? avoid, int[][]? connections)
+    public async Task<int[]?> GetRoute(int from, int to, RouteType routeType, int[]? avoid, int[][]? connections)
     {
         if (avoid != null && connections != null)
         {

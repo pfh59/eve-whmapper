@@ -27,7 +27,7 @@ namespace WHMapper.Pages.Mapper.Signatures
     public partial class Overview : ComponentBase,IAsyncDisposable
     {
         [Inject]
-        private IWHSignatureHelper SignatureHelper { get; set; } = null!;
+        public ILogger<Overview> Logger { get; set; } = null!;
 
         [Inject]
         private IEveUserInfosServices UserInfos { get; set; } = null!;
@@ -40,9 +40,6 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         [Inject]
         private ISnackbar Snackbar { get; set; } = null!;
-
-        //[Inject]
-        //private IAnoikServices AnoikServices { get; set; } = null!;
 
         [Inject]
         private IEveMapperHelper EveMapperHelperServices { get; set; } = null!;
@@ -71,18 +68,15 @@ namespace WHMapper.Pages.Mapper.Signatures
         private CancellationTokenSource? _cts;
         private DateTime _currentDateTime;
 
-        private MudTable<WHSignature> _signatureTable { get; set; }
+        private MudTable<WHSignature> _signatureTable { get; set; } =null!;
 
 
 
-        protected override async Task OnParametersSetAsync()
+        protected override Task OnParametersSetAsync()
         {
-            await Restore();
-            HandleTimerAsync();
-            await base.OnParametersSetAsync();
+            Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync()));
+            return base.OnParametersSetAsync();
         }
-
-
 
         private async Task HandleTimerAsync()
         {
@@ -98,13 +92,14 @@ namespace WHMapper.Pages.Mapper.Signatures
                     while (await _timer.WaitForNextTickAsync(_cts.Token))
                     {
                         _currentDateTime = DateTime.UtcNow;
-                        StateHasChanged();
+                        await InvokeAsync(() => {
+                            StateHasChanged();
+                        });
                     }
                 }
                 catch (Exception ex)
                 {
-
-                    //Handle the exception but don't propagate it
+                    Logger.LogError(ex, "Error in timer");
                 }
             }
         }
@@ -157,7 +152,10 @@ namespace WHMapper.Pages.Mapper.Signatures
                 {
                     var da = (DisplayAttribute)System.Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
                     if (da != null)
-                        return da.ShortName ?? da.Name;
+                    {
+                         var res = da.ShortName ?? da.Name;
+                         return (res==null ? string.Empty : res);
+                    }
                 }
             }
 
@@ -209,19 +207,27 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async Task DeleteSignature(int id)
         {
-            var parameters = new DialogParameters();
-            parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
-            parameters.Add("SignatureId", id);
-
-            var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
-
-            var dialog = DialogService.Show<Delete>("Delete", parameters, options);
-            DialogResult result = await dialog.Result;
-
-            if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
+            if(CurrentSystemNodeId!=null)
             {
-                await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
-                await Restore();
+                var parameters = new DialogParameters();
+                parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
+                parameters.Add("SignatureId", id);
+
+                var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+                var dialog = DialogService.Show<Delete>("Delete", parameters, options);
+                DialogResult result = await dialog.Result;
+
+                if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
+                {
+                    await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                    await Restore();
+                }
+            }
+            else
+            {
+                Logger.LogError("No system selected");
+                Snackbar.Add("No system selected", Severity.Error);
             }
         }
 
@@ -229,8 +235,15 @@ namespace WHMapper.Pages.Mapper.Signatures
         private async Task DeleteAllSignature()
         {
             var parameters = new DialogParameters();
-            parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
-
+            if(CurrentSystemNodeId!=null && CurrentMapId!=null)
+                parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId.Value);
+            else
+            {
+                Logger.LogError("No system selected");
+                Snackbar.Add("No system selected", Severity.Error);
+                return;
+            }
+    
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
             var dialog = DialogService.Show<Delete>("Delete", parameters, options);
@@ -290,12 +303,13 @@ namespace WHMapper.Pages.Mapper.Signatures
             _cts?.Cancel();
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             Cancel();
             _timer?.Dispose();
 
             GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
         }
 
         private async Task NotifyWormholeSignaturesChanged(int mapId, int wormholeId)

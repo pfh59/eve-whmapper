@@ -13,10 +13,10 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
         public float DefaultValue { get; set; }
 
         [JsonPropertyName("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [JsonPropertyName("display_name")]
-        public string DisplayName { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
 
         [JsonPropertyName("high_is_good")]
         public bool HighIsGood { get; set; }
@@ -25,7 +25,7 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
         public int IconId { get; set; }
 
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [JsonPropertyName("published")]
         public bool Published { get; set; }

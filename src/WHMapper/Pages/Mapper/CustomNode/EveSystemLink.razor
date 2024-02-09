@@ -36,15 +36,24 @@
 
     <path d="@d" fill="none" stroke-width="4" stroke="@WHColorHelper?.GetLinkStatusColor(Link.MassStatus)" />
 
-    <g transform="translate(@sourcePos.X.ToString(CultureInfo.InvariantCulture), @sourcePos.Y.ToString(CultureInfo.InvariantCulture)) rotate(@sourceAng)">
-        <path d="@Link.SourceMarker.Path" fill="@DEFAULT_COLOR"/>
-    </g>
-
-    <g transform="translate(@targetPos.X.ToString(CultureInfo.InvariantCulture), @targetPos.Y.ToString(CultureInfo.InvariantCulture)) rotate(@targetAng)">
-        <path d="@Link.TargetMarker.Path" fill="@DEFAULT_COLOR"/>
-    </g>
-
-    @foreach (var label in Link.Labels)
+    @if(sourcePos != null && targetPos != null && Link!=null && Link.SourceMarker!=null)
     {
-        <LinkLabelRenderer @key="label.Id" Label="@label" Path="@result.FullPath" />
+        <g transform="translate(@sourcePos.X.ToString(CultureInfo.InvariantCulture), @sourcePos.Y.ToString(CultureInfo.InvariantCulture)) rotate(@sourceAng)">
+            <path d="@Link.SourceMarker.Path" fill="@DEFAULT_COLOR"/>
+        </g>
+    }
+
+    @if(sourcePos != null && targetPos != null && Link!=null && Link.TargetMarker!=null)
+    {
+        <g transform="translate(@targetPos.X.ToString(CultureInfo.InvariantCulture), @targetPos.Y.ToString(CultureInfo.InvariantCulture)) rotate(@targetAng)">
+            <path d="@Link.TargetMarker.Path" fill="@DEFAULT_COLOR"/>
+        </g>
+    }
+
+    @if(Link!=null && Link.Labels!=null && Link.Labels.Count>0)
+    {
+        @foreach (var label in Link.Labels)
+        {
+            <LinkLabelRenderer @key="label.Id" Label="@label" Path="@result.FullPath" />
+        }
     }

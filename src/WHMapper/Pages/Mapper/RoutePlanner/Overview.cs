@@ -80,17 +80,17 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                     await InvokeAsync(() => {
                         StateHasChanged();
                     });
-                    FrozenSet<RouteConnection> mapConnections = null;
+                    FrozenSet<RouteConnection> mapConnections = null!;
                     if(currentLinks.Count() > 0)
                     {
                         var  mapConnectionsSens1 = currentLinks.Select(x=> new RouteConnection(
-                                ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus,
-                                ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus
+                                ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId,((EveSystemNodeModel)x.Source!.Model!).SecurityStatus,
+                                ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId,((EveSystemNodeModel)x.Target!.Model!).SecurityStatus
                             )).ToList();
 
                         var  mapConnectionsSens2 = currentLinks.Select(x=> new RouteConnection(
-                                ((EveSystemNodeModel)x.Target.Model).SolarSystemId,((EveSystemNodeModel)x.Target.Model).SecurityStatus,
-                                ((EveSystemNodeModel)x.Source.Model).SolarSystemId,((EveSystemNodeModel)x.Source.Model).SecurityStatus
+                                ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId,((EveSystemNodeModel)x.Target!.Model!).SecurityStatus,
+                                ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId,((EveSystemNodeModel)x.Source!.Model!).SecurityStatus
                                 
                         )).ToList();
                         
@@ -194,14 +194,16 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         private async Task ToggleShowRoute(EveRoute route)
         {
             //search if route already showed
-            var routeShowed = _globalRoutes.Where(x=>x.IsShowed==true).FirstOrDefault();
+            
+            var routeShowed = ((_globalRoutes==null) ? null : _globalRoutes.Where(x=>x.IsShowed==true).FirstOrDefault());
             if(routeShowed!=null && (routeShowed.Id!=route.Id))
             {
                     await ShowRoute(routeShowed,false);
             }
             else
             {
-                routeShowed = _myRoutes.Where(x=>x.IsShowed==true).FirstOrDefault();
+                routeShowed = ((_myRoutes==null) ? null : _myRoutes.Where(x=>x.IsShowed==true).FirstOrDefault());
+    
                 if(routeShowed!=null && (routeShowed.Id!=route.Id))
                 {
 
@@ -212,19 +214,28 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             await ShowRoute(route,!route.IsShowed);
         }
 
-        private async Task ShowRoute(EveRoute route,bool show)
+        private Task ShowRoute(EveRoute route,bool show)
         {          
+            if(route==null)
+            {
+                _showedRoute=null!;
+                return Task.CompletedTask;
+            }
+                
             route.IsShowed=show;
-            var linkOnRoute = CurrentLinks.Where(x => route.Route.Contains(((EveSystemNodeModel)x.Source.Model).SolarSystemId) && route.Route.Contains(((EveSystemNodeModel)x.Target.Model).SolarSystemId));
+            var linkOnRoute = CurrentLinks.Where(x => route.Route!.Contains(((EveSystemNodeModel)x.Source!.Model!).SolarSystemId) && route.Route!.Contains(((EveSystemNodeModel)x.Target!.Model!).SolarSystemId));
             foreach(var link in linkOnRoute)
             {
-                ((EveSystemLinkModel)link).IsRouteWaypoint=show;
-                ((EveSystemNodeModel)link.Source.Model).IsRouteWaypoint=show;
-                ((EveSystemNodeModel)link.Target.Model).IsRouteWaypoint=show;
+                if(link!=null)
+                {
+                    ((EveSystemLinkModel)link).IsRouteWaypoint=show;
+                    ((EveSystemNodeModel)link.Source!.Model!).IsRouteWaypoint=show;
+                    ((EveSystemNodeModel)link.Target!.Model!).IsRouteWaypoint=show;
 
-                ((EveSystemLinkModel)link).Refresh();
-                ((EveSystemNodeModel)link.Source.Model).Refresh();
-                ((EveSystemNodeModel)link.Target.Model).Refresh();
+                    ((EveSystemLinkModel)link).Refresh();
+                    ((EveSystemNodeModel)link.Source.Model).Refresh();
+                    ((EveSystemNodeModel)link.Target.Model).Refresh();
+                }
             }
             if(show)
             {
@@ -234,6 +245,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             {
                 _showedRoute=null!;
             }
+            return Task.CompletedTask;
         }
     }
 }

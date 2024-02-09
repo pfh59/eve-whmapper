@@ -55,11 +55,6 @@
 
     [Inject]
     private Services.SDE.ISDEServices SDEServices {get;set;} =null!;
-
-    private async Task Test()
-    {
-
-    }
     protected override Task OnInitializedAsync()
     {
         _currentTheme = new MudTheme()

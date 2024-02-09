@@ -40,7 +40,7 @@ namespace WHMapper.Services.EveAPI
         }
 
 
-        public async Task<T> Execute<T>(RequestSecurity security, RequestMethod method, string uri, object? body = null)
+        public async Task<T?> Execute<T>(RequestSecurity security, RequestMethod method, string uri, object? body = null)
         {
             _httpClient.DefaultRequestHeaders.Clear();
             //Add bearer token
@@ -53,13 +53,13 @@ namespace WHMapper.Services.EveAPI
             }
 
             //Serialize post body data
-            HttpContent postBody = null;
+            HttpContent? postBody = null;
          
             if (body != null)
                 postBody = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
             
 
-            HttpResponseMessage response = null;
+            HttpResponseMessage? response = null;
             switch (method)
             {
                 case RequestMethod.Delete:
@@ -82,10 +82,13 @@ namespace WHMapper.Services.EveAPI
 
            
 
-            if (response.StatusCode != HttpStatusCode.NoContent && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created || response.StatusCode == HttpStatusCode.Accepted))
+            if (response != null && response.StatusCode != HttpStatusCode.NoContent && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created || response.StatusCode == HttpStatusCode.Accepted))
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-                return JsonSerializer.Deserialize<T>(result);
+                if(string.IsNullOrEmpty(result))
+                    return default(T);
+                else
+                    return JsonSerializer.Deserialize<T>(result);
             }
             else
                return default(T);

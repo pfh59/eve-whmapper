@@ -25,9 +25,6 @@ namespace WHMapper.Pages.Mapper.CustomNode
         private const string MENU_LOCK_SYSTEM_VALUE = "Lock";
         private const string MENU_UNLOCK_SYSTEM_VALUE = "Unlock";
 
-    
-
-        private EveSystemNodeModel _node = null!;
 
         private string _secColor = IWHColorHelper.DEFAULT_COLOR;
         private string _systemColor = IWHColorHelper.DEFAULT_COLOR;
@@ -46,51 +43,32 @@ namespace WHMapper.Pages.Mapper.CustomNode
         IWHNoteRepository DbNotes { get; set; } = null!;
 
         [Inject]
-        public ILogger<EveSystemNode> Logger { get; set; } = null!;
+        ILogger<EveSystemNode> Logger { get; set; } = null!;
 
 
         [Inject]
-        public IWHColorHelper WHColorHelper { get; set; } = null!;
+        IWHColorHelper WHColorHelper { get; set; } = null!;
 
         
         [ParameterAttribute]
-        public EveSystemNodeModel Node
-        {
-            get
-            {
-                return _node;
-            }
-            set
-            {
-                _node = value;
-                if(_node!=null)
-                {
-                    _secColor = WHColorHelper.GetSecurityStatusColor(_node.SecurityStatus);
-                    _systemColor = WHColorHelper.GetSystemTypeColor(_node.SystemType);
-                    _whEffectColor = WHColorHelper.GetEffectColor(_node.Effect);
-
-                    Locked = _node.Locked;
-
-                }
-            }
-        }
+        public EveSystemNodeModel Node {get;set;} = null!;
         
         private bool Locked
         {
             get
             {
-                if (_node != null)
-                    return _node.Locked;
+                if (Node != null)
+                    return Node.Locked;
                 else
                     return false;
             }
             set
             {
-                if(_node!=null)
+                if(Node!=null)
                 {
-                    _node.Locked = value;
+                    Node.Locked = value;
 
-                    if (_node.Locked)
+                    if (Node.Locked)
                     {
                         _menu_lock_value = MENU_UNLOCK_SYSTEM_VALUE;
                         _menu_lock_icon_value = Icons.Material.Sharp.LockOpen;
@@ -133,13 +111,27 @@ namespace WHMapper.Pages.Mapper.CustomNode
             }
         }
 
+        protected override Task OnParametersSetAsync()
+        {
+            if(Node!=null)
+            {
+                _secColor = WHColorHelper.GetSecurityStatusColor(Node.SecurityStatus);
+                _systemColor = WHColorHelper.GetSystemTypeColor(Node.SystemType);
+                _whEffectColor = WHColorHelper.GetEffectColor(Node.Effect);
+
+                Locked = Node.Locked;
+            }
+
+            return base.OnParametersSetAsync();
+        }
+
         private async Task<bool> SetSelectedSystemDestinationWaypoint()
         {
             try
             {
-                if (_node.Selected)
+                if (Node.Selected)
                 {
-                    var res = await EveServices.UserInterfaceServices.SetWaypoint(_node.SolarSystemId, false, true);
+                    var res = await EveServices.UserInterfaceServices.SetWaypoint(Node.SolarSystemId, false, true);
                     return true;
 
                 }
@@ -152,18 +144,17 @@ namespace WHMapper.Pages.Mapper.CustomNode
                 return false;
             }
         }
-
         private async Task<bool> SetSelectedSystemStatus(WHSystemStatusEnum systemStatus)
         {
             try
             {
-                if (_node.Selected)
+                if (Node.Selected)
                 {
-                    var note = await DbNotes.GetBySolarSystemId(_node.SolarSystemId);
+                    var note = await DbNotes.GetBySolarSystemId(Node.SolarSystemId);
 
                     if(note == null)
                     {
-                        note = await DbNotes.Create(new WHNote(_node.SolarSystemId, systemStatus));
+                        note = await DbNotes.Create(new WHNote(Node.SolarSystemId, systemStatus));
                     }
                     else
                     {
@@ -178,8 +169,8 @@ namespace WHMapper.Pages.Mapper.CustomNode
                         return false;
                     }
                   
-                    _node.SystemStatus = systemStatus;
-                    _node.Refresh();
+                    Node.SystemStatus = systemStatus;
+                    Node.Refresh();
                     return true;
                 }
                 else
@@ -203,8 +194,8 @@ namespace WHMapper.Pages.Mapper.CustomNode
         {
             try
             {
-                var whSystem = await DbWHSystems.GetById(_node.IdWH);
-                if (whSystem != null && whSystem.Id==_node.IdWH)
+                var whSystem = await DbWHSystems.GetById(Node.IdWH);
+                if (whSystem != null && whSystem.Id==Node.IdWH)
                 {
                     whSystem.Locked = !whSystem.Locked;
                     whSystem = await DbWHSystems.Update(whSystem.Id, whSystem);
@@ -215,7 +206,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
                     }
 
                     Locked = whSystem.Locked;
-                    _node.Refresh();
+                    Node.Refresh();
                     return true;
                 }
                 else

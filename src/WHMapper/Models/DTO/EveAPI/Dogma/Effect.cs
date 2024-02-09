@@ -7,7 +7,7 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
 	public class Effect
 	{
         [JsonPropertyName("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [JsonPropertyName("disallow_auto_repeat")]
         public bool DisallowAutoRepeat { get; set; }
@@ -16,7 +16,7 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
         public int DischargeAttributeId { get; set; }
 
         [JsonPropertyName("display_name")]
-        public string DisplayName { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
 
         [JsonPropertyName("duration_attribute_id")]
         public int DurationAttributeId { get; set; }
@@ -46,10 +46,10 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
         public bool IsWarpSafe { get; set; }
 
         [JsonPropertyName("modifiers")]
-        public Modifier[] Modifiers { get; set; }
+        public Modifier[] Modifiers { get; set; } =null!;
 
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [JsonPropertyName("post_expression")]
         public int PostExpression { get; set; }
@@ -77,10 +77,10 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
     public class Modifier
     {
         [JsonPropertyName("func")]
-        public string Func { get; set; }
+        public string Func { get; set; } = string.Empty;
 
         [JsonPropertyName("domain")]
-        public string Domain { get; set; }
+        public string Domain { get; set; } = string.Empty;
 
         [JsonPropertyName("modified_attribute_id")]
         public int ModifiedAttributeId { get; set; }

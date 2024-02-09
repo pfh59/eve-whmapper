@@ -110,7 +110,7 @@ namespace WHMapper.Services.Anoik
         /// </summary>
         /// <param name="systemName"></param>
         /// <returns> A null value represent a not found system</returns>
-        public async Task<IEnumerable<KeyValuePair<string, string>>?> GetSystemStatics(string systemName)
+        public Task<IEnumerable<KeyValuePair<string, string>>> GetSystemStatics(string systemName)
         {
             try
             {
@@ -130,12 +130,12 @@ namespace WHMapper.Services.Anoik
                     }
                 }
 
-                return res;
+                return Task.FromResult<IEnumerable<KeyValuePair<string, string>>>(res);
             }
             catch (KeyNotFoundException)
             {
                 _logger.LogInformation(string.Format("Key not found {0} not found", systemName));
-                return null;
+                return Task.FromResult<IEnumerable<KeyValuePair<string, string>>>(null!);
             }
         }
 
@@ -146,11 +146,11 @@ namespace WHMapper.Services.Anoik
         /// <param name="effectName"></param>
         /// <param name="systemClass"></param>
         /// <returns>return null effectname or systemclass are bad</returns>
-        public IEnumerable<KeyValuePair<string, string>>? GetSystemEffectsInfos(string effectName, string systemClass)
+        public IEnumerable<KeyValuePair<string, string>> GetSystemEffectsInfos(string effectName, string systemClass)
         {
             int classlvl = -1;
             if (string.IsNullOrWhiteSpace(effectName) || string.IsNullOrWhiteSpace(systemClass) || !(systemClass.Length >= 2 && systemClass.Length < 4 && systemClass.ToUpper().Contains('C')))
-                return null;
+                return null!;
 
 
             if (!string.IsNullOrWhiteSpace(systemClass) && systemClass.ToUpper().Contains('C'))
@@ -179,7 +179,7 @@ namespace WHMapper.Services.Anoik
             catch (KeyNotFoundException)
             {
                 _logger.LogInformation(string.Format("Key not found {0} not found", effectName));
-                return null;
+                return null!;
             }
         }
 
@@ -206,7 +206,7 @@ namespace WHMapper.Services.Anoik
             }
         }
 
-        public async Task<IEnumerable<WormholeTypeInfo>?> GetWormholeTypes()
+        public Task<IEnumerable<WormholeTypeInfo>> GetWormholeTypes()
         {
 
             var res = _jsonWormholes.EnumerateObject()
@@ -228,7 +228,8 @@ namespace WHMapper.Services.Anoik
             res = res.Append(new WormholeTypeInfo("F216", "Pochven", null));
             res = res.Append(new WormholeTypeInfo("C729", "Pochven", null));
 
-            return res.OrderBy(x => x.Name);
+            return Task.FromResult<IEnumerable<WormholeTypeInfo>>(res.OrderBy(x => x.Name));
+            
         }
     }
     

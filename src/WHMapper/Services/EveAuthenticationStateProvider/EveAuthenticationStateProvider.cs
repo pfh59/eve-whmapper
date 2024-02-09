@@ -32,12 +32,14 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
         private readonly HttpClient? _httpClient = null;
         private readonly string _clientKey;
 
+    
 
         public EveAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo) : base()
         {
             _configurationManager = configurationManager;
              _httpClientFactory = httpClientFactory;
             _tokkenInfo = tokkenInfo;
+
 
             _evessoConf = _configurationManager.GetSection("EveSSO");
             _clientKey = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_evessoConf["ClientId"]}:{_evessoConf["Secret"]}"));
@@ -63,7 +65,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
             if (await IsTokenExpired())//auto renew token
             {
-                EveToken newEveToken = await RenewToken();
+                EveToken? newEveToken = await RenewToken();
 
                 if(newEveToken==null)
                     return anonymousState;
@@ -86,12 +88,18 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             var expiry = EVEOnlineAuthenticationHandler.ExtractClaim(securityToken, "exp");
 
             if (expiry == null)
+            {
                 return Task.FromResult(true);
+            }
+
 
 
             var datetime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiry.Value));
             if (datetime.UtcDateTime <= DateTime.UtcNow)
+            {
                 return Task.FromResult(true);
+            }
+
 
             return Task.FromResult(false);
         }
@@ -99,6 +107,17 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
         private async Task<EveToken?> RenewToken()
         {
+            if(_httpClient==null)
+            {
+                return null;
+            }
+
+            if(_tokkenInfo==null || string.IsNullOrWhiteSpace(_tokkenInfo.RefreshToken))
+            {
+                return null;
+            }
+            
+
             var body = $"grant_type=refresh_token&refresh_token={Uri.EscapeDataString(_tokkenInfo.RefreshToken)}";
             HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
