@@ -227,6 +227,7 @@ jobs:
           context: ./src/WHMapper/
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          push: true
 
   release_docker_image_docker_hub:
     if: github.event_name != 'pull_request' #PUSH only on merging
@@ -268,5 +269,6 @@ jobs:
           context: ./src/WHMapper/
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          push: true
 
 
