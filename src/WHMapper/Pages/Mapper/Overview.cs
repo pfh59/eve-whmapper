@@ -450,11 +450,6 @@ namespace WHMapper.Pages.Mapper
                                 _selectedWHMap = await DbWHMaps.GetById(mapId);
                                 if(WHSignaturesView!=null && WHSignaturesView.CurrentSystemNodeId ==wormholeId)
                                     await WHSignaturesView.Restore();
-                                else
-                                {
-                                    Logger.LogWarning("On NotifyWormholeSignaturesChanged, unable to find wormhole to refresh signatures");
-                                    Snackbar?.Add("On NotifyWormholeSignaturesChanged, unable to find wormhole to refresh signatures", Severity.Warning);
-                                }
                             }
                         }
                         catch (Exception ex)
