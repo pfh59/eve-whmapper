@@ -97,6 +97,10 @@ namespace WHMapper.Pages.Mapper.Signatures
                         });
                     }
                 }
+                catch (TaskCanceledException)
+                {
+                    Logger.LogInformation("Timer canceled");
+                }
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error in timer");
