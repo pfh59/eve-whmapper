@@ -36,7 +36,6 @@
     <None Remove="EveOnlineAPI\" />
     <None Remove="Anoik\" />
     <None Remove="WHColorHelper\" />
-    <None Remove="SDE\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Db\" />

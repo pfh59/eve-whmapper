@@ -26,6 +26,8 @@ using WHMapper.Services.WHSignature;
 using WHMapper.Services.EveMapper;
 using Blazor.Diagrams.Core.Behaviors;
 using WHMapper.Models.DTO.EveMapper.Enums;
+using WHMapper.Repositories.WHJumpLogs;
+using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 
 namespace WHMapper.Pages.Mapper
 {
@@ -68,6 +70,9 @@ namespace WHMapper.Pages.Mapper
         IWHSystemLinkRepository DbWHSystemLinks { get; set; } = null!;
 
         [Inject]
+        IWHJumpLogRepository DbWHJumpLogs { get; set; } = null!;
+
+        [Inject]
         IEveAPIServices EveServices { get; set; } = null!;
 
         [Inject]
@@ -94,6 +99,7 @@ namespace WHMapper.Pages.Mapper
         private IPasteServices PasteServices {get;set;}=null!;
 
         private string _userName = string.Empty;
+        private int _characterId = 0;
 
         private IEnumerable<WHMap>? WHMaps { get; set; } = new List<WHMap>();
         private WHMap? _selectedWHMap = null!;
@@ -128,6 +134,7 @@ namespace WHMapper.Pages.Mapper
         protected override async Task OnInitializedAsync()
         {
             _userName = await UserInfos.GetUserName();
+            _characterId = await UserInfos.GetCharactedID();
             if(await InitDiagram())
             {
                 _ = Task.Run(Init);
@@ -749,7 +756,8 @@ namespace WHMapper.Pages.Mapper
                 }
                 else
                 {
-                    if (!await AddSystemNodeLink(_selectedWHMap, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1)))
+                    //link create manually, no ship jump
+                    if (!await AddSystemNodeLink(_selectedWHMap, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1),false))
                     {
                         Logger.LogError("Add Wormhole Link db error");
                         Snackbar.Add("Add Wormhole Link db error", Severity.Error);
@@ -990,9 +998,6 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-
-
-
         private async Task<bool> DeletedNodeOnMap(WHMap map, EveSystemNodeModel node)
         {
             try
@@ -1032,7 +1037,6 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-
         private async Task<bool> DeletedLinkOnMap(WHMap map, EveSystemLinkModel link)
         {
             try
@@ -1062,7 +1066,6 @@ namespace WHMapper.Pages.Mapper
             }
 
         }
-
         private async Task<bool> IncrementOrDecrementNodeExtensionNameOnMap(WHMap map, EveSystemNodeModel node,bool increment)
         {
             try
@@ -1105,8 +1108,6 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-    
-
         private bool IsLinkExist(EveSystemNodeModel src, EveSystemNodeModel target)
         {
             try
@@ -1138,7 +1139,6 @@ namespace WHMapper.Pages.Mapper
             }
 
         }
-
         private async Task<bool> IsRouteViaWH(ESISolarSystem src, ESISolarSystem dst)
         {
             if (src == null)
@@ -1179,8 +1179,6 @@ namespace WHMapper.Pages.Mapper
                  return true;
             }
         }
-
-
         private async Task<bool> AddSystemNode(WHMap map,ESISolarSystem? src,ESISolarSystem target)
         {
             EveSystemNodeModel? previousSystemNode = null;
@@ -1285,9 +1283,7 @@ namespace WHMapper.Pages.Mapper
     
             return await AddSystemNodeLink(map,srcNode,targetNode);
         }
-
-
-        private async Task<bool> AddSystemNodeLink(WHMap map, EveSystemNodeModel? srcNode, EveSystemNodeModel? targetNode)
+        private async Task<bool> AddSystemNodeLink(WHMap map, EveSystemNodeModel? srcNode, EveSystemNodeModel? targetNode,bool log_jump=true)
         {
             try
             {
@@ -1307,6 +1303,9 @@ namespace WHMapper.Pages.Mapper
 
                 if (newLink != null)
                 {
+                    if(log_jump)
+                        await AddSystemNodeLinkLog(newLink);
+
                     map.WHSystemLinks.Add(newLink);
                     _blazorDiagram?.Links?.Add(new EveSystemLinkModel(newLink, srcNode, targetNode));
                     await NotifyLinkAdded(map.Id, newLink.Id);
@@ -1320,6 +1319,38 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
+
+        private async Task<bool> AddSystemNodeLinkLog(WHSystemLink? link)
+        {
+            if(link==null)
+            {
+                Logger.LogError("AddSystemNodeLinkLog link is null");
+                return false;
+            }
+
+            var ship = await EveServices.LocationServices.GetCurrentShip();
+            if(ship==null)
+            {
+                Logger.LogError("AddSystemNodeLinkLog ship is null");
+                return false;
+            }
+            var ship_infos = await EveServices.UniverseServices.GetType(ship!.ShipTypeId);
+            if(ship_infos==null)
+            {
+                Logger.LogError("AddSystemNodeLinkLog ship_infos is null");
+                return false;
+            }
+
+            var jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(link.Id,_characterId,ship.ShipTypeId,ship.ShipItemId,ship_infos.Mass));
+            if(jumpLog==null)
+            {
+                Logger.LogError("AddSystemNodeLinkLog jumpLog is null");
+                return false;
+            }        
+
+            return true;
+        }
+
 
 
 
@@ -1340,8 +1371,6 @@ namespace WHMapper.Pages.Mapper
                 return;
             }
 
-
-            
             await _semaphoreSlim.WaitAsync();
             try
             {
@@ -1451,7 +1480,6 @@ namespace WHMapper.Pages.Mapper
 
             GC.SuppressFinalize(this);
         }
-
 
         private void OnWHSystemNodeLocked(EveSystemNodeModel whNodeModel)
         {

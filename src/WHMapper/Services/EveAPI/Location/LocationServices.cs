@@ -28,6 +28,16 @@ namespace WHMapper.Services.EveAPI.Location
             }
             return null;
         }
+
+        public async Task<Ship?> GetCurrentShip()
+        {
+            if (_userService != null)
+            {
+                int characterId = await _userService.GetCharactedID();
+                return await base.Execute<Ship>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/ship/?datasource=tranquility", characterId));
+            }
+            return null;
+        }
         
     }
 }

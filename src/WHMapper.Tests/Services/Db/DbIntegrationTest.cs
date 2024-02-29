@@ -9,6 +9,7 @@ using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
+using WHMapper.Repositories.WHJumpLogs;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Repositories.WHSignatures;
@@ -826,4 +827,97 @@ public class DbIntegrationTest
         Assert.True(resultdel);
 
     }
+
+    [Fact, Priority(10)]
+    public async Task CRUD_WHJumpLog()
+    {
+        Assert.NotNull(_contextFactory);
+
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+
+
+        //Init two system IWHSystemRepository
+        IWHSystemRepository repoWH = new WHSystemRepository(new NullLogger<WHSystemRepository>(),_contextFactory);
+        Assert.NotNull(map);
+        var whSys1 = await repoWH.Create(new WHSystem(map.Id,FOOBAR_SYSTEM_ID, FOOBAR, 1));
+        Assert.NotNull(whSys1);
+        var whSys2 = await repoWH.Create(new WHSystem(map.Id, FOOBAR_SYSTEM_ID2, FOOBAR2, 'A', 1));
+        Assert.NotNull(whSys2);
+
+        //Init link 
+        IWHSystemLinkRepository repoLink = new WHSystemLinkRepository(new NullLogger<WHSystemLinkRepository>(),_contextFactory);
+
+        //add whsystem link1
+        var link1 = await repoLink.Create(new WHSystemLink(map.Id,whSys1.Id, whSys2.Id));
+        Assert.NotNull(link1);
+
+        //Create JumlLogRepo
+        IWHJumpLogRepository repo = new WHJumpLogRepository(new NullLogger<WHJumpLogRepository>(), _contextFactory);
+
+        //ADD JumpLog1
+        var result1 = await repo.Create(new WHJumpLog(link1.Id,EVE_CHARACTERE_ID,54731,1037556721774,300000000));
+        Assert.NotNull(result1);
+        Assert.Equal(EVE_CHARACTERE_ID, result1.CharacterId);
+        Assert.Equal(54731, result1.ShipTypeId);
+        Assert.Equal(1037556721774, result1.ShipItemId);
+        Assert.Equal(300000000, result1.ShipMass);
+
+        //ADD JumpLog2
+        var result2 = await repo.Create(new WHJumpLog(link1.Id,EVE_CHARACTERE_ID2,54731,1037556721774,300000000));
+        Assert.NotNull(result2);
+        Assert.Equal(EVE_CHARACTERE_ID2, result2.CharacterId);
+        Assert.Equal(54731, result2.ShipTypeId);
+        Assert.Equal(1037556721774, result2.ShipItemId);
+        Assert.Equal(300000000, result2.ShipMass);
+
+        //ADD JumpLog dupkicate
+        var resultDuplicate = await repo.Create(new WHJumpLog(link1.Id,EVE_CHARACTERE_ID2,54731,1037556721774,300000000));
+        Assert.Null(resultDuplicate);
+
+        //GetALL
+        var results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.NotEmpty(results);
+        Assert.Equal(2, results.Count());
+
+        //GetbyID
+        var resultById = await repo.GetById(1);
+        Assert.NotNull(resultById);
+        Assert.Equal(EVE_CHARACTERE_ID, resultById.CharacterId);
+
+        var resultBadById = await repo.GetById(-10);
+        Assert.Null(resultBadById);
+
+        //update
+        result1.ShipMass = 100000000;
+        var resultUpdate1 = await repo.Update(result1.Id, result1);
+        Assert.NotNull(resultUpdate1);
+        Assert.Equal(100000000, resultUpdate1.ShipMass);
+
+        //duplicate update
+        result2.CharacterId = EVE_CHARACTERE_ID;
+        var resultUpdate2 = await repo.Update(result2.Id, result2);
+        Assert.Null(resultUpdate2);
+
+        //Delete
+        var resultdel1 = await repo.DeleteById(result1.Id);
+        Assert.True(resultdel1);
+
+        var resultdel2 = await repo.DeleteById(result2.Id);
+        Assert.True(resultdel2);
+
+        var resultBaddel = await repo.DeleteById(-10);
+        Assert.False(resultBaddel);
+
+        //clean map
+        var mapDeleted = await repoMap.DeleteById(map.Id);
+    }
+        
 }

@@ -29,6 +29,9 @@ namespace WHMapper.Models.Db
         [Required]
         public SystemLinkMassStatus MassStatus { get; set; } = SystemLinkMassStatus.Normal;
 
+        [Required]
+        public HashSet<WHJumpLog> JumpHistory { get; } = new HashSet<WHJumpLog>();
+
 
         public WHSystemLink(int idWHSystemFrom, int idWHSystemTo) :
             this(0,idWHSystemFrom,idWHSystemTo)
