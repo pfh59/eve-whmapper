@@ -35,7 +35,6 @@ using WHMapper.Services.Cache;
 using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 
 namespace WHMapper
@@ -154,16 +153,43 @@ namespace WHMapper
 
 
             
+            
             using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
             {
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
                 var dbContext = serviceScope.ServiceProvider.GetRequiredService<WHMapperContext>();
+                var dbContext = serviceScope.ServiceProvider.GetRequiredService<WHMapperContext>();
 
+                int attempt = 0;
+                while (!dbContext.Database.CanConnect() && attempt < 10)
                 int attempt = 0;
                 while (!dbContext.Database.CanConnect() && attempt < 10)
                 {
                     logger.LogWarning("Database not ready yet.Attempt {0}/10", attempt);
+                    logger.LogWarning("Database not ready yet.Attempt {0}/10", attempt);
                     Thread.Sleep(1000);
+                    attempt++;
+                }
+
+                if (attempt >= 10)
+                {
+                    logger.LogError("Database not ready after 10 attempts; exiting.");
+                    return ;
+                }
+
+
+                if(dbContext.Database.GetPendingMigrations().Any())
+                {
+                    logger.LogInformation("Migrating database...");
+                    try
+                    {
+                        dbContext.Database.Migrate();
+                        logger.LogInformation("Database migrated successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "An error occurred while migrating the database.");
+                    }
                     attempt++;
                 }
 
@@ -216,6 +242,8 @@ namespace WHMapper
             builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
             builder.Services.AddScoped<IWHNoteRepository, WHNoteRepository>();
             builder.Services.AddScoped<IWHRouteRepository, WHRouteRepository>();
+            builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
+
             builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
 
             #endregion
