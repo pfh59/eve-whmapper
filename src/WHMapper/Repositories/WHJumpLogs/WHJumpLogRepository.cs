@@ -62,13 +62,23 @@ namespace WHMapper.Repositories.WHJumpLogs
 
         protected override async Task<WHJumpLog?> AUpdate(int id,WHJumpLog item)
         {
+
+            if(item==null)
+            {
+                _logger.LogError("Impossible to update WHJumpLog, item is null");
+                return null;
+            }
+
+            if (id != item.Id)
+            {
+                _logger.LogError("Impossible to update WHJumpLog, id is different from item.Id");
+                return null;
+            }
+
             using (var context = _contextFactory.CreateDbContext())
             {
                 try
                 {
-                    if (id != item.Id)
-                        return null;
-
                     context.DbWHJumpLogs.Update(item);
                     await context.SaveChangesAsync();
                     return item;

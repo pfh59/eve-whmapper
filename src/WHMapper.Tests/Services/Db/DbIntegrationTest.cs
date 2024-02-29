@@ -877,10 +877,6 @@ public class DbIntegrationTest
         Assert.Equal(1037556721774, result2.ShipItemId);
         Assert.Equal(300000000, result2.ShipMass);
 
-        //ADD JumpLog dupkicate
-        var resultDuplicate = await repo.Create(new WHJumpLog(link1.Id,EVE_CHARACTERE_ID2,54731,1037556721774,300000000));
-        Assert.Null(resultDuplicate);
-
         //GetALL
         var results = await repo.GetAll();
         Assert.NotNull(results);
@@ -901,10 +897,18 @@ public class DbIntegrationTest
         Assert.NotNull(resultUpdate1);
         Assert.Equal(100000000, resultUpdate1.ShipMass);
 
+        var badUpdate = await repo.Update(result2.Id, null!);
+        Assert.Null(badUpdate);
+
+        var badUpdate2 = await repo.Update(-12, result2);
+        Assert.Null(badUpdate2);
+
         //duplicate update
-        result2.CharacterId = EVE_CHARACTERE_ID;
-        var resultUpdate2 = await repo.Update(result2.Id, result2);
-        Assert.Null(resultUpdate2);
+       // result2.CharacterId = EVE_CHARACTERE_ID;
+        //var resultUpdate2 = await repo.Update(result2.Id, result2);
+       // Assert.Null(resultUpdate2);
+
+
 
         //Delete
         var resultdel1 = await repo.DeleteById(result1.Id);

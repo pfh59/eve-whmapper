@@ -14,7 +14,7 @@ public class WHJumpLog
     public int CharacterId { get; set; }
     
     [Required]
-    public DateTime JumpDate { get; set; } = DateTime.UtcNow;
+    public DateTime JumpDate { get; set; }
 
     [Required]
     public int ShipTypeId { get; set; }
