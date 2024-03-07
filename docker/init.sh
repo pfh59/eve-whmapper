@@ -86,8 +86,9 @@ docker-compose -f ./haproxy/docker-compose.yml pull
 docker-compose -f ./eve-whmapper/docker-compose.yml pull
 
 echo "Prepare container"
-docker-compose -f ./haproxy/docker-compose.yml up --no-start
 docker-compose -f ./eve-whmapper/docker-compose.yml up --no-start
+docker-compose -f ./haproxy/docker-compose.yml up --no-start
+
 
 echo "First start before cratingt HTTPS certs..."
 docker-compose -f ./haproxy/docker-compose.yml start
