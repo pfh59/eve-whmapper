@@ -26,4 +26,4 @@ jobs:
           path-to-document: 'https://github.com/pfh59/eve-whmapper/blob/main/.github/cla/CLA.md'
           # branch should not be protected
           branch: 'main'
-          allowlist: pfh59,github-actions[bot]
+          allowlist: pfh59,bot*
