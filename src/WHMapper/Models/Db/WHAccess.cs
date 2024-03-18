@@ -13,11 +13,14 @@ namespace WHMapper.Models.Db
         public int EveEntityId { get; set; }
 
         [Required]
-        public string EveEntityName { get; set; }
+        public string EveEntityName { get; set; }=string.Empty;
 
         [Required]
         public WHAccessEntity EveEntity { get; set; }
 
+
+        [Obsolete("EF Requires it")]
+        protected WHAccess() { }
         public WHAccess(int eveEntityId,string eveEntityName) : this(eveEntityId, eveEntityName, WHAccessEntity.Character)
         {
             

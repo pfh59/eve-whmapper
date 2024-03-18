@@ -904,11 +904,10 @@ public class DbIntegrationTest
         Assert.Null(badUpdate2);
 
         //duplicate update
-       // result2.CharacterId = EVE_CHARACTERE_ID;
-        //var resultUpdate2 = await repo.Update(result2.Id, result2);
-       // Assert.Null(resultUpdate2);
-
-
+        result2.CharacterId = EVE_CHARACTERE_ID;
+        result2.JumpDate = result1.JumpDate;
+        var resultUpdate2 = await repo.Update(result2.Id, result2);
+        Assert.Null(resultUpdate2);
 
         //Delete
         var resultdel1 = await repo.DeleteById(result1.Id);

@@ -35,6 +35,7 @@ using WHMapper.Services.Cache;
 using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 
 namespace WHMapper
@@ -45,10 +46,10 @@ namespace WHMapper
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             // Add services to the container.
             builder.Services.AddDbContextFactory<WHMapperContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
+                    
 
             ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection"));
 

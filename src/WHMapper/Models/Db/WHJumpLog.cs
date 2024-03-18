@@ -24,10 +24,9 @@ public class WHJumpLog
     [Required]
     public float ShipMass { get; set; }
 
-    public WHJumpLog()
-    {
-        
-    }
+    [Obsolete("EF Requires it")]
+    protected WHJumpLog() { }
+    
     public WHJumpLog(int linkId,int characterId,int shipTypeId, long shipItemId, float shipMass)
     {
         WHSystemLinkId=linkId;

@@ -4,8 +4,6 @@ using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Db
 {
-
-
     public class WHSystemLink
     {
         [Key]
@@ -30,9 +28,11 @@ namespace WHMapper.Models.Db
         public SystemLinkMassStatus MassStatus { get; set; } = SystemLinkMassStatus.Normal;
 
         [Required]
-        public HashSet<WHJumpLog> JumpHistory { get; } = new HashSet<WHJumpLog>();
+        public ICollection<WHJumpLog> JumpHistory { get; } = new HashSet<WHJumpLog>();
 
 
+        [Obsolete("EF Requires it")]
+        protected WHSystemLink() { }
         public WHSystemLink(int idWHSystemFrom, int idWHSystemTo) :
             this(0,idWHSystemFrom,idWHSystemTo)
         {

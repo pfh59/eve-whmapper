@@ -635,6 +635,8 @@ namespace WHMapper.Pages.Mapper
                     _blazorDiagram.SelectionChanged += async (item) => await OnDiagramSelectionChanged(item);
                     _blazorDiagram.KeyDown += async (kbevent) => await OnDiagramKeyDown(kbevent);
                     _blazorDiagram.PointerUp += async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
+                    //_blazorDiagram.PointerEnter += async (item, pointerEvent) => await OnDiagramPointerEnter(item, pointerEvent);
+                    //_blazorDiagram.PointerLeave += async (item, pointerEvent) => await OnDiagramPointerLeave(item, pointerEvent);
 
                     _blazorDiagram.Options.Zoom.Enabled = true;
                     _blazorDiagram.Options.Zoom.Inverse = false;
@@ -851,6 +853,30 @@ namespace WHMapper.Pages.Mapper
 
         #endregion
 
+/*
+        private async Task OnDiagramPointerLeave(Blazor.Diagrams.Core.Models.Base.Model? item, Blazor.Diagrams.Core.Events.PointerEventArgs eventArgs)
+        {
+            if (item == null)
+                return;
+
+            if (item.GetType() == typeof(EveSystemLinkModel))
+            {
+
+            }
+        }
+
+        private async Task OnDiagramPointerEnter(Blazor.Diagrams.Core.Models.Base.Model? item, Blazor.Diagrams.Core.Events.PointerEventArgs eventArgs)
+        {
+            if (item == null)
+                return;
+
+            if (item.GetType() == typeof(EveSystemLinkModel))
+            {
+
+            }
+
+
+        }*/
         private async Task OnDiagramPointerUp(Blazor.Diagrams.Core.Models.Base.Model? item, Blazor.Diagrams.Core.Events.PointerEventArgs eventArgs)
         {
             if (item == null)
@@ -1319,7 +1345,6 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-
         private async Task<bool> AddSystemNodeLinkLog(WHSystemLink? link)
         {
             if(link==null)
@@ -1350,9 +1375,6 @@ namespace WHMapper.Pages.Mapper
 
             return true;
         }
-
-
-
 
         private async Task OnSystemChanged(ESISolarSystem targetSoloarSystem)
         {
