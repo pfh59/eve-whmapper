@@ -35,6 +35,7 @@ using WHMapper.Services.Cache;
 using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 
 namespace WHMapper
