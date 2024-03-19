@@ -36,7 +36,8 @@
                     <MudAutocomplete T="WHAccess" Label="search eve character/corporation/alliance name" @bind-Value="_searchResultAccess" SearchFunc="@SearchAccess" MinCharacters="3" ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
                                      Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateAccess))"
-                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" ToStringFunc="@(x=> x==null?null : $"{x.EveEntityName}")" Disabled="_searchInProgress">
+                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" ToStringFunc="@(x=> x==null?null : $"{x.EveEntityName}")" Disabled="_searchInProgress"
+                                     MaxItems="100">
                         <ItemTemplate Context="item">
                             <MudText>
                                 @if (item.EveEntity == Models.Db.Enums.WHAccessEntity.Alliance)
@@ -92,7 +93,8 @@
                     <MudAutocomplete T="WHAdmin" Label="Search eve charactere name" @bind-Value="_searchResultAdmin" SearchFunc="@SearchAdmin" MinCharacters="3" ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
                                      Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateAdmin))"
-                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" ToStringFunc="@(x=> x==null?null : $"{x.EveCharacterName}")" Disabled="_searchInProgress">
+                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" ToStringFunc="@(x=> x==null?null : $"{x.EveCharacterName}")" Disabled="_searchInProgress"
+                                     MaxItems="100">
                         <ItemTemplate Context="item">
                             <MudText>
                                 <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />

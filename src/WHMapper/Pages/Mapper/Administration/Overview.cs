@@ -122,36 +122,45 @@ namespace WHMapper.Pages.Mapper.Administration
 
                     if (allianceResults != null && allianceResults.Alliances != null)
                     {
-                        await Parallel.ForEachAsync(allianceResults.Alliances.Take(20), _options, async (allianceId, token) =>
+                        await Parallel.ForEachAsync(allianceResults.Alliances, _options, async (allianceId, token) =>
                         {
                             var alliance = await EveAPIServices.AllianceServices.GetAlliance(allianceId);
-                            _eveCharacterEntities.Add(new WHAccess(allianceId, alliance!.Name, Models.Db.Enums.WHAccessEntity.Alliance));
+                            if(alliance!=null)
+                                _eveCharacterEntities.Add(new WHAccess(allianceId, alliance!.Name, Models.Db.Enums.WHAccessEntity.Alliance));
+                            
+                            await Task.Yield();
                         });
 
                     }
 
                     if (coorpoResults != null && coorpoResults.Corporations != null)
                     {
-                        await Parallel.ForEachAsync(coorpoResults.Corporations.Take(20), _options, async (corpoId, token) =>
+                        await Parallel.ForEachAsync(coorpoResults.Corporations, _options, async (corpoId, token) =>
                         {
                             var corpo = await EveAPIServices.CorporationServices.GetCorporation(corpoId);
-                            _eveCharacterEntities.Add(new WHAccess(corpoId, corpo!.Name, Models.Db.Enums.WHAccessEntity.Corporation));
+                            if(corpo!=null)
+                                _eveCharacterEntities.Add(new WHAccess(corpoId, corpo!.Name, Models.Db.Enums.WHAccessEntity.Corporation));
+
+                            await Task.Yield();
                         });
                     }
 
                     if (characterResults != null && characterResults.Characters != null)
                     {
-                        await Parallel.ForEachAsync(characterResults.Characters.Take(20), _options, async (characterId, token) =>
+                        await Parallel.ForEachAsync(characterResults.Characters, _options, async (characterId, token) =>
                         {
                             var character = await EveAPIServices.CharacterServices.GetCharacter(characterId);
-                            _eveCharacterEntities.Add(new WHAccess(characterId, character!.Name, Models.Db.Enums.WHAccessEntity.Character));
+                            if(character!=null)
+                                _eveCharacterEntities.Add(new WHAccess(characterId, character!.Name, Models.Db.Enums.WHAccessEntity.Character));
+                            
+                            await Task.Yield();
                         });
                     }
                 }
 
                 _searchInProgress = false;
                 if (_eveCharacterEntities != null)
-                    return _eveCharacterEntities;
+                    return _eveCharacterEntities.OrderByDescending(x=>x.EveEntity).ThenBy(x=>x.EveEntityName);
                 else
                     return null;
             }
@@ -179,18 +188,20 @@ namespace WHMapper.Pages.Mapper.Administration
 
                     if (characterResults != null && characterResults.Characters != null)
                     {
-
-                        await Parallel.ForEachAsync(characterResults.Characters.Take(20), _options, async (characterId, token) =>
+                        await Parallel.ForEachAsync(characterResults.Characters, _options, async (characterId, token) =>
                         {
                             var character = await EveAPIServices.CharacterServices.GetCharacter(characterId);
-                            _eveCharacters.Add(new WHAdmin(characterId, character!.Name));
+                            if(character!=null)
+                                _eveCharacters.Add(new WHAdmin(characterId, character!.Name));
+
+                            await Task.Yield();
                         });
                     }
                 }
 
                 _searchInProgress = false;
                 if (_eveCharacters != null)
-                    return _eveCharacters;
+                    return _eveCharacters.OrderBy(x => x.EveCharacterName);
                 else
                     return null;
             }
