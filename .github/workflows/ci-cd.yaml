@@ -2,7 +2,7 @@ name: CI-CD
 
 on:
   push:
-    paths-ignore: ['**.md', '.vscode/**','docs/**','docker/**']
+    paths-ignore: ['**.md', '.vscode/**','docs/**','docker/**','.clabot']
     branches:
       - main
   pull_request:
