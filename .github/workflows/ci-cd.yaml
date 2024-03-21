@@ -173,6 +173,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
+
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -180,7 +182,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./src/WHMapper/
-          platforms: linux/amd64,linux/arm64
           sbom: ${{ github.event_name != 'pull_request' }}
           provenance: ${{ github.event_name != 'pull_request' }}
           push: ${{ github.event_name != 'pull_request' }}
@@ -301,7 +302,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./src/WHMapper/
-          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
