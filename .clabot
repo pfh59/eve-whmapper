@@ -1,5 +1,5 @@
 {
-  "message": "We require contributors to sign our Contributor License Agreement (CLA), and we don't have yours on file. In order for us to review and merge your code, please sign [CLA]('https://github.com/pfh59/eve-whmapper/blob/main/.github/cla/CLA.md') to get yourself added.\n\nTeammates should refer to [Accepting contributions](https://github.com/pfh59/eve-whmapper/blob/main/CONTRIBUTING) for guidance.",
+  "message": "We require contributors to sign our Contributor License Agreement (CLA), and we don't have yours on file. In order for us to review and merge your code, please sign [CLA]('https://github.com/pfh59/eve-whmapper/blob/main/CLA.md') to get yourself added.\n\nTeammates should refer to [Accepting contributions](https://github.com/pfh59/eve-whmapper/blob/main/CONTRIBUTING) for guidance.",
   "label": "cla-signed",
   "contributors": [
       "pfh59",

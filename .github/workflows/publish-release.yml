@@ -31,25 +31,31 @@ jobs:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
 
-      - name: 📦 Package linux x64
+      - name: 📦 Generate Package (linux x64/arm, Windows x64)
         run: |
             dotnet restore src
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
-            zip -r WHMapper.linux-x64.zip ./release/linux -j
-            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-x64.zip
-        env:
-          GITHUB_TOKEN: ${{ github.TOKEN }}
-        shell: bash
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64
 
-      - name: 📦 Package windows x64
-        run: |
-            dotnet restore src
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
-            zip -r WHMapper.win-x64.zip ./release/win -j
+            zip -r WHMapper.linux-x64.zip ./release/linux-x64 -j
+            zip -r WHMapper.linux-arm.zip ./release/linux-arm -j
+            zip -r WHMapper.win-x64.zip ./release/win-x64 -j
+            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-x64.zip
+            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-arm.zip
             gh release upload ${{github.event.release.tag_name}} WHMapper.win-x64.zip
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}
         shell: bash
+
+      
+        # Add support for more platforms with QEMU (optional)
+      # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta-github-docker

@@ -93,27 +93,38 @@ jobs:
       - name: Generate Artifact
         if: github.event_name != 'pull_request'
         run: | 
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64
           
-      - name: Upload Linux Artifact
+      - name: Upload Linux x64 Artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: WHMapper.linux-x64
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux-x64/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux-x64/*.pdb
           if-no-files-found: error
 
-      - name: Upload Windows Artifact
+      - name: Upload Linux arm Artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
+        with:
+          name: WHMapper.linux-arm
+          path: |
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux-arm/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux-arm/*.pdb
+          if-no-files-found: error
+
+      - name: Upload Windows x64 Artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
           name: WHMapper.windows-x64
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/win/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/win/*.pdb
+            /home/runner/work/eve-whmapper/eve-whmapper/release/win-x64/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/win-x64/*.pdb
           if-no-files-found: error
 
   build_test_docker_image:
@@ -133,7 +144,12 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
-          
+
+      # Add support for more platforms with QEMU (optional)
+      # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
@@ -157,6 +173,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
+
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -198,6 +216,14 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+      
+          # Add support for more platforms with QEMU (optional)
+      # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Authenticate to registry ${{ env.REGISTRY }}
         uses: docker/login-action@v3
@@ -225,6 +251,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./src/WHMapper/
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
@@ -240,6 +267,14 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+      
+      # Add support for more platforms with QEMU (optional)
+      # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Authenticate to registry ${{ env.REGISTRY_DOCKERHUB }}
         uses: docker/login-action@v3
@@ -270,5 +305,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-
-
