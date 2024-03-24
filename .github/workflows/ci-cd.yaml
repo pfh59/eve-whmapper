@@ -209,8 +209,6 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-          - linux/arm/v6
-          - linux/arm/v7
           - linux/arm64
     steps:
       - name: Prepare
@@ -255,12 +253,12 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Build and push to ${{ env.REGISTRY }}
+      - name: Build and push to ${{ env.REGISTRY }} by digest
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: ./src/WHMapper/
           platforms: ${{ matrix.platform }}
-          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
