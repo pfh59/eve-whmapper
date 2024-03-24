@@ -181,6 +181,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           context: ./src/WHMapper/
           sbom: ${{ github.event_name != 'pull_request' }}
           provenance: ${{ github.event_name != 'pull_request' }}
@@ -221,7 +222,7 @@ jobs:
       # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-
+         
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
