@@ -5,7 +5,7 @@
 # Deploy on kubernate
 
 This section is dedicated for deploy the mapper on kubernate.
-If u have already k3s set u can go directly to the **Deploy** section
+If u have already k3s set u can go directly to the [deploy](#Deploy) section
 
 This was made and tested on RasphberryPi cluster.
 
@@ -57,15 +57,15 @@ The deploy is split into many files to apply after configuration.
 ### Edit envs
 
 All service use a same ConfigMap with in **deploys/envs.yaml [ConfigMap]**:
-- DOMAIN:  <your domain (ex: map.mycorp.com)>
-- POSTGRES_DB: <your db name>
-- POSTGRESQL_USERNAME: <your db user>
-- POSTGRESQL_PASSWORD: <your db password>
-- POSTGRESQL_DATABASE: <same as POSTGRES_DB>
-- EveSSO__ClientId: <your client ID given from CCP>
-- EveSSO__Secret: <your secret key given from CCP>
-- ConnectionStrings__DatabaseConnection: server=<cluster-local-ip>;port=31252;database=<same as POSTGRES_DB>;User Id=<same as POSTGRESQL_USERNAME>;Password=<same as POSTGRESQL_PASSWORD>
-- ConnectionStrings__RedisConnection: <cluster-local-ip>:31253
+- `DOMAIN`:  your domain (ex: map.mycorp.com)
+- `POSTGRES_DB`: your db name
+- `POSTGRESQL_USERNAME`: your db user
+- `POSTGRESQL_PASSWORD`: your db password
+- `POSTGRESQL_DATABASE`: same as POSTGRES_DB
+- `EveSSO__ClientId`: your client ID given from CCP
+- `EveSSO__Secret`: your secret key given from CCP
+- `ConnectionStrings__DatabaseConnection`: `server=<cluster-local-ip>;port=31252;database=<same as POSTGRES_DB>;User Id=<same as POSTGRESQL_USERNAME>;Password=<same as POSTGRESQL_PASSWORD>`
+- `ConnectionStrings__RedisConnection`: `<cluster-local-ip>:31253`
 
 Remarks:
 - `cluster-local-ip` is the local ip of the master node is your network (not internet machine IP). For me its 192.168.1.50 (master node) 
@@ -77,16 +77,16 @@ Env can not be used directly in the deployement file.
 So u need to modify some value deeper in the file.
 
 In **deploys/base.yaml [Certificate-issuer]**:
-- email: need to put a valid email (using to get notified when certificat is going to be outdated)
+- `email`: need to put a valid email (using to get notified when certificat is going to be outdated)
 
 In **deploys/base.yaml [Certificate]**:
-- commonName: change it to your subdomain (same as `DOMAIN` for envs)
+- `commonName`: change it to your subdomain (same as `DOMAIN` for envs)
 ```
     ex:
         commonName: map.mycorp.com
 ```
 
-- dnsNames: list of all dns that u want to use. **commonName** must appear in the list
+- `dnsNames`: list of all dns that u want to use. **commonName** must appear in the list
   
 ```
   ex:
@@ -144,7 +144,7 @@ It will redeploy the frontend only
 
 U can also use portainer to redeploy the frontend (evemapper-app)
 
-## Improve  feature?
+## TODO?
 
 - FIX order of yaml files execution using .metadata.labels.order
 - use volume for db
