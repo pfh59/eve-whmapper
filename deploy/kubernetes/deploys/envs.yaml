@@ -1,0 +1,34 @@
+
+################################## 
+### ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evemapper-config-map
+  namespace: evemapper
+  labels:
+    order: "4"
+data:
+  DOMAIN:  [your SUB/DOMAIN]
+  POSTGRES_DB: [your db name]
+  POSTGRESQL_USERNAME: [your db user]
+  POSTGRESQL_PASSWORD: [your db password]
+  POSTGRESQL_DATABASE: [your db name]
+  EveSSO__ClientId: [your ccp app's client id]
+  EveSSO__Secret: [your ccp app's secrect]
+  ConnectionStrings__DatabaseConnection: server=[your master cluster IP];port=31252;database=[your db name];User Id=[your db user];Password=[your db password]
+  ConnectionStrings__RedisConnection: [your master cluster IP]:31253
+  Logging__LogLevel__Default: Warning
+  Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command: Warning
+---
+
+################################## 
+### Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evemapper-secrets
+  namespace: evemapper
+  labels:
+    order: "5"
+---
