@@ -1,0 +1,55 @@
+
+################################## 
+### Namespace
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: evemapper
+  labels:
+    order: "1"
+---
+
+################################## 
+### Certificate issuer
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-evemapper
+  namespace: evemapper
+  labels:
+    order: "2"
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: [your valid email]
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-evemapper
+    # Enable the HTTP-01 challenge provider
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: traefik
+---
+
+################################## 
+### Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tls-evemapper
+  namespace: evemapper
+  labels:
+    order: "3"
+spec:
+  secretName: tls-evemapper
+  commonName: [your SUB/DOMAIN]
+  issuerRef:
+    name: letsencrypt-evemapper
+    kind: Issuer
+  dnsNames:
+  - [your SUB/DOMAIN]
+---

@@ -2,7 +2,7 @@ name: CI-CD
 
 on:
   push:
-    paths-ignore: ['**.md', '.vscode/**','docs/**','docker/**']
+    paths-ignore: ['**.md', '.vscode/**','docs/**','docker/**','.clabot']
     branches:
       - main
   pull_request:
@@ -93,27 +93,38 @@ jobs:
       - name: Generate Artifact
         if: github.event_name != 'pull_request'
         run: | 
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64
           
-      - name: Upload Linux Artifact
+      - name: Upload Linux x64 Artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: WHMapper.linux-x64
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/linux/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux/*.pdb
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux-x64/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux-x64/*.pdb
           if-no-files-found: error
 
-      - name: Upload Windows Artifact
+      - name: Upload Linux arm Artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
+        with:
+          name: WHMapper.linux-arm
+          path: |
+            /home/runner/work/eve-whmapper/eve-whmapper/release/linux-arm/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux-arm/*.pdb
+          if-no-files-found: error
+
+      - name: Upload Windows x64 Artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
           name: WHMapper.windows-x64
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/win/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/win/*.pdb
+            /home/runner/work/eve-whmapper/eve-whmapper/release/win-x64/
+            !/home/runner/work/eve-whmapper/eve-whmapper/release/win-x64/*.pdb
           if-no-files-found: error
 
   build_test_docker_image:
@@ -133,7 +144,7 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
-          
+
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
@@ -157,6 +168,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
+
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -172,7 +185,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+              
       - name: Docker Scout
         id: docker-scout
         if: ${{ github.event_name == 'pull_request' }}
@@ -187,17 +200,36 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }} # to be able to write the comment
 
 
-  release_docker_image_docker_io:
+  prepare_docker_image_docker_io:
     if: github.event_name != 'pull_request' #PUSH only on merging
     needs: [build_test_package,build_test_docker_image]
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
     steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV   
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+      
+          # Add support for more platforms with QEMU (optional)
+      # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+         
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Authenticate to registry ${{ env.REGISTRY }}
         uses: docker/login-action@v3
@@ -221,13 +253,76 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Build and push to ${{ env.REGISTRY }}
+      - name: Build and push to ${{ env.REGISTRY }} by digest
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: ./src/WHMapper/
-          tags: ${{ steps.meta.outputs.tags }}
+          platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: true
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge_docker_image_docker_io:
+    if: github.event_name != 'pull_request' #PUSH only on merging
+    needs: [prepare_docker_image_docker_io]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+          flavor: |
+            latest=false
+      
+      - name: Authenticate to registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)          
+      -
+        name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}          
 
   release_docker_image_docker_hub:
     if: github.event_name != 'pull_request' #PUSH only on merging
@@ -240,6 +335,9 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+      
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Authenticate to registry ${{ env.REGISTRY_DOCKERHUB }}
         uses: docker/login-action@v3
@@ -270,5 +368,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-
-

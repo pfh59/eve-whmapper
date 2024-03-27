@@ -24,23 +24,10 @@ Eve wormhole mapper is a simple mapping tool for eve player. It was inspired by 
 Eve wormhole mapper is written in C# using ASP.NET Core Blazor Server,EF Core, SignalR... and use some third-party components specialy [Blazor.DIAGRAMS](https://blazor-diagrams.zhaytam.com)
 
 ## Requirements
-
-### Server
-
-We recommand to linux server with OS [Debian] (https://www.debian.org/index.fr.html)
-If you want to use an other OS, you need to write your own init script or configure manually files (see the list bellow)
-
+  
 ### Domain
 
 We recommand to use a domaine name (your.domaine.com) with public DNS.
-
-### Docker
-
-In order to run this container you'll need docker installed.
-
-* [Linux](https://docs.docker.com/linux/started/)
-* [Windows](https://docs.docker.com/windows/started)
-* [OS X](https://docs.docker.com/mac/started/)
 
 ### Register your app with CCP
 
@@ -62,50 +49,15 @@ Register your app in https://developers.eveonline.com
 - Click to "CREATE APPLICATION"
 - Copy Client ID,Secret Key and Callback URL to use if on next configuration step
 
-## Installation
+## Get started
 
-### Getting Started
+EvE-WHMapper can be install using **docker** or **kubernetes**. 
+Both method run on multi platform (linux/amd64, linux/arm64)
 
-Make sure your server environment fulfils all [Requirements](#requirements) first.
+/!\ make sure [Requirements](#requirements) step is done before continue /!\ 
 
-#### Get docker-compose template
-
-Navigate to your desired install location and git clone the eve-whmapper repository :
-(Recommanded install location : /opt/)
-
-```shell
-sudo git clone https://github.com/pfh59/eve-whmapper.git
-cd eve-whmapper/docker
-```
-
-### Configuration
-
-Eve-whmapper is pretty easy to configure!
-
-Run the init.sh script as sudo or root user and follow instructions
-
-```shell
-sudo ./init.sh
-```
-
-This script automatically :
-- Updates all the configurations (docker-compose.yml, haproxy.cfg, nginx.conf) from your response,
-- Initialize all docker container.
-- Create,add and use a strong certifcate to use HTTPS with your domain
-  
-## Start and stop
-
-- To Start all container, use the script start.sh as a sudo user or root user
-
-```shell
-sudo ./start.sh
-```
-
-- To Stop all container, use the script start.sh as a sudo user or root user
-
-```shell
-sudo ./stop.sh
-```
+* [Docker installation](deploy/docker/README.md)
+* [Kubernetes installation](deploy/kubernetes/README.md)
 
 ## Features
 

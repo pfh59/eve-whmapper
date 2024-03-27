@@ -1,0 +1,96 @@
+################################## 
+### POSTGRES
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: evemapper
+  labels:
+    order: "6"
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: bitnami/postgresql:latest
+          ports:
+            - containerPort: 5432
+          envFrom:
+          - configMapRef:
+              name: evemapper-config-map
+          - secretRef:
+              name: evemapper-secrets
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-cluster-ip-service
+  namespace: evemapper
+  labels:
+    order: "7"
+spec:
+  type: NodePort
+  selector:
+    component: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 31252
+---
+
+################################## 
+### REDIS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: evemapper
+  labels:
+    order: "8"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: redis
+  template:
+    metadata:
+      labels:
+        component: redis 
+    spec:
+      containers:
+        - name: redis
+          image: redis:latest
+          ports:
+            - containerPort: 6379
+          envFrom:
+          - configMapRef:
+              name: evemapper-config-map
+          - secretRef:
+              name: evemapper-secrets
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-ip-service
+  namespace: evemapper
+  labels:
+    order: "9"
+spec:
+  type: NodePort
+  selector:
+    component: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+      nodePort: 31253
+---
+
