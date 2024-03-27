@@ -51,10 +51,8 @@ namespace WHMapper.Models.Db
         [Required]
         public string? UpdatedBy { get; set; } = DEFAULT_SCAN_USER_VALUE;
 
-        public WHSignature()
-        {
-
-        }
+        [Obsolete("EF Requires it")]
+        protected WHSignature() { }
 
         public WHSignature(int whId,string name) :
             this(whId,name, DEFAULT_SCAN_USER_VALUE)

@@ -51,7 +51,12 @@ namespace WHMapper.Repositories.WHSystemLinks
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                return await context.DbWHSystemLinks.ToListAsync();
+                if (context.DbWHSystemLinks.Count() == 0)
+                    return await context.DbWHSystemLinks.ToListAsync();
+                else
+                    return await context.DbWHSystemLinks
+                            .Include(x => x.JumpHistory)
+                            .ToListAsync();
             }
         }
 
@@ -59,7 +64,7 @@ namespace WHMapper.Repositories.WHSystemLinks
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                return await context.DbWHSystemLinks.FindAsync(id);
+                return await context.DbWHSystemLinks.Include(x => x.JumpHistory).SingleOrDefaultAsync(x => x.Id == id);
             }
         }
 

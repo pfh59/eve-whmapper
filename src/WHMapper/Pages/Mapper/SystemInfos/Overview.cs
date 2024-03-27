@@ -31,9 +31,8 @@ namespace WHMapper.Pages.Mapper.SystemInfos
         private string _linkToDotlan=  string.Empty;
         private string _linkToZKillboard=  string.Empty;
         private string _linkToAnoik = string.Empty;
-
         private string _systemType = string.Empty;
-        private string _effect = NO_EFFECT;
+
         [Inject]
         private IWHNoteRepository DbWHNotes { get; set; } = null!;
 
@@ -78,28 +77,8 @@ namespace WHMapper.Pages.Mapper.SystemInfos
                         break;
                 }
 
-                if (CurrentSystemNode.Effect == WHEffect.None)
-                    _effect = NO_EFFECT;
-                else
-                    _effect = GetWHEffectValueAsString(CurrentSystemNode.Effect);
             }
             return base.OnParametersSetAsync();
-        }
-
-        private string GetWHEffectValueAsString(WHEffect effect)
-        {
-            var field = effect.GetType().GetField(effect.ToString());
-            var customAttributes = field?.GetCustomAttributes(typeof(DescriptionAttribute), false);
-
-            if (customAttributes != null && customAttributes.Length > 0)
-            {
-                var descriptionAttr = customAttributes[0] as DescriptionAttribute;
-                return ((descriptionAttr==null) ? string.Empty : descriptionAttr.Description);
-            }
-            else
-            {
-                return effect.ToString();
-            }
         }
     }
 }

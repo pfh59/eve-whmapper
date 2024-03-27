@@ -98,7 +98,8 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = _contextFactory.CreateDbContext())
             {
-                return await context.DbWHSystems.Include(x => x.WHSignatures).FirstOrDefaultAsync(x => x.Name == name);
+                //return await context.DbWHSystems.Include(x => x.WHSignatures).FirstOrDefaultAsync(x => x.Name == name);
+                return await context.DbWHSystems.FirstOrDefaultAsync(x => x.Name == name);
             }
         }
     }

@@ -88,6 +88,7 @@
     <MudPaper Class="flex-none" Width="100%" Height="325px">
         <MudStack Row="true" Justify="Justify.Center" class="mud-height-full mud-width-full">
             <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode" />
+            <!--<WHMapper.Pages.Mapper.LinkInfos.Overview CurrentSystemLink="@_selectedSystemLink" />-->
             <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
             <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="@_selectedSystemNode" CurrentLinks="@_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
         </MudStack>

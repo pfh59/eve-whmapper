@@ -32,11 +32,8 @@ namespace WHMapper.Models.Db
 
         public bool Locked { get; set; } = false;
 
-
-        public WHSystem()
-        { }
-
-
+        [Obsolete("EF Requires it")]
+        protected WHSystem() { }
         public WHSystem(int whMapId,int solarSystemId,string name, float securityStatus,double posX, double posY)
         {
             WHMapId = whMapId;

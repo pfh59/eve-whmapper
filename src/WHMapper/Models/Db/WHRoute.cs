@@ -13,10 +13,8 @@ public class WHRoute
         [Required]
         public int SolarSystemId { get; set; }
 
-        public WHRoute()
-        {
-            
-        }
+        [Obsolete("EF Requires it")]
+        protected WHRoute() { }
 
         public WHRoute(int solarSystemId)
         {

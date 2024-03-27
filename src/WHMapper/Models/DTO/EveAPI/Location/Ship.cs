@@ -1,15 +1,15 @@
-﻿namespace WHMapper.Models.DTO.EveAPI.Location
+﻿using System.Text.Json.Serialization;
+
+namespace WHMapper.Models.DTO.EveAPI.Location
 {
     public class Ship
     {
-        /*
-        [JsonProperty("ship_type_id")]
-        public int ShipTypeId { get; set; }
-
-        [JsonProperty("ship_item_id")]
+        [JsonPropertyName("ship_item_id")]
         public long ShipItemId { get; set; }
 
-        [JsonProperty("ship_name")]
-        public string ShipName { get; set; }*/
+        [JsonPropertyName("ship_name")]
+        public string? ShipName { get; set; }
+        [JsonPropertyName("ship_type_id")]
+        public int ShipTypeId { get; set; }
     }
 }

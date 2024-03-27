@@ -13,8 +13,10 @@ namespace WHMapper.Models.Db
         public int EveCharacterId { get; set; }
 
         [Required]
-        public string EveCharacterName { get; set; }
+        public string EveCharacterName { get; set; }=string.Empty;
 
+        [Obsolete("EF Requires it")]
+        protected WHAdmin() { }
         public WHAdmin(int eveCharacterId,string eveCharacterName)
 		{
             EveCharacterId = eveCharacterId;
