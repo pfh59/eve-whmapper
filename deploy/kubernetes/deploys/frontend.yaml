@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evemapper-app
+  namespace: evemapper
+  labels:
+    order: "10"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: evemapper-app
+  template:
+    metadata:
+      labels:
+        component: evemapper-app 
+    spec:
+      containers:
+        - name: evemapper-app
+          image: ghcr.io/pfh59/eve-whmapper:latest
+          envFrom:
+          - configMapRef:
+              name: evemapper-config-map
+          - secretRef:
+              name: evemapper-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evemapper-app-service
+  namespace: evemapper
+  labels:
+    order: "11"
+spec:
+  type: ClusterIP
+  selector:
+    component: evemapper-app
+  ports:
+    - name: port-0
+      port: 8080
+      targetPort: 8080
