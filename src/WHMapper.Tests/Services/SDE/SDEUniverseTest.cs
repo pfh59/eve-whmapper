@@ -4,8 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using WHMapper.Pages.Mapper.Administration;
-using WHMapper.Services.Anoik;
 using WHMapper.Services.Cache;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
