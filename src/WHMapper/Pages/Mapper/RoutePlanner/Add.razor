@@ -1,11 +1,16 @@
-﻿<MudDialog>
+﻿@using WHMapper.Models.DTO.SDE
+<MudDialog>
     <DialogContent>
 
         <MudForm @bind-IsValid="@_formSuccessValidation" @ref="@_formRoutePlanner">
-            <MudAutocomplete T="string" Label="System Name" @bind-Value="_searchResult" SearchFunc="Search" Margin="Margin.Dense" Dense="true"
-                            Required="true" ResetValueOnEmptyText="true" CoerceValue="true"
-                            Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
-                            AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" MinCharacters="@Services.EveMapper.IEveMapperSearch.MIN_SEARCH_CHARACTERS" />
+            <MudAutocomplete T="SDESolarSystem" Label="System Name" @bind-Value="_searchResult" SearchFuncWithCancel="@EveMapperSearch.SearchSystem" 
+                Margin="Margin.Dense" Dense="true"
+                Required="true" ResetValueOnEmptyText="true" CoerceValue="true" CoerceText="true"
+                Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
+                AdornmentIcon="@Icons.Material.Filled.Search" 
+                AdornmentColor="Color.Primary" 
+                ToStringFunc="@(x=> x==null?null : $"{x.Name}")" 
+                MinCharacters="@Services.EveMapper.IEveMapperSearch.MIN_SEARCH_SYSTEM_CHARACTERS" />
 
             <AuthorizeView Policy="Admin" Context="adminContext">
                 <MudCheckBox T="bool" Label="As default route" @bind-Value="@_global" Dense="true" Size="Size.Small"></MudCheckBox>

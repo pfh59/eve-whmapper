@@ -40,7 +40,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         [CascadingParameter]
         MudDialogInstance MudDialog { get; set; } = null!;
 
-        private string _searchResult = string.Empty;
+        private SDESolarSystem _searchResult = null!;
         public bool _global=false;
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
@@ -54,18 +54,14 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 await _semaphoreSlim.WaitAsync();
                 try
                 {
-                    SDESolarSystem? sdeSolarSystem = EveMapperSearch?.Systems?.Where(x => x.Name.ToLower() == _searchResult.ToLower()).FirstOrDefault();
-
-                    if (sdeSolarSystem == null)
+                    if (_searchResult == null)
                     {
                         Logger.LogError(MSG_BAD_SOLAR_SYSTEM_NAME_ERROR);
                         Snackbar?.Add(MSG_BAD_SOLAR_SYSTEM_NAME_ERROR, Severity.Error);
                         return;
                     }
 
-                    var route = await EveMapperRoutePlannerHelper.AddRoute(sdeSolarSystem.SolarSystemID, _global);
-                                     
-
+                    var route = await EveMapperRoutePlannerHelper.AddRoute(_searchResult.SolarSystemID, _global);
 
                     if (route == null)
                     {
@@ -75,7 +71,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                     }
 
 
-                    Snackbar?.Add(String.Format("{0} route successfully added",sdeSolarSystem.Name), Severity.Success);
+                    Snackbar?.Add(String.Format("{0} route successfully added",_searchResult.Name), Severity.Success);
                     MudDialog.Close(DialogResult.Ok(route.Id));
                 }
                 catch (Exception ex)
@@ -95,18 +91,22 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 MudDialog.Close(DialogResult.Cancel);
             }
         }
-
-
         private void Cancel()
         {
             MudDialog.Cancel();
         }
 
-        private async Task<IEnumerable<string>?> Search(string value)
+/*
+        private async Task<IEnumerable<SDESolarSystem>?> Search(string value,CancellationToken cancellationToken)
         {
             try
             {
-                return await EveMapperSearch.SearchSystem(value);
+                return await EveMapperSearch.SearchSystem(value,cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogInformation($"SearchSystem {value} cancelled");
+                return null;
             }
             catch(Exception ex)
             {
@@ -114,7 +114,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
                 Snackbar.Add(MSG_SEARCH_ERROR, Severity.Error);
                 return null;
             }
-        }
+        }*/
 
     }
 }
