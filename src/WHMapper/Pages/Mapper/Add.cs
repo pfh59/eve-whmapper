@@ -71,7 +71,7 @@ namespace WHMapper.Pages.Mapper
         private MudForm _form = null!;
         private bool _success = false;
 
-        private string _searchResult = string.Empty;
+        private SDESolarSystem _searchResult = null!;
 
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
@@ -98,15 +98,7 @@ namespace WHMapper.Pages.Mapper
                         MudDialog.Close(DialogResult.Cancel);
                     }
 
-
-                    SDESolarSystem? sdeSolarSystem = null;
-                    if(EveMapperSearch!=null && EveMapperSearch.Systems!=null)
-                    {
-                        var sdeSolarSystems = EveMapperSearch.Systems.Where(x => x.Name.ToLower() == _searchResult.ToLower());
-                        sdeSolarSystem = sdeSolarSystems.FirstOrDefault();
-                    }
-
-                    if(sdeSolarSystem==null)
+                    if(_searchResult==null)
                     {
                         Logger.LogError("Solar System not found");
                         Snackbar?.Add("Solar System not found", Severity.Error);
@@ -115,13 +107,13 @@ namespace WHMapper.Pages.Mapper
 
                                     
                
-                    if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == sdeSolarSystem?.SolarSystemID).FirstOrDefault()!=null)
+                    if(CurrentWHMap?.WHSystems.Where(x => x.SoloarSystemId == _searchResult?.SolarSystemID).FirstOrDefault()!=null)
                     {
                         Snackbar?.Add("Solar System is already added", Severity.Normal);
                         MudDialog.Close(DialogResult.Cancel);
                     }
 
-                    int solarSystemId = ((sdeSolarSystem==null) ? -1 : sdeSolarSystem.SolarSystemID);
+                    int solarSystemId = ((_searchResult==null) ? -1 : _searchResult.SolarSystemID);
                     int currentMapId = ((CurrentWHMap == null) ? -1 : CurrentWHMap.Id);
                     var solarSystem = await EveServices.UniverseServices.GetSystem(solarSystemId);
                     WHSystem? newWHSystem=null!;
@@ -174,11 +166,17 @@ namespace WHMapper.Pages.Mapper
             MudDialog.Cancel();
         }
 
-        private async Task<IEnumerable<string>?> Search(string value)
+/*
+        private async Task<IEnumerable<SDEServices>?> Search(string value,CancellationToken cancellationToken)
         {
             try
             {
-                return await EveMapperSearch.SearchSystem(value);
+                return (IEnumerable<SDEServices>?)await EveMapperSearch.SearchSystem(value,cancellationToken);
+            }
+            catch(OperationCanceledException)
+            {
+                Logger.LogInformation($"SearchSystem {value} cancelled");
+                return null;
             }
             catch(Exception ex)
             {
@@ -186,7 +184,7 @@ namespace WHMapper.Pages.Mapper
                 Snackbar.Add(MSG_SEARCH_ERROR, Severity.Error);
                 return null;
             }
-        }
+        }*/
     }
 }
 

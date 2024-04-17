@@ -118,7 +118,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotNull(route_JITA_AHBAZON.Route);
         Assert.Equal(5,route_JITA_AHBAZON.RouteLength);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, new BlockingCollection<Models.DTO.RoutePlanner.RouteConnection> 
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, new BlockingCollection<RouteConnection> 
         {
             new RouteConnection(SOLAR_SYSTEM_WH_ID,-1.0f,SOLAR_SYSTEM_AHBAZON_ID,0.4f),
             new RouteConnection(SOLAR_SYSTEM_AHBAZON_ID,0.4f,SOLAR_SYSTEM_WH_ID,-1.0f)
@@ -132,7 +132,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotNull(route_WH_AHBAZON.Route);
         Assert.Equal(2,route_WH_AHBAZON.RouteLength);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest,new BlockingCollection<Models.DTO.RoutePlanner.RouteConnection> 
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest,new BlockingCollection<RouteConnection> 
         {
             new RouteConnection(SOLAR_SYSTEM_WH_ID,-1.0f,SOLAR_SYSTEM_AHBAZON_ID,0.4f),
             new RouteConnection(SOLAR_SYSTEM_AHBAZON_ID,0.4f,SOLAR_SYSTEM_WH_ID,-1.0f),
