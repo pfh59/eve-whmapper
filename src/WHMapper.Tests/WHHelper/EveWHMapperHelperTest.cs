@@ -8,7 +8,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI;
+using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
@@ -128,7 +130,7 @@ public class EveWHMapperHelperTest
         if(httpclientfactory!=null && _contextFactory != null && _distriCache != null)
         {
             _whEveMapper = new EveMapperHelper(loggerMapperHelper
-                , new EveAPIServices(loggerAPI, httpclientfactory, new Models.DTO.TokenProvider(), null!)
+                , new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!)
                 , new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache)),
                 new AnoikServices(loggerAnoik), new WHNoteRepository(loggerWHNoteRepository, _contextFactory));
         }
@@ -150,7 +152,7 @@ public class EveWHMapperHelperTest
     [Fact, Priority(2)]
     public async Task Get_Wormhole_Class()
     {
-        var result_C3_Bis= await _whEveMapper.GetWHClass(new Models.DTO.EveAPI.Universe.ESISolarSystem(0, 31001123, SOLAR_SYSTEM_WH_NAME,null!,-1.0f,string.Empty,CONSTELLATION_WH_ID,null!,null!));
+        var result_C3_Bis= await _whEveMapper.GetWHClass(new ESISolarSystem(0, 31001123, SOLAR_SYSTEM_WH_NAME,null!,-1.0f,string.Empty,CONSTELLATION_WH_ID,null!,null!));
         Assert.Equal(EveSystemType.C3, result_C3_Bis);
 
         var result_HS = await _whEveMapper.GetWHClass(REGION_JITA_NAME, "UNUSED", SOLAR_SYSTEM_JITA_NAME,1.0f);
@@ -210,7 +212,7 @@ public class EveWHMapperHelperTest
     {
         var jita_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0f));
         Assert.NotNull(jita_result);
-        Assert.Equal(Models.DTO.EveMapper.Enums.EveSystemType.HS, jita_result.SystemType);
+        Assert.Equal(EveSystemType.HS, jita_result.SystemType);
 
 
         var wh_result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0f));

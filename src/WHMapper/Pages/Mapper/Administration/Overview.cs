@@ -1,29 +1,14 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Reflection.Emit;
-using Blazor.Diagrams.Core.Events;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using MudBlazor;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO.EveAPI.Alliance;
-using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Models.DTO.SDE;
-using WHMapper.Pages.Mapper.Signatures;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
-using WHMapper.Repositories.WHSystemLinks;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.SDE;
-
 namespace WHMapper.Pages.Mapper.Administration
 {
     [Authorize(Policy = "Admin")]
@@ -40,8 +25,6 @@ namespace WHMapper.Pages.Mapper.Administration
 
         private const string MSG_NO_ACCESS_ADDED = "No access added";
         private const string MSG_NO_ADMIN_ADDED = "No admin added";
-
-
 
 
         private IEnumerable<WHAccess> WHAccesses { get; set; } = null!;

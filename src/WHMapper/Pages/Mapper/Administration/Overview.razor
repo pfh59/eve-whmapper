@@ -3,11 +3,12 @@
 @using WHMapper.Models.DTO.EveMapper.EveEntity
 @using WHMapper.Models.Db;
 @using WHMapper.Services.EveMapper
+@using WHMapper.Repositories.WHAccesses
 
     <MudGrid>
         <MudItem xs="6">
             <MudPaper Class="pa-4">
-                <MudTable Items="@WHAccesses" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Virtualize="true" Height="100%" Loading="@(WHAccesses==null)" LoadingProgressColor="Color.Info"
+                <MudTable Items="@WHAccesses" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Virtualize="true" Height="100%" Loading="@(WHAccesses ==null)" LoadingProgressColor="Color.Info"
                           CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedWHAccess"
                           FixedHeader="true">
                     <ToolBarContent>

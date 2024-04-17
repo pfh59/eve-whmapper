@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
+using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
@@ -93,7 +94,7 @@ public class EveWHAccessHelperTest
         var fullAuthorize = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
         Assert.True(fullAuthorize);
 
-        var character = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_CHARACTERE_ID2, "TOTO",WHAccessEntity.Character));
+        var character = await _whAccessRepository.Create(new WHAccess(EVE_CHARACTERE_ID2, "TOTO",WHAccessEntity.Character));
         Assert.NotNull(character);
         Assert.Equal(EVE_CHARACTERE_ID2, character.EveEntityId);
 
@@ -113,7 +114,7 @@ public class EveWHAccessHelperTest
         Assert.NotNull(_accessHelper);
         Assert.NotNull(_whAccessRepository);
 
-        var corpo = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_CORPO_ID, "TOTO",WHAccessEntity.Corporation));
+        var corpo = await _whAccessRepository.Create(new WHAccess(EVE_CORPO_ID, "TOTO",WHAccessEntity.Corporation));
         Assert.NotNull(corpo);
         Assert.Equal(EVE_CORPO_ID, corpo.EveEntityId);
 
@@ -132,7 +133,7 @@ public class EveWHAccessHelperTest
         Assert.NotNull(_accessHelper);
         Assert.NotNull(_whAccessRepository);
 
-        var alliance = await _whAccessRepository.Create(new Models.Db.WHAccess(EVE_ALLIANCE_ID, "TOTO",WHAccessEntity.Alliance));
+        var alliance = await _whAccessRepository.Create(new WHAccess(EVE_ALLIANCE_ID, "TOTO",WHAccessEntity.Alliance));
         Assert.NotNull(alliance);
         Assert.Equal(EVE_ALLIANCE_ID, alliance.EveEntityId);
 
@@ -154,7 +155,7 @@ public class EveWHAccessHelperTest
         var fullAuthorize = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID);
         Assert.True(fullAuthorize);
 
-        var character = await _whAdminRepository.Create(new Models.Db.WHAdmin(EVE_CHARACTERE_ID2, "TOTO"));
+        var character = await _whAdminRepository.Create(new WHAdmin(EVE_CHARACTERE_ID2, "TOTO"));
         Assert.NotNull(character);
         Assert.Equal(EVE_CHARACTERE_ID2, character.EveCharacterId);
 
