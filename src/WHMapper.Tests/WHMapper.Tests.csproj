@@ -24,26 +24,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Xunit.Priority" Version="1.1.6" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Db\" />
-    <None Remove="Microsoft.EntityFrameworkCore.Design" />
-    <None Remove="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <None Remove="Npgsql" />
-    <None Remove="appsettings.json" />
-    <None Remove="Microsoft.Extensions.Configuration" />
-    <None Remove="Orders\" />
-    <None Remove="EveOnlineAPI\" />
-    <None Remove="Anoik\" />
-    <None Remove="WHColorHelper\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Db\" />
-    <Folder Include="EveOnlineAPI\" />
-    <Folder Include="Anoik\" />
-    <Folder Include="WHHelper\" />
-    <Folder Include="SDE\" />
-  </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.json" Condition="'$(ExcludeConfigFilesFromBuildOutput)'!='true'">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

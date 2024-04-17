@@ -127,7 +127,7 @@ namespace WHMapper.Models.Custom.Node
 
         public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
         {
-            _wh = wh;
+            this._wh = wh;
             if(note != null)
                 _systemStatus = note.SystemStatus;
             else
@@ -151,7 +151,7 @@ namespace WHMapper.Models.Custom.Node
 
         public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName)
         {
-            _wh = wh;
+            this._wh = wh;
             if(note != null)
                 _systemStatus = note.SystemStatus;
             else

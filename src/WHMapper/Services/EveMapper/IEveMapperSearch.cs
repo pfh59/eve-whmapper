@@ -1,14 +1,24 @@
-﻿using WHMapper.Models.DTO.SDE;
+﻿using WHMapper.Models.Db;
+using WHMapper.Models.DTO.EveAPI.Alliance;
+using WHMapper.Models.DTO.EveAPI.Character;
+using WHMapper.Models.DTO.EveAPI.Corporation;
+using WHMapper.Models.DTO.EveAPI.Search;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Models.DTO.SDE;
 
 namespace WHMapper.Services.EveMapper
 {
     public interface IEveMapperSearch
     {
-        public const int MIN_SEARCH_CHARACTERS = 3;
+        public const int MIN_SEARCH_SYSTEM_CHARACTERS = 3;
+        public const int MIN_SEARCH_ENTITY_CHARACTERS  = 5;
 
-        IEnumerable<SDESolarSystem>? Systems {get;}
+        Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value,CancellationToken cancellationToken);
+        Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value,CancellationToken cancellationToken);
+        Task<IEnumerable<CorporationEntity>?> SearchCorporation(string value,CancellationToken cancellationToken);
+        Task<IEnumerable<AllianceEntity>?> SearchAlliance(string value,CancellationToken cancellationToken);
+        Task<IEnumerable<AEveEntity>?> SearchEveEntities(string value,CancellationToken cancellationToken);
 
-        Task<IEnumerable<string>?> SearchSystem(string value);
         IEnumerable<string> ValidateSearchType(string value);
     }
 }
