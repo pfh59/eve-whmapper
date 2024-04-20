@@ -2,9 +2,12 @@
 @using WHMapper.Models.DTO.EveMapper.Enums
 
 <MudPaper hidden="@(CurrentSystemNodeId == null)" Outlined="true" class="d-flex">
-<MudTable @ref="_signatureTable" Height="calc(100%)" Outlined="true" Items="@Signatures" Dense=true Hover=false Bordered=true Striped=true AllowUnsorted=false SortLabel="Sort By"  Virtualize="true" Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
-          CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
-          RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true">
+<MudTable @ref="_signatureTable" Height="calc(100%)" Outlined="true" Items="@Signatures" Breakpoint="Breakpoint.Xs"
+        Dense=true Hover=false Bordered=true Striped=true AllowUnsorted=false SortLabel="Sort By"  Virtualize="true" 
+        Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
+        CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
+        RowEditPreview="BackupSingature" RowEditCancel="ResetSingatureToOriginalValues" RowEditCommit="SignatiureHasBeenCommitted" 
+        CancelEditIcon="@Icons.Material.Filled.Cancel" CommitEditIcon="@Icons.Material.Filled.Edit" FixedHeader="true" HorizontalScrollbar="false">
     <ColGroup>
         <col />
         <col style="width: 150px;"/>
@@ -20,9 +23,9 @@
         <MudTh Style="text-align:left"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Group.ToString())">Group</MudTableSortLabel></MudTh>
         <MudTh Style="text-align:left">Type</MudTh>
         <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Created)">Created</MudTableSortLabel></MudTh>
-        <MudTh Style="text-align:center">Created by</MudTh>
+        <MudTh Style="text-align:center">Creator</MudTh>
         <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Updated)">Updated</MudTableSortLabel></MudTh>
-        <MudTh Style="text-align:center">Updated by</MudTh>
+        <MudTh Style="text-align:center">Updater</MudTh>
         <MudTh>
             <MudStack Row="true">
                 <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenImportDialog())" Disabled="@(CurrentSystemNodeId ==null  || _isEditingSignature==true)" />
