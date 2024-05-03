@@ -106,12 +106,17 @@ namespace WHMapper.Tests.Models.Graph
 
             link.Size= SystemLinkSize.Small;
             link.MassStatus=SystemLinkMassStatus.Normal;
+           
             Assert.Equal(SystemLinkSize.Small, link.Size);
             Assert.Equal(SystemLinkMassStatus.Normal, link.MassStatus);
+            
             Assert.NotEmpty(link.Labels);
             Assert.False(link.IsRouteWaypoint);
             link.IsRouteWaypoint=true;
             Assert.True(link.IsRouteWaypoint);
+
+            link.IsEoL=true;
+            Assert.True(link.IsEoL);
         }
     }
 }

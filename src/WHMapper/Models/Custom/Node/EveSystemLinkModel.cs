@@ -15,7 +15,6 @@ namespace WHMapper.Models.Custom.Node
     {
         private WHSystemLink _whLink;
         private LinkLabelModel? _labelSize=null;
-        private LinkLabelModel? _labelFirstJump=null;
 
         public new int Id
         {
@@ -65,40 +64,6 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
-        public IEnumerable<WHJumpLog> JumpHistory
-        {
-            get
-            {
-                return _whLink.JumpHistory.OrderBy(x => x.JumpDate);
-            }
-        }
-
-        public WHJumpLog? FirstJump
-        {
-            get
-            {
-                if(JumpHistory.Count() == 0)
-                {
-                    return null;
-                }
-                return JumpHistory.First();
-            }
-        }
-
-        public WHJumpLog? LatestJump
-        {
-            get
-            {
-                if(JumpHistory.Count() == 0)
-                {
-                    return null;
-                }
-                return JumpHistory.Last();
-            }
-        }
-
-
-    
         private Task SetLabel(SystemLinkSize size)
         {
             this.Labels.Clear();
@@ -120,29 +85,6 @@ namespace WHMapper.Models.Custom.Node
                 
             }
 
-            if(_labelFirstJump != null)
-            {
-                this.Labels.Add(_labelFirstJump);
-            }
-
-            return Task.CompletedTask;
-        }
-
-
-        private Task SetLabel(WHJumpLog? jumpLog)
-        {
-            this.Labels.Clear();
-            this._labelFirstJump=null;
-            if(_labelSize != null)
-            {
-                this.Labels.Add(_labelSize);
-            }
-            if(jumpLog != null)
-            {
-                _labelFirstJump=new LinkLabelModel(this, string.Format("FirstJump : {0}",jumpLog.JumpDate),null,new Point(0,-50));
-                this.Labels.Add(_labelFirstJump);
-            }
-
             return Task.CompletedTask;
         }
 
@@ -156,7 +98,6 @@ namespace WHMapper.Models.Custom.Node
             TargetMarker = linkMarker;
             _whLink = whLink;
             SetLabel(_whLink.Size);
-            //SetLabel(FirstJump);
         }
 
         
