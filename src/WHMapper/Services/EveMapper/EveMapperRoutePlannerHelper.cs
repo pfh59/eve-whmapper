@@ -262,7 +262,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
         if(route == null)
         {
-                _logger.LogError("Error creating route");
+                _logger.LogInformation("No route available");
                 return null;
         }
         return route;

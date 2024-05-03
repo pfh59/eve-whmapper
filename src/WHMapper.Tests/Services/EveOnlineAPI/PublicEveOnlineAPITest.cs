@@ -64,6 +64,7 @@ public class PublicEveOnlineAPITest
 
     private const int TYPE_F135_ID = 34372;//WH F135
     private const string TYPE_F135_NAME = "Wormhole F135";
+    private const int TYPE_Skybreaker_ID = 54731;//Skybreaker
 
     private const int TYPE_MAGNETAR_ID = 30574;//Magnetar
     private const int TYPE_BLACK_HOLE_ID = 30575;//Black Hole
@@ -212,6 +213,11 @@ public class PublicEveOnlineAPITest
         var res = await _eveUniverseApi.GetType(TYPE_F135_ID);
         Assert.NotNull(res);
         Assert.Equal(TYPE_F135_NAME, res.Name);
+
+        var res2 = await _eveUniverseApi.GetType(TYPE_Skybreaker_ID);
+        Assert.NotNull(res2);
+        Assert.Equal("Skybreaker", res2.Name);
+        
     }
 
 

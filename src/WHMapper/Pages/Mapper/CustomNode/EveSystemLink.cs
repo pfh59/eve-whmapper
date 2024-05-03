@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Reflection.Emit;
 using System.Xml.Linq;
 using Blazor.Diagrams;
 using Blazor.Diagrams.Core.Geometry;
+using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
 using Blazor.Diagrams.Extensions;
 using Microsoft.AspNetCore.Components;
@@ -24,16 +26,14 @@ namespace WHMapper.Pages.Mapper.CustomNode
         [Parameter]
         public EveSystemLinkModel Link {get;set;}=null!;
 
-
         protected override Task OnParametersSetAsync()
         {
             if (Link != null)
             {
                 _eolColor = WHColorHelper?.GetLinkEOLColor();
             }
-
             return base.OnParametersSetAsync();
-        }
+        }       
     }
 }
 

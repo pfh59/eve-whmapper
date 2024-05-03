@@ -17,10 +17,8 @@ namespace WHMapper.Models.Db
 
         public WHSystemStatusEnum SystemStatus { get; set; } = WHSystemStatusEnum.Unknown;
 
-        public WHNote()
-		{
-            
-        }
+        [Obsolete("EF Requires it")]
+        protected WHNote() { }
 
         public WHNote(int soloarSystemId,string comment) 
         : this(soloarSystemId,WHSystemStatusEnum.Unknown,comment)

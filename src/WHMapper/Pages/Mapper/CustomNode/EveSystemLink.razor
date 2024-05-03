@@ -13,7 +13,6 @@
     var targetAng = result.TargetMarkerAngle;
 }
 
-
     @if(Link.IsRouteWaypoint)
     {
          <path d="@d" fill="none" stroke-width="12" stroke-opacity="0.8" stroke-dasharray="4" stroke="yellow" />
@@ -49,6 +48,7 @@
             <path d="@Link.TargetMarker.Path" fill="@DEFAULT_COLOR"/>
         </g>
     }
+
 
     @if(Link!=null && Link.Labels!=null && Link.Labels.Count>0)
     {

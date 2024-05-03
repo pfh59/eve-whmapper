@@ -6,6 +6,7 @@ using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using static MudBlazor.CategoryTypes;
 using WHMapper.Services.WHColor;
+using Blazor.Diagrams.Core.Geometry;
 
 namespace WHMapper.Models.Custom.Node
 {
@@ -13,13 +14,13 @@ namespace WHMapper.Models.Custom.Node
     public class EveSystemLinkModel : LinkModel
     {
         private WHSystemLink _whLink;
+        private LinkLabelModel? _labelSize=null;
 
         public new int Id
         {
             get
             {
                 return _whLink.Id;
-
             }
         }
 
@@ -63,21 +64,28 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
-        private void SetLabel(SystemLinkSize size)
+        private Task SetLabel(SystemLinkSize size)
         {
             this.Labels.Clear();
+            this._labelSize=null;
             switch (size)
             {
                 case SystemLinkSize.Small:
-                    this.Labels.Add(new LinkLabelModel(this, "S"));
+                    _labelSize = new LinkLabelModel(this, "S");
+                    this.Labels.Add(_labelSize);
                     break;
                 case SystemLinkSize.Medium:
-                    this.Labels.Add(new LinkLabelModel(this, "M"));
+                    _labelSize = new LinkLabelModel(this, "M");
+                    this.Labels.Add(_labelSize);
                     break;
                 case SystemLinkSize.XLarge:
-                    this.Labels.Add(new LinkLabelModel(this, "XL"));
+                    _labelSize = new LinkLabelModel(this, "XL");
+                    this.Labels.Add(_labelSize);
                     break;
+                
             }
+
+            return Task.CompletedTask;
         }
 
         public bool IsRouteWaypoint{get;set;} = false;
@@ -90,9 +98,9 @@ namespace WHMapper.Models.Custom.Node
             TargetMarker = linkMarker;
             _whLink = whLink;
             SetLabel(_whLink.Size);
-
         }
 
+        
     }
 }
 

@@ -1,0 +1,69 @@
+﻿<MudPaper Outlined="true" hidden="@(showing==false)" class="d-flex flex-row justify-space-between">
+        <MudStack class="pa-2" Spacing="1" Justify="Justify.FlexStart">
+            <MudStack Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2" Style="font-weight:bold;">First Jump:</MudText>
+                <MudStack Row=true Justify="Justify.SpaceBetween">
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(FirstJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
+                    </MudStack>
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(FirstJumpLogDate?.ToString("hh:mm:ss"))</MudText>
+                    </MudStack>
+                </MudStack>
+                <MudStack Row=true Justify="Justify.SpaceBetween">
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(FirstJumpLogCharacterName)</MudText>
+                    </MudStack>
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.Rocket" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(FirstJumpLogShipName)</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+            <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+            <MudStack Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2" Style="font-weight:bold;">Last Jump:</MudText>
+                <MudStack Row=true Justify="Justify.SpaceBetween">
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(LastJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
+                    </MudStack>
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(LastJumpLogDate?.ToString("hh:mm:ss"))</MudText>
+                    </MudStack>
+                </MudStack>
+                <MudStack Row=true Justify="Justify.SpaceBetween">
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(LastJumpLogCharacterName)</MudText>
+                    </MudStack>
+                    <MudStack Row=true Justify="Justify.SpaceBetween">
+                        <MudIcon Icon="@Icons.Material.Filled.Rocket" Size="Size.Small"/>
+                        <MudText Typo="Typo.body2">@(LastJumpLogShipName)</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+            <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+        </MudStack>
+        <MudTable Items="@SystemLink?.JumpHistory" Height="calc(100%)" Outlined="true" Dense="true" Hover="false" Bordered=true Striped=true 
+            AllowUnsorted=false SortLabel="Sort By"
+            Virtualize="true" Loading=@isLoading LoadingProgressColor="Color.Info">
+            <HeaderContent>
+                <MudTh>Jump Date</MudTh>
+                <MudTh>Jump Time</MudTh>
+                <MudTh>Character</MudTh>
+                <MudTh>Ship</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.JumpDate.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd>@context.JumpDate.ToString("hh:mm:ss")</MudTd>
+                <MudTd>@(Task.Run(() => this.GetJumpLogCharacterName(context)).Result)</MudTd>
+                <MudTd>@(Task.Run(() => this.GetJumpLogShipName(context)).Result)</MudTd>
+            </RowTemplate>
+        </MudTable>
+</MudPaper>
+
