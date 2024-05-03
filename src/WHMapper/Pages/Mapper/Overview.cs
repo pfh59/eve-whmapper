@@ -128,8 +128,9 @@ namespace WHMapper.Pages.Mapper
         //private bool _isAdmin = false;
 
 
-        private ESISolarSystem? _currentSoloarSystem = null!;
-
+        private ESISolarSystem? _currentSolarSystem = null!;
+        private Ship? _currentShip = null!;
+        private Models.DTO.EveAPI.Universe.Type? _currentShipInfos = null!;
 
         protected override async Task OnInitializedAsync()
         {
@@ -152,6 +153,7 @@ namespace WHMapper.Pages.Mapper
                 if (await InitNotificationHub())
                 {
                     TrackerServices.SystemChanged+=OnSystemChanged;
+                    TrackerServices.ShipChanged+=OnShipChanged;
                     await TrackerServices.StartTracking();
 
                     PasteServices.Pasted+=OnPasted;
@@ -812,7 +814,7 @@ namespace WHMapper.Pages.Mapper
                 if (_selectedSystemNode != null && _selectedSystemNodes != null && _selectedSystemNodes.Count() > 0)
                 {
                     await TrackerServices.StopTracking();
-                    _currentSoloarSystem=null;
+                    _currentSolarSystem=null;
                     foreach (var node in _selectedSystemNodes)
                     {
                         if (node.Locked)
@@ -1134,29 +1136,45 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-        private bool IsLinkExist(EveSystemNodeModel src, EveSystemNodeModel target)
+
+
+        private EveSystemLinkModel? GetLink(EveSystemNodeModel src, EveSystemNodeModel target)
         {
             try
             {
                 if (src == null || target == null)
                 {
-                    Logger.LogError("IsLinkExist src or target is null");
-                    return false;
+                    Logger.LogError("LinkExist src or target is null");
+                    return null;
                 }
 
-                //check if link exist, if not create it
                 var whLink = _blazorDiagram.Links.FirstOrDefault(x =>
                 ((((EveSystemNodeModel)x.Source!.Model!).IdWH == src.IdWH) && (((EveSystemNodeModel)x.Target!.Model!).IdWH == target.IdWH))
                 ||
                 ((((EveSystemNodeModel)x.Source!.Model!).IdWH == target.IdWH) && (((EveSystemNodeModel)x.Target!.Model!).IdWH == src.IdWH)));
 
-
                 if (whLink == null)
+                    return null;
+                else
+                    return (EveSystemLinkModel)whLink;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Get Link error");
+                return null;
+            }
+        }
+
+        private bool IsLinkExist(EveSystemNodeModel src, EveSystemNodeModel target)
+        {
+            try
+            {
+                var link = this.GetLink(src, target);
+
+                if (link == null)
                     return false;
                 else
                     return true;
-
-
             }
             catch (Exception ex)
             {
@@ -1345,6 +1363,24 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
+
+        internal async Task<bool> AddSystemNodeLinkLog(int whSystemLinkID)
+        {
+            if(_currentShip==null || _currentShipInfos==null)
+            {
+                Logger.LogError("AddSystemNodeLinkLog currentShip or currentShipInfos is null");
+                return false;
+            }
+            var jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,_characterId,_currentShip.ShipTypeId,_currentShip.ShipItemId,_currentShipInfos.Mass));
+            if(jumpLog==null)
+            {
+                Logger.LogError("AddSystemNodeLinkLog jumpLog is null");
+                return false;
+            }        
+
+            return true;
+
+        }
         private async Task<bool> AddSystemNodeLinkLog(WHSystemLink? link)
         {
             if(link==null)
@@ -1353,29 +1389,16 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
 
-            var ship = await EveServices.LocationServices.GetCurrentShip();
-            if(ship==null)
-            {
-                Logger.LogError("AddSystemNodeLinkLog ship is null");
-                return false;
-            }
-            var ship_infos = await EveServices.UniverseServices.GetType(ship!.ShipTypeId);
-            if(ship_infos==null)
-            {
-                Logger.LogError("AddSystemNodeLinkLog ship_infos is null");
-                return false;
-            }
-
-            var jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(link.Id,_characterId,ship.ShipTypeId,ship.ShipItemId,ship_infos.Mass));
-            if(jumpLog==null)
-            {
-                Logger.LogError("AddSystemNodeLinkLog jumpLog is null");
-                return false;
-            }        
-
-            return true;
+            return await AddSystemNodeLinkLog(link.Id);
         }
 
+        private Task OnShipChanged(Ship ship,Models.DTO.EveAPI.Universe.Type shipInfos)
+        {
+            _currentShip=ship;
+            _currentShipInfos=shipInfos;
+
+            return Task.CompletedTask;
+        }
         private async Task OnSystemChanged(ESISolarSystem targetSoloarSystem)
         {
             EveSystemNodeModel? srcNode  = null;
@@ -1397,20 +1420,20 @@ namespace WHMapper.Pages.Mapper
             try
             {
                 
-                if(_currentSoloarSystem!=null)
+                if(_currentSolarSystem!=null)
                 {
-                    srcNode = (EveSystemNodeModel?)(_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).SolarSystemId == _currentSoloarSystem.SystemId));
+                    srcNode = (EveSystemNodeModel?)(_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).SolarSystemId == _currentSolarSystem.SystemId));
                 }
                 targetNode = (EveSystemNodeModel?)(_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).SolarSystemId == targetSoloarSystem.SystemId));
                 
 
                 if (targetNode== null)//System is not added
                 {
-                    if(await AddSystemNode(_selectedWHMap,_currentSoloarSystem,targetSoloarSystem))//add system node if system is not added
+                    if(await AddSystemNode(_selectedWHMap,_currentSolarSystem,targetSoloarSystem))//add system node if system is not added
                     {
-                        if (_currentSoloarSystem != null)
+                        if (_currentSolarSystem != null)
                         {
-                            if(!await AddSystemNodeLink(_selectedWHMap, _currentSoloarSystem, targetSoloarSystem))//create if new target system added from src
+                            if(!await AddSystemNodeLink(_selectedWHMap, _currentSolarSystem, targetSoloarSystem))//create if new target system added from src
                             {
                                 Logger.LogError("Add Wormhole Link error");
                                 Snackbar?.Add("Add Wormhole Link error", Severity.Error);
@@ -1434,10 +1457,23 @@ namespace WHMapper.Pages.Mapper
                     //check if link already exist, if not create if
                     if(srcNode!=null && !IsLinkExist(srcNode,targetNode))
                     {
-                        if((_currentSoloarSystem==null) || (!await AddSystemNodeLink(_selectedWHMap, _currentSoloarSystem, targetSoloarSystem)))//create if new target system added from src
+                        if((_currentSolarSystem==null) || (!await AddSystemNodeLink(_selectedWHMap, _currentSolarSystem, targetSoloarSystem)))//create if new target system added from src
                         {
                             Logger.LogError("Add Wormhole Link error");
                             Snackbar?.Add("Add Wormhole Link error", Severity.Error);
+                        }
+                    }
+                    else//log jump
+                    {
+                        if(srcNode!=null && targetNode!=null)
+                        {
+                            var link = GetLink(srcNode,targetNode);
+
+                            if(link!=null && !await AddSystemNodeLinkLog(link.Id))
+                            {
+                                Logger.LogError("Add Wormhole Link Log error");
+                                Snackbar?.Add("Add Wormhole Link Log error", Severity.Error);
+                            }
                         }
                     }
 
@@ -1448,7 +1484,7 @@ namespace WHMapper.Pages.Mapper
 
                 }
 
-                _currentSoloarSystem = targetSoloarSystem;
+                _currentSolarSystem = targetSoloarSystem;
                 if(targetNode!=null)
                     _blazorDiagram?.SelectModel(targetNode, true);
             }
@@ -1491,6 +1527,7 @@ namespace WHMapper.Pages.Mapper
             {
                 await TrackerServices.StopTracking();
                 TrackerServices.SystemChanged-=OnSystemChanged;
+                TrackerServices.ShipChanged-=OnShipChanged;
 
             }
             if (_hubConnection!=null)

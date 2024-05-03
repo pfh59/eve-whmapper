@@ -159,14 +159,10 @@ namespace WHMapper
             {
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
                 var dbContext = serviceScope.ServiceProvider.GetRequiredService<WHMapperContext>();
-                var dbContext = serviceScope.ServiceProvider.GetRequiredService<WHMapperContext>();
 
                 int attempt = 0;
                 while (!dbContext.Database.CanConnect() && attempt < 10)
-                int attempt = 0;
-                while (!dbContext.Database.CanConnect() && attempt < 10)
                 {
-                    logger.LogWarning("Database not ready yet.Attempt {0}/10", attempt);
                     logger.LogWarning("Database not ready yet.Attempt {0}/10", attempt);
                     Thread.Sleep(1000);
                     attempt++;

@@ -22,8 +22,11 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
 
     private EveLocation? _currentLocation = null!;
     private ESISolarSystem? _currentSolarSystem = null!;
+    private Ship? _currentShip = null!;
+    private WHMapper.Models.DTO.EveAPI.Universe.Type? _currentShiptInfos = null!;
 
     public event Func< ESISolarSystem, Task> SystemChanged =null!;
+    public event Func<Ship,WHMapper.Models.DTO.EveAPI.Universe.Type,Task> ShipChanged=null!;
 
     public EveMapperTracker(ILogger<EveMapperTracker> logger,AuthenticationStateProvider authState,IEveAPIServices eveAPI)
     {
@@ -75,6 +78,17 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
             if (!string.IsNullOrEmpty(state?.User?.Identity?.Name) && _eveAPIServices!=null && _eveAPIServices.LocationServices!=null)
             {
                 EveLocation? el = await _eveAPIServices.LocationServices.GetLocation();
+                Ship? ship = await _eveAPIServices.LocationServices.GetCurrentShip();
+
+                if(ship!=null && (_currentShip == null || _currentShip.ShipItemId != ship.ShipItemId))
+                {
+                    _logger.LogInformation("Ship Changed");
+                    _currentShip = ship;
+                    _currentShiptInfos = await _eveAPIServices.UniverseServices.GetType(ship!.ShipTypeId);
+                    if(_currentShip!=null && _currentShiptInfos!=null)
+                        ShipChanged?.Invoke(_currentShip,_currentShiptInfos);
+                }
+
                 if (el != null && (_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) )
                 {   
                     _logger.LogInformation("System Changed");
@@ -84,7 +98,6 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
                         SystemChanged?.Invoke(_currentSolarSystem);
                 }
             }
-
         }
         catch(Exception ex)
         {
