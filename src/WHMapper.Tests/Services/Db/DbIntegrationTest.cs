@@ -859,15 +859,15 @@ public class DbIntegrationTest
         //Create JumlLogRepo
         IWHJumpLogRepository repo = new WHJumpLogRepository(new NullLogger<WHJumpLogRepository>(), _contextFactory);
 
-        //ADD JumpLog1
-        var result1 = await repo.Create(new WHJumpLog(link1.Id,EVE_CHARACTERE_ID,54731,1037556721774,300000000));
+        //ADD JumpLog lmanuel 
+        var result1 = await repo.Create(new WHJumpLog(link1.Id,EVE_CHARACTERE_ID));
         Assert.NotNull(result1);
         Assert.Equal(EVE_CHARACTERE_ID, result1.CharacterId);
-        Assert.Equal(54731, result1.ShipTypeId);
-        Assert.Equal(1037556721774, result1.ShipItemId);
-        Assert.Equal(300000000, result1.ShipMass);
+        Assert.Null(result1.ShipTypeId);
+        Assert.Null(result1.ShipItemId);
+        Assert.Null(result1.ShipMass);
 
-        //ADD JumpLog2
+        //ADD JumpLog2 
         var result2 = await repo.Create(new WHJumpLog(link1.Id,EVE_CHARACTERE_ID2,54731,1037556721774,300000000));
         Assert.NotNull(result2);
         Assert.Equal(EVE_CHARACTERE_ID2, result2.CharacterId);

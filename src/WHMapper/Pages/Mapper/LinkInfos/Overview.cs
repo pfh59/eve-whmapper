@@ -7,6 +7,7 @@ using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Services.EveAPI;
+using WHMapper.Services.WHColor;
 
 namespace WHMapper.Pages.Mapper.LinkInfos;
 
@@ -19,6 +20,9 @@ public partial class Overview : ComponentBase
         private IEveAPIServices EveAPIServices { get; set; } = null!;
         [Inject]
         private IWHSystemLinkRepository DbSystemLink { get; set; } = null!;
+        
+        [Inject]
+        private IWHColorHelper? WHColorHelper { get; set; }
 
         [Parameter]
         public EveSystemLinkModel CurrentSystemLink {get;set;}= null!;
@@ -32,8 +36,8 @@ public partial class Overview : ComponentBase
         private string LastJumpLogShipName { get; set; } = string.Empty;
         private DateTime? LastJumpLogDate { get; set; } = null;
 
-        private bool isLoading = true;
-        private bool showing = false;
+        private bool _isLoading = true;
+        private bool _showing = false;
 
         override protected Task OnParametersSetAsync()
         {
@@ -45,8 +49,8 @@ public partial class Overview : ComponentBase
         {        
                 try
                 {       
-                        isLoading=true; 
-                        showing=false;
+                        _isLoading=true; 
+                        _showing=false;
                         FirstJumpLogCharacterName = string.Empty;
                         FirstJumpLogShipName = string.Empty;
                         FirstJumpLogDate = null;
@@ -62,7 +66,7 @@ public partial class Overview : ComponentBase
                                         var firstJump = SystemLink.JumpHistory.FirstOrDefault();
                                         if(firstJump!=null)
                                         {
-                                                showing=true;
+                                                _showing=true;
                                                 FirstJumpLogCharacterName = await GetJumpLogCharacterName(firstJump);
                                                 FirstJumpLogDate = firstJump.JumpDate;
                                                 FirstJumpLogShipName = await GetJumpLogShipName(firstJump);
@@ -71,7 +75,7 @@ public partial class Overview : ComponentBase
                                         var lastJump = SystemLink.JumpHistory.LastOrDefault();
                                         if(lastJump!=null)
                                         {      
-                                                showing=true;
+                                                _showing=true;
                                                 LastJumpLogCharacterName = await GetJumpLogCharacterName(lastJump);
                                                 LastJumpLogDate = lastJump.JumpDate;
                                                 LastJumpLogShipName = await GetJumpLogShipName(lastJump);
@@ -86,7 +90,7 @@ public partial class Overview : ComponentBase
                 }
                 finally
                 {
-                        isLoading=false;
+                        _isLoading=false;
                         await InvokeAsync(() => {
                                 StateHasChanged();
                          });
@@ -121,7 +125,12 @@ public partial class Overview : ComponentBase
                         return string.Empty;
                 }
 
-                var shipInfos = await EveAPIServices.UniverseServices.GetType(jumplog!.ShipTypeId);
+                if(jumplog.ShipTypeId==null)
+                {
+                        return "No ship used";
+                }
+
+                var shipInfos = await EveAPIServices.UniverseServices.GetType(jumplog!.ShipTypeId!.Value);
 
                 if (shipInfos == null)
                 {

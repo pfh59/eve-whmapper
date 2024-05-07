@@ -16,18 +16,24 @@ public class WHJumpLog
     [Required]
     public DateTime JumpDate { get; set; }
 
-    [Required]
-    public int ShipTypeId { get; set; }
-    [Required]
-    public long ShipItemId { get; set; }
+    public int? ShipTypeId { get; set; }
 
-    [Required]
-    public float ShipMass { get; set; }
+    public long? ShipItemId { get; set; }
+    
+    public float? ShipMass { get; set; }
 
     [Obsolete("EF Requires it")]
     protected WHJumpLog() { }
     
-    public WHJumpLog(int linkId,int characterId,int shipTypeId, long shipItemId, float shipMass)
+    //Construstor when lin k are create manually, no ship used
+    public WHJumpLog(int linkId,int characterId) :
+     this(linkId, characterId, null, null, null)
+    {
+
+    }
+
+   //Constrtuctor for real jump with a real ship 
+    public WHJumpLog(int linkId,int characterId,int? shipTypeId, long? shipItemId, float? shipMass)
     {
         WHSystemLinkId=linkId;
         CharacterId = characterId;
