@@ -20,7 +20,7 @@ namespace WHMapper.Pages.Mapper.CustomNode
         
 
         [Inject]
-        public IWHColorHelper? WHColorHelper { get; set; }
+        private IWHColorHelper? WHColorHelper { get; set; }
 
 
         [Parameter]

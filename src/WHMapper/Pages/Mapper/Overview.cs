@@ -761,7 +761,7 @@ namespace WHMapper.Pages.Mapper
                 else
                 {
                     //link create manually, no ship jump
-                    if (!await AddSystemNodeLink(_selectedWHMap, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1),false))
+                    if (!await AddSystemNodeLink(_selectedWHMap, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1),true))
                     {
                         Logger.LogError("Add Wormhole Link db error");
                         Snackbar.Add("Add Wormhole Link db error", Severity.Error);
@@ -1327,7 +1327,7 @@ namespace WHMapper.Pages.Mapper
     
             return await AddSystemNodeLink(map,srcNode,targetNode);
         }
-        private async Task<bool> AddSystemNodeLink(WHMap map, EveSystemNodeModel? srcNode, EveSystemNodeModel? targetNode,bool log_jump=true)
+        private async Task<bool> AddSystemNodeLink(WHMap map, EveSystemNodeModel? srcNode, EveSystemNodeModel? targetNode,bool isManual=false)
         {
             try
             {
@@ -1347,8 +1347,7 @@ namespace WHMapper.Pages.Mapper
 
                 if (newLink != null)
                 {
-                    if(log_jump)
-                        await AddSystemNodeLinkLog(newLink);
+                    await AddSystemNodeLinkLog(newLink,isManual);
 
                     map.WHSystemLinks.Add(newLink);
                     _blazorDiagram?.Links?.Add(new EveSystemLinkModel(newLink, srcNode, targetNode));
@@ -1364,14 +1363,20 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-        internal async Task<bool> AddSystemNodeLinkLog(int whSystemLinkID)
+        internal async Task<bool> AddSystemNodeLinkLog(int whSystemLinkID,bool manuelJump=false)
         {
             if(_currentShip==null || _currentShipInfos==null)
             {
                 Logger.LogError("AddSystemNodeLinkLog currentShip or currentShipInfos is null");
                 return false;
             }
-            var jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,_characterId,_currentShip.ShipTypeId,_currentShip.ShipItemId,_currentShipInfos.Mass));
+            WHJumpLog? jumpLog = null;
+
+            if(manuelJump)
+                jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,_characterId));
+            else
+                jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,_characterId,_currentShip.ShipTypeId,_currentShip.ShipItemId,_currentShipInfos.Mass));
+            
             if(jumpLog==null)
             {
                 Logger.LogError("AddSystemNodeLinkLog jumpLog is null");
@@ -1381,7 +1386,7 @@ namespace WHMapper.Pages.Mapper
             return true;
 
         }
-        private async Task<bool> AddSystemNodeLinkLog(WHSystemLink? link)
+        private async Task<bool> AddSystemNodeLinkLog(WHSystemLink? link,bool isManual=false)
         {
             if(link==null)
             {
@@ -1389,7 +1394,7 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
 
-            return await AddSystemNodeLinkLog(link.Id);
+            return await AddSystemNodeLinkLog(link.Id,isManual);
         }
 
         private Task OnShipChanged(Ship ship,Models.DTO.EveAPI.Universe.Type shipInfos)

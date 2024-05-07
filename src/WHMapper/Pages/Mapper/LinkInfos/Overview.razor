@@ -1,5 +1,30 @@
-﻿<MudPaper Outlined="true" hidden="@(showing==false)" class="d-flex flex-row justify-space-between">
+﻿@using WHMapper.Models.Db.Enums
+@using WHMapper.Services.WHColor
+<MudPaper Outlined="true" hidden="@(_showing==false)" class="d-flex flex-row justify-space-between">
         <MudStack class="pa-2" Spacing="1" Justify="Justify.FlexStart">
+            <MudStack Row=true Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2" Style="font-weight:bold;">Size:</MudText>
+                <MudText Typo="Typo.body2">@(CurrentSystemLink?.Size)</MudText>
+            </MudStack>
+
+            <MudStack Row=true Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2" Style="font-weight:bold;">Status:</MudText>
+                @if(CurrentSystemLink?.MassStatus==SystemLinkMassStatus.Normal)
+                {
+                    <MudText Typo="Typo.body2" Style="font-weight:bold;" Color="Color.Success">@CurrentSystemLink?.MassStatus</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Style="@($"font-weight:bold;color:{((CurrentSystemLink==null) ? IWHColorHelper.DEFAULT_COLOR : WHColorHelper?.GetLinkStatusColor(CurrentSystemLink.MassStatus))};")">@CurrentSystemLink?.MassStatus</MudText>
+                }
+                @if(CurrentSystemLink?.IsEoL==true)
+                {
+                    <MudText Typo="Typo.body2" tyle="@($"font-weight:bold;color:{WHColorHelper?.GetLinkEOLColor()}")" Color="Color.Error">End Of Life</MudText>
+                }  
+            </MudStack> 
+                           
+                                
+            <MudDivider DividerType="DividerType.Middle" Class="my-2"/>
             <MudStack Justify="Justify.SpaceBetween">
                 <MudText Typo="Typo.body2" Style="font-weight:bold;">First Jump:</MudText>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
@@ -23,7 +48,7 @@
                     </MudStack>
                 </MudStack>
             </MudStack>
-            <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+            <MudDivider DividerType="DividerType.Middle" Class="my-2"/>
             <MudStack Justify="Justify.SpaceBetween">
                 <MudText Typo="Typo.body2" Style="font-weight:bold;">Last Jump:</MudText>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
@@ -47,11 +72,10 @@
                     </MudStack>
                 </MudStack>
             </MudStack>
-            <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
         </MudStack>
         <MudTable Items="@SystemLink?.JumpHistory" Height="calc(100%)" Outlined="true" Dense="true" Hover="false" Bordered=true Striped=true 
             AllowUnsorted=false SortLabel="Sort By"
-            Virtualize="true" Loading=@isLoading LoadingProgressColor="Color.Info">
+            Virtualize="true" Loading=@_isLoading LoadingProgressColor="Color.Info">
             <HeaderContent>
                 <MudTh>Jump Date</MudTh>
                 <MudTh>Jump Time</MudTh>
@@ -60,7 +84,7 @@
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.JumpDate.ToString("dd/MM/yyyy")</MudTd>
-                <MudTd>@context.JumpDate.ToString("hh:mm:ss")</MudTd>
+                <MudTd>@context.JumpDate.ToString("HH:mm:ss")</MudTd>
                 <MudTd>@(Task.Run(() => this.GetJumpLogCharacterName(context)).Result)</MudTd>
                 <MudTd>@(Task.Run(() => this.GetJumpLogShipName(context)).Result)</MudTd>
             </RowTemplate>

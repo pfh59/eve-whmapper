@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WHMapper.Data;
@@ -11,9 +12,11 @@ using WHMapper.Data;
 namespace WHMapper.Migrations
 {
     [DbContext(typeof(WHMapperContext))]
-    partial class WHMapperContextModelSnapshot : ModelSnapshot
+    [Migration("20240507153308_Update_Jump_Log_Properties_To_Nullable")]
+    partial class Update_Jump_Log_Properties_To_Nullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,6 +90,7 @@ namespace WHMapper.Migrations
 
                     b.Property<long?>("ShipItemId")
                         .HasColumnType("bigint");
+                        
 
                     b.Property<float?>("ShipMass")
                         .HasColumnType("real");
