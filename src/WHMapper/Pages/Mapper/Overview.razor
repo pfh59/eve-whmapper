@@ -24,7 +24,11 @@
                                 <div style="width: inherit; height: inherit" Class="Rounded">
                                     <MudTabPanel Text="@item.Name" Tag="@item.Id">
                                         <CascadingValue Value="_blazorDiagram" IsFixed="true">
-                                            <DiagramCanvas></DiagramCanvas>
+                                            <DiagramCanvas>
+                                                <Widgets>
+                                                    <SelectionBoxWidget />
+                                                </Widgets>
+                                            </DiagramCanvas>
                                         </CascadingValue>
                                     </MudTabPanel>
                                 </div>
@@ -45,7 +49,11 @@
                 {
                     <div Class="mud-height-full mud-width-full Rounded">
                         <CascadingValue Value="_blazorDiagram">
-                            <DiagramCanvas></DiagramCanvas>
+                            <DiagramCanvas>
+                                <Widgets>
+                                    <SelectionBoxWidget />
+                                </Widgets>
+                            </DiagramCanvas>
                         </CascadingValue>
                     </div>
                 }
