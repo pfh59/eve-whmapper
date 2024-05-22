@@ -32,6 +32,7 @@ namespace WHMapper.Pages.Mapper.SystemInfos
         private string _linkToZKillboard=  string.Empty;
         private string _linkToAnoik = string.Empty;
         private string _systemType = string.Empty;
+        private float _secStatus = 0;
 
         [Inject]
         private IWHNoteRepository DbWHNotes { get; set; } = null!;
@@ -63,6 +64,11 @@ namespace WHMapper.Pages.Mapper.SystemInfos
                 _linkToDotlan = string.Format(DOTLAN_URL,CurrentSystemNode.Name);
                 _linkToZKillboard = string.Format(ZKILLBOARD_URL,CurrentSystemNode.SolarSystemId);
                 _linkToAnoik = string.Format(ANOIK_URL,CurrentSystemNode.Name); 
+
+
+                _secStatus=(float)Math.Round(CurrentSystemNode.SecurityStatus , 1);
+                if(_secStatus==-0.0f)
+                    _secStatus=0.00f;
 
                 switch (CurrentSystemNode.SystemType)
                 {

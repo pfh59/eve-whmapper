@@ -96,27 +96,32 @@ namespace WHMapper.Services.WHColor
 
         public string GetSecurityStatusColor(float secStatus)
         {
-            if (secStatus == SECUTIRTY_STATUS_10_VALUE)
+            float secStatusRounded = (float)Math.Round(secStatus, 1);
+            if (secStatus<= -0.99)
+                secStatusRounded= -1;
+
+
+            if (secStatusRounded == SECUTIRTY_STATUS_10_VALUE)
                 return SECUTIRTY_STATUS_10_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_09_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_09_VALUE)
                 return SECUTIRTY_STATUS_09_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_08_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_08_VALUE)
                 return SECUTIRTY_STATUS_08_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_07_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_07_VALUE)
                 return SECUTIRTY_STATUS_07_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_06_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_06_VALUE)
                 return SECUTIRTY_STATUS_06_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_05_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_05_VALUE)
                 return SECUTIRTY_STATUS_05_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_04_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_04_VALUE)
                 return SECUTIRTY_STATUS_04_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_03_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_03_VALUE)
                 return SECUTIRTY_STATUS_03_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_02_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_02_VALUE)
                 return SECUTIRTY_STATUS_02_COLOR;
-            else if (secStatus == SECUTIRTY_STATUS_01_VALUE)
+            else if (secStatusRounded == SECUTIRTY_STATUS_01_VALUE)
                 return SECUTIRTY_STATUS_01_COLOR;
-            else if (secStatus <= SECUTIRTY_STATUS_00_VALUE)
+            else if (secStatusRounded <= SECUTIRTY_STATUS_00_VALUE)
                 return SECUTIRTY_STATUS_00_COLOR;
 
             return IWHColorHelper.DEFAULT_COLOR;

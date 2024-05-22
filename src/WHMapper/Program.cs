@@ -89,6 +89,18 @@ namespace WHMapper
                 config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
             });
 
+            builder.Services.AddBlazorContextMenu(options =>
+            {
+                options.ConfigureTemplate("context-menu-template", template =>
+                {
+                    template.MenuCssClass = "context-menu";
+                    template.MenuItemCssClass = "context-menu-item";
+                    //template.MenuItemDisabledCssClass = "context-menu-item--disabled";
+                    //template.MenuItemWithSubMenuCssClass = "context-menu-item--with-submenu";
+                    template.Animation = BlazorContextMenu.Animation.FadeIn;
+                });
+            });
+
             //signalR  compression
             builder.Services.AddResponseCompression(opts =>
             {
@@ -152,67 +164,6 @@ namespace WHMapper
                     policy.Requirements.Add(new EveMapperAdminRequirement()));
             });
 
-
-            
-            
-            using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
-            {
-                var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                var dbContext = serviceScope.ServiceProvider.GetRequiredService<WHMapperContext>();
-
-                int attempt = 0;
-                while (!dbContext.Database.CanConnect() && attempt < 10)
-                {
-                    logger.LogWarning("Database not ready yet.Attempt {0}/10", attempt);
-                    Thread.Sleep(1000);
-                    attempt++;
-                }
-
-                if (attempt >= 10)
-                {
-                    logger.LogError("Database not ready after 10 attempts; exiting.");
-                    return ;
-                }
-
-
-                if(dbContext.Database.GetPendingMigrations().Any())
-                {
-                    logger.LogInformation("Migrating database...");
-                    try
-                    {
-                        dbContext.Database.Migrate();
-                        logger.LogInformation("Database migrated successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "An error occurred while migrating the database.");
-                    }
-                    attempt++;
-                }
-
-                if (attempt >= 10)
-                {
-                    logger.LogError("Database not ready after 10 attempts; exiting.");
-                    return ;
-                }
-
-
-                if(dbContext.Database.GetPendingMigrations().Any())
-                {
-                    logger.LogInformation("Migrating database...");
-                    try
-                    {
-                        dbContext.Database.Migrate();
-                        logger.LogInformation("Database migrated successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "An error occurred while migrating the database.");
-                    }
-                }
-            }
-
-
             builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
             builder.Services.AddHttpClient();
 
@@ -271,6 +222,63 @@ namespace WHMapper
             }
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<WHMapperContext>();
+
+                int attempt = 0;
+                while (!dbContext.Database.CanConnect() && attempt < 10)
+                {
+                    logger.LogWarning("Database not ready yet.Attempt {0}/10", attempt);
+                    Thread.Sleep(1000);
+                    attempt++;
+                }
+
+                if (attempt >= 10)
+                {
+                    logger.LogError("Database not ready after 10 attempts; exiting.");
+                    return ;
+                }
+
+
+                if(dbContext.Database.GetPendingMigrations().Any())
+                {
+                    logger.LogInformation("Migrating database...");
+                    try
+                    {
+                        dbContext.Database.Migrate();
+                        logger.LogInformation("Database migrated successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "An error occurred while migrating the database.");
+                    }
+                    attempt++;
+                }
+
+                if (attempt >= 10)
+                {
+                    logger.LogError("Database not ready after 10 attempts; exiting.");
+                    return ;
+                }
+
+
+                if(dbContext.Database.GetPendingMigrations().Any())
+                {
+                    logger.LogInformation("Migrating database...");
+                    try
+                    {
+                        dbContext.Database.Migrate();
+                        logger.LogInformation("Database migrated successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "An error occurred while migrating the database.");
+                    }
+                }
+            }
 
             if (app.Environment.IsProduction())
             {

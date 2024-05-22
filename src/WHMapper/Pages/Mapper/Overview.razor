@@ -8,13 +8,68 @@
 @using WHMapper.Models.Db.Enums;
 @using Blazor.Diagrams.Components.Widgets; 
 
+<!-- Blazor context menu from MudBlazor pallete -->
+<style>
+    .context-menu { color: var(--mud-palette-text-primary); background-color: var(--mud-palette-surface); border-radius: var(--mud-default-borderradius);box-shadow: var(--mud-elevation-8);}
+    /* using css specificity to override default background-color */
+    .context-menu .context-menu-item:hover { background-color: var(--mud-palette-action-default-hover);}
+</style>
 
+<!-- ContextMenu -->
+<ContextMenu Id="context-menu" Template="context-menu-template">
+@if (_selectedSystemLink == null && _selectedSystemNode == null)
+{
+    <Item OnClick="OpenSearchAndAddDialog">Add System</Item>
+}
+
+@if (_selectedSystemLink != null)
+{
+    <Item OnClick="@(() => ToggleSlectedSystemLinkEOL())"> Toggle EOL </Item>
+    <Item>Status
+        <SubMenu>
+            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))"> Normal </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))"> Critical </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))"> Verge </Item>
+        </SubMenu>
+    </Item>
+    <Item>Size
+        <SubMenu>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))"> Small </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))"> Medium </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))"> Large </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))"> XLarge </Item>
+        </SubMenu>
+    </Item>
+}
+
+@if(_selectedSystemNode !=null)
+{
+       <Item OnClick="@(()=>SetSelectedSystemDestinationWaypoint())"><MudIcon Icon="@Icons.Material.Sharp.FlagCircle" Size="MudBlazor.Size.Small"/> Set Destination </Item>
+        if(_selectedSystemNode.Locked)
+        {
+            <Item OnClick="@(() =>ToggleSystemLock())"><MudIcon Icon="@Icons.Material.Sharp.LockOpen" Size="MudBlazor.Size.Small"/> UnLock </Item>
+        }
+        else
+        {
+            <Item OnClick="@(() =>ToggleSystemLock())"><MudIcon Icon="@Icons.Material.Sharp.Lock" Size="MudBlazor.Size.Small"/> Lock </Item>
+        }
+        
+       <Item><MudIcon Icon="@Icons.Material.Filled.GraphicEq" Size="MudBlazor.Size.Small"/> System Status
+            <SubMenu>
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Unknown))"> Unknown </Item>
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Occupied))"> Occupied </Item>    
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Hostile))"> Hostile </Item>     
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Friendly))"> Friendly </Item>
+            </SubMenu>
+       </Item>
+}
+
+</ContextMenu>
 
 <MudPaper class="d-flex flex-column flex-grow-1 gap-2" Width="100%" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" hidden="@(_loading)">
     <MudPaper Class="flex-1 d-flex pa-1" Width="100%" Outlined="true" Square="true">
+        <ContextMenuTrigger MenuId="context-menu"  style="width: 100%; height: 100%;">
         <!-- map zone-->
-        <MudMenu @ref="ClickRightMenu" PositionAtCursor="true" ActivationEvent="@MouseEvent.RightClick" Dense="true" class="mud-height-full mud-width-full">
-            <ActivatorContent>
                 @if (!FeatureFlag.DISABLE_MULTI_MAP())
                 {
                     <MudTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" style="height: inherit; width: inherit;" Class="pa-5">
@@ -49,41 +104,9 @@
                         </CascadingValue>
                     </div>
                 }
-            </ActivatorContent>
-            <ChildContent>
-                @if (_selectedSystemLink == null && _selectedSystemNode == null)
-                {
-                    <MudMenuItem OnClick="OpenSearchAndAddDialog">Add System</MudMenuItem>
-                }
-
-                @if (_selectedSystemLink != null)
-                {
-                    <MudMenuItem OnClick="@(() => ToggleSlectedSystemLinkEOL())" Disabled="@(_selectedSystemLink == null)">Toggle EOL</MudMenuItem>
-                    <div class="d-flex flex-column">
-                        <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
-                                EndIcon="@Icons.Material.Filled.ArrowRight" Label="Status" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
-                            <ChildContent>
-                                <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))">Normal</MudMenuItem>
-                                <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))">Critical</MudMenuItem>
-                                <MudMenuItem OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))">Verge</MudMenuItem>
-                            </ChildContent>
-                        </MudMenu>
-
-                        <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" FullWidth="true" Disabled="@(_selectedSystemLink == null)"
-                                EndIcon="@Icons.Material.Filled.ArrowRight" Label="Size" Class="mx-2" Dense="true" ButtonClass="mud-typography mud-typography-body2 rounded-0 py-2 px-4">
-                            <ChildContent>
-                                <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))">Small</MudMenuItem>
-                                <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))">Medium</MudMenuItem>
-                                <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))">Large</MudMenuItem>
-                                <MudMenuItem OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))">XLarge</MudMenuItem>
-                            </ChildContent>
-                        </MudMenu>
-                    </div>
-                }
-
-            </ChildContent>
-        </MudMenu>
+        </ContextMenuTrigger>
     </MudPaper>
+
     <!-- tools zone-->
     <MudPaper Class="flex-none" Width="100%" Height="325px">
         <MudStack Row="true" Justify="Justify.Center" class="mud-height-full mud-width-full">
@@ -98,6 +121,7 @@
         </MudStack>
     </MudPaper>
 </MudPaper>
+
 @if(_loading)
 {
     <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">

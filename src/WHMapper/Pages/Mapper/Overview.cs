@@ -28,6 +28,9 @@ using Blazor.Diagrams.Core.Behaviors;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Repositories.WHJumpLogs;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
+using BlazorContextMenu;
+using WHMapper.Repositories.WHNotes;
+using WHMapper.Services.WHColor;
 
 namespace WHMapper.Pages.Mapper
 {
@@ -37,7 +40,6 @@ namespace WHMapper.Pages.Mapper
     public partial class Overview : ComponentBase, IAsyncDisposable
     {
         protected BlazorDiagram _blazorDiagram  = null!;
-        private MudMenu ClickRightMenu { get; set; } = null!;
         private WHMapper.Pages.Mapper.Signatures.Overview WHSignaturesView { get; set; } = null!;
         
         private EveSystemNodeModel? _selectedSystemNode = null;
@@ -70,6 +72,9 @@ namespace WHMapper.Pages.Mapper
         IWHSystemLinkRepository DbWHSystemLinks { get; set; } = null!;
 
         [Inject]
+        IWHNoteRepository DbNotes { get; set; } = null!;
+
+        [Inject]
         IWHJumpLogRepository DbWHJumpLogs { get; set; } = null!;
 
         [Inject]
@@ -97,6 +102,9 @@ namespace WHMapper.Pages.Mapper
 
         [Inject]
         private IPasteServices PasteServices {get;set;}=null!;
+
+        [Inject]
+        IWHColorHelper WHColorHelper { get; set; } = null!;
 
         private string _userName = string.Empty;
         private int _characterId = 0;
@@ -1362,7 +1370,6 @@ namespace WHMapper.Pages.Mapper
                 return false;
             }
         }
-
         internal async Task<bool> AddSystemNodeLinkLog(int whSystemLinkID,bool manuelJump=false)
         {
             if(_currentShip==null || _currentShipInfos==null)
@@ -1562,7 +1569,119 @@ namespace WHMapper.Pages.Mapper
         }
 
         #region Menu Actions
-        public async Task<bool> ToggleSlectedSystemLinkEOL()
+
+        #region Selected Node Menu Actions
+        private async Task<bool> SetSelectedSystemDestinationWaypoint()
+        {
+            try
+            {
+                if(_selectedSystemNode==null)
+                {
+                    Logger.LogError("Set system status error, no node selected");
+                    return false;
+                }
+                int solarSystemId = _selectedSystemNode.SolarSystemId;
+                if (solarSystemId>0)
+                {
+                    await EveServices.UserInterfaceServices.SetWaypoint(solarSystemId, false, true);
+                    return true;
+
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Set destination waypoint error");
+                return false;
+            }
+        }
+
+        private async Task<bool> ToggleSystemLock()
+        {
+            try
+            {
+                if(_selectedSystemNode==null)
+                {
+                    Logger.LogError("Set system status error, no node selected");
+                    return false;
+                }
+
+                var whSystem = await DbWHSystems.GetById(_selectedSystemNode.IdWH);
+                if (whSystem != null && whSystem.Id==_selectedSystemNode.IdWH)
+                {
+                    whSystem.Locked = !whSystem.Locked;
+                    whSystem = await DbWHSystems.Update(whSystem.Id, whSystem);
+                    if (whSystem == null)
+                    {
+                        Logger.LogError("Update lock system status error");
+                        return false;
+                    }
+                    _selectedSystemNode.Locked = whSystem.Locked;
+                    _selectedSystemNode.Refresh();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Toggle system lock error");
+                return false;
+            }
+         
+        }
+        private async Task<bool> SetSelectedSystemStatus(WHSystemStatusEnum systemStatus)
+        {
+            try
+            {
+                if(_selectedSystemNode==null)
+                {
+                    Logger.LogError("Set system status error, no node selected");
+                    return false;
+                }
+                int solarSystemId = _selectedSystemNode.SolarSystemId;
+                if (solarSystemId>0)
+                {
+                    var note = await DbNotes.GetBySolarSystemId(solarSystemId);
+
+                    if(note == null)
+                    {
+                        note = await DbNotes.Create(new WHNote(solarSystemId, systemStatus));
+                    }
+                    else
+                    {
+                        note.SystemStatus = systemStatus;
+                        note = await DbNotes.Update(note.Id, note);
+                    }
+
+           
+                    if(note==null)
+                    {
+                        Logger.LogError("Could not update system status");
+                        return false;
+                    }
+
+                    _selectedSystemNode.SystemStatus = systemStatus;
+                    _selectedSystemNode.Refresh();
+                    return true;
+                }
+                else
+                {
+                    Logger.LogError("Set system status error, no node selected");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Set system status error");
+                return false;
+            }
+        }
+        #endregion
+        private async Task<bool> ToggleSlectedSystemLinkEOL()
         {
             try
             {
@@ -1603,7 +1722,7 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-        public async Task<bool> SetSelectedSystemLinkStatus(SystemLinkMassStatus massStatus)
+        private async Task<bool> SetSelectedSystemLinkStatus(SystemLinkMassStatus massStatus)
         {
             try
             {
@@ -1617,7 +1736,6 @@ namespace WHMapper.Pages.Mapper
                         if(link!=null)
                         {
                             _selectedSystemLink.MassStatus = link.MassStatus;
-                            ClickRightMenu.CloseMenu();
                             _selectedSystemLink.Refresh();
                             await NotifyLinkChanged(_selectedWHMap.Id, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
                             return true;
@@ -1645,7 +1763,7 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-        public async Task<bool> SetSelectedSystemLinkSize(SystemLinkSize size)
+        private async Task<bool> SetSelectedSystemLinkSize(SystemLinkSize size)
         {
             try
             {
@@ -1660,7 +1778,6 @@ namespace WHMapper.Pages.Mapper
                         {
                                 //update link size on diagram (refresh link
                             _selectedSystemLink.Size = link.Size;
-                            ClickRightMenu.CloseMenu();
                             _selectedSystemLink.Refresh();
                             await NotifyLinkChanged(_selectedWHMap.Id, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
 
@@ -1684,7 +1801,7 @@ namespace WHMapper.Pages.Mapper
             }
         }
        
-        private async Task<bool> OpenSearchAndAddDialog(MouseEventArgs args)
+        private async Task<bool> OpenSearchAndAddDialog(ItemClickEventArgs e)
         {
             DialogOptions disableBackdropClick = new DialogOptions()
             {
@@ -1696,8 +1813,8 @@ namespace WHMapper.Pages.Mapper
             var parameters = new DialogParameters(); 
             parameters.Add("CurrentDiagram", _blazorDiagram);
             parameters.Add("CurrentWHMap", _selectedWHMap);
-            parameters.Add("MouseX", args.ClientX);
-            parameters.Add("MouseY", args.ClientY);
+            parameters.Add("MouseX", e.MouseEvent.ClientX);
+            parameters.Add("MouseY", e.MouseEvent.ClientY);
 
             var dialog = DialogService.Show<Add>("Search and Add System Dialog", parameters, disableBackdropClick);
             DialogResult result = await dialog.Result;
