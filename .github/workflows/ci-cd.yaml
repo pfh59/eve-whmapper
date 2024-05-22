@@ -67,28 +67,13 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
-          
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~\sonar\cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Install SonarCloud scanners
-        run: |
-          dotnet tool install --global dotnet-sonarscanner
-          dotnet tool install --global dotnet-coverage
-      - name: SonarCloud Build and Analyze 🚀 🧪
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
-          ConnectionStrings__RedisConnection: "localhost:6379"
-        run: |
-          dotnet sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-          dotnet build src/WHMapper -c Release
-          dotnet coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
-          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+        
 
       - name: Generate Artifact
         if: github.event_name != 'pull_request'
