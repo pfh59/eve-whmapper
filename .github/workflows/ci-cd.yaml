@@ -72,6 +72,9 @@ jobs:
         run: dotnet build src/WHMapper -c Release
 
       - name: Test 🧪
+        env:
+          ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
+          ConnectionStrings__RedisConnection: "localhost:6379"
         run: dotnet test src/WHMapper.Tests -c Release
            
       #- name: Install SonarCloud scanners
