@@ -44,7 +44,7 @@
         </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2">Security:</MudText>
-            <MudText Typo="Typo.body2" Style="@($"color:{_secColor};")">@(CurrentSystemNode != null  ? CurrentSystemNode.SecurityStatus : String.Empty)</MudText>       
+            <MudText Typo="Typo.body2" Style="@($"color:{_secColor};")">@(CurrentSystemNode != null  ? _secStatus : String.Empty)</MudText>       
         </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2">Class:</MudText>

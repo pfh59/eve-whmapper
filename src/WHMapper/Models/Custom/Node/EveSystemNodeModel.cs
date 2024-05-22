@@ -71,11 +71,10 @@ namespace WHMapper.Models.Custom.Node
         {
             get
             {
-                if (_wh.SecurityStatus <= -0.99)
-                    return -1;
-                else
-                    return (float)Math.Round(_wh.SecurityStatus, 1);
-
+                if(_wh!=null)
+                    return _wh.SecurityStatus;
+                
+                return 0;
             }
         }
 
@@ -165,9 +164,9 @@ namespace WHMapper.Models.Custom.Node
             Locked = wh.Locked;
 
             
-            if (SecurityStatus >= 0.5)
+            if (SecurityStatus >= 0.45)
                 SystemType = EveSystemType.HS;
-            else if (SecurityStatus < 0.5 && SecurityStatus > 0)
+            else if (SecurityStatus < 0.45 && SecurityStatus > 0)
                 SystemType = EveSystemType.LS;
             else
                 SystemType = EveSystemType.NS;
