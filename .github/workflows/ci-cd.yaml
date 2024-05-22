@@ -72,8 +72,11 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
+          ConnectionStrings__RedisConnection: "localhost:6379"
 
-        
+          
+
 
       - name: Generate Artifact
         if: github.event_name != 'pull_request'
