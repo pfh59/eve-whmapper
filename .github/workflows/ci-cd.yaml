@@ -81,9 +81,9 @@ jobs:
             -Dsonar.organization=pfh59
             -Dsonar.projectKey=pfh59_eve-whmapper
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.sources=WHMapper/
-            -Dsonar.tests=WHMapper.Tests /
-            -Dsonar.verbose=true            
+            -Dsonar.sources=WHMapper
+            -Dsonar.tests=WHMapper.Tests
+            -Dsonar.verbose=true
   
       - name: Generate Artifact
         if: github.event_name != 'pull_request'
