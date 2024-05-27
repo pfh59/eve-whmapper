@@ -67,7 +67,7 @@ namespace WHMapper.Pages.Mapper.SystemInfos
 
 
                 _secStatus=(float)Math.Round(CurrentSystemNode.SecurityStatus , 1);
-                if(_secStatus==-0.0f)
+                if(Math.Sign(_secStatus)==0)
                     _secStatus=0.00f;
 
                 switch (CurrentSystemNode.SystemType)
