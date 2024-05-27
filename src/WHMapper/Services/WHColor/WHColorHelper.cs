@@ -8,6 +8,7 @@ namespace WHMapper.Services.WHColor
 {
     public class WHColorHelper : IWHColorHelper
     {
+        private const float EPSILON = 0.0001f;
 
         private const string MAGNETAR_COLOR = "#e06fdf";
         private const string REDGIANT_COLOR = "#d9534f";
@@ -74,6 +75,10 @@ namespace WHMapper.Services.WHColor
         private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
         
 
+        private bool FloatEquals(float a, float b)
+        {
+            return Math.Abs(a - b) < EPSILON;
+        }
 
 
         public string GetNodeStatusColor(WHSystemStatusEnum status)
@@ -98,28 +103,28 @@ namespace WHMapper.Services.WHColor
         {
             float secStatusRounded = (float)Math.Round(secStatus, 1);
             if (secStatus<= -0.99)
-                secStatusRounded= -1;
+                secStatusRounded= -1.0f;
 
 
-            if (secStatusRounded == SECUTIRTY_STATUS_10_VALUE)
+            if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_10_VALUE))
                 return SECUTIRTY_STATUS_10_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_09_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_09_VALUE))
                 return SECUTIRTY_STATUS_09_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_08_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_08_VALUE))
                 return SECUTIRTY_STATUS_08_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_07_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_07_VALUE))
                 return SECUTIRTY_STATUS_07_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_06_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_06_VALUE))
                 return SECUTIRTY_STATUS_06_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_05_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_05_VALUE))
                 return SECUTIRTY_STATUS_05_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_04_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_04_VALUE))
                 return SECUTIRTY_STATUS_04_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_03_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_03_VALUE))
                 return SECUTIRTY_STATUS_03_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_02_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_02_VALUE))
                 return SECUTIRTY_STATUS_02_COLOR;
-            else if (secStatusRounded == SECUTIRTY_STATUS_01_VALUE)
+            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_01_VALUE))
                 return SECUTIRTY_STATUS_01_COLOR;
             else if (secStatusRounded <= SECUTIRTY_STATUS_00_VALUE)
                 return SECUTIRTY_STATUS_00_COLOR;
