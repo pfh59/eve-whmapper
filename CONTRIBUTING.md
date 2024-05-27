@@ -33,4 +33,4 @@ _Of course you could propose a fix using pull request._
 
 ## Licensing
 
-When submitting your first pull request, you will be asked to read the [CLA Document](cla/CLA.md) and accept it.
+When submitting your first pull request, you will be asked to read the [CLA Document](CLA.md) and accept it.
