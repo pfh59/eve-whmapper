@@ -10,12 +10,10 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.Services;
 
-
 [Collection("C4-Services")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
 public class SDEUniverseTest
 {
-
     private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
     private const string SOLAR_SYSTEM_JIT_NAME = "jit";
     private const int SOLAR_SYSTEM_JITA_ID = 30000142;
@@ -37,15 +35,12 @@ public class SDEUniverseTest
 
     public SDEUniverseTest()
     {
-
         var services = new ServiceCollection();
-        
 
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()
             .Build();
-
 
         services.AddStackExchangeRedisCache(option =>
         {
@@ -63,7 +58,6 @@ public class SDEUniverseTest
         ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
         _services = new SDEServices(logger,new CacheService(loggerCache,_distriCache));
         }
-
     }
 
 
@@ -91,7 +85,7 @@ public class SDEUniverseTest
         Assert.False(noSDEavailable);
 
         //currentcheck not equal to download checksum
-        File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE,"azerty");
+        File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE, "azerty");
         bool otherSDEavailable = await _services.IsNewSDEAvailable();
         Assert.True(otherSDEavailable);
     }
@@ -103,7 +97,6 @@ public class SDEUniverseTest
 
         bool clearRessources = await _services.ClearSDERessources();
         Assert.True(clearRessources);
-
 
         bool badExtract = await _services.ExtractSDE();
         Assert.False(badExtract);
@@ -117,8 +110,6 @@ public class SDEUniverseTest
         Assert.True(Directory.Exists(SDE_TARGET_DIRECTORY));
         Assert.True(_services.ExtractSuccess);
     }
-
-
 
     [Fact, Priority(3)]
     public async Task Import_SDE_And_Get()

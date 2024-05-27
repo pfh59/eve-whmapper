@@ -129,7 +129,6 @@
     <Folder Include="Services\EveAPI\Dogma\" />
     <Folder Include="Models\DTO\Anoik\" />
     <Folder Include="Services\EveAPI\User Interface\" />
-    <Folder Include="Resources\SDE\" />
     <Folder Include="Services\SDE\" />
     <Folder Include="Models\DTO\SDE\" />
     <Folder Include="Services\EveMapper\" />
