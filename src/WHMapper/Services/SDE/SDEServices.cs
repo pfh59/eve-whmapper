@@ -116,12 +116,19 @@ namespace WHMapper.Services.SDE
                     Directory.CreateDirectory(SDE_DIRECTORY);
 
                 _logger.LogInformation("Start to download Eve SDE files");
-                HttpClient client = new HttpClient();
-                Stream stream = await client.GetStreamAsync(SDE_ZIP_URL);
+                using (HttpClient client = new HttpClient())
+                {
+                    Stream stream = await client.GetStreamAsync(SDE_ZIP_URL);
+
+                    using (FileStream fs = new FileStream(SDE_ZIP_PATH, FileMode.OpenOrCreate))
+                    {
+                        stream.CopyTo(fs);
+                    }
                 
-                FileStream fs = new FileStream(SDE_ZIP_PATH, FileMode.OpenOrCreate);
-                stream.CopyTo(fs);
+                    stream.Dispose();
+                }
                 _logger.LogInformation("Eve SDE files downloaded");
+
                 return true;
             }
             catch(Exception ex)
@@ -150,7 +157,6 @@ namespace WHMapper.Services.SDE
                         return Task.FromResult(false);
                     }
 
-
                     using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
                     {
                         archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
@@ -162,7 +168,6 @@ namespace WHMapper.Services.SDE
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Extract SDE");
-                    return Task.FromResult(false);
                 }
                 finally
                 {
