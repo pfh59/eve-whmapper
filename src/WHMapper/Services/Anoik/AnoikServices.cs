@@ -132,7 +132,9 @@ namespace WHMapper.Services.Anoik
         public IEnumerable<KeyValuePair<string, string>> GetSystemEffectsInfos(string effectName, string systemClass)
         {
             int classlvl = -1;
-            if (string.IsNullOrWhiteSpace(effectName) || string.IsNullOrWhiteSpace(systemClass) || !(systemClass.Length >= 2 && systemClass.Length < 4 && systemClass.ToUpper().Contains('C')))
+            if (string.IsNullOrWhiteSpace(effectName) 
+                || string.IsNullOrWhiteSpace(systemClass) 
+                || !(systemClass.Length >= 2 && systemClass.Length < 4 && systemClass.ToUpper().Contains('C')))
                 return null!;
 
 
