@@ -99,9 +99,7 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Migrations\" />
-    <Folder Include="Services\" />
     <Folder Include="Models\" />
-    <Folder Include="Services\Anoik\" />
     <Folder Include="Services\EveAPI\" />
     <Folder Include="Models\Db\" />
     <Folder Include="Models\DTO\" />

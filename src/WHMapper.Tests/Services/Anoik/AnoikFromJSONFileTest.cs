@@ -1,17 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Services.Anoik;
-using Xunit.Priority;
-using static MudBlazor.Colors;
 
-namespace WHMapper.Tests.Services;
+namespace WHMapper.Tests.Services.Anoik;
 
 [Collection("C1-Services")]
 public class AnoikFromJSONFileTest
 {
     private const int SOLAR_SYSTEM_JITA_ID = 30000142;
     private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
-
     private const int SOLAR_SYSTEM_WH_ID = 31001123;
     private const string SOLAR_SYSTEM_WH_NAME = "J165153";
     private const string SOLAR_SYSTEM_WH_CLASS = "C3";
@@ -23,7 +20,9 @@ public class AnoikFromJSONFileTest
     public AnoikFromJSONFileTest()
     {
         ILogger<AnoikServices> logger = new NullLogger<AnoikServices>();
-        _anoik = new AnoikServices(logger);
+        string anoikJsonFile = @"./Resources/Anoik/static.json";
+        var dataSupplier = new AnoikJsonDataSupplier(anoikJsonFile);
+        _anoik = new AnoikServices(logger, dataSupplier);
 
     }
 
@@ -72,7 +71,6 @@ public class AnoikFromJSONFileTest
         Assert.NotNull(sysEffectsINfos);
     }
 
-
     [Fact]
     public async Task Get_System_Statics()
     {
@@ -81,7 +79,7 @@ public class AnoikFromJSONFileTest
 
         var sysStatics = await _anoik.GetSystemStatics(SOLAR_SYSTEM_WH_NAME);
         Assert.NotEmpty(sysStatics);
-        Assert.Contains(new KeyValuePair<string,string>(SOLAR_SYSTEM_WH_STATICS, "HS"), sysStatics);
+        Assert.Contains(new KeyValuePair<string, string>(SOLAR_SYSTEM_WH_STATICS, "HS"), sysStatics);
     }
 
     [Fact]
@@ -96,8 +94,5 @@ public class AnoikFromJSONFileTest
         Assert.NotNull(whType.Sources);
         Assert.Contains("C3", whType.Sources);
         Assert.Equal(SOLAR_SYSTEM_WH_STATICS + " -> HS", whType.ToString());
-
     }
 }
-
-

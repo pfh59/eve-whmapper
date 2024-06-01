@@ -132,7 +132,7 @@ public class EveWHMapperHelperTest
             _whEveMapper = new EveMapperHelper(loggerMapperHelper
                 , new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!)
                 , new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache)),
-                new AnoikServices(loggerAnoik), new WHNoteRepository(loggerWHNoteRepository, _contextFactory));
+                new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json")), new WHNoteRepository(loggerWHNoteRepository, _contextFactory));
         }
     }
 

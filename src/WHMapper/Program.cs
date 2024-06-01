@@ -177,9 +177,16 @@ namespace WHMapper
             builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
             builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();
             builder.Services.AddScoped<ICharacterServices, CharacterServices>();
+
+            builder.Services.AddScoped<IAnoikDataSupplier>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var jsonFilePath = configuration["AnoikDataSupplier:JsonFilePath"];
+                return new AnoikJsonDataSupplier(jsonFilePath);
+            });
+
             builder.Services.AddScoped<IAnoikServices, AnoikServices>();
-            builder.Services.AddScoped<ISDEServices, SDEServices>();
-            
+            builder.Services.AddScoped<ISDEServices, SDEServices>();            
 
             #region DB Acess Repo
             builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
