@@ -140,7 +140,6 @@ jobs:
           if-no-files-found: error
 
   build_test_docker_image:
-    if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
     #https://docs.docker.com/scout/integrations/ci/gha/
     runs-on: ubuntu-latest
     needs: [build_test_package]
@@ -148,6 +147,7 @@ jobs:
       contents: read
       packages: write
       pull-requests: write
+    if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
 
     steps:
       - name: Checkout repository
