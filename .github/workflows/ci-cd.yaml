@@ -18,6 +18,10 @@ env:
   SHA: ${{ github.event.pull_request.head.sha || github.event.after }}
   # Use `latest` as the tag to compare to if empty, assuming that it's already pushed
   COMPARE_TAG: latest
+    # Base for the PR
+  BASE_REPO: ${{ github.event.pull_request.base.repo.clone_url }}
+  # Repository of PR
+  PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.clone_url }
 
 jobs:
   build_test_package:
@@ -67,21 +71,26 @@ jobs:
           lfs: true
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
-      
-      #- name: Build 🚀
-      #  run: dotnet build src/WHMapper -c Release
 
-      #- name: Test 🧪
-      #  env:
-      #    ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
-      #    ConnectionStrings__RedisConnection: "localhost:6379"
-      #  run: dotnet test src/WHMapper.Tests -c Release
+      # if external PR
+      - name: Build For external PR🚀
+        if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
+        run: dotnet build src/WHMapper -c Release
+
+      - name: Test For external PR🧪
+        if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
+        env:
+          ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
+          ConnectionStrings__RedisConnection: "localhost:6379"
+        run: dotnet test src/WHMapper.Tests -c Release
            
       - name: Install SonarCloud scanners
+        if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
       - name: SonarCloud Build and Analyze 🚀 🧪
+        if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -131,6 +140,7 @@ jobs:
           if-no-files-found: error
 
   build_test_docker_image:
+    if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
     #https://docs.docker.com/scout/integrations/ci/gha/
     runs-on: ubuntu-latest
     needs: [build_test_package]
