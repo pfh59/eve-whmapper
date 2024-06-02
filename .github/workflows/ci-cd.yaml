@@ -140,7 +140,7 @@ jobs:
           if-no-files-found: error
 
   build_test_docker_image:
-    if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
+    if: github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url
     #https://docs.docker.com/scout/integrations/ci/gha/
     runs-on: ubuntu-latest
     needs: [build_test_package]
