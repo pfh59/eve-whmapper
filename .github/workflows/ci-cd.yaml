@@ -21,7 +21,7 @@ env:
     # Base for the PR
   BASE_REPO: ${{ github.event.pull_request.base.repo.clone_url }}
   # Repository of PR
-  PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.clone_url }
+  PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.clone_url }}
 
 jobs:
   build_test_package:
