@@ -57,6 +57,11 @@ public class CacheService : ICacheService
 
     public async Task<bool> Remove(string key)
     {
+        if (string.IsNullOrEmpty(key))
+        {
+            _logger.LogError("Error removing cache key: key is null or empty");
+            return false;
+        }
         try
         {
             _logger.LogInformation($"Removing cache key {key}");
@@ -69,6 +74,4 @@ public class CacheService : ICacheService
             return false;
         }
     }
-
-
 }
