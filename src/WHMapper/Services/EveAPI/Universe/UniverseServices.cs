@@ -70,7 +70,7 @@ namespace WHMapper.Services.EveAPI.Universe
 
         }
 
-        public async Task<Constellation?> GetContellation(int constellatio_id)
+        public async Task<Constellation?> GetConstellation(int constellatio_id)
         {
             return await base.Execute<Constellation>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/universe/constellations/{0}/?datasource=tranquility", constellatio_id));
 

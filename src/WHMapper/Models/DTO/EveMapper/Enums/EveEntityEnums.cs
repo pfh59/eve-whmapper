@@ -3,6 +3,17 @@
     {
             Character,
             Corporation,
-            Alliance
+            Alliance,
+            Ship,
+            System,
+            Constellation,
+            Region,
+            Stargate,
+            Station,
+            Structure,
+            Group,
+            Wormhole,
+            Sun,
+            
     }
 }

@@ -12,6 +12,7 @@ using MudBlazor.Charts;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveAPI.Universe;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Models.DTO.SDE;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHSystems;
@@ -41,7 +42,7 @@ namespace WHMapper.Pages.Mapper
         private IEveMapperHelper MapperServices { get; set; } = null!;
 
         [Inject]
-        private IEveAPIServices EveServices { get; set; } = null!;
+        private IEveMapperEntity EveMapperEntity { get; set; } = null!;
 
         [Inject]
         IWHSystemRepository DbWHSystems { get; set; } = null!;
@@ -115,7 +116,9 @@ namespace WHMapper.Pages.Mapper
 
                     int solarSystemId = ((_searchResult==null) ? -1 : _searchResult.SolarSystemID);
                     int currentMapId = ((CurrentWHMap == null) ? -1 : CurrentWHMap.Id);
-                    var solarSystem = await EveServices.UniverseServices.GetSystem(solarSystemId);
+                    SystemEntity? solarSystem = await EveMapperEntity.GetSystem(solarSystemId);
+                    
+
                     WHSystem? newWHSystem=null!;
                     if (solarSystem == null)
                     {
@@ -124,7 +127,7 @@ namespace WHMapper.Pages.Mapper
                         MudDialog.Close(DialogResult.Cancel);
                     }
                     else
-                        newWHSystem = await DbWHSystems.Create(new WHSystem(currentMapId,solarSystem.SystemId, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY)); //change position
+                        newWHSystem = await DbWHSystems.Create(new WHSystem(currentMapId,solarSystem.Id, solarSystem.Name, solarSystem.SecurityStatus, MouseX, MouseY)); //change position
 
 
                     if (newWHSystem == null)
@@ -165,26 +168,6 @@ namespace WHMapper.Pages.Mapper
         {
             MudDialog.Cancel();
         }
-
-/*
-        private async Task<IEnumerable<SDEServices>?> Search(string value,CancellationToken cancellationToken)
-        {
-            try
-            {
-                return (IEnumerable<SDEServices>?)await EveMapperSearch.SearchSystem(value,cancellationToken);
-            }
-            catch(OperationCanceledException)
-            {
-                Logger.LogInformation($"SearchSystem {value} cancelled");
-                return null;
-            }
-            catch(Exception ex)
-            {
-                Logger.LogError(ex, MSG_SEARCH_ERROR);
-                Snackbar.Add(MSG_SEARCH_ERROR, Severity.Error);
-                return null;
-            }
-        }*/
     }
 }
 

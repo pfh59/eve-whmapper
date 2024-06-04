@@ -5,16 +5,18 @@ using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
 
 namespace WHMapper.Services.EveMapper
 {
 	public interface IEveMapperHelper
 	{
-        public ReadOnlyCollection<WormholeType> WormholeTypes { get; }
-        public Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh);
-        public bool IsWorhmole(string systemName);
-        public Task<EveSystemType> GetWHClass(ESISolarSystem whSystem);
-        public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName,float securityStatus);
+        ReadOnlyCollection<WormholeType> WormholeTypes { get; }
+        Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh);
+        bool IsWorhmole(string systemName);
+        Task<EveSystemType> GetWHClass(SystemEntity whSystem);
+        Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName,float securityStatus);
+        Task<bool> IsRouteViaWH(SystemEntity src, SystemEntity dst);
     }
 }
 

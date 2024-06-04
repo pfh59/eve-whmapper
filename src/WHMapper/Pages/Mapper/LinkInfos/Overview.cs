@@ -7,6 +7,7 @@ using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Services.EveAPI;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.WHColor;
 
 namespace WHMapper.Pages.Mapper.LinkInfos;
@@ -16,13 +17,15 @@ public partial class Overview : ComponentBase
 {
         [Inject]
         private ILogger<Overview> Logger { get; set; } = null!;
-        [Inject]
-        private IEveAPIServices EveAPIServices { get; set; } = null!;
+
         [Inject]
         private IWHSystemLinkRepository DbSystemLink { get; set; } = null!;
         
         [Inject]
         private IWHColorHelper? WHColorHelper { get; set; }
+
+        [Inject]
+        private IEveMapperEntity EveMapperEntity { get; set; } = null!;
 
         [Parameter]
         public EveSystemLinkModel CurrentSystemLink {get;set;}= null!;
@@ -106,7 +109,7 @@ public partial class Overview : ComponentBase
                         return string.Empty;
                 }
 
-                var character = await EveAPIServices.CharacterServices.GetCharacter(jumplog.CharacterId);
+                var character = await EveMapperEntity.GetCharacter(jumplog.CharacterId);
 
                 if (character == null)
                 {
@@ -130,7 +133,7 @@ public partial class Overview : ComponentBase
                         return "No ship used";
                 }
 
-                var shipInfos = await EveAPIServices.UniverseServices.GetType(jumplog!.ShipTypeId!.Value);
+                var shipInfos = await EveMapperEntity.GetShip(jumplog.ShipTypeId.Value);
 
                 if (shipInfos == null)
                 {

@@ -21,9 +21,9 @@ public class EveMapperSearch : IEveMapperSearch
         private const string MSG_CHARACTERS_REQUIRED = "Please enter 3 or more characters";
         private const string MSG_UNKNOW_VALUE= "Unknow value";
 
-        private ILogger _logger= null!;
-        private ISDEServices _sdeServices = null!;
-        private IEveAPIServices _eveAPIServices = null!;
+        private readonly ILogger _logger;
+        private readonly ISDEServices _sdeServices;
+        private readonly IEveAPIServices _eveAPIServices;
 
         public EveMapperSearch(ILogger<EveMapperSearch> logger,ISDEServices sdeServices,IEveAPIServices eveAPIServices)
         {

@@ -17,7 +17,7 @@ namespace WHMapper.Services.EveAPI.Universe
         Task<int[]?> GetTypes();
         Task<Stargate?> GetStargate(int stargate_id);
         Task<int[]?> GetContellations();
-        Task<Constellation?> GetContellation(int constellatio_id);
+        Task<Constellation?> GetConstellation(int constellatio_id);
         Task<int[]?> GetRegions();
         Task<Region?> GetRegion(int region_id);
     }

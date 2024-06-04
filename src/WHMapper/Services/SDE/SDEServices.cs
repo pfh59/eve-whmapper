@@ -22,9 +22,6 @@ namespace WHMapper.Services.SDE
         private const string SDE_WORMHOLE_TARGET_DIRECTORY = @"./Resources/SDE/universe/sde/fsd/universe/wormhole";
         private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.staticdata";
 
-        private const string REDIS_SOLAR_SYSTEM_JUMPS_KEY = "solarysystemjumps:list";
-        private const string REDIS_SDE_SOLAR_SYSTEMS_KEY = "solarsystems:list";
-
         private readonly ILogger _logger;
         private readonly ParallelOptions _options;
         private readonly IDeserializer _deserializer;
@@ -181,8 +178,8 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                await _cacheService.Remove(REDIS_SDE_SOLAR_SYSTEMS_KEY);
-                await _cacheService.Remove(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+                await _cacheService.Remove(ISDEServices.REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                await _cacheService.Remove(ISDEServices.REDIS_SOLAR_SYSTEM_JUMPS_KEY);
 
                 return true;
             }
@@ -261,8 +258,8 @@ namespace WHMapper.Services.SDE
 
                     //clean old cache and add new one
                     await ClearCache();
-                    await _cacheService.Set(REDIS_SDE_SOLAR_SYSTEMS_KEY, SDESystems);
-                    await _cacheService.Set(REDIS_SOLAR_SYSTEM_JUMPS_KEY, tmp);
+                    await _cacheService.Set(ISDEServices.REDIS_SDE_SOLAR_SYSTEMS_KEY, SDESystems);
+                    await _cacheService.Set(ISDEServices.REDIS_SOLAR_SYSTEM_JUMPS_KEY, tmp);
 
                     return true;
                 }
@@ -283,7 +280,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                IEnumerable<SDESolarSystem>? results = await _cacheService.Get<IEnumerable<SDESolarSystem>?>(REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                IEnumerable<SDESolarSystem>? results = await _cacheService.Get<IEnumerable<SDESolarSystem>?>(ISDEServices.REDIS_SDE_SOLAR_SYSTEMS_KEY);
                 if (results == null)
                     return new List<SDESolarSystem>();
                 return results;
@@ -299,7 +296,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                IEnumerable<SolarSystemJump>? results = await _cacheService.Get<IEnumerable<SolarSystemJump>?>(REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+                IEnumerable<SolarSystemJump>? results = await _cacheService.Get<IEnumerable<SolarSystemJump>?>(ISDEServices.REDIS_SOLAR_SYSTEM_JUMPS_KEY);
                 if (results == null)
                     return new List<SolarSystemJump>();
 
