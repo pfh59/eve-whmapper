@@ -128,7 +128,7 @@ public class PublicEveOnlineAPITest
         Assert.Equal(SOLAR_SYSTEM_JITA_NAME, jita.Name);
         Assert.NotNull(jita.Stargates);
 
-        var jita_constellation = await _eveUniverseApi.GetContellation(jita.ConstellationId);
+        var jita_constellation = await _eveUniverseApi.GetConstellation(jita.ConstellationId);
         Assert.NotNull(jita_constellation);
         Assert.Equal(CONSTELLATION_NAME, jita_constellation.Name);
 

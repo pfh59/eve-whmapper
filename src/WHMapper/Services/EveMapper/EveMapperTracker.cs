@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Components.Authorization;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveAPI.Location;
 using WHMapper.Models.DTO.EveAPI.Universe;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveJwtAuthenticationStateProvider;
+using WHMapper.Services.EveMapper;
 
 namespace WHMapper;
 
@@ -16,23 +18,26 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
     private readonly AuthenticationStateProvider _authState ;
     private readonly IEveAPIServices? _eveAPIServices;
 
+    private readonly IEveMapperEntity _eveMapperEntity;
+
 
     private System.Timers.Timer? _timer=null!;
 
 
     private EveLocation? _currentLocation = null!;
-    private ESISolarSystem? _currentSolarSystem = null!;
+    private SystemEntity? _currentSolarSystem = null!;
     private Ship? _currentShip = null!;
-    private WHMapper.Models.DTO.EveAPI.Universe.Type? _currentShiptInfos = null!;
+    private ShipEntity _currentShiptInfos = null!;
 
-    public event Func< ESISolarSystem, Task> SystemChanged =null!;
-    public event Func<Ship,WHMapper.Models.DTO.EveAPI.Universe.Type,Task> ShipChanged=null!;
+    public event Func< SystemEntity, Task> SystemChanged =null!;
+    public event Func<Ship,ShipEntity,Task> ShipChanged=null!;
 
-    public EveMapperTracker(ILogger<EveMapperTracker> logger,AuthenticationStateProvider authState,IEveAPIServices eveAPI)
+    public EveMapperTracker(ILogger<EveMapperTracker> logger,AuthenticationStateProvider authState,IEveAPIServices eveAPI,IEveMapperEntity eveMapperEntity)
     {
         _logger=logger;
         _authState=authState;
         _eveAPIServices=eveAPI;
+        _eveMapperEntity=eveMapperEntity;
 
         _timer = new System.Timers.Timer(TRACK_HIT_IN_MS);
         _timer.Elapsed += OnTimedEvent;
@@ -75,7 +80,7 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
         try
         {
             var state = await _authState.GetAuthenticationStateAsync();
-            if (!string.IsNullOrEmpty(state?.User?.Identity?.Name) && _eveAPIServices!=null && _eveAPIServices.LocationServices!=null)
+            if (!string.IsNullOrEmpty(state?.User?.Identity?.Name) && _eveAPIServices!=null && _eveAPIServices.LocationServices!=null && _eveMapperEntity!=null)
             {
                 EveLocation? el = await _eveAPIServices.LocationServices.GetLocation();
                 Ship? ship = await _eveAPIServices.LocationServices.GetCurrentShip();
@@ -84,7 +89,9 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
                 {
                     _logger.LogInformation("Ship Changed");
                     _currentShip = ship;
-                    _currentShiptInfos = await _eveAPIServices.UniverseServices.GetType(ship!.ShipTypeId);
+                    _currentShiptInfos = await _eveMapperEntity.GetShip(ship.ShipTypeId);
+                 
+                    
                     if(_currentShip!=null && _currentShiptInfos!=null)
                         ShipChanged?.Invoke(_currentShip,_currentShiptInfos);
                 }
@@ -93,7 +100,8 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
                 {   
                     _logger.LogInformation("System Changed");
                     _currentLocation = el;
-                    _currentSolarSystem = await _eveAPIServices.UniverseServices.GetSystem(el.SolarSystemId);
+                    _currentSolarSystem = await _eveMapperEntity.GetSystem(el.SolarSystemId);
+
                     if(_currentSolarSystem!=null)
                         SystemChanged?.Invoke(_currentSolarSystem);
                 }

@@ -12,6 +12,7 @@ using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.Enums;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.Cache;
@@ -35,6 +36,7 @@ public class EveWHMapperHelperTest
     private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
     private const char SOLAR_SYSTEM_EXTENSION_NAME = 'B';
     private const string CONSTELLATION_JITA_NAME = "Kimotoro";
+    private const int CONSTALLATION_JITA_ID = 20000020;
     private const string REGION_JITA_NAME = "The Forge";
 
     private const string SOLAR_SYSTEM_AMAMAKE_NAME = "Amamake";
@@ -126,11 +128,12 @@ public class EveWHMapperHelperTest
         ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
         ILogger<WHNoteRepository> loggerWHNoteRepository = new NullLogger<WHNoteRepository>();
         ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
+        ILogger<EveMapperEntity> loggerEveMapperEntity= new NullLogger<EveMapperEntity>();
 
         if(httpclientfactory!=null && _contextFactory != null && _distriCache != null)
         {
             _whEveMapper = new EveMapperHelper(loggerMapperHelper
-                , new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!)
+                ,new EveMapperEntity(loggerEveMapperEntity,new CacheService(loggerCacheService, _distriCache), new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!))
                 , new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache)),
                 new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json")), new WHNoteRepository(loggerWHNoteRepository, _contextFactory));
         }
@@ -152,7 +155,7 @@ public class EveWHMapperHelperTest
     [Fact, Priority(2)]
     public async Task Get_Wormhole_Class()
     {
-        var result_C3_Bis= await _whEveMapper.GetWHClass(new ESISolarSystem(0, 31001123, SOLAR_SYSTEM_WH_NAME,null!,-1.0f,string.Empty,CONSTELLATION_WH_ID,null!,null!));
+        var result_C3_Bis= await _whEveMapper.GetWHClass(new SystemEntity(31001123, SOLAR_SYSTEM_WH_NAME,CONSTELLATION_WH_ID,-1.0f, new int[]{}));
         Assert.Equal(EveSystemType.C3, result_C3_Bis);
 
         var result_HS = await _whEveMapper.GetWHClass(REGION_JITA_NAME, "UNUSED", SOLAR_SYSTEM_JITA_NAME,1.0f);
@@ -226,6 +229,22 @@ public class EveWHMapperHelperTest
     {
         var result = await _whEveMapper.DefineEveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, 31001531, C4_NAME_BUG_207, -1.0f));
         Assert.Equal(EveSystemType.C4, result.SystemType);
+    }
+
+    [Fact, Priority(5)]
+    public async Task Is_Route_Via_WH()
+    {
+        var src = new SystemEntity(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, CONSTELLATION_WH_ID, -1.0f, new int[] { });//fake for test
+        var dst = new SystemEntity(SOLAR_SYSTEM_JITA_ID,SOLAR_SYSTEM_JITA_NAME, CONSTALLATION_JITA_ID, -1.0f, new int[] {50001248 });//fake for test
+
+        var result = await _whEveMapper.IsRouteViaWH(src, dst);
+        Assert.True(result);
+
+        var src2 = new SystemEntity(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, CONSTALLATION_JITA_ID, -1.0f, new int[] { 50001248});
+        var dst2 = new SystemEntity(30000140, "Maurasi", CONSTALLATION_JITA_ID, -1.0f, new int[] { 50000802});
+
+        var result_wh = await _whEveMapper.IsRouteViaWH(src2, dst2);
+        Assert.False(result_wh);
     }
 }
 
