@@ -47,6 +47,11 @@ public class EveWHMapperEntityTest
 
     private const int GROUPE_WORMHOLE_ID = 988;
 
+    private const int SECONDARY_SUN_ID_TYPE = 30577;
+
+    private const int WH_TYPE_ID1 = 30583;
+    private const int WH_TYPE_ID2 = 30584;
+
     private readonly IEveMapperEntity _whMapperEntity;
 
     
@@ -382,6 +387,24 @@ public class EveWHMapperEntityTest
         var wormhole = await _whMapperEntity.GetWormhole(BAD_ID);
         Assert.Null(wormhole);
 
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+        wormhole = await _whMapperEntity.GetWormhole(WH_TYPE_ID1);
+        sw.Stop();
+        Assert.NotNull(wormhole);
+        Assert.Equal(WH_TYPE_ID1, wormhole.Id);
+        long without_cache = sw.ElapsedMilliseconds;
+
+        //Check if cache is working
+        sw.Reset();
+        sw.Restart();
+        wormhole = await _whMapperEntity.GetWormhole(WH_TYPE_ID1);
+        sw.Stop();
+        long with_cache = sw.ElapsedMilliseconds;
+        Assert.NotNull(wormhole);
+        Assert.Equal(WH_TYPE_ID1, wormhole.Id);
+        Assert.True(with_cache < without_cache);
+
         clearing = await _whMapperEntity.ClearWormholeCache();
         Assert.True(clearing);
     }
@@ -394,6 +417,24 @@ public class EveWHMapperEntityTest
 
         var sun = await _whMapperEntity.GetSun(BAD_ID);
         Assert.Null(sun);
+
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+        sun = await _whMapperEntity.GetSun(SECONDARY_SUN_ID_TYPE);
+        sw.Stop();
+        Assert.NotNull(sun);
+        Assert.Equal(SECONDARY_SUN_ID_TYPE, sun.Id);
+        long without_cache = sw.ElapsedMilliseconds;
+
+        //Check if cache is working
+        sw.Reset();
+        sw.Restart();
+        sun = await _whMapperEntity.GetSun(SECONDARY_SUN_ID_TYPE);
+        sw.Stop();
+        long with_cache = sw.ElapsedMilliseconds;
+        Assert.NotNull(sun);
+        Assert.Equal(SECONDARY_SUN_ID_TYPE, sun.Id);
+        Assert.True(with_cache < without_cache);
 
         clearing = await _whMapperEntity.ClearSunCache();
         Assert.True(clearing);
