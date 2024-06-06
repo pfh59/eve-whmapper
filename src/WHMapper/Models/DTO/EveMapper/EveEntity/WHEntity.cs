@@ -11,7 +11,7 @@ public class WHEntity : AEveEntity
     public float SystemTypeValue { get; private set; }
 
     public WHEntity(int id, WHMapper.Models.DTO.EveAPI.Universe.Type type)
-        : base(id, type.Name[9..], EveEntityEnums.Wormhole)
+        : base(id, type.Name[9..].Trim(), EveEntityEnums.Wormhole)
     {
         SystemTypeValue = 0;
         if (type.DogmaAttributes != null)

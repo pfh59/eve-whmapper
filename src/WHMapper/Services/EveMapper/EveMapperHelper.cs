@@ -732,31 +732,31 @@ namespace WHMapper.Services.EveMapper
                                 _whTypes.Add(new WormholeType("K162", EveSystemType.NS, null));
                                 break;
                             case 1:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C1, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C1, null));
                                 break;
                             case 2:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C2, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C2, null));
                                 break;
                             case 3:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C3, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C3, null));
                                 break;
                             case 4:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C4, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C4, null));
                                 break;
                             case 5:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C5, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C5, null));
                                 break;
                             case 6:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C6, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C6, null));
                                 break;
                             case 7:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.HS, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.HS, null));
                                 break;
                             case 8:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.LS, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.LS, null));
                                 break;
                             case 9:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.NS, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.NS, null));
                                 break;
 
                             case 10:
@@ -765,28 +765,28 @@ namespace WHMapper.Services.EveMapper
                                 break;
 
                             case 12:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.Thera, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.Thera, null));
                                 break;
                             case 13:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C13, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C13, null));
                                 break;
                             case 14:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C14, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C14, null));
                                 break;
                             case 15:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C15, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C15, null));
                                 break;
                             case 16:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C16, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C16, null));
                                 break;
                             case 17:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C17, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C17, null));
                                 break;
                             case 18:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.C18, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.C18, null));
                                 break;
                             case 25:
-                                _whTypes.Add(new WormholeType(whType.Name[9..].Trim(), EveSystemType.Pochven, null));
+                                _whTypes.Add(new WormholeType(whType.Name, EveSystemType.Pochven, null));
                                 break;
 
                             default:
