@@ -29,14 +29,6 @@ namespace WHMapper.Services.SDE
         private static Mutex mut = new Mutex();
         private readonly ICacheService _cacheService;
 
-        public bool ExtractSuccess
-        {
-            get
-            {
-                return Directory.Exists(SDE_TARGET_DIRECTORY);
-            }
-        }
-
         public SDEServices(ILogger<SDEServices> logger, ICacheService cacheService)
         {
             _logger = logger;
@@ -46,6 +38,14 @@ namespace WHMapper.Services.SDE
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()
                 .Build();
+        }
+
+        public bool ExtractSuccess
+        {
+            get
+            {
+                return Directory.Exists(SDE_TARGET_DIRECTORY);
+            }
         }
 
         public Task<bool> IsNewSDEAvailable()
