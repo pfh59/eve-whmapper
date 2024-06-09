@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.IO.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -67,7 +68,7 @@ public class EveWHMapperRoutePlannerHelperTest
 
             _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
                 new WHRouteRepository(loggerWHRouteRepository, _contextFactory),
-                null!,new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache)));       
+                null!,new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache), new DirectoryWrapper(new FileSystem())));       
         }
     }
 

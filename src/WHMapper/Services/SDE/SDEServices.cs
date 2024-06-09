@@ -4,6 +4,7 @@ using WHMapper.Models.DTO.SDE;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using WHMapper.Services.Cache;
+using System.IO.Abstractions;
 
 namespace WHMapper.Services.SDE
 {
@@ -28,8 +29,9 @@ namespace WHMapper.Services.SDE
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
         private static Mutex mut = new Mutex();
         private readonly ICacheService _cacheService;
+        private readonly IDirectory _directory;
 
-        public SDEServices(ILogger<SDEServices> logger, ICacheService cacheService)
+        public SDEServices(ILogger<SDEServices> logger, ICacheService cacheService, IDirectory directory)
         {
             _logger = logger;
             _cacheService = cacheService;
@@ -38,13 +40,14 @@ namespace WHMapper.Services.SDE
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()
                 .Build();
+            _directory = directory;
         }
 
         public bool ExtractSuccess
         {
             get
             {
-                return Directory.Exists(SDE_TARGET_DIRECTORY);
+                return _directory.Exists(SDE_TARGET_DIRECTORY);
             }
         }
 

@@ -36,6 +36,7 @@ using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.IO.Abstractions;
 
 
 namespace WHMapper
@@ -200,7 +201,11 @@ namespace WHMapper
             builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
 
             builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
+            #endregion
 
+            #region Filesystem
+            builder.Services.AddTransient<IFileSystem, FileSystem>();
+            builder.Services.AddTransient<IDirectory, DirectoryWrapper>();
             #endregion
 
             #region WH HELPER

@@ -80,6 +80,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.5" />
     <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.9" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.5.2" />
+    <PackageReference Include="System.IO.Abstractions" Version="21.0.2" />
     <PackageReference Include="Z.Blazor.Diagrams" Version="3.0.2" />
     <PackageReference Include="Z.Blazor.Diagrams.Algorithms" Version="3.0.2" />
     <PackageReference Include="Z.Blazor.Diagrams.Core" Version="3.0.2" />

@@ -1,5 +1,4 @@
-using System;
-using System.Threading;
+using System.IO.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -9,19 +8,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.SDE;
-using WHMapper.Services.WHColor;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;
@@ -101,20 +95,18 @@ public class EveWHMapperHelperTest
             .AddEnvironmentVariables()
             .Build();
 
-
         var services = new ServiceCollection();
         services.AddHttpClient();
 
         services.AddDbContextFactory<WHMapperContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection"))
+            );
 
         services.AddStackExchangeRedisCache(option =>
             {
                 option.Configuration = configuration.GetConnectionString("RedisConnection");
                 option.InstanceName = "WHMapper";
             });
-
-        
 
         var provider = services.BuildServiceProvider();
         var httpclientfactory = provider.GetService<IHttpClientFactory>();
@@ -130,12 +122,15 @@ public class EveWHMapperHelperTest
         ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
         ILogger<EveMapperEntity> loggerEveMapperEntity= new NullLogger<EveMapperEntity>();
 
-        if(httpclientfactory!=null && _contextFactory != null && _distriCache != null)
+        if(httpclientfactory != null && _contextFactory != null && _distriCache != null)
         {
-            _whEveMapper = new EveMapperHelper(loggerMapperHelper
-                ,new EveMapperEntity(loggerEveMapperEntity,new CacheService(loggerCacheService, _distriCache), new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!))
-                , new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache)),
-                new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json")), new WHNoteRepository(loggerWHNoteRepository, _contextFactory));
+            ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
+            IEveMapperEntity apiServices = new EveMapperEntity(loggerEveMapperEntity, cacheService, new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!));
+            ISDEServices sDEServices = new SDEServices(loggerSDE, new CacheService(loggerCacheService, _distriCache), new DirectoryWrapper(new FileSystem()));
+            IAnoikServices anoikServices = new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json"));
+            IWHNoteRepository wHNoteRepository = new WHNoteRepository(loggerWHNoteRepository, _contextFactory);
+
+            _whEveMapper = new EveMapperHelper(loggerMapperHelper, apiServices, sDEServices, anoikServices, wHNoteRepository);
         }
     }
 

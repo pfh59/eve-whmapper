@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Abstractions;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,8 +9,7 @@ using WHMapper.Services.Cache;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
 
-namespace WHMapper.Tests.Services;
-
+namespace WHMapper.Tests.Services.SDE;
 
 [Collection("C4-Services")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
@@ -59,9 +59,12 @@ public class SdeServicesIntegrationTests
         
         if(_distriCache != null)
         {
-        ILogger<SDEServices> logger = new NullLogger<SDEServices>();
-        ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
-        _services = new SDEServices(logger,new CacheService(loggerCache,_distriCache));
+            ILogger<SDEServices> logger = new NullLogger<SDEServices>();
+            ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
+            IDirectory directory = new DirectoryWrapper(new FileSystem());
+            ICacheService cacheService = new CacheService(loggerCache, _distriCache);
+
+            _services = new SDEServices(logger, cacheService, directory);
         }
 
     }
