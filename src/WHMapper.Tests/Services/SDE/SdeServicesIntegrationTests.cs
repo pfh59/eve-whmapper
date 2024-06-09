@@ -13,7 +13,7 @@ namespace WHMapper.Tests.Services;
 
 [Collection("C4-Services")]
 [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
-public class SDEUniverseTest
+public class SdeServicesIntegrationTests
 {
 
     private const string SOLAR_SYSTEM_JITA_NAME = "Jita";
@@ -35,7 +35,7 @@ public class SDEUniverseTest
 
     private readonly ISDEServices? _services = null!;
 
-    public SDEUniverseTest()
+    public SdeServicesIntegrationTests()
     {
 
         var services = new ServiceCollection();
