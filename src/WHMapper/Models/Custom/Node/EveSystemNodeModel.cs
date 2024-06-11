@@ -18,7 +18,7 @@ namespace WHMapper.Models.Custom.Node
         public event Action<EveSystemNodeModel>? OnLocked;
         public event Action<EveSystemNodeModel>? OnSystemStatusChanged;
 
-        private WHSystem _wh = null!;
+        private readonly WHSystem _wh;
         
         private WHSystemStatusEnum _systemStatus;
 
@@ -71,10 +71,7 @@ namespace WHMapper.Models.Custom.Node
         {
             get
             {
-                if(_wh!=null)
-                    return _wh.SecurityStatus;
-                
-                return 0;
+                return _wh.SecurityStatus;
             }
         }
 

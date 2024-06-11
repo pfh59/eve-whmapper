@@ -18,6 +18,22 @@ namespace WHMapper.Tests.Models.Graph
         private const string CONSTELLATION_JITA_NAME = "Kimotoro";
         private const string REGION_JITA_NAME = "The Forge";
 
+        private const string SOLAR_SYSTEM_AMAMAKE_NAME = "Amamake";
+        private const int SOLAR_SYSTEM_AMAMAKE_ID = 30002537;
+        private const string CONSTELLATION_AMAMAKE_NAME = "Hed";
+        private const string REGION_AMAMAKE_NAME = "Heimatar";
+
+
+        private const string SOLAR_SYSTEM_6_CZ49_NAME = "6-CZ49";
+        private const int SOLAR_SYSTEM_6_CZ49_ID = 30001161;
+        private const float SOLAR_SYSTEM_6_CZ49_SECURITY = -0.16F;
+        private const string CONSTELLATION_6_CZ49_NAME = "2-M6DE";
+        private const string REGION_6_CZ49_NAME = "Syndicate";
+
+
+        private const float SOLAR_SYSTEM_JITA_SECURITY = 1.0F;
+        private const float SOLAR_SYSTEM_AMAMAKE_SECURITY = -0.4F;
+
 
         private const int SOLAR_SYSTEM_WH_ID = 31001123;
         private const string SOLAR_SYSTEM_WH_NAME = "J165153";
@@ -37,7 +53,7 @@ namespace WHMapper.Tests.Models.Graph
         [Fact]
         public async Task Eve_System_Node_Model()
         {
-            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, 1.0F), new WHNote(SOLAR_SYSTEM_JITA_ID,WHSystemStatusEnum.Friendly,SOLAR_SYSTEM_JITA_NAME), REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
+            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, SOLAR_SYSTEM_JITA_SECURITY), new WHNote(SOLAR_SYSTEM_JITA_ID,WHSystemStatusEnum.Friendly,SOLAR_SYSTEM_JITA_NAME), REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
             Assert.NotNull(node);
             Assert.Equal(0, node.IdWH);
             Assert.Equal(DEFAULT_MAP_ID, node.IdWHMap);
@@ -81,15 +97,20 @@ namespace WHMapper.Tests.Models.Graph
             node.IsRouteWaypoint=true;
             Assert.True(node.IsRouteWaypoint);
 
+            var node_ls = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_AMAMAKE_ID, SOLAR_SYSTEM_AMAMAKE_NAME, SOLAR_SYSTEM_AMAMAKE_SECURITY), null, REGION_AMAMAKE_NAME, CONSTELLATION_AMAMAKE_NAME); 
+            Assert.Equal(EveSystemType.LS, node_ls.SystemType);
+
+            var node_ns = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_6_CZ49_ID, SOLAR_SYSTEM_6_CZ49_NAME, SOLAR_SYSTEM_6_CZ49_SECURITY), null, REGION_6_CZ49_NAME, CONSTELLATION_6_CZ49_NAME); 
+            Assert.Equal(EveSystemType.NS, node_ns.SystemType);
         }
 
         [Fact]
         public void Eve_System_Link_Model()
         {
-            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, 1.0F), null, REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
+            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_JITA_SECURITY), null, REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
                 Assert.Equal(WHSystemStatusEnum.Unknown,node.SystemStatus);
             var node2 = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0F), null, REGION_WH_NAME, CONSTELLATION_WH_NAME,SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT,null, new List<WHStatic>() { new WHStatic(SOLAR_SYSTEM_WH_STATICS,EveSystemType.C3) }) ;
-
+   
 
             var link = new EveSystemLinkModel(new WHSystemLink(1, 2), node, node2);
             Assert.NotNull(link);

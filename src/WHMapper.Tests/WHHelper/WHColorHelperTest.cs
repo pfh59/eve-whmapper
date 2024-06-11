@@ -156,6 +156,7 @@ public class WHColorHelperTest
         Assert.Equal(WH_MASS_NORMAL_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Normal));
         Assert.Equal(WH_MASS_CRITICAL_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Critical));
         Assert.Equal(WH_MASS_VERGE_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Verge));
+        Assert.Equal(WH_MASS_NORMAL_COLOR, _whHelper.GetLinkStatusColor((SystemLinkMassStatus)212));
     }
 
     [Fact]
@@ -171,6 +172,7 @@ public class WHColorHelperTest
         Assert.Equal(NODE_STATUS_OCCUPIED_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Occupied));
         Assert.Equal(NODE_STATUS_HOSTILE_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Hostile));
         Assert.Equal(NODE_STATUS_UNKNOWN_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Unknown));
+        Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetNodeStatusColor((WHSystemStatusEnum)28));
     }
 }
 
