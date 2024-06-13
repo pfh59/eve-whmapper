@@ -18,9 +18,9 @@ namespace WHMapper.Services.SDE
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
         private const string SDE_TARGET_DIRECTORY = @"./Resources/SDE/universe";
 
-        private const string SDE_EVE_TARGET_DIRECTORY = @"./Resources/SDE/universe/sde/fsd/universe/eve";
-        private const string SDE_WORMHOLE_TARGET_DIRECTORY = @"./Resources/SDE/universe/sde/fsd/universe/wormhole";
-        private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.staticdata";
+        private const string SDE_EVE_TARGET_DIRECTORY = @"./Resources/SDE/universe/universe/eve";
+        private const string SDE_WORMHOLE_TARGET_DIRECTORY = @"./Resources/SDE/universe/universe/wormhole";
+        private const string SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE = "solarsystem.yaml";
 
         private readonly ILogger _logger;
         private readonly ParallelOptions _options;
