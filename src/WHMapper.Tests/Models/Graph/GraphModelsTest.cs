@@ -32,7 +32,7 @@ namespace WHMapper.Tests.Models.Graph
 
 
         private const float SOLAR_SYSTEM_JITA_SECURITY = 1.0F;
-        private const float SOLAR_SYSTEM_AMAMAKE_SECURITY = -0.4F;
+        private const float SOLAR_SYSTEM_AMAMAKE_SECURITY = 0.4F;
 
 
         private const int SOLAR_SYSTEM_WH_ID = 31001123;
