@@ -97,7 +97,7 @@ namespace WHMapper.Services.SDE
             {
                 if (_directory.Exists(SDE_DIRECTORY))
                 {
-                    _logger.LogInformation("Delete old Eve SDE files");
+                    _logger.LogInformation($"Deleting Eve SDE resources at {SDE_DIRECTORY}");
                     _directory.Delete(SDE_DIRECTORY, true);
                 }
 
