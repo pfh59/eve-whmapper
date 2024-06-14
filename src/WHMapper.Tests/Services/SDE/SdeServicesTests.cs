@@ -5,7 +5,7 @@ using WHMapper.Services.SDE;
 
 namespace WHMapper.Tests.Services.SDE
 {
-    public class SdeTests
+    public class SdeServicesTests
     {
         #region IsNewSDEAvailabile()
         [Theory, AutoDomainData]
@@ -90,59 +90,6 @@ namespace WHMapper.Tests.Services.SDE
 
             Assert.False(result);
         }
-        #endregion
-
-        #region ClearSDEResources()
-        private string SDEDirectory => @"./Resources/SDE/";
-
-        [Theory, AutoDomainData]
-        public async Task WhenSDEDirectoryExists_ClearingSdeResources_RemovesDirectory(
-                [Frozen] Mock<IDirectory> directory,
-                SDEServices sut
-            )
-        {
-            directory.Setup(x => x.Exists(SDEDirectory)).Returns(true).Verifiable();
-
-            await sut.ClearSDEResources();
-
-            var result = await sut.ClearSDEResources();
-
-            Assert.True(result);
-            directory.Verify(x => x.Exists(SDEDirectory), Times.Once);
-            directory.Verify(x => x.Delete(SDEDirectory, true));
-            directory.VerifyNoOtherCalls();
-        }
-
-        [Theory, AutoDomainData]
-        public async Task WhenSDEDirectoryDoesNotExists_ClearingSdeResources_DoesNothingAndReturnsTrue(
-                [Frozen] Mock<IDirectory> directory,
-                SDEServices sut
-            )
-        {
-            directory.Setup(x => x.Exists(SDEDirectory)).Returns(false).Verifiable();
-
-            var result = await sut.ClearSDEResources();
-
-            Assert.True(result);
-            directory.Verify(x => x.Exists(SDEDirectory), Times.Once);
-            directory.VerifyNoOtherCalls();
-        }
-
-        [Theory, AutoDomainData]
-        public async Task WhenDirectoryThrowsException_ClearingSdeResources_DoesNothingAndReturnsFalse(
-                [Frozen] Mock<IDirectory> directory,
-                SDEServices sut
-            )
-        {
-            directory.Setup(x => x.Exists(SDEDirectory)).Throws(new Exception("test")).Verifiable();
-
-            var result = await sut.ClearSDEResources();
-
-            Assert.False(result);
-            directory.Verify(x => x.Exists(SDEDirectory), Times.Once);
-            directory.VerifyNoOtherCalls();
-        }
-
         #endregion
     }
 }

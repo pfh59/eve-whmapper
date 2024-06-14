@@ -8,7 +8,7 @@ namespace WHMapper.Services.SDE
 		const string REDIS_SOLAR_SYSTEM_JUMPS_KEY = "solarysystemjumps:list";
         const string REDIS_SDE_SOLAR_SYSTEMS_KEY = "solarsystems:list";
 
-		bool ExtractSuccess {get; }
+		bool IsExtractionSuccesful();
 		Task<bool> IsNewSDEAvailable();
     
 		Task<bool> DownloadSDE();

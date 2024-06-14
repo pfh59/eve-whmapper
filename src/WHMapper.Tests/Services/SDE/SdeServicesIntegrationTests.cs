@@ -94,7 +94,7 @@ public class SdeServicesIntegrationTests
         bool goodExtract = await _services.ExtractSDE();
         Assert.True(goodExtract);
         Assert.True(Directory.Exists(SDE_TARGET_DIRECTORY));
-        Assert.True(_services.ExtractSuccess);
+        Assert.True(_services.IsExtractionSuccesful());
     }
 
 

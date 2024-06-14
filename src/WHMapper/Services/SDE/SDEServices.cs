@@ -45,12 +45,9 @@ namespace WHMapper.Services.SDE
             _file = file;
         }
 
-        public bool ExtractSuccess
+        public bool IsExtractionSuccesful()
         {
-            get
-            {
-                return _directory.Exists(SDE_TARGET_DIRECTORY);
-            }
+            return _directory.Exists(SDE_TARGET_DIRECTORY);
         }
 
         /// <summary>
@@ -199,7 +196,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (!ExtractSuccess)
+                if (!IsExtractionSuccesful())
                 {
                     _logger.LogError("Impossible to import SDE, bad SDE extract.");
                     return false;
@@ -318,7 +315,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (!ExtractSuccess)
+                if (!IsExtractionSuccesful())
                 {
                     _logger.LogError("Impossible to searchSystem, bad SDE extract.");
                     return null;
@@ -345,7 +342,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (!ExtractSuccess)
+                if (!IsExtractionSuccesful())
                 {
                     _logger.LogError("Impossible to searchSystem, bad SDE extract.");
                     return null;
