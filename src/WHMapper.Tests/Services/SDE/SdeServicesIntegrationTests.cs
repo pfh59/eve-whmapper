@@ -80,7 +80,7 @@ public class SdeServicesIntegrationTests
     {
         Assert.NotNull(_services);
 
-        bool clearRessources = await _services.ClearSDERessources();
+        bool clearRessources = await _services.ClearSDEResources();
         Assert.True(clearRessources);
 
 
@@ -104,7 +104,7 @@ public class SdeServicesIntegrationTests
     {
         Assert.NotNull(_services);
 
-        bool clearRessources = await _services.ClearSDERessources();
+        bool clearRessources = await _services.ClearSDEResources();
         Assert.True(clearRessources);
 
         bool badImport = await _services.Import();

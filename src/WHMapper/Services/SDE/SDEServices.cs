@@ -91,7 +91,7 @@ namespace WHMapper.Services.SDE
             return string.Empty;
         }
 
-        public Task<bool> ClearSDERessources()
+        public Task<bool> ClearSDEResources()
         {
             try
             {

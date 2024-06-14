@@ -15,7 +15,7 @@ namespace WHMapper.Services.SDE
 		Task<bool> ExtractSDE();
 	 	Task<bool> Import();
 		Task<bool> ClearCache();
-		Task<bool> ClearSDERessources();
+		Task<bool> ClearSDEResources();
 		Task<IEnumerable<SDESolarSystem>?> GetSolarSystemList();
 		Task<IEnumerable<SolarSystemJump>?> GetSolarSystemJumpList();
 		Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value);

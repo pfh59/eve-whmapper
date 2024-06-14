@@ -7,6 +7,7 @@ namespace WHMapper.Tests.Services.SDE
 {
     public class SdeTests
     {
+        #region IsNewSDEAvailabile()
         [Theory, AutoDomainData]
         public void WhenDirectoryExists_ExtractSuccess_ReturnsTrue(
                 [Frozen] Mock<IDirectory> directory,
@@ -89,5 +90,6 @@ namespace WHMapper.Tests.Services.SDE
 
             Assert.False(result);
         }
+        #endregion
     }
 }
