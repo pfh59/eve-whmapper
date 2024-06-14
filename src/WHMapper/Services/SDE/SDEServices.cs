@@ -53,21 +53,23 @@ namespace WHMapper.Services.SDE
             }
         }
 
+        /// <summary>
+        /// Checks if the local SDE Package is different from the package that is made available by CCP. 
+        /// </summary>
         //TODO: This should be async and not Task<T> because it is IO bound.
         public Task<bool> IsNewSDEAvailable()
         {
             try
             {
-                var latestChecksum = _dataSupplier.GetChecksum();
-                if(string.IsNullOrEmpty(latestChecksum))
+                var checksumOfAvailableSDEPackage = _dataSupplier.GetChecksum();
+                if(string.IsNullOrEmpty(checksumOfAvailableSDEPackage))
                 {
                     _logger.LogWarning("Couldn't retrieve checksum");
                     return Task.FromResult(false);
                 }
 
                 var localChecksum = GetCurrentChecksum();
-
-                return Task.FromResult(localChecksum != latestChecksum);
+                return Task.FromResult(localChecksum != checksumOfAvailableSDEPackage);
             }
             catch (Exception ex)
             {
