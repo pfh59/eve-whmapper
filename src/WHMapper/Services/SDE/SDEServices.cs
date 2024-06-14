@@ -105,7 +105,7 @@ namespace WHMapper.Services.SDE
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "ClearSDERessources");
+                _logger.LogError(ex, "ClearSDEResources");
                 return Task.FromResult(false);
             }
         }
