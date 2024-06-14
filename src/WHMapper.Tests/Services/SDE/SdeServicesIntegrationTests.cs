@@ -62,18 +62,14 @@ public class SdeServicesIntegrationTests
             ILogger<SDEServices> logger = new NullLogger<SDEServices>();
             ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
             IFileSystem fileSystem = new FileSystem();
-            IDirectory directory = new DirectoryWrapper(fileSystem);
-            IFile file = new FileWrapper(fileSystem);
             ICacheService cacheService = new CacheService(loggerCache, _distriCache);
 
             HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
             ISDEDataSupplier sDEDataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
 
-            _services = new SDEServices(logger, cacheService, sDEDataSupplier, directory, file);
+            _services = new SDEServices(logger, cacheService, fileSystem, sDEDataSupplier);
         }
-
     }
-
 
     [Fact, Priority(2)]
     public async Task Download_And_Extrat_SDE()
@@ -96,8 +92,6 @@ public class SdeServicesIntegrationTests
         Assert.True(Directory.Exists(SDE_TARGET_DIRECTORY));
         Assert.True(_services.IsExtractionSuccesful());
     }
-
-
 
     [Fact, Priority(3)]
     public async Task Import_SDE_And_Get()

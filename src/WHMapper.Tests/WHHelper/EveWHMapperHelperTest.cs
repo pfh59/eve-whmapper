@@ -129,12 +129,10 @@ public class EveWHMapperHelperTest
             IEveMapperEntity apiServices = new EveMapperEntity(loggerEveMapperEntity, cacheService, new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!));
 
             IFileSystem fileSystem = new FileSystem();
-            IDirectory directory = new DirectoryWrapper(fileSystem);
-            IFile file = new FileWrapper(fileSystem);
             HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
             ISDEDataSupplier dataSupplier = new SdeDataSupplier(loggerSdeDataSupplier, httpClient);
 
-            ISDEServices sDEServices = new SDEServices(loggerSDE, cacheService, dataSupplier, directory, file);
+            ISDEServices sDEServices = new SDEServices(loggerSDE, cacheService, fileSystem, dataSupplier);
             IAnoikServices anoikServices = new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json"));
             IWHNoteRepository wHNoteRepository = new WHNoteRepository(loggerWHNoteRepository, _contextFactory);
 

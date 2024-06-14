@@ -71,11 +71,9 @@ public class EveWHMapperRoutePlannerHelperTest
             ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
             
             IFileSystem fileSystem = new FileSystem();
-            IDirectory directory = new DirectoryWrapper(fileSystem);
-            IFile file = new FileWrapper(fileSystem);
             HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
             ISDEDataSupplier dataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
-            ISDEServices sdeServices = new SDEServices(loggerSDE, cacheService, dataSupplier, directory, file);
+            ISDEServices sdeServices = new SDEServices(loggerSDE, cacheService, fileSystem, dataSupplier);
 
             _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
                 whRouteRepository,

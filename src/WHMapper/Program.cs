@@ -35,9 +35,7 @@ using WHMapper.Services.Cache;
 using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.IO.Abstractions;
-
 
 namespace WHMapper
 {
@@ -210,8 +208,6 @@ namespace WHMapper
 
             #region Filesystem
             builder.Services.AddTransient<IFileSystem, FileSystem>();
-            builder.Services.AddTransient<IDirectory, DirectoryWrapper>();
-            builder.Services.AddTransient<IFile, FileWrapper>(); 
             #endregion
 
             #region WH HELPER
