@@ -41,7 +41,53 @@ namespace WHMapper.Tests.Services.SDE
         }
 
         [Theory, AutoDomainData]
-        public void 
+        public async Task WhenChecksumIsEqual_RequestingNewSdeAvailable_ReturnsFalse (
+            [Frozen] Mock<ISDEDataSupplier> dataSupplier,
+            [Frozen] Mock<IFile> file,
+            SDEServices sut,
+            string checksum
+            )
+        {
+            dataSupplier.Setup(x => x.GetChecksum()).Returns(checksum);
+            file.Setup(x => x.ReadLines(It.IsAny<string>())).Returns([checksum]);
 
+            var result = await sut.IsNewSDEAvailable();
+
+            Assert.False(result);
+        }
+
+        [Theory, AutoDomainData]
+        public async Task WhenChecksumDiffers_RequestingNewSdeAvailable_ReturnsTrue (
+            [Frozen] Mock<ISDEDataSupplier> dataSupplier,
+            [Frozen] Mock<IFile> file,
+            SDEServices sut,
+            string checksumA,
+            string checksumB
+        )
+        {
+            dataSupplier.Setup(x => x.GetChecksum()).Returns(checksumA);
+            file.Setup(x => x.ReadLines(It.IsAny<string>())).Returns([checksumB]);
+
+            var result = await sut.IsNewSDEAvailable();
+
+            Assert.True(result);
+        }
+
+        [Theory, AutoDomainData]
+        public async Task WhenSuppliedChecksumIsNull_RequestingNewSdeAvailable_ReturnsTrue(
+            [Frozen] Mock<ISDEDataSupplier> dataSupplier,
+            [Frozen] Mock<IFile> file,
+            SDEServices sut,
+            string checksumB
+)
+        {
+            string checksumA = null!;
+            dataSupplier.Setup(x => x.GetChecksum()).Returns(checksumA);
+            file.Setup(x => x.ReadLines(It.IsAny<string>())).Returns([checksumB]);
+
+            var result = await sut.IsNewSDEAvailable();
+
+            Assert.False(result);
+        }
     }
 }

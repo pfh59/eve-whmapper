@@ -10,8 +10,6 @@ namespace WHMapper.Services.SDE
 {
     public class SDEServices : ISDEServices
     {
-        private const string SDE_URL_CHECKSUM = "https://eve-static-data-export.s3-eu-west-1.amazonaws.com/tranquility/checksum";
-        private const string SDE_CHECKSUM_FILE = @"./Resources/SDE/checksum";
         private const string SDE_CHECKSUM_CURRENT_FILE = @"./Resources/SDE/currentchecksum";
 
         private const string SDE_DIRECTORY = @"./Resources/SDE/";
@@ -30,8 +28,10 @@ namespace WHMapper.Services.SDE
         private static Mutex mut = new Mutex();
         private readonly ICacheService _cacheService;
         private readonly IDirectory _directory;
+        private readonly IFile _file;
+        private readonly ISDEDataSupplier _dataSupplier;
 
-        public SDEServices(ILogger<SDEServices> logger, ICacheService cacheService, IDirectory directory)
+        public SDEServices(ILogger<SDEServices> logger, ICacheService cacheService, ISDEDataSupplier dataSupplier, IDirectory directory, IFile file)
         {
             _logger = logger;
             _cacheService = cacheService;
@@ -40,7 +40,9 @@ namespace WHMapper.Services.SDE
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()
                 .Build();
+            _dataSupplier = dataSupplier;
             _directory = directory;
+            _file = file;
         }
 
         public bool ExtractSuccess
@@ -51,36 +53,21 @@ namespace WHMapper.Services.SDE
             }
         }
 
+        //TODO: This should be async and not Task<T> because it is IO bound.
         public Task<bool> IsNewSDEAvailable()
         {
             try
             {
-                if (!Directory.Exists(SDE_DIRECTORY))
-                    Directory.CreateDirectory(SDE_DIRECTORY);
-
-                using (var client = new HttpClient())
+                var latestChecksum = _dataSupplier.GetChecksum();
+                if(string.IsNullOrEmpty(latestChecksum))
                 {
-                    using (var s = client.GetStreamAsync(SDE_URL_CHECKSUM))
-                    {
-                        using (var fs = new FileStream(SDE_CHECKSUM_FILE, FileMode.OpenOrCreate))
-                        {
-                            s.Result.CopyTo(fs);
-                        }
-                    }
+                    _logger.LogWarning("Couldn't retrieve checksum");
+                    return Task.FromResult(false);
                 }
 
-                if (!File.Exists(SDE_CHECKSUM_CURRENT_FILE))
-                {
-                    File.Move(SDE_CHECKSUM_FILE, SDE_CHECKSUM_CURRENT_FILE);
-                    return Task.FromResult(true);
-                }
-                else
-                {
-                    bool isSame = !File.ReadLines(SDE_CHECKSUM_CURRENT_FILE).SequenceEqual(File.ReadLines(SDE_CHECKSUM_FILE));
-                    File.Delete(SDE_CHECKSUM_CURRENT_FILE);
-                    File.Move(SDE_CHECKSUM_FILE, SDE_CHECKSUM_CURRENT_FILE);
-                    return Task.FromResult(isSame);
-                }
+                var localChecksum = GetCurrentChecksum();
+
+                return Task.FromResult(localChecksum != latestChecksum);
             }
             catch (Exception ex)
             {
@@ -89,14 +76,27 @@ namespace WHMapper.Services.SDE
             }
         }
 
+        //TODO: Find out how the SDE checksum calculation works, but for now we just save the file when downloaded.
+        private string GetCurrentChecksum()
+        {
+            try {
+                var fileContent = _file.ReadLines(SDE_CHECKSUM_CURRENT_FILE);
+                return string.Join(";", fileContent);
+            } catch (Exception ex) {
+                _logger.LogWarning(ex.ToString());
+            }
+
+            return string.Empty;
+        }
+
         public Task<bool> ClearSDERessources()
         {
             try
             {
-                if (Directory.Exists(SDE_DIRECTORY))
+                if (_directory.Exists(SDE_DIRECTORY))
                 {
                     _logger.LogInformation("Delete old Eve SDE files");
-                    Directory.Delete(SDE_DIRECTORY, true);
+                    _directory.Delete(SDE_DIRECTORY, true);
                 }
 
                 return Task.FromResult(true);
@@ -112,8 +112,8 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (!Directory.Exists(SDE_DIRECTORY))
-                    Directory.CreateDirectory(SDE_DIRECTORY);
+                if (!_directory.Exists(SDE_DIRECTORY))
+                    _directory.CreateDirectory(SDE_DIRECTORY);
 
                 _logger.LogInformation("Start to download Eve SDE files");
                 using (HttpClient client = new HttpClient())
@@ -145,10 +145,10 @@ namespace WHMapper.Services.SDE
                 try
                 {
                     _logger.LogInformation("Start to extrat Eve SDE files");
-                    if (Directory.Exists(SDE_TARGET_DIRECTORY))
+                    if (_directory.Exists(SDE_TARGET_DIRECTORY))
                     {
                         _logger.LogInformation("Delete old Eve SDE files");
-                        Directory.Delete(SDE_TARGET_DIRECTORY, true);
+                        _directory.Delete(SDE_TARGET_DIRECTORY, true);
                     }
 
                     if (!File.Exists(SDE_ZIP_PATH))
@@ -206,7 +206,7 @@ namespace WHMapper.Services.SDE
                 BlockingCollection<SolarSystemJump> tmp = new BlockingCollection<SolarSystemJump>();
                 BlockingCollection<SDESolarSystem> SDESystems = new BlockingCollection<SDESolarSystem>();
 
-                var sdeFiles = Directory.GetFiles(SDE_TARGET_DIRECTORY, SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE, _directorySearchOptions);
+                var sdeFiles = _directory.GetFiles(SDE_TARGET_DIRECTORY, SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE, _directorySearchOptions);
                 if (sdeFiles.Count() > 0)
                 {
                     Parallel.ForEach(sdeFiles, _options, async (directoryPath, token) =>

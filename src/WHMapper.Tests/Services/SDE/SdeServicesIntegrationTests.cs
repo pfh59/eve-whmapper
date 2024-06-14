@@ -28,7 +28,7 @@ public class SdeServicesIntegrationTests
 
     private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
     //private const string SDE_ZIP_MOVE_PATH = @"./Resources/SDE/sde2.zip";
-    private const string SDE_TARGET_DIRECTORY= @"./Resources/SDE/universe";
+    private const string SDE_TARGET_DIRECTORY = @"./Resources/SDE/universe";
 
     private const string SDE_CHECKSUM_FILE = @"./Resources/SDE/checksum";
     private const string SDE_CHECKSUM_CURRENT_FILE = @"./Resources/SDE/currentchecksum";
@@ -39,7 +39,7 @@ public class SdeServicesIntegrationTests
     {
 
         var services = new ServiceCollection();
-        
+
 
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
@@ -54,50 +54,26 @@ public class SdeServicesIntegrationTests
         });
 
         var provider = services.BuildServiceProvider();
-        
+
         IDistributedCache? _distriCache = provider.GetService<IDistributedCache>();
-        
-        if(_distriCache != null)
+
+        if (_distriCache != null)
         {
             ILogger<SDEServices> logger = new NullLogger<SDEServices>();
             ILogger<CacheService> loggerCache = new NullLogger<CacheService>();
-            IDirectory directory = new DirectoryWrapper(new FileSystem());
+            IFileSystem fileSystem = new FileSystem();
+            IDirectory directory = new DirectoryWrapper(fileSystem);
+            IFile file = new FileWrapper(fileSystem);
             ICacheService cacheService = new CacheService(loggerCache, _distriCache);
 
-            _services = new SDEServices(logger, cacheService, directory);
+            HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
+            ISDEDataSupplier sDEDataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
+
+            _services = new SDEServices(logger, cacheService, sDEDataSupplier, directory, file);
         }
 
     }
 
-
-    [Fact, Priority(1)]
-    public async Task Is_New_SDE_Available()
-    {
-        Assert.NotNull(_services);
-
-        if (Directory.Exists(SDE_TARGET_DIRECTORY))
-            Directory.Delete(SDE_TARGET_DIRECTORY,true);
-
-        if(File.Exists(SDE_CHECKSUM_CURRENT_FILE))
-            File.Delete(SDE_CHECKSUM_CURRENT_FILE);
-
-        if(File.Exists(SDE_CHECKSUM_FILE))
-            File.Delete(SDE_CHECKSUM_FILE);
-
-        //from scratch
-        Assert.False(_services.ExtractSuccess);
-
-        bool newSDEavailable = await _services.IsNewSDEAvailable();
-        Assert.True(newSDEavailable);
-
-        bool noSDEavailable = await _services.IsNewSDEAvailable();
-        Assert.False(noSDEavailable);
-
-        //currentcheck not equal to download checksum
-        File.WriteAllText(SDE_CHECKSUM_CURRENT_FILE,"azerty");
-        bool otherSDEavailable = await _services.IsNewSDEAvailable();
-        Assert.True(otherSDEavailable);
-    }
 
     [Fact, Priority(2)]
     public async Task Download_And_Extrat_SDE()
@@ -135,7 +111,7 @@ public class SdeServicesIntegrationTests
         Assert.False(badImport);
 
         await Download_And_Extrat_SDE();
-        
+
         bool cacheClear = await _services.ClearCache();
         Assert.True(cacheClear);
 
@@ -154,12 +130,12 @@ public class SdeServicesIntegrationTests
         solarsystems = await _services.GetSolarSystemList();
         Assert.NotNull(solarsystems);
         Assert.NotEmpty(solarsystems);
-        Assert.Equal(8036,solarsystems.Count()); //k-space+WH
+        Assert.Equal(8036, solarsystems.Count()); //k-space+WH
 
         solarsystemjumps = await _services.GetSolarSystemJumpList();
         Assert.NotNull(solarsystemjumps);
         Assert.NotEmpty(solarsystemjumps);
-        Assert.Equal(8036,solarsystemjumps.Count()); //k-space+WH
+        Assert.Equal(8036, solarsystemjumps.Count()); //k-space+WH
     }
 
 
@@ -217,12 +193,12 @@ public class SdeServicesIntegrationTests
         //TEST JITA
         var jita_result = await _services.SearchSystemById(SOLAR_SYSTEM_JITA_ID);
         Assert.NotNull(jita_result);
-        Assert.Equal(SOLAR_SYSTEM_JITA_ID,jita_result.SolarSystemID);
+        Assert.Equal(SOLAR_SYSTEM_JITA_ID, jita_result.SolarSystemID);
 
         //TEST HW
         var wh_result = await _services.SearchSystemById(31001123);
         Assert.NotNull(wh_result);
-        Assert.Equal(31001123,wh_result.SolarSystemID);
+        Assert.Equal(31001123, wh_result.SolarSystemID);
 
     }
 }

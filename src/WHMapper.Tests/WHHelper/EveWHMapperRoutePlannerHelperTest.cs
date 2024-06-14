@@ -66,9 +66,21 @@ public class EveWHMapperRoutePlannerHelperTest
             ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
             ILogger<WHRouteRepository> loggerWHRouteRepository = new NullLogger<WHRouteRepository>();
 
+            IWHRouteRepository whRouteRepository = new WHRouteRepository(loggerWHRouteRepository, _contextFactory);
+
+            ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
+            
+            IFileSystem fileSystem = new FileSystem();
+            IDirectory directory = new DirectoryWrapper(fileSystem);
+            IFile file = new FileWrapper(fileSystem);
+            HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
+            ISDEDataSupplier dataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
+            ISDEServices sdeServices = new SDEServices(loggerSDE, cacheService, dataSupplier, directory, file);
+
             _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
-                new WHRouteRepository(loggerWHRouteRepository, _contextFactory),
-                null!,new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache), new DirectoryWrapper(new FileSystem())));       
+                whRouteRepository,
+                null!,
+                sdeServices);       
         }
     }
 

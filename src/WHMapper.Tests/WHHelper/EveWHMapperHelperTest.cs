@@ -120,13 +120,21 @@ public class EveWHMapperHelperTest
         ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
         ILogger<WHNoteRepository> loggerWHNoteRepository = new NullLogger<WHNoteRepository>();
         ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
-        ILogger<EveMapperEntity> loggerEveMapperEntity= new NullLogger<EveMapperEntity>();
+        ILogger<EveMapperEntity> loggerEveMapperEntity = new NullLogger<EveMapperEntity>();
+        ILogger<SdeDataSupplier> loggerSdeDataSupplier = new NullLogger<SdeDataSupplier>();
 
-        if(httpclientfactory != null && _contextFactory != null && _distriCache != null)
+        if (httpclientfactory != null && _contextFactory != null && _distriCache != null)
         {
             ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
             IEveMapperEntity apiServices = new EveMapperEntity(loggerEveMapperEntity, cacheService, new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!));
-            ISDEServices sDEServices = new SDEServices(loggerSDE, new CacheService(loggerCacheService, _distriCache), new DirectoryWrapper(new FileSystem()));
+
+            IFileSystem fileSystem = new FileSystem();
+            IDirectory directory = new DirectoryWrapper(fileSystem);
+            IFile file = new FileWrapper(fileSystem);
+            HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
+            ISDEDataSupplier dataSupplier = new SdeDataSupplier(loggerSdeDataSupplier, httpClient);
+
+            ISDEServices sDEServices = new SDEServices(loggerSDE, cacheService, dataSupplier, directory, file);
             IAnoikServices anoikServices = new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json"));
             IWHNoteRepository wHNoteRepository = new WHNoteRepository(loggerWHNoteRepository, _contextFactory);
 
