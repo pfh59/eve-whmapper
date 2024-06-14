@@ -15,13 +15,19 @@
         {
             try
             {
-                var checksum = _httpClient.GetStringAsync("/checksum");
+                var checksum = _httpClient.GetStringAsync("checksum").Result;
                 _logger.LogInformation($"Retrieved checksum: {checksum}");
+                return checksum;
             } catch(Exception ex)
             {
                 _logger.LogWarning($"Couldn't retrieve checksum: {ex}");
             }
             return string.Empty;
+        }
+
+        public Task<Stream> GetSDEDataStreamAsync()
+        {
+            return _httpClient.GetStreamAsync("sde.zip");
         }
     }
 }
