@@ -20,7 +20,7 @@ namespace WHMapper.Models.Custom.Node
 
         private readonly WHSystem _wh;
         
-        private WHSystemStatusEnum _systemStatus;
+        private WHSystemStatus _systemStatus;
 
         public int IdWH
         {
@@ -93,7 +93,7 @@ namespace WHMapper.Models.Custom.Node
 
         }
 
-        public WHSystemStatusEnum SystemStatus
+        public WHSystemStatus SystemStatus
         {
             get
             {
@@ -112,7 +112,7 @@ namespace WHMapper.Models.Custom.Node
         public string RegionName { get; private set; }
         public string ConstellationName { get; private set;}
 
-        public EveSystemType SystemType { get; private set; } = EveSystemType.None;
+        public EveSystemType SystemType { get; private set; } 
         public WHEffect Effect { get; private set; } = WHEffect.None;
         public IList<EveSystemEffect>? EffectDetails { get; private set; } = null!;
         public IList<WHStatic>? Statics { get; private set; } = null!;
@@ -127,7 +127,7 @@ namespace WHMapper.Models.Custom.Node
             if(note != null)
                 _systemStatus = note.SystemStatus;
             else
-                _systemStatus=WHSystemStatusEnum.Unknown;
+                _systemStatus=WHSystemStatus.Unknown;
             
             RegionName = regionName;
             ConstellationName = constellationName;
@@ -151,7 +151,7 @@ namespace WHMapper.Models.Custom.Node
             if(note != null)
                 _systemStatus = note.SystemStatus;
             else
-                _systemStatus=WHSystemStatusEnum.Unknown;
+                _systemStatus=WHSystemStatus.Unknown;
 
 
             RegionName = regionName;

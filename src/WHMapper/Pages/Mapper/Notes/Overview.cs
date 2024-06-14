@@ -1,21 +1,17 @@
-using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.Intrinsics.X86;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Repositories.WHNotes;
-using WHMapper.Services.WHColor;
 
 
 namespace WHMapper.Pages.Mapper.Notes
 {
     [Authorize(Policy = "Access")]
-    public partial class Overview : ComponentBase
+    public partial class Overview : ComponentBase,IDisposable
     {
         private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_SUCCESS = "Solar system comment autosave successfull";
         private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_ERROR = "Solar system comment autosave error";
@@ -27,10 +23,10 @@ namespace WHMapper.Pages.Mapper.Notes
 
         private WHNote? _note = null!;
         private string _solarSystemComment = string.Empty;
-        private WHSystemStatusEnum _systemStatus = WHSystemStatusEnum.Unknown;
+        private WHSystemStatus _systemStatus = WHSystemStatus.Unknown;
 
-        private PeriodicTimer _timer = null!;
-        private CancellationTokenSource _cts = null!;
+        private PeriodicTimer? _timer;
+        private CancellationTokenSource? _cts;
 
         private string _previousValue = string.Empty;
 
@@ -67,12 +63,11 @@ namespace WHMapper.Pages.Mapper.Notes
             }
         }
 
-        private Task OnNoteChanged()
+        protected Task OnNoteChanged()
         {
             if (_timer == null)
             {
                 _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
-                _cts = new CancellationTokenSource();
                 Task.Run(() => HandleTimerAsync());
             }
             return Task.CompletedTask;
@@ -87,9 +82,10 @@ namespace WHMapper.Pages.Mapper.Notes
 
                 try
                 {
+                    _cts = new CancellationTokenSource();
                     while (await _timer.WaitForNextTickAsync(_cts.Token))
                     {
-                        if(string.IsNullOrEmpty(_solarSystemComment) && _systemStatus.Equals(WHSystemStatusEnum.Unknown))
+                        if(string.IsNullOrEmpty(_solarSystemComment) && _systemStatus.Equals(WHSystemStatus.Unknown))
                         {
                             if(_note!=null)
                             {
@@ -113,7 +109,7 @@ namespace WHMapper.Pages.Mapper.Notes
                                 }
                             }
 
-                            _cts.Cancel();
+                            await _cts.CancelAsync();
                         }
                         else
                         {
@@ -170,7 +166,7 @@ namespace WHMapper.Pages.Mapper.Notes
                                     }
                                 }
 
-                                _cts.Cancel();
+                                await _cts.CancelAsync();
                             }
                             else
                             {
@@ -179,8 +175,9 @@ namespace WHMapper.Pages.Mapper.Notes
                         }
                     }
                 }
-                catch(OperationCanceledException)
+                catch(OperationCanceledException oce)
                 {
+                    Logger.LogInformation(oce,"Operation canceled");
                 }
                 catch (Exception ex)
                 {
@@ -188,11 +185,22 @@ namespace WHMapper.Pages.Mapper.Notes
                 }
                 finally
                 {
-                    _timer = null!;
-                    _cts = null!;
+                    Dispose(true);
                     _previousValue = string.Empty;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            this._timer?.Dispose();
+            this._cts?.Dispose();
         }
     }
 }

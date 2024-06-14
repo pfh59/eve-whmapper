@@ -17,7 +17,7 @@ namespace WHMapper.Repositories.WHNotes
         protected override async Task<WHNote?> ACreate(WHNote item)
         {
 
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -28,7 +28,7 @@ namespace WHMapper.Repositories.WHNotes
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WhNote, Solar System Id  : {0}", item.SoloarSystemId));
+                    _logger.LogError(ex, "Impossible to create WhNote, Solar System Id  : {SoloarSystemId}", item.SoloarSystemId);
                     return null;
                 }
             }
@@ -36,7 +36,7 @@ namespace WHMapper.Repositories.WHNotes
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 int deleteRow = await context.DbWHNotes.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
@@ -48,7 +48,7 @@ namespace WHMapper.Repositories.WHNotes
 
         protected override async Task<IEnumerable<WHNote>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHNotes.ToListAsync();
             }
@@ -56,7 +56,7 @@ namespace WHMapper.Repositories.WHNotes
 
         protected override async Task<WHNote?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHNotes.SingleOrDefaultAsync(x => x.Id == id);
             }
@@ -77,7 +77,7 @@ namespace WHMapper.Repositories.WHNotes
                 return null;
             }
 
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -87,7 +87,7 @@ namespace WHMapper.Repositories.WHNotes
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to udpate WHNote, Solar System Id : {0}", item.SoloarSystemId));
+                    _logger.LogError(ex, "Impossible to udpate WHNote, Solar System Id : {SoloarSystemId}", item.SoloarSystemId);
                     return null;
                 }
             }
@@ -95,7 +95,7 @@ namespace WHMapper.Repositories.WHNotes
 
         public async Task<WHNote?> GetBySolarSystemId(int solardSystemId)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHNotes.SingleOrDefaultAsync(x => x.SoloarSystemId == solardSystemId);
             }

@@ -50,7 +50,6 @@ namespace WHMapper.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            string res = string.Empty;
             string userName = CurrentUser();
              _connections.Remove(userName, Context.ConnectionId);
             
@@ -78,7 +77,6 @@ namespace WHMapper.Hubs
             }
 
             await Clients.AllExcept(Context.ConnectionId).NotifyUserPosition(userName, systemName);
-            //await Clients.Caller.NotifyUsersPosition(_connectedUserPosition);
         }
 
         public async Task SendWormholeAdded(int mapId, int wowrmholeId)
@@ -165,7 +163,7 @@ namespace WHMapper.Hubs
             }
         }
 
-        public async Task SendWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatusEnum systemStatus)
+        public async Task SendWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatus systemStatus)
         {
             string userName = CurrentUser();
             if (!string.IsNullOrEmpty(userName))

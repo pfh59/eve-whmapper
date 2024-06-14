@@ -111,13 +111,13 @@ namespace WHMapper.Models.DTO.EveAPI.Assets
         public long ItemId { get; set; }
 
         [JsonPropertyName("location_flag")]
-        public string LocationFlag { get; set; }
+        public string? LocationFlag { get; set; }
 
         [JsonPropertyName("location_id")]
         public long LocationId { get; set; }
 
         [JsonPropertyName("location_type")]
-        public string LocationType { get; set; }
+        public string? LocationType { get; set; }
 
         [JsonPropertyName("quantity")]
         public int Quantity { get; set; }

@@ -14,7 +14,7 @@ namespace WHMapper
 
         public async Task<IEnumerable<WHRoute>> GetRoutesByEveEntityId(int eveEntityId)
         {
-            using(var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHRoutes.Where(x => x.EveEntityId == eveEntityId).ToListAsync();
             }
@@ -22,7 +22,7 @@ namespace WHMapper
 
         public async Task<IEnumerable<WHRoute>> GetRoutesForAll()
         {
-            using(var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHRoutes.Where(x => x.EveEntityId==null).ToListAsync();
             }
@@ -30,7 +30,7 @@ namespace WHMapper
 
         protected override async Task<WHRoute?> ACreate(WHRoute item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -41,7 +41,7 @@ namespace WHMapper
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WHRoute : {0}", item.SolarSystemId));
+                    _logger.LogError(ex, "Impossible to create WHRoute : {SolarSystemId}", item.SolarSystemId);
                     return null;
                 }
             }
@@ -49,7 +49,7 @@ namespace WHMapper
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 int rowDeleted = await context.DbWHRoutes.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (rowDeleted > 0)
@@ -61,7 +61,7 @@ namespace WHMapper
 
         protected override async Task<IEnumerable<WHRoute>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 if (context.DbWHRoutes.Count() == 0)
                     return await context.DbWHRoutes.ToListAsync();
@@ -73,7 +73,7 @@ namespace WHMapper
 
         protected override async Task<WHRoute?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHRoutes.SingleOrDefaultAsync(x => x.Id == id);
             }
@@ -93,7 +93,7 @@ namespace WHMapper
                 return null;
             }
 
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -104,7 +104,7 @@ namespace WHMapper
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to update WHRoute : {0}", item.SolarSystemId));
+                    _logger.LogError(ex, "Impossible to update WHRoute : {SolarSystemId}", item.SolarSystemId);
                     return null;
                 }
             }

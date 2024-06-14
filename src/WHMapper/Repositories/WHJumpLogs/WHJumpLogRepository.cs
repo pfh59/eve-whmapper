@@ -15,7 +15,7 @@ namespace WHMapper.Repositories.WHJumpLogs
 
         protected override async Task<WHJumpLog?> ACreate(WHJumpLog item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -26,7 +26,7 @@ namespace WHMapper.Repositories.WHJumpLogs
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WHJumpLog : {0}", item.Id));
+                    _logger.LogError(ex, "Impossible to create WHJumpLog : {Id}", item.Id);
                     return null;
                 }
             }
@@ -34,7 +34,7 @@ namespace WHMapper.Repositories.WHJumpLogs
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 var deleteRow = await context.DbWHJumpLogs.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
@@ -46,7 +46,7 @@ namespace WHMapper.Repositories.WHJumpLogs
 
         protected override async Task<IEnumerable<WHJumpLog>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHJumpLogs.ToListAsync();
             }
@@ -54,7 +54,7 @@ namespace WHMapper.Repositories.WHJumpLogs
 
         protected override async Task<WHJumpLog?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHJumpLogs.FirstOrDefaultAsync(x => x.Id == id);
             }
@@ -75,7 +75,7 @@ namespace WHMapper.Repositories.WHJumpLogs
                 return null;
             }
 
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -85,7 +85,7 @@ namespace WHMapper.Repositories.WHJumpLogs
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to update WHJumpLog : {0}", item.Id));
+                    _logger.LogError(ex,"Impossible to update WHJumpLog : {Id}", item.Id);
                     return null;
                 }
             }

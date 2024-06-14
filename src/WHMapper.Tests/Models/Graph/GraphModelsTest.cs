@@ -53,7 +53,7 @@ namespace WHMapper.Tests.Models.Graph
         [Fact]
         public async Task Eve_System_Node_Model()
         {
-            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, SOLAR_SYSTEM_JITA_SECURITY), new WHNote(SOLAR_SYSTEM_JITA_ID,WHSystemStatusEnum.Friendly,SOLAR_SYSTEM_JITA_NAME), REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
+            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, SOLAR_SYSTEM_JITA_SECURITY), new WHNote(SOLAR_SYSTEM_JITA_ID,WHSystemStatus.Friendly,SOLAR_SYSTEM_JITA_NAME), REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
             Assert.NotNull(node);
             Assert.Equal(0, node.IdWH);
             Assert.Equal(DEFAULT_MAP_ID, node.IdWHMap);
@@ -63,7 +63,7 @@ namespace WHMapper.Tests.Models.Graph
             Assert.Equal("B", node.NameExtension);
             Assert.Empty(node.ConnectedUsers);
             Assert.False(node.Locked);
-            Assert.Equal(WHSystemStatusEnum.Friendly,node.SystemStatus);
+            Assert.Equal(WHSystemStatus.Friendly,node.SystemStatus);
 
             await node.AddConnectedUser(USERNAME1);
             await node.AddConnectedUser(USERNAME2);
@@ -87,8 +87,8 @@ namespace WHMapper.Tests.Models.Graph
                 node.DecrementNameExtension();
             Assert.Null(node.NameExtension);
 
-            node.SystemStatus=WHSystemStatusEnum.Hostile;
-            Assert.Equal(WHSystemStatusEnum.Hostile,node.SystemStatus);
+            node.SystemStatus=WHSystemStatus.Hostile;
+            Assert.Equal(WHSystemStatus.Hostile,node.SystemStatus);
 
             node.Locked=true;
             Assert.True(node.Locked);
@@ -108,7 +108,7 @@ namespace WHMapper.Tests.Models.Graph
         public void Eve_System_Link_Model()
         {
             var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_JITA_SECURITY), null, REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
-                Assert.Equal(WHSystemStatusEnum.Unknown,node.SystemStatus);
+                Assert.Equal(WHSystemStatus.Unknown,node.SystemStatus);
             var node2 = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0F), null, REGION_WH_NAME, CONSTELLATION_WH_NAME,SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT,null, new List<WHStatic>() { new WHStatic(SOLAR_SYSTEM_WH_STATICS,EveSystemType.C3) }) ;
    
 
