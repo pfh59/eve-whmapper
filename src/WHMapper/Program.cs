@@ -187,7 +187,12 @@ namespace WHMapper
             });
 
             builder.Services.AddScoped<IAnoikServices, AnoikServices>();
-            builder.Services.AddScoped<ISDEServices, SDEServices>();            
+            builder.Services.AddScoped<ISDEServices, SDEServices>();
+            builder.Services.AddScoped<ISDEDataSupplier, SdeDataSupplier>();
+            builder.Services.AddHttpClient<ISDEDataSupplier, SdeDataSupplier>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["SdeDataSupplier:BaseUrl"]);
+            }); 
 
             #region DB Acess Repo
             builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
@@ -206,6 +211,7 @@ namespace WHMapper
             #region Filesystem
             builder.Services.AddTransient<IFileSystem, FileSystem>();
             builder.Services.AddTransient<IDirectory, DirectoryWrapper>();
+            builder.Services.AddTransient<IFile, FileWrapper>(); 
             #endregion
 
             #region WH HELPER
