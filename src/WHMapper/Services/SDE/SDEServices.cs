@@ -5,12 +5,13 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using WHMapper.Services.Cache;
 using System.IO.Abstractions;
+using Testably.Abstractions;
 
 namespace WHMapper.Services.SDE
 {
     public class SDEServices : ISDEServices
     {
-        private const string SDE_CHECKSUM_CURRENT_FILE = @"./Resources/SDE/currentchecksum";
+        private const string SDE_CHECKSUM_FILE = @"./Resources/SDE/checksum";
 
         private const string SDE_DIRECTORY = @"./Resources/SDE/";
         private const string SDE_ZIP_PATH = @"./Resources/SDE/sde.zip";
@@ -22,11 +23,10 @@ namespace WHMapper.Services.SDE
 
         private readonly ILogger _logger;
         private readonly ParallelOptions _options;
-        private readonly IDeserializer _deserializer;
         private readonly EnumerationOptions _directorySearchOptions = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = true };
         private static Mutex mut = new Mutex();
         private readonly ICacheService _cacheService;
-        private readonly IFileSystem _IFileSystem;
+        private readonly IFileSystem _fileSystem;
         private readonly ISDEDataSupplier _dataSupplier;
 
         public SDEServices(ILogger<SDEServices> logger, ICacheService cacheService, IFileSystem fileSystem, ISDEDataSupplier dataSupplier)
@@ -34,17 +34,13 @@ namespace WHMapper.Services.SDE
             _logger = logger;
             _cacheService = cacheService;
             _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
-            _deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .IgnoreUnmatchedProperties()
-                .Build();
             _dataSupplier = dataSupplier;
-            _IFileSystem = fileSystem;
+            _fileSystem = fileSystem;
         }
 
         public bool IsExtractionSuccesful()
         {
-            return _IFileSystem.Directory.Exists(SDE_TARGET_DIRECTORY);
+            return _fileSystem.Directory.Exists(SDE_TARGET_DIRECTORY);
         }
 
         /// <summary>
@@ -77,7 +73,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                var fileContent = _IFileSystem.File.ReadLines(SDE_CHECKSUM_CURRENT_FILE);
+                var fileContent = _fileSystem.File.ReadLines(SDE_CHECKSUM_FILE);
                 return string.Join(";", fileContent);
             }
             catch (Exception ex)
@@ -92,10 +88,10 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (_IFileSystem.Directory.Exists(SDE_DIRECTORY))
+                if (_fileSystem.Directory.Exists(SDE_DIRECTORY))
                 {
                     _logger.LogInformation($"Deleting Eve SDE resources at {SDE_DIRECTORY}");
-                    _IFileSystem.Directory.Delete(SDE_DIRECTORY, true);
+                    _fileSystem.Directory.Delete(SDE_DIRECTORY, true);
                 }
 
                 return Task.FromResult(true);
@@ -111,20 +107,21 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (!_IFileSystem.Directory.Exists(SDE_DIRECTORY))
-                    _IFileSystem.Directory.CreateDirectory(SDE_DIRECTORY);
+                if (!_fileSystem.Directory.Exists(SDE_DIRECTORY))
+                    _fileSystem.Directory.CreateDirectory(SDE_DIRECTORY);
 
                 _logger.LogInformation("Start to download Eve SDE files");
 
                 using (Stream sdeData = await _dataSupplier.GetSDEDataStreamAsync())
                 {
-                    using (var fs = _IFileSystem.FileStream.New(SDE_ZIP_PATH, FileMode.OpenOrCreate))
+                    using (Stream fs = _fileSystem.FileStream.New(SDE_ZIP_PATH, FileMode.OpenOrCreate))
                     {
                         sdeData.CopyTo(fs);
                     }
                 }
+
                 var checksum = _dataSupplier.GetChecksum();
-                _IFileSystem.File.WriteAllLines(@"./Resources/SDE/checksum", [checksum]);
+                _fileSystem.File.WriteAllLines(SDE_CHECKSUM_FILE, [checksum]);
 
                 _logger.LogInformation("Eve SDE files downloaded");
                 return true;
@@ -142,23 +139,25 @@ namespace WHMapper.Services.SDE
             {
                 try
                 {
-                    _logger.LogInformation("Start to extrat Eve SDE files");
-                    if (_IFileSystem.Directory.Exists(SDE_TARGET_DIRECTORY))
-                    {
-                        _logger.LogInformation("Delete old Eve SDE files");
-                        _IFileSystem.Directory.Delete(SDE_TARGET_DIRECTORY, true);
-                    }
+                    _logger.LogInformation("Start to extract Eve SDE files");
 
-                    if (!File.Exists(SDE_ZIP_PATH))
+                    //Check if ZIP exists
+                    if (!_fileSystem.File.Exists(SDE_ZIP_PATH))
                     {
                         _logger.LogError("Impossible to extract SDE, no zip file");
                         return Task.FromResult(false);
                     }
 
-                    using (ZipArchive archive = ZipFile.OpenRead(SDE_ZIP_PATH))
+                    //Get a stream that reads the ZIP from the filesystem
+                    using (var archiveStream = _fileSystem.FileStream.New(SDE_ZIP_PATH, FileMode.Open))
                     {
-                        archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
+                        //Extract the stream to the SDE target directory 
+                        using (var archive = _fileSystem.ZipArchive().New(archiveStream))
+                        {
+                            archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
+                        }
                     }
+
                     _logger.LogInformation("Eve SDE files extracted");
 
                     return Task.FromResult(true);
@@ -204,7 +203,7 @@ namespace WHMapper.Services.SDE
                 BlockingCollection<SolarSystemJump> tmp = new BlockingCollection<SolarSystemJump>();
                 BlockingCollection<SDESolarSystem> SDESystems = new BlockingCollection<SDESolarSystem>();
 
-                var sdeFiles = _IFileSystem.Directory.GetFiles(SDE_TARGET_DIRECTORY, SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE, _directorySearchOptions);
+                var sdeFiles = _fileSystem.Directory.GetFiles(SDE_TARGET_DIRECTORY, SDE_DEFAULT_SOLARSYSTEM_STATIC_FILEMANE, _directorySearchOptions);
                 if (sdeFiles.Count() > 0)
                 {
                     Parallel.ForEach(sdeFiles, _options, async (directoryPath, token) =>
