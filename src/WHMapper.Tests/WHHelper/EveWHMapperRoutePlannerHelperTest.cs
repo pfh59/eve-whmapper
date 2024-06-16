@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.IO.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -61,13 +62,23 @@ public class EveWHMapperRoutePlannerHelperTest
 
             ILogger<EveMapperRoutePlannerHelper> logger = new NullLogger<EveMapperRoutePlannerHelper>();
             ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
-            ILogger<SDEServices> loggerSDE = new NullLogger<SDEServices>();
+            ILogger<SDEService> loggerSDE = new NullLogger<SDEService>();
             ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
             ILogger<WHRouteRepository> loggerWHRouteRepository = new NullLogger<WHRouteRepository>();
 
+            IWHRouteRepository whRouteRepository = new WHRouteRepository(loggerWHRouteRepository, _contextFactory);
+
+            ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
+            
+            IFileSystem fileSystem = new FileSystem();
+            HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
+            ISDEDataSupplier dataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
+            ISDEService sdeServices = new SDEService(loggerSDE, cacheService);
+
             _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
-                new WHRouteRepository(loggerWHRouteRepository, _contextFactory),
-                null!,new SDEServices(loggerSDE,new CacheService(loggerCacheService, _distriCache)));       
+                whRouteRepository,
+                null!,
+                sdeServices);       
         }
     }
 

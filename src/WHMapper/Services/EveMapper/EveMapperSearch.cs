@@ -22,10 +22,10 @@ public class EveMapperSearch : IEveMapperSearch
         private const string MSG_UNKNOW_VALUE= "Unknow value";
 
         private readonly ILogger _logger;
-        private readonly ISDEServices _sdeServices;
+        private readonly ISDEService _sdeServices;
         private readonly IEveAPIServices _eveAPIServices;
 
-        public EveMapperSearch(ILogger<EveMapperSearch> logger,ISDEServices sdeServices,IEveAPIServices eveAPIServices)
+        public EveMapperSearch(ILogger<EveMapperSearch> logger,ISDEService sdeServices,IEveAPIServices eveAPIServices)
         {
             _logger=logger;
             _sdeServices=sdeServices;

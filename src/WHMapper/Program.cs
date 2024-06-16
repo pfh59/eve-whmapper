@@ -35,8 +35,7 @@ using WHMapper.Services.Cache;
 using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-
+using System.IO.Abstractions;
 
 namespace WHMapper
 {
@@ -186,7 +185,13 @@ namespace WHMapper
             });
 
             builder.Services.AddScoped<IAnoikServices, AnoikServices>();
-            builder.Services.AddScoped<ISDEServices, SDEServices>();            
+            builder.Services.AddScoped<ISDEService, SDEService>();
+            builder.Services.AddScoped<ISDEServiceManager, SDEServiceManager>();
+            builder.Services.AddScoped<ISDEDataSupplier, SdeDataSupplier>();
+            builder.Services.AddHttpClient<ISDEDataSupplier, SdeDataSupplier>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["SdeDataSupplier:BaseUrl"]);
+            }); 
 
             #region DB Acess Repo
             builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
@@ -200,7 +205,10 @@ namespace WHMapper
             builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
 
             builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
+            #endregion
 
+            #region Filesystem
+            builder.Services.AddTransient<IFileSystem, FileSystem>();
             #endregion
 
             #region WH HELPER

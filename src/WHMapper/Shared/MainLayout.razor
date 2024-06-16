@@ -14,7 +14,7 @@
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Align="Align.Center">EVE Wormhole mapper, require SDE package.</MudText>
+                    <MudText Align="Align.Center">EVE Wormhole mapper is downloading a new SDE package.</MudText>
                     <MudText class="py-1" Typo="Typo.body2">@String.Format("{0}, please wait ...",_init_process_msg)
                         <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Small" />
                     </MudText>
@@ -54,7 +54,7 @@
     private IPasteServices PasteServices {get;set;} =null!;
 
     [Inject]
-    private Services.SDE.ISDEServices SDEServices {get;set;} =null!;
+    private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
     protected override Task OnInitializedAsync()
     {
         _currentTheme = new MudTheme()
@@ -82,7 +82,7 @@
             }
         };
 
-        if(SDEServices.ExtractSuccess)
+        if(SDEServices.IsExtractionSuccesful())
         {
             _loading = false;
         }  
@@ -120,22 +120,32 @@
     {
        if(await SDEServices.IsNewSDEAvailable())
        {
-            await SetProcessMessage("Download SDE package (1/3)");
+            await SetProcessMessage("Removing current SDE package (1/4)");
+            if (!await SDEServices.ClearSDEResources())
+            {
+                Snackbar.Add("Removing current SDE package failed", Severity.Error);
+                await Cleaning();
+                return;
+            }
+
+            await SetProcessMessage("Download SDE package (2/4)");
             if(!await SDEServices.DownloadSDE())
             {
                 Snackbar.Add("Download SDE package failed.", Severity.Error);
                 await Cleaning();
                 return;
             }
-            await SetProcessMessage("Extract SDE package (2/3)");
+            
+            await SetProcessMessage("Extract SDE package (3/4)");
             if(!await SDEServices.ExtractSDE())
             {
                 Snackbar.Add("Extract SDE package failed.", Severity.Error);
                 await Cleaning();
                 return;
             }
-            await SetProcessMessage("Initialize SDE cache (3/3)");
-            if(!await SDEServices.Import())
+
+            await SetProcessMessage("Initialize SDE cache (4/4)");
+            if(!await SDEServices.BuildCache())
             {
                 Snackbar.Add("Initialize SDE cache failed.", Severity.Error);
                 await Cleaning();
