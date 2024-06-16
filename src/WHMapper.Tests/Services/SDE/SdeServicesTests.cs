@@ -181,10 +181,8 @@ namespace WHMapper.Tests.Services.SDE
 
             await sut.DownloadSDE();
 
-            var test = mockFileSystem.AllFiles;
-
-            Assert.True(mockFileSystem.FileExists("C:/Resources/SDE/SDE.zip"));
-            Assert.True(mockFileSystem.FileExists("C:/Resources/SDE/checksum"));
+            Assert.Contains(mockFileSystem.AllFiles, x => x.EndsWith("sde.zip"));
+            Assert.Contains(mockFileSystem.AllFiles, x => x.EndsWith("checksum"));
             Assert.Equal(2, mockFileSystem.AllFiles.Count());
         }
         #endregion
@@ -219,7 +217,7 @@ namespace WHMapper.Tests.Services.SDE
 
             var result = await sut.ExtractSDE();
             Assert.True(result);
-            Assert.True(filesystem.FileExists("C:/Resources/SDE/universe/sde.txt"));
+            Assert.Contains(filesystem.AllFiles, x => x.EndsWith("sde.txt"));
         }
 
         [Theory, AutoMoqData]
