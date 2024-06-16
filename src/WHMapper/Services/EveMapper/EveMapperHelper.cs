@@ -45,11 +45,11 @@ namespace WHMapper.Services.EveMapper
         private readonly ILogger? _logger;
 
         private readonly IAnoikServices _anoikServices;
-        private readonly ISDEServices _sdeServices;
+        private readonly ISDEService _sdeServices;
         private readonly IWHNoteRepository _noteServices;
         private readonly IEveMapperEntity _eveMapperEntity;
 
-        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveMapperEntity eveMapperEntity,ISDEServices sdeServices, IAnoikServices anoikServices, IWHNoteRepository noteServices)
+        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveMapperEntity eveMapperEntity,ISDEService sdeServices, IAnoikServices anoikServices, IWHNoteRepository noteServices)
         {
             
             _logger = logger;
