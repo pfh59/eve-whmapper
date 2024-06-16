@@ -107,20 +107,22 @@ namespace WHMapper.Services.SDE
             try
             {
                 if (!_fileSystem.Directory.Exists(SDE_DIRECTORY))
+                {
                     _fileSystem.Directory.CreateDirectory(SDE_DIRECTORY);
+                }
 
                 _logger.LogInformation("Start to download Eve SDE files");
 
-                using (Stream sdeData = await _dataSupplier.GetSDEDataStreamAsync())
+                using (var sdeData = await _dataSupplier.GetSDEDataStreamAsync())
                 {
                     using (Stream fs = _fileSystem.FileStream.New(SDE_ZIP_PATH, FileMode.OpenOrCreate))
                     {
-                        sdeData.CopyTo(fs);
+                        await sdeData.CopyToAsync(fs);
                     }
                 }
 
                 var checksum = _dataSupplier.GetChecksum();
-                _fileSystem.File.WriteAllLines(SDE_CHECKSUM_FILE, [checksum]);
+                await _fileSystem.File.WriteAllTextAsync(SDE_CHECKSUM_FILE, checksum);
 
                 _logger.LogInformation("Eve SDE files downloaded");
                 return true;
@@ -208,9 +210,6 @@ namespace WHMapper.Services.SDE
                     return false;
                 }
 
-                var collectionOfJumps = new List<SolarSystemJump>();
-                var collectionOfSolarSystems = new List<SDESolarSystem>();
-
                 var searchPaths = new[] {
                     Path.GetFullPath(SDE_WORMHOLE_TARGET_DIRECTORY),
                     Path.GetFullPath(SDE_EVE_TARGET_DIRECTORY)
@@ -232,22 +231,25 @@ namespace WHMapper.Services.SDE
                     return false;
                 }
 
-                var deserializer = new DeserializerBuilder()
-                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                    .IgnoreUnmatchedProperties()
-                    .Build();
+                var collectionOfJumps = new List<SolarSystemJump>();
+                var collectionOfSolarSystems = new List<SDESolarSystem>();
 
-                foreach (var file in collectionOfFiles)
+                Parallel.ForEach(collectionOfFiles, (file) =>
                 {
-                    using (TextReader text_reader = File.OpenText(file))
+                    var deserializer = new DeserializerBuilder()
+                        .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                        .IgnoreUnmatchedProperties()
+                        .Build();
+
+                    using (var text_reader = File.OpenText(file))
                     {
-                        SDESolarSystem solarSystem = deserializer.Deserialize<SDESolarSystem>(text_reader);
+                        var solarSystem = deserializer.Deserialize<SDESolarSystem>(text_reader);
                         var systemName = Path.GetFileName(Path.GetDirectoryName(file));
                         solarSystem.Name = (string.IsNullOrEmpty(systemName)) ? "Unknown" : systemName;
 
                         collectionOfSolarSystems.Add(solarSystem);
                     }
-                }
+                });
 
                 //after all sde system loading build SolarSystemJumps
                 foreach (var system in collectionOfSolarSystems)
@@ -279,7 +281,7 @@ namespace WHMapper.Services.SDE
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Import SolarSystemJumpLis and SolarSystemList");
+                _logger.LogError(ex, "Imported SolarSystemJumpList and SolarSystemList");
                 return false;
             }
         }
