@@ -4,6 +4,7 @@ using YamlDotNet.Serialization;
 using System.IO.Abstractions;
 using Testably.Abstractions;
 using WHMapper.Services.Cache;
+using System.Collections.Concurrent;
 
 namespace WHMapper.Services.SDE
 {
@@ -231,9 +232,7 @@ namespace WHMapper.Services.SDE
                     return false;
                 }
 
-                var collectionOfJumps = new List<SolarSystemJump>();
-                var collectionOfSolarSystems = new List<SDESolarSystem>();
-
+                var collectionOfSolarSystems = new BlockingCollection<SDESolarSystem>();
                 Parallel.ForEach(collectionOfFiles, (file) =>
                 {
                     var deserializer = new DeserializerBuilder()
@@ -251,6 +250,7 @@ namespace WHMapper.Services.SDE
                     }
                 });
 
+                var collectionOfJumps = new List<SolarSystemJump>();
                 //after all sde system loading build SolarSystemJumps
                 foreach (var system in collectionOfSolarSystems)
                 {
