@@ -211,7 +211,7 @@ namespace WHMapper.Tests.Services.SDE
 
             var filesystem = new MockFileSystem();
             var data = new MockFileData(fileContent);
-            filesystem.AddFile("C:/Resources/SDE/SDE.Zip", data);
+            filesystem.AddFile("./Resources/SDE/SDE.Zip", data);
 
             var sut = new SDEServiceManager(logger, filesystem, null!, null!);
 
