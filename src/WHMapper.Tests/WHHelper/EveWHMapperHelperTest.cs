@@ -114,7 +114,7 @@ public class EveWHMapperHelperTest
         IDbContextFactory<WHMapperContext>? _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
         IDistributedCache? _distriCache = provider.GetService<IDistributedCache>();
 
-        ILogger<SDEServices> loggerSDE = new NullLogger<SDEServices>();
+        ILogger<SDEService> loggerSDE = new NullLogger<SDEService>();
         ILogger<AnoikServices> loggerAnoik = new NullLogger<AnoikServices>();
         ILogger<EveMapperHelper> loggerMapperHelper = new NullLogger<EveMapperHelper>();
         ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
@@ -132,7 +132,7 @@ public class EveWHMapperHelperTest
             HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
             ISDEDataSupplier dataSupplier = new SdeDataSupplier(loggerSdeDataSupplier, httpClient);
 
-            ISDEServices sDEServices = new SDEServices(loggerSDE, cacheService, fileSystem, dataSupplier);
+            ISDEService sDEServices = new SDEService(loggerSDE, cacheService);
             IAnoikServices anoikServices = new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json"));
             IWHNoteRepository wHNoteRepository = new WHNoteRepository(loggerWHNoteRepository, _contextFactory);
 

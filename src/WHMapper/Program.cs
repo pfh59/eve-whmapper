@@ -185,7 +185,8 @@ namespace WHMapper
             });
 
             builder.Services.AddScoped<IAnoikServices, AnoikServices>();
-            builder.Services.AddScoped<ISDEServices, SDEServices>();
+            builder.Services.AddScoped<ISDEService, SDEService>();
+            builder.Services.AddScoped<ISDEServiceManager, SDEServiceManager>();
             builder.Services.AddScoped<ISDEDataSupplier, SdeDataSupplier>();
             builder.Services.AddHttpClient<ISDEDataSupplier, SdeDataSupplier>(client =>
             {

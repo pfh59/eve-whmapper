@@ -14,7 +14,7 @@
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Align="Align.Center">EVE Wormhole mapper, require SDE package.</MudText>
+                    <MudText Align="Align.Center">EVE Wormhole mapper is downloading a new SDE package.</MudText>
                     <MudText class="py-1" Typo="Typo.body2">@String.Format("{0}, please wait ...",_init_process_msg)
                         <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Small" />
                     </MudText>
@@ -54,7 +54,7 @@
     private IPasteServices PasteServices {get;set;} =null!;
 
     [Inject]
-    private Services.SDE.ISDEServices SDEServices {get;set;} =null!;
+    private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
     protected override Task OnInitializedAsync()
     {
         _currentTheme = new MudTheme()
@@ -145,7 +145,7 @@
             }
 
             await SetProcessMessage("Initialize SDE cache (4/4)");
-            if(!await SDEServices.Import())
+            if(!await SDEServices.BuildCache())
             {
                 Snackbar.Add("Initialize SDE cache failed.", Severity.Error);
                 await Cleaning();

@@ -62,7 +62,7 @@ public class EveWHMapperRoutePlannerHelperTest
 
             ILogger<EveMapperRoutePlannerHelper> logger = new NullLogger<EveMapperRoutePlannerHelper>();
             ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
-            ILogger<SDEServices> loggerSDE = new NullLogger<SDEServices>();
+            ILogger<SDEService> loggerSDE = new NullLogger<SDEService>();
             ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
             ILogger<WHRouteRepository> loggerWHRouteRepository = new NullLogger<WHRouteRepository>();
 
@@ -73,7 +73,7 @@ public class EveWHMapperRoutePlannerHelperTest
             IFileSystem fileSystem = new FileSystem();
             HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
             ISDEDataSupplier dataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
-            ISDEServices sdeServices = new SDEServices(loggerSDE, cacheService, fileSystem, dataSupplier);
+            ISDEService sdeServices = new SDEService(loggerSDE, cacheService);
 
             _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
                 whRouteRepository,

@@ -19,10 +19,10 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly IEveUserInfosServices _eveUserInfosServices;
 
 
-    private readonly ISDEServices _sdeServices;
+    private readonly ISDEService _sdeServices;
     private IEnumerable<SolarSystemJump> _solarSystemJumpConnections =null!;
 
-    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEServices sdeServices)
+    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger,IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEService sdeServices)
     {
         _routeRepository = routeRepository;
         _logger = logger;
