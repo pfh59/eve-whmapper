@@ -69,6 +69,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private MudTable<WHSignature> _signatureTable { get; set; } =null!;
 
+        private string _currentUser;
 
 
         protected override Task OnParametersSetAsync()
@@ -194,6 +195,9 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         public async Task Restore()
         {
+            if(String.IsNullOrEmpty(_currentUser))
+                _currentUser = await UserInfos.GetUserName();
+
             if(_signatureTable is not null)
                 _signatureTable.SetEditingItem(null);
 
@@ -289,7 +293,10 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         protected void SignatiureHasBeenCommitted(object element)
         {
-            Task.WhenAll(() => UpdateSignature(element));
+            ((WHSignature)element).Updated = DateTime.UtcNow;
+            ((WHSignature)element).UpdatedBy = _currentUser;
+
+            Task.Run(() => UpdateSignature(element));
 
             _isEditingSignature = false;
             StateHasChanged();
@@ -297,12 +304,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async Task UpdateSignature(object element)
         {
-            ((WHSignature)element).Updated = DateTime.UtcNow;
-            ((WHSignature)element).UpdatedBy = await UserInfos.GetUserName();
-
-
             var res = await DbWHSignatures.Update(((WHSignature)element).Id, ((WHSignature)element));
-
             if(res!=null && res.Id== ((WHSignature)element).Id)
                 Snackbar.Add("Signature successfully updated", Severity.Success);
             else
