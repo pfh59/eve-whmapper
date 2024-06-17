@@ -287,10 +287,19 @@ namespace WHMapper.Pages.Mapper.Signatures
             StateHasChanged();
         }
 
-        protected async void SignatiureHasBeenCommitted(object element)
+        protected void SignatiureHasBeenCommitted(object element)
+        {
+            Task.WhenAll(() => UpdateSignature(element));
+
+            _isEditingSignature = false;
+            StateHasChanged();
+        }
+
+        private async Task UpdateSignature(object element)
         {
             ((WHSignature)element).Updated = DateTime.UtcNow;
             ((WHSignature)element).UpdatedBy = await UserInfos.GetUserName();
+
 
             var res = await DbWHSignatures.Update(((WHSignature)element).Id, ((WHSignature)element));
 
@@ -298,9 +307,6 @@ namespace WHMapper.Pages.Mapper.Signatures
                 Snackbar.Add("Signature successfully updated", Severity.Success);
             else
                 Snackbar.Add("No signature updated", Severity.Error);
-
-            _isEditingSignature = false;
-            StateHasChanged();
         }
 
         private async Task NotifyWormholeSignaturesChanged(int mapId, int wormholeId)
