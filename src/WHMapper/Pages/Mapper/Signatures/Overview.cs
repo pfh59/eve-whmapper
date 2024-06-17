@@ -69,7 +69,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private MudTable<WHSignature> _signatureTable { get; set; } =null!;
 
-        private string _currentUser;
+        private string? _currentUser;
 
 
         protected override Task OnParametersSetAsync()
@@ -127,47 +127,26 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         protected string GetDisplayText(Enum value)
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            if (value == null) throw new ArgumentNullException(nameof(value));
 
-            System.Type type = value.GetType();
-            if (System.Attribute.IsDefined(type, typeof(FlagsAttribute)))
-            {
-                var sb = new System.Text.StringBuilder();
+            var type = value.GetType();
+            return System.Attribute.IsDefined(type, typeof(FlagsAttribute)) ? GetFlagsDisplayText(value, type) : GetFieldDisplayName(value);
+        }
 
-                foreach (Enum field in Enum.GetValues(type))
-                {
-                    if (Convert.ToInt64(field) == 0 && Convert.ToInt32(value) > 0)
-                        continue;
+        private string GetFlagsDisplayText(Enum value, System.Type type)
+        {
+            var displayTexts = Enum.GetValues(type).Cast<Enum>()
+                .Where(field => value.HasFlag(field) && Convert.ToInt64(field) != 0)
+                .Select(GetFieldDisplayName);
 
-                    if (value.HasFlag(field))
-                    {
-                        if (sb.Length > 0)
-                            sb.Append(", ");
+            return string.Join(", ", displayTexts);
+        }
 
-                        var f = type.GetField(field.ToString());
-                        var da = (DisplayAttribute)System.Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
-                        sb.Append(da?.ShortName ?? da?.Name ?? field.ToString());
-                    }
-                }
-
-                return sb.ToString();
-            }
-            else
-            {
-                var f = type.GetField(value.ToString());
-                if (f != null)
-                {
-                    var da = (DisplayAttribute)System.Attribute.GetCustomAttribute(f, typeof(DisplayAttribute));
-                    if (da != null)
-                    {
-                         var res = da.ShortName ?? da.Name;
-                         return (res==null ? string.Empty : res);
-                    }
-                }
-            }
-
-            return value.ToString();
+        private string GetFieldDisplayName(Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+            var displayAttribute = (DisplayAttribute)System.Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));
+            return displayAttribute?.ShortName ?? displayAttribute?.Name ?? value.ToString();
         }
 
         protected async Task  OpenImportDialog()
