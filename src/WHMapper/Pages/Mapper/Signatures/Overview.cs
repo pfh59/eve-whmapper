@@ -127,7 +127,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         protected string GetDisplayText(Enum value)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             var type = value.GetType();
             return System.Attribute.IsDefined(type, typeof(FlagsAttribute)) ? GetFlagsDisplayText(value, type) : GetFieldDisplayName(value);
@@ -145,8 +145,16 @@ namespace WHMapper.Pages.Mapper.Signatures
         private string GetFieldDisplayName(Enum value)
         {
             var field = value.GetType().GetField(value.ToString());
-            var displayAttribute = (DisplayAttribute)System.Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));
-            return displayAttribute?.ShortName ?? displayAttribute?.Name ?? value.ToString();
+            if (field is null)
+                return value.ToString();
+            
+            var attribute = System.Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));
+            if(attribute is null)
+                return value.ToString();
+
+            DisplayAttribute displayAttribute = (DisplayAttribute)attribute!;    
+
+            return displayAttribute.ShortName ?? displayAttribute.Name ?? value.ToString();
         }
 
         protected async Task  OpenImportDialog()
@@ -208,7 +216,7 @@ namespace WHMapper.Pages.Mapper.Signatures
                 var dialog = await DialogService.ShowAsync<Delete>("Delete", parameters, options);
                 DialogResult result = await dialog.Result;
 
-                if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
+                if (!result.Canceled && CurrentMapId!=null)
                 {
                     await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                     await Restore();
