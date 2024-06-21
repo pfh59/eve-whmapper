@@ -1,5 +1,4 @@
-﻿using System;
-namespace WHMapper.Services.EveOAuthProvider
+﻿namespace WHMapper.Services.EveOAuthProvider
 {
     public static class EVEOnlineAuthenticationDefaults
     {

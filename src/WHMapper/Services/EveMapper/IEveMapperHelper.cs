@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using WHMapper.Models.Custom.Node;
-using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 
 namespace WHMapper.Services.EveMapper
 {
-	public interface IEveMapperHelper
+    public interface IEveMapperHelper
 	{
         ReadOnlyCollection<WormholeType> WormholeTypes { get; }
         Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh);

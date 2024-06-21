@@ -1,8 +1,6 @@
 ﻿
 
 using System.Collections.Concurrent;
-using WHMapper.Models.Db;
-using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveAPI.Alliance;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveAPI.Corporation;
@@ -15,7 +13,7 @@ using WHMapper.Services.SDE;
 namespace WHMapper.Services.EveMapper
 {
 
-public class EveMapperSearch : IEveMapperSearch
+    public class EveMapperSearch : IEveMapperSearch
     {
         private const string MSG_VALUE_REQUIRED = "Value is required";
         private const string MSG_CHARACTERS_REQUIRED = "Please enter 3 or more characters";

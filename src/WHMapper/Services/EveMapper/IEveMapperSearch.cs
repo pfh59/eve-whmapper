@@ -1,9 +1,4 @@
-﻿using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Alliance;
-using WHMapper.Models.DTO.EveAPI.Character;
-using WHMapper.Models.DTO.EveAPI.Corporation;
-using WHMapper.Models.DTO.EveAPI.Search;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
+﻿using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Models.DTO.SDE;
 
 namespace WHMapper.Services.EveMapper

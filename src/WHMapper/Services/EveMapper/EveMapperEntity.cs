@@ -1,13 +1,10 @@
-﻿using System.Collections.Concurrent;
-using WHMapper.Models.DTO.EveAPI.Alliance;
+﻿using WHMapper.Models.DTO.EveAPI.Alliance;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveAPI.Corporation;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Models.DTO.SDE;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
-using WHMapper.Services.SDE;
 
 namespace WHMapper.Services.EveMapper;
 

@@ -1,14 +1,7 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.Http;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using WHMapper.Models.DTO;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveOAuthProvider;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WHMapper.Services.EveJwkExtensions
 {

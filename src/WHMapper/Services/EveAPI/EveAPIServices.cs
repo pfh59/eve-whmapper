@@ -1,8 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Assets;
+﻿using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI.Alliance;
 using WHMapper.Services.EveAPI.Assets;
 using WHMapper.Services.EveAPI.Character;

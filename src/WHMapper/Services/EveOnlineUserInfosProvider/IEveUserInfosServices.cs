@@ -1,7 +1,6 @@
-﻿using System;
-namespace WHMapper.Services.EveOnlineUserInfosProvider
+﻿namespace WHMapper.Services.EveOnlineUserInfosProvider
 {
-  public interface IEveUserInfosServices
+    public interface IEveUserInfosServices
   {
     public const string ANONYMOUS_USERNAME = "Anonymous";
     Task<string> GetUserName();

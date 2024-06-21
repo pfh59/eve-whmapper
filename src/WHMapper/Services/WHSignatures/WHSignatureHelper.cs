@@ -1,15 +1,7 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Models.Db;
-using WHMapper.Services.WHSignature;
-using WHMapper.Models.Custom;
-using System.Security.Cryptography;
-using MudBlazor;
-using Microsoft.AspNetCore.Components;
 using WHMapper.Repositories.WHSignatures;
-using WHMapper.Repositories.WHSystems;
-using System.Linq;
+using WHMapper.Services.WHSignature;
 
 namespace WHMapper.Services.WHSignatures
 {

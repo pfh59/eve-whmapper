@@ -1,9 +1,5 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using WHMapper.Models.DTO;
+﻿using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Models.DTO.ResponseMessage;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveAPI.Location

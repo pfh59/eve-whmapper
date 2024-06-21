@@ -1,9 +1,6 @@
-﻿using System;
-using WHMapper.Models.Custom;
-
-namespace WHMapper.Services.WHSignature
+﻿namespace WHMapper.Services.WHSignature
 {
-	public interface IWHSignatureHelper
+    public interface IWHSignatureHelper
 	{
         const string SCAN_VALIDATION_REGEX = "[A-Z]{3}-[0-9]{3}\\s([a-zA-Z\\s]+)([0-9]*[,.][0-9]\\s*%)\\s([0-9]*.[0-9]+\\s(UA|AU|km|m))";
 

@@ -1,7 +1,5 @@
-﻿using System;
-using WHMapper.Models.DTO;
+﻿using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Search;
-using WHMapper.Services.EveAPI.Alliance;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveAPI.Search

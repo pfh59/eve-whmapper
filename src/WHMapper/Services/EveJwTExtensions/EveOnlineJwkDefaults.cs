@@ -1,7 +1,6 @@
-﻿using System;
-namespace WHMapper.Services.EveJwkExtensions
+﻿namespace WHMapper.Services.EveJwkExtensions
 {
-	public class EveOnlineJwkDefaults
+    public class EveOnlineJwkDefaults
 	{
         public const string AuthenticationScheme = "EveOnlineBearer";
 

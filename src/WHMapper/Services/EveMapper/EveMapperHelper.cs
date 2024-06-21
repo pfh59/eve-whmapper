@@ -1,19 +1,14 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Mvc;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Models.DTO.SDE;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.SDE;
 
 namespace WHMapper.Services.EveMapper

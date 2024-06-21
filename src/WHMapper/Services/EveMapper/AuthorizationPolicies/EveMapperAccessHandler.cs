@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 
 namespace WHMapper.Services.EveMapper.AuthorizationPolicies
 {
-	public class EveMapperAccessHandler : AuthorizationHandler<EveMapperAccessRequirement>
+    public class EveMapperAccessHandler : AuthorizationHandler<EveMapperAccessRequirement>
     {
 
         private readonly IEveMapperAccessHelper _eveMapperAccessHelper;

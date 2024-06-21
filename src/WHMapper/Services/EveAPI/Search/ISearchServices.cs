@@ -1,9 +1,8 @@
-﻿using System;
-using WHMapper.Models.DTO.EveAPI.Search;
+﻿using WHMapper.Models.DTO.EveAPI.Search;
 
 namespace WHMapper.Services.EveAPI.Search
 {
-	public interface ISearchServices
+    public interface ISearchServices
 	{
 		Task<SearchAllianceResults?> SearchAlliance(string searchValue, bool isStrict = false);
         Task<SearchCoporationResults?> SearchCorporation(string searchValue, bool isStrict = false);

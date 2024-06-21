@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace WHMapper.Services.EveAPI.Alliance
+﻿namespace WHMapper.Services.EveAPI.Alliance
 {
-	public class AllianceServices : AEveApiServices, IAllianceServices
+    public class AllianceServices : AEveApiServices, IAllianceServices
     {
 		public AllianceServices(HttpClient httpClient) : base(httpClient)
         {

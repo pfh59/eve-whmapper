@@ -1,9 +1,8 @@
-﻿using System;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 
 namespace WHMapper.Services.EveMapper.AuthorizationPolicies
 {
-	public class EveMapperAccessRequirement : IAuthorizationRequirement
+    public class EveMapperAccessRequirement : IAuthorizationRequirement
     {
 		public EveMapperAccessRequirement()
 		{

@@ -1,7 +1,5 @@
-﻿using System;
-using WHMapper.Models.Custom.Node;
+﻿using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Services.WHColor
 {

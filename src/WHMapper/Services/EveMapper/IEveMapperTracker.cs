@@ -1,5 +1,4 @@
 ﻿using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 
 namespace WHMapper;

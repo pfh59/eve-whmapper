@@ -1,10 +1,8 @@
-﻿using System;
-using WHMapper.Models.DTO.EveAPI.Dogma;
-using WHMapper.Services.EveAPI.Location;
+﻿using WHMapper.Models.DTO.EveAPI.Dogma;
 
 namespace WHMapper.Services.EveAPI.Dogma
 {
-	public class DogmaServices : AEveApiServices, IDogmaServices
+    public class DogmaServices : AEveApiServices, IDogmaServices
     {
         public DogmaServices(HttpClient httpClient) : base(httpClient)
         {

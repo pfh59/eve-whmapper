@@ -1,7 +1,4 @@
-﻿using System.Security;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-
-namespace WHMapper;
+﻿namespace WHMapper;
 
 public class PasteServices : IPasteServices
 {

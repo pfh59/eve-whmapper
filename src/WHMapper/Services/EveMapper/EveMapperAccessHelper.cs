@@ -1,14 +1,11 @@
-﻿using System;
-using WHMapper.Models.Db.Enums;
+﻿using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
-using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Character;
-using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveMapper
 {
-	public class EveMapperAccessHelper : IEveMapperAccessHelper
+    public class EveMapperAccessHelper : IEveMapperAccessHelper
 	{
 		private readonly IWHAccessRepository _accessRepo;
         private readonly IWHAdminRepository _adminRepo;

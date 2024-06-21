@@ -1,5 +1,4 @@
-﻿using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Route.Enums;
+﻿using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Services.EveAPI;
 
 namespace WHMapper;

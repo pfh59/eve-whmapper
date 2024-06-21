@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace WHMapper.Services.EveAPI.Corporation
+﻿namespace WHMapper.Services.EveAPI.Corporation
 {
-	public class CorporationServices : AEveApiServices,ICorporationServices
+    public class CorporationServices : AEveApiServices,ICorporationServices
 
     {
 		public CorporationServices(HttpClient httpClient) : base(httpClient)

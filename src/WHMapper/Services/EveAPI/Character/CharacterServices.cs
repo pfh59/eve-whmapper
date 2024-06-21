@@ -1,9 +1,6 @@
-﻿using System;
-using WHMapper.Services.EveAPI.Corporation;
-
-namespace WHMapper.Services.EveAPI.Character
+﻿namespace WHMapper.Services.EveAPI.Character
 {
-	public class CharacterServices : AEveApiServices, ICharacterServices
+    public class CharacterServices : AEveApiServices, ICharacterServices
     {
 		public CharacterServices(HttpClient httpClient) : base(httpClient)
 		{

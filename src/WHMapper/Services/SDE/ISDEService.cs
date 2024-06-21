@@ -1,5 +1,4 @@
-﻿using System;
-using WHMapper.Models.DTO.SDE;
+﻿using WHMapper.Models.DTO.SDE;
 
 namespace WHMapper.Services.SDE
 {

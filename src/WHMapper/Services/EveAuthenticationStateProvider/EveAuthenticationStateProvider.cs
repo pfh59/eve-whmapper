@@ -1,20 +1,12 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Tokens;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.SSO;
-using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOAuthProvider;
 
 namespace WHMapper.Services.EveJwtAuthenticationStateProvider

@@ -1,13 +1,8 @@
-﻿using System;
-using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI;
-using WHMapper.Models.DTO.EveAPI.Universe;
-using WHMapper.Services.EveAPI.Universe;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+﻿using WHMapper.Models.DTO;
 
 namespace WHMapper.Services.EveAPI.UserInterface
 {
-	public class UserInterfaceServices : AEveApiServices, IUserInterfaceServices
+    public class UserInterfaceServices : AEveApiServices, IUserInterfaceServices
     {
         public UserInterfaceServices(HttpClient httpClient, TokenProvider _tokenProvider)
             : base(httpClient, _tokenProvider)

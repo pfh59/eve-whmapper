@@ -1,5 +1,4 @@
-﻿using System;
-namespace WHMapper.Services.EveAPI
+﻿namespace WHMapper.Services.EveAPI
 {
     public static class EveAPIServiceDefaults
     {
