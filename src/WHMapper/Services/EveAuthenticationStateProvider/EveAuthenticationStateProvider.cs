@@ -14,8 +14,6 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
     public class EveAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private const string revokendpoint = "https://login.eveonline.com/v2/oauth/revoke";
-
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokkenInfo;
         private readonly IConfiguration _configurationManager;
