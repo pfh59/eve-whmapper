@@ -3,7 +3,7 @@ using WHMapper.Services.EveAPI;
 
 namespace WHMapper;
 
-public class RouteServices : AEveApiServices, IRouteServices
+public class RouteServices : EveApiServiceBase, IRouteServices
 {
     public RouteServices(HttpClient httpClient) : base(httpClient)
     {

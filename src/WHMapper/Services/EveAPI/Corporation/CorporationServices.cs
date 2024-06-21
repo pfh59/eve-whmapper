@@ -1,6 +1,6 @@
 ﻿namespace WHMapper.Services.EveAPI.Corporation
 {
-    public class CorporationServices : AEveApiServices, ICorporationServices
+    public class CorporationServices : EveApiServiceBase, ICorporationServices
 
     {
         public CorporationServices(HttpClient httpClient) : base(httpClient)

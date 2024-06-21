@@ -2,7 +2,7 @@
 
 namespace WHMapper.Services.EveAPI.Dogma
 {
-    public class DogmaServices : AEveApiServices, IDogmaServices
+    public class DogmaServices : EveApiServiceBase, IDogmaServices
     {
         public DogmaServices(HttpClient httpClient) : base(httpClient)
         {

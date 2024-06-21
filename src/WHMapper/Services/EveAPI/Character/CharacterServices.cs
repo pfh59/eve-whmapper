@@ -1,6 +1,6 @@
 ﻿namespace WHMapper.Services.EveAPI.Character
 {
-    public class CharacterServices : AEveApiServices, ICharacterServices
+    public class CharacterServices : EveApiServiceBase, ICharacterServices
     {
         public CharacterServices(HttpClient httpClient) : base(httpClient)
         {

@@ -6,26 +6,12 @@ using WHMapper.Models.DTO;
 
 namespace WHMapper.Services.EveAPI
 {
-    public enum RequestSecurity
-    {
-        Public,
-        Authenticated
-    }
-
-    public enum RequestMethod
-    {
-        Delete,
-        Get,
-        Post,
-        Put
-    }
-
-    public abstract class AEveApiServices
+    public abstract class EveApiServiceBase
     {
         private readonly HttpClient _httpClient;
         private readonly TokenProvider? _tokenProvider = null!;
 
-        public AEveApiServices(HttpClient httpClient, TokenProvider? tokenProvider)
+        public EveApiServiceBase(HttpClient httpClient, TokenProvider? tokenProvider)
         {
             _httpClient = httpClient;
             _httpClient.DefaultRequestHeaders.Clear();
@@ -34,10 +20,9 @@ namespace WHMapper.Services.EveAPI
             _tokenProvider = tokenProvider;
         }
 
-        public AEveApiServices(HttpClient httpClient) : this(httpClient, null)
+        public EveApiServiceBase(HttpClient httpClient) : this(httpClient, null)
         {
         }
-
 
         public async Task<T?> Execute<T>(RequestSecurity security, RequestMethod method, string uri, object? body = null)
         {

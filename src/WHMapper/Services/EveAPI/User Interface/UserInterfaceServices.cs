@@ -2,7 +2,7 @@
 
 namespace WHMapper.Services.EveAPI.UserInterface
 {
-    public class UserInterfaceServices : AEveApiServices, IUserInterfaceServices
+    public class UserInterfaceServices : EveApiServiceBase, IUserInterfaceServices
     {
         public UserInterfaceServices(HttpClient httpClient, TokenProvider _tokenProvider)
             : base(httpClient, _tokenProvider)

@@ -4,7 +4,7 @@ using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveAPI.Search
 {
-    public class SearchServices : AEveApiServices, ISearchServices
+    public class SearchServices : EveApiServiceBase, ISearchServices
     {
         private readonly IEveUserInfosServices? _userService = null!;
 

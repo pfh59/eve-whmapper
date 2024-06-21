@@ -2,7 +2,7 @@
 
 namespace WHMapper.Services.EveAPI.Universe
 {
-    public class UniverseServices : AEveApiServices, IUniverseServices
+    public class UniverseServices : EveApiServiceBase, IUniverseServices
     {
         public UniverseServices(HttpClient httpClient) : base(httpClient)
         {

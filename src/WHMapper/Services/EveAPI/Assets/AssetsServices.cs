@@ -4,7 +4,7 @@ using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveAPI.Assets
 {
-    public class AssetsServices : AEveApiServices, IAssetsServices
+    public class AssetsServices : EveApiServiceBase, IAssetsServices
     {
         private readonly IEveUserInfosServices? _userService = null!;
 
