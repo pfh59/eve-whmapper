@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Services.EveAPI.Alliance
+﻿namespace WHMapper.Services.EveAPI.Alliances
 {
     public class AllianceServices : EveApiServiceBase, IAllianceServices
     {

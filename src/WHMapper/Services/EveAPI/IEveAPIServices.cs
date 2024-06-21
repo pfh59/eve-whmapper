@@ -1,4 +1,4 @@
-﻿using WHMapper.Services.EveAPI.Alliance;
+﻿using WHMapper.Services.EveAPI.Alliances;
 using WHMapper.Services.EveAPI.Assets;
 using WHMapper.Services.EveAPI.Character;
 using WHMapper.Services.EveAPI.Corporation;
