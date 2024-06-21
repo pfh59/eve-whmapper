@@ -15,7 +15,7 @@ namespace WHMapper.Services.EveAPI
         {
             _httpClient = httpClient;
             _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.BaseAddress = new Uri(EveAPIServiceDefaults.ESIUrl);
+            _httpClient.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
 
             _tokenProvider = tokenProvider;
         }

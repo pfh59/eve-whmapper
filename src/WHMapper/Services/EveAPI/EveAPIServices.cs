@@ -54,4 +54,3 @@ namespace WHMapper.Services.EveAPI
         }
     }
 }
-
