@@ -14,7 +14,7 @@ namespace WHMapper.Services.Anoik
         {
             _logger = logger;
             _logger.LogInformation("AnoikServices Initialization");
-            _jsonEffects = dataSupplier.GetEffect();
+            _jsonEffects = dataSupplier.GetEffects();
             _jsonWormholes = dataSupplier.GetWormHoles();
             _jsonSystems = dataSupplier.GetSystems();
             _logger.LogInformation("AnoikServices Initialized");

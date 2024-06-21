@@ -30,7 +30,7 @@ namespace WHMapper.Services.Anoik
             return _json.RootElement.GetProperty("systems");
         }
 
-        public JsonElement GetEffect()
+        public JsonElement GetEffects()
         {
             return _json.RootElement.GetProperty("effects");
         }
