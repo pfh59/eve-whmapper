@@ -1,12 +1,9 @@
-﻿using System;
-using System.Reflection.Metadata;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Models.Db;
 
 namespace WHMapper.Data
 {
-	public class WHMapperContext : DbContext
+    public class WHMapperContext : DbContext
 	{
         public DbSet<WHAccess> DbWHAccesses { get; set; } = null!;
         public DbSet<WHAdmin> DbWHAdmins { get; set; } = null!;
@@ -17,8 +14,6 @@ namespace WHMapper.Data
         public DbSet<WHNote> DbWHNotes { get; set; } = null!;
         public DbSet<WHRoute> DbWHRoutes { get; set; } = null!;
         public DbSet<WHJumpLog> DbWHJumpLogs { get; set; } = null!;
-
-
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
@@ -66,4 +61,3 @@ namespace WHMapper.Data
         }
     }
 }
-
