@@ -17,20 +17,15 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenInfo;
         private readonly IConfiguration _configurationManager;
-
         private readonly IConfigurationSection? _evessoConf = null;
         private readonly HttpClient? _httpClient = null;
         private readonly string _clientKey;
 
-
-
-        public EveAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo) : base()
+        public EveAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokenInfo) : base()
         {
             _configurationManager = configurationManager;
             _httpClientFactory = httpClientFactory;
-            _tokenInfo = tokkenInfo;
-
-
+            _tokenInfo = tokenInfo;
             _evessoConf = _configurationManager.GetSection("EveSSO");
             _clientKey = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_evessoConf["ClientId"]}:{_evessoConf["Secret"]}"));
 
@@ -41,9 +36,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", _clientKey);
                 _httpClient.DefaultRequestHeaders.Host = "login.eveonline.com";
             }
-
         }
-
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
@@ -52,8 +45,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             if (_tokenInfo == null || string.IsNullOrWhiteSpace(_tokenInfo.AccessToken) || string.IsNullOrWhiteSpace(_tokenInfo.RefreshToken))
                 return anonymousState;
 
-
-            if (await IsTokenExpired())//auto renew token
+            if (await IsTokenExpired()) //auto renew token
             {
                 EveToken? newEveToken = await RenewToken();
 
@@ -70,7 +62,6 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
         }
 
-
         private Task<bool> IsTokenExpired()
         {
             JsonWebTokenHandler SecurityTokenHandle = new JsonWebTokenHandler();
@@ -82,18 +73,14 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 return Task.FromResult(true);
             }
 
-
-
             var datetime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiry.Value));
             if (datetime.UtcDateTime <= DateTime.UtcNow)
             {
                 return Task.FromResult(true);
             }
 
-
             return Task.FromResult(false);
         }
-
 
         private async Task<EveToken?> RenewToken()
         {
@@ -107,10 +94,8 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 return null;
             }
 
-
             var body = $"grant_type=refresh_token&refresh_token={Uri.EscapeDataString(_tokenInfo.RefreshToken)}";
             HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-
 
             var response = await _httpClient.PostAsync(EVEOnlineAuthenticationDefaults.TokenEndpoint, postBody);
 
@@ -124,10 +109,5 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 return JsonSerializer.Deserialize<EveToken>(result);
             }
         }
-
-
     }
 }
-
-
-
