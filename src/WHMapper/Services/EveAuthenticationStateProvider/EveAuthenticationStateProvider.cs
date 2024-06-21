@@ -11,7 +11,6 @@ using WHMapper.Services.EveOAuthProvider;
 
 namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 {
-
     public class EveAuthenticationStateProvider : AuthenticationStateProvider
     {
         private readonly IHttpClientFactory _httpClientFactory;
