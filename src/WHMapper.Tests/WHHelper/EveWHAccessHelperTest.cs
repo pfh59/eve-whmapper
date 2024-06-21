@@ -12,7 +12,7 @@ using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveAPI.Character;
+using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.SDE;

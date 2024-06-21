@@ -28,7 +28,7 @@ using WHMapper.Services.SDE;
 using WHMapper.Services.EveMapper;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Repositories.WHAccesses;
-using WHMapper.Services.EveAPI.Character;
+using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper.AuthorizationPolicies;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Cache;
