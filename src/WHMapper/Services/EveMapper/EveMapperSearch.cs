@@ -1,6 +1,4 @@
-﻿
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using WHMapper.Models.DTO.EveAPI.Alliance;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveAPI.Corporation;
@@ -12,7 +10,6 @@ using WHMapper.Services.SDE;
 
 namespace WHMapper.Services.EveMapper
 {
-
     public class EveMapperSearch : IEveMapperSearch
     {
         private const string MSG_VALUE_REQUIRED = "Value is required";
@@ -36,7 +33,6 @@ namespace WHMapper.Services.EveMapper
             {
                 _logger.LogDebug($"Search {value}");
 
-
                 IEnumerable<T>? results = null;
 
                 if (typeof(T) == typeof(SDESolarSystem))
@@ -51,13 +47,11 @@ namespace WHMapper.Services.EveMapper
                     if (string.IsNullOrEmpty(value) || _eveAPIServices == null || _eveAPIServices.SearchServices == null || value.Length < IEveMapperSearch.MIN_SEARCH_ENTITY_CHARACTERS)
                         return null;
 
-
                     ParallelOptions options = new ParallelOptions
                     {
                         MaxDegreeOfParallelism = (Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2),
                         CancellationToken = cancellationToken
                     };
-
 
                     if (typeof(T) == typeof(CharactereEntity))
                     {

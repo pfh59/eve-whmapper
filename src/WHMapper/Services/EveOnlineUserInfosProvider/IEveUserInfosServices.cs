@@ -7,4 +7,3 @@
         Task<int> GetCharactedID();
     }
 }
-

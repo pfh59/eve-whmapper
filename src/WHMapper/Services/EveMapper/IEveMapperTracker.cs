@@ -7,7 +7,6 @@ public interface IEveMapperTracker
 {
     event Func<SystemEntity, Task> SystemChanged;
     event Func<Ship, ShipEntity, Task> ShipChanged;
-
     Task StartTracking();
     Task StopTracking();
 }

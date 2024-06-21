@@ -27,9 +27,7 @@ namespace WHMapper.Services.EveAPI
         public ICharacterServices CharacterServices { get; private set; }
         public ISearchServices SearchServices { get; private set; }
         public IDogmaServices DogmaServices { get; private set; }
-
         public IAssetsServices AssetsServices { get; private set; }
-
         public IRouteServices RouteServices { get; private set; }
 
         public EveAPIServices(ILogger<EveAPIServices> logger, IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)

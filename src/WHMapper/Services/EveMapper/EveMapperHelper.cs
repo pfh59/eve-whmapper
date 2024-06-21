@@ -18,7 +18,6 @@ namespace WHMapper.Services.EveMapper
         private const string WH_VALIDATION_REGEX = "J[0-9]{6}|Thera|J1226-0";
         private const string REGION_POCHVVEN_NAME = "Pochven";
 
-
         private const int GROUPE_WORMHOLE_ID = 988;
         private const string C14_NAME = "J055520";
         private const string C15_NAME = "J110145";
@@ -840,8 +839,6 @@ namespace WHMapper.Services.EveMapper
             }
 
             return true;
-
         }
-
     }
 }

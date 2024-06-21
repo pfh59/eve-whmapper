@@ -15,9 +15,6 @@ public interface IEveMapperEntity
     const string REDIS_GROUP_KEY = "group:list";
     const string REDIS_WORMHOLE_KEY = "wormhole:list";
     const string REDIS_SUN_KEY = "sun:list";
-
-
-
     Task<CharactereEntity?> GetCharacter(int characterId);
     Task<CorporationEntity?> GetCorporation(int corporationId);
     Task<AllianceEntity?> GetAlliance(int allianceId);
@@ -29,8 +26,6 @@ public interface IEveMapperEntity
     Task<GroupEntity?> GetGroup(int groupId);
     Task<WHEntity?> GetWormhole(int wormholeTypeId);
     Task<SunEntity?> GetSun(int sunTypeId);
-
-
     Task<bool> ClearCharacterCache();
     Task<bool> ClearCorporationCache();
     Task<bool> ClearAllianceCache();

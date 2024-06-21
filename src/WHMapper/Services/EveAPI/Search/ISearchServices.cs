@@ -7,7 +7,5 @@ namespace WHMapper.Services.EveAPI.Search
         Task<SearchAllianceResults?> SearchAlliance(string searchValue, bool isStrict = false);
         Task<SearchCoporationResults?> SearchCorporation(string searchValue, bool isStrict = false);
         Task<SearchCharacterResults?> SearchCharacter(string searchValue, bool isStrict = false);
-
     }
 }
-

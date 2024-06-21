@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Timers;
 using WHMapper.Models.DTO.EveAPI.Location;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
@@ -17,9 +16,7 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
 
     private readonly IEveMapperEntity _eveMapperEntity;
 
-
     private System.Timers.Timer? _timer = null!;
-
 
     private EveLocation? _currentLocation = null!;
     private SystemEntity? _currentSolarSystem = null!;
@@ -39,7 +36,6 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
         _timer = new System.Timers.Timer(TRACK_HIT_IN_MS);
         _timer.Elapsed += OnTimedEvent;
         _timer.AutoReset = true;
-
     }
 
     public async ValueTask DisposeAsync()
@@ -87,7 +83,6 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
                     _logger.LogInformation("Ship Changed");
                     _currentShip = ship;
                     _currentShiptInfos = await _eveMapperEntity.GetShip(ship.ShipTypeId);
-
 
                     if (_currentShip != null && _currentShiptInfos != null)
                         ShipChanged?.Invoke(_currentShip, _currentShiptInfos);

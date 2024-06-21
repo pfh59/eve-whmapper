@@ -10,7 +10,6 @@
         public async Task<Models.DTO.EveAPI.Corporation.Corporation?> GetCorporation(int corporation_id)
         {
             return await base.Execute<Models.DTO.EveAPI.Corporation.Corporation>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v5/corporations/{0}/?datasource=tranquility", corporation_id));
-
         }
     }
 }

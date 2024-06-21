@@ -5,4 +5,3 @@
         Task<Models.DTO.EveAPI.Character.Character?> GetCharacter(int character_id);
     }
 }
-

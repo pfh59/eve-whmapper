@@ -10,4 +10,3 @@ namespace WHMapper.Services.EveAPI.Dogma
         Task<Effect?> GetEffect(int effect_id);
     }
 }
-

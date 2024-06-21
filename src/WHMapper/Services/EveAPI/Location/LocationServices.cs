@@ -8,7 +8,6 @@ namespace WHMapper.Services.EveAPI.Location
     {
         private readonly IEveUserInfosServices? _userService = null!;
 
-
         public LocationServices(HttpClient httpClient, TokenProvider _tokenProvider, IEveUserInfosServices userService) : base(httpClient, _tokenProvider)
         {
             _userService = userService;
@@ -34,6 +33,5 @@ namespace WHMapper.Services.EveAPI.Location
             }
             return null;
         }
-
     }
 }

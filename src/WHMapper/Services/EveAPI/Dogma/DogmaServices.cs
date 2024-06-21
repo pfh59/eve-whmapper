@@ -11,7 +11,6 @@ namespace WHMapper.Services.EveAPI.Dogma
         public async Task<Models.DTO.EveAPI.Dogma.Attribute?> GetAttribute(int attribute_id)
         {
             return await base.Execute<Models.DTO.EveAPI.Dogma.Attribute>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/dogma/attributes/{0}/?datasource=tranquility", attribute_id));
-
         }
 
         public async Task<int[]?> GetAttributes()
@@ -22,7 +21,6 @@ namespace WHMapper.Services.EveAPI.Dogma
         public async Task<Effect?> GetEffect(int effect_id)
         {
             return await base.Execute<Effect>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/dogma/effects/{0}/?datasource=tranquility", effect_id));
-
         }
 
         public async Task<int[]?> GetEffects()

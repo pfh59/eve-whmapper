@@ -43,8 +43,7 @@ public class RouteServices : EveApiServiceBase, IRouteServices
         {
             return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&connections={2}&flag={3}", from, to, string.Join(",", connections.Select(x => string.Join("|", x))), routeType.ToString().ToLower()));
         }
-        else
-            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&flag={2}", from, to, routeType.ToString().ToLower()));
-    }
 
+        return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&flag={2}", from, to, routeType.ToString().ToLower()));
+    }
 }

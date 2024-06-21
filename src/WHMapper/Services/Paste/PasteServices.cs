@@ -10,4 +10,3 @@ public class PasteServices : IPasteServices
         return Task.CompletedTask;
     }
 }
-

@@ -27,4 +27,3 @@ namespace WHMapper.Services.EveMapper.AuthorizationPolicies
         }
     }
 }
-

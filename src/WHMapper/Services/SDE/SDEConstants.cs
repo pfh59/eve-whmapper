@@ -6,4 +6,3 @@
         public const string REDIS_SDE_SOLAR_SYSTEMS_KEY = "solarsystems:list";
     }
 }
-

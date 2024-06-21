@@ -22,8 +22,6 @@
         /// </summary>
         public static readonly string CallbackPath = "/signin-eveonline";
 
-
-
         /// <summary>
         /// Default value for <see cref="OAuthOptions.AuthorizationEndpoint"/>.
         /// </summary>
@@ -40,8 +38,6 @@
         //[Obsolete("This endpoint is no longer used by the EVEOnline provider.")]
         //public static readonly string UserInformationEndpoint = "https://login.eveonline.com/oauth/verify";
 
-
         public const string Scopes = "urn:eveonline:scopes";
     }
-
 }

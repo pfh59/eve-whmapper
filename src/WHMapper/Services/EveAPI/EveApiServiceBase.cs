@@ -64,8 +64,6 @@ namespace WHMapper.Services.EveAPI
                     break;
             }
 
-
-
             if (response != null && response.StatusCode != HttpStatusCode.NoContent && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created || response.StatusCode == HttpStatusCode.Accepted))
             {
                 string result = response.Content.ReadAsStringAsync().Result;

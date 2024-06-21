@@ -13,7 +13,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly ILogger<EveMapperRoutePlannerHelper> _logger;
     private readonly IEveUserInfosServices _eveUserInfosServices;
 
-
     private readonly ISDEService _sdeServices;
     private IEnumerable<SolarSystemJump> _solarSystemJumpConnections = null!;
 
@@ -72,7 +71,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         return routes;
     }
 
-
     /// <summary>
     /// Theory : https://www.cs.princeton.edu/courses/archive/spring13/cos423/lectures/FibonacciHeaps-2x2.pdf
     /// CCP esi-route : https://github.com/esi/esi-routes/blob/master/esi_routes/dijkstra.py
@@ -112,7 +110,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             }
         }
 
-
         var fromSolarSystemJump = extendedSolarSystemJumps.FirstOrDefault(x => x.System.SolarSystemId == fromSolarSystemId);
         var toSolarSystemJump = extendedSolarSystemJumps.FirstOrDefault(x => x.System.SolarSystemId == toSolarSystemId);
         if (fromSolarSystemJump == null || toSolarSystemJump == null)
@@ -141,7 +138,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
         FibonacciHeap<int, float> queue = new FibonacciHeap<int, float>(0);
 
-
         remainingSystems.Add(toSolarSystemId);
 
         costs.Add(fromSolarSystemId, 0.0f);
@@ -159,7 +155,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             //all found
             if (remainingSystems.Count == 0)
                 break;
-
 
             IEnumerable<SolarSystem>? nextSystems = extendedSolarSystemJumps.Where(x => x.System.SolarSystemId == currentSystem && x.JumpList != null).SelectMany(x => x.JumpList).ToArray();
 
@@ -190,8 +185,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
                     entries.Add(nextSystem.SolarSystemId, node);
                     queue.Insert(entries[nextSystem.SolarSystemId]);
                 }
-
-
             }
         }
 
@@ -209,7 +202,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             tmpSystem = previousSystems[tmpSystem];
         }
         routePath.Add(fromSolarSystemId);
-
 
         return routePath.Reverse().ToArray();
     }
@@ -234,7 +226,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
                 return 1.0f;
         }
     }
-
 
     public async Task<WHRoute?> AddRoute(int soloarSystemId, bool global)
     {
@@ -268,4 +259,3 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         return _routeRepository.DeleteById(routeId);
     }
 }
-

@@ -12,7 +12,6 @@ namespace WHMapper.Services.EveOAuthProvider
 
     public partial class EVEOnlineAuthenticationHandler : OAuthHandler<EVEOnlineAuthenticationOptions>
     {
-
         public EVEOnlineAuthenticationHandler(
             [NotNull] IOptionsMonitor<EVEOnlineAuthenticationOptions> options,
             [NotNull] ILoggerFactory logger,
@@ -26,7 +25,6 @@ namespace WHMapper.Services.EveOAuthProvider
         {
             return base.ExchangeCodeAsync(context);
         }
-
 
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
@@ -44,7 +42,6 @@ namespace WHMapper.Services.EveOAuthProvider
                 identity.AddClaim(claim);
             }
 
-
             var principal = new ClaimsPrincipal(identity);
             var context = new OAuthCreatingTicketContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response!.RootElement);
             context.RunClaimActions();
@@ -57,7 +54,6 @@ namespace WHMapper.Services.EveOAuthProvider
         {
             try
             {
-
                 var securityToken = Options.SecurityTokenHandler.ReadJsonWebToken(token);
 
                 var nameClaim = ExtractClaim(securityToken, "name");
@@ -138,5 +134,4 @@ namespace WHMapper.Services.EveOAuthProvider
             return offset.ToString("o", CultureInfo.InvariantCulture);
         }
     }
-
 }

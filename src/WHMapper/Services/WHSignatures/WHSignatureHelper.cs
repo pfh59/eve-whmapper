@@ -40,8 +40,6 @@ namespace WHMapper.Services.WHSignatures
             string[]? sigvalues = null;
             string[]? splittedSig = null;
 
-
-
             IList<WHMapper.Models.Db.WHSignature> sigResult = new List<WHMapper.Models.Db.WHSignature>();
 
             if (!string.IsNullOrEmpty(scanResult))
@@ -95,13 +93,11 @@ namespace WHMapper.Services.WHSignatures
 
         public async Task<bool> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted)
         {
-
             bool sigUpdated = false;
             bool sigAdded = false;
 
             if (!await ValidateScanResult(scanResult))
                 throw new Exception("Bad signatures format");
-
 
             var sigs = await ParseScanResult(scanUser, currentSystemScannedId, scanResult);
 
@@ -164,12 +160,10 @@ namespace WHMapper.Services.WHSignatures
                             sigUpdated = false;
                     }
 
-
                     var sigsToAdd = sigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
                     if (sigsToAdd != null && sigsToAdd.Count() > 0)
                     {
                         //var resAdd = await _dbWHSystem.AddWHSignatures(currentSystemScannedId, sigsToAdd);
-
                         var resAdd = await _dbWHSignatures.Create(sigsToAdd);
                         if (resAdd != null && resAdd.Count() == sigsToAdd.Count())
                             sigAdded = true;
@@ -185,9 +179,5 @@ namespace WHMapper.Services.WHSignatures
             else
                 throw new Exception("Bad signature parsing parameters");
         }
-
-
     }
-
 }
-

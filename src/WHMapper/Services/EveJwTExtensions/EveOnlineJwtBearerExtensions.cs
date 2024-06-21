@@ -7,7 +7,6 @@ namespace WHMapper.Services.EveJwkExtensions
 {
     public static class EveOnlineJwtBearerExtensions
     {
-
         public static AuthenticationBuilder AddEveOnlineJwtBearer([NotNull] this AuthenticationBuilder builder)
         {
             HttpClient httpClient = new HttpClient();
@@ -17,7 +16,6 @@ namespace WHMapper.Services.EveJwkExtensions
             var response = httpClient.GetAsync(EveOnlineJwkDefaults.JWKEndpoint).Result.Content.ReadAsStringAsync().Result;
             var jwks = new JsonWebKeySet(response);
             var jwk = jwks.Keys.First();
-
 
             TokenValidationParameters tokenValidationParams = new TokenValidationParameters
             {
@@ -30,7 +28,6 @@ namespace WHMapper.Services.EveJwkExtensions
                 IssuerSigningKey = jwk,
                 ClockSkew = TimeSpan.FromSeconds(2), // CCP's servers seem slightly ahead (~1s)
             };
-
 
             return builder.AddJwtBearer(EveOnlineJwkDefaults.AuthenticationScheme, options =>
             {
@@ -61,4 +58,3 @@ namespace WHMapper.Services.EveJwkExtensions
         }
     }
 }
-

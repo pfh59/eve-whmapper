@@ -13,7 +13,6 @@ namespace WHMapper.Services.EveMapper
         Task<IEnumerable<CorporationEntity>?> SearchCorporation(string value, CancellationToken cancellationToken);
         Task<IEnumerable<AllianceEntity>?> SearchAlliance(string value, CancellationToken cancellationToken);
         Task<IEnumerable<AEveEntity>?> SearchEveEntities(string value, CancellationToken cancellationToken);
-
         IEnumerable<string> ValidateSearchType(string value);
     }
 }

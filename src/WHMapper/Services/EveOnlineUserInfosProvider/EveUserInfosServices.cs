@@ -8,7 +8,6 @@ namespace WHMapper.Services.EveOnlineUserInfosProvider
     {
         private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-
         public EveUserInfosServices(AuthenticationStateProvider authenticationStateProvider)
         {
             _authenticationStateProvider = authenticationStateProvider;
@@ -31,4 +30,3 @@ namespace WHMapper.Services.EveOnlineUserInfosProvider
         }
     }
 }
-

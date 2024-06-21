@@ -17,4 +17,3 @@ namespace WHMapper.Services.EveMapper
         Task<bool> IsRouteViaWH(SystemEntity src, SystemEntity dst);
     }
 }
-
