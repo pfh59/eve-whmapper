@@ -1,11 +1,11 @@
 ﻿namespace WHMapper.Services.EveAPI.Corporation
 {
-    public class CorporationServices : AEveApiServices,ICorporationServices
+    public class CorporationServices : AEveApiServices, ICorporationServices
 
     {
-		public CorporationServices(HttpClient httpClient) : base(httpClient)
+        public CorporationServices(HttpClient httpClient) : base(httpClient)
         {
-		}
+        }
 
         public async Task<Models.DTO.EveAPI.Corporation.Corporation?> GetCorporation(int corporation_id)
         {

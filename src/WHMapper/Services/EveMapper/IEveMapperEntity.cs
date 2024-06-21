@@ -16,7 +16,7 @@ public interface IEveMapperEntity
     const string REDIS_WORMHOLE_KEY = "wormhole:list";
     const string REDIS_SUN_KEY = "sun:list";
 
-    
+
 
     Task<CharactereEntity?> GetCharacter(int characterId);
     Task<CorporationEntity?> GetCorporation(int corporationId);

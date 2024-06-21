@@ -31,4 +31,3 @@ namespace WHMapper.Services.EveAPI.Dogma
         }
     }
 }
-

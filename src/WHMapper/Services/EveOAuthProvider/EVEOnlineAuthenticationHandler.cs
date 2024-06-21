@@ -18,9 +18,9 @@ namespace WHMapper.Services.EveOAuthProvider
             [NotNull] ILoggerFactory logger,
             [NotNull] UrlEncoder encoder)
             : base(options, logger, encoder)
-                {
-         
-                }
+        {
+
+        }
 
         protected override Task<OAuthTokenResponse> ExchangeCodeAsync(OAuthCodeExchangeContext context)
         {
@@ -31,7 +31,7 @@ namespace WHMapper.Services.EveOAuthProvider
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
             string? accessToken = tokens.AccessToken;
-            
+
             if (string.IsNullOrWhiteSpace(accessToken))
             {
                 throw new InvalidOperationException("No access token was returned in the OAuth token.");
@@ -52,12 +52,12 @@ namespace WHMapper.Services.EveOAuthProvider
             await Events.CreatingTicket(context);
             return new AuthenticationTicket(context.Principal!, context.Properties, Scheme.Name);
         }
-     
+
         protected virtual IEnumerable<Claim> ExtractClaimsFromToken([NotNull] string token)
         {
             try
             {
-             
+
                 var securityToken = Options.SecurityTokenHandler.ReadJsonWebToken(token);
 
                 var nameClaim = ExtractClaim(securityToken, "name");
@@ -138,5 +138,5 @@ namespace WHMapper.Services.EveOAuthProvider
             return offset.ToString("o", CultureInfo.InvariantCulture);
         }
     }
-    
+
 }

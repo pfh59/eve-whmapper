@@ -2,9 +2,9 @@
 {
     public class AllianceServices : AEveApiServices, IAllianceServices
     {
-		public AllianceServices(HttpClient httpClient) : base(httpClient)
+        public AllianceServices(HttpClient httpClient) : base(httpClient)
         {
-		}
+        }
 
         public async Task<Models.DTO.EveAPI.Alliance.Alliance?> GetAlliance(int alliance_id)
         {
@@ -19,4 +19,3 @@
         }
     }
 }
-

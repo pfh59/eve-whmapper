@@ -24,12 +24,12 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
         private readonly HttpClient? _httpClient = null;
         private readonly string _clientKey;
 
-    
+
 
         public EveAuthenticationStateProvider(IConfiguration configurationManager, IHttpClientFactory httpClientFactory, TokenProvider tokkenInfo) : base()
         {
             _configurationManager = configurationManager;
-             _httpClientFactory = httpClientFactory;
+            _httpClientFactory = httpClientFactory;
             _tokkenInfo = tokkenInfo;
 
 
@@ -46,12 +46,12 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
         }
 
-        
+
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var anonymousState = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
-            if (_tokkenInfo==null || string.IsNullOrWhiteSpace(_tokkenInfo.AccessToken) || string.IsNullOrWhiteSpace(_tokkenInfo.RefreshToken))
+            if (_tokkenInfo == null || string.IsNullOrWhiteSpace(_tokkenInfo.AccessToken) || string.IsNullOrWhiteSpace(_tokkenInfo.RefreshToken))
                 return anonymousState;
 
 
@@ -59,7 +59,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             {
                 EveToken? newEveToken = await RenewToken();
 
-                if(newEveToken==null)
+                if (newEveToken == null)
                     return anonymousState;
                 else
                 {
@@ -72,7 +72,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
         }
 
-        
+
         private Task<bool> IsTokenExpired()
         {
             JsonWebTokenHandler SecurityTokenHandle = new JsonWebTokenHandler();
@@ -99,16 +99,16 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
         private async Task<EveToken?> RenewToken()
         {
-            if(_httpClient==null)
+            if (_httpClient == null)
             {
                 return null;
             }
 
-            if(_tokkenInfo==null || string.IsNullOrWhiteSpace(_tokkenInfo.RefreshToken))
+            if (_tokkenInfo == null || string.IsNullOrWhiteSpace(_tokkenInfo.RefreshToken))
             {
                 return null;
             }
-            
+
 
             var body = $"grant_type=refresh_token&refresh_token={Uri.EscapeDataString(_tokkenInfo.RefreshToken)}";
             HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
@@ -124,7 +124,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             {
                 string result = response.Content.ReadAsStringAsync().Result;
                 return JsonSerializer.Deserialize<EveToken>(result);
-            } 
+            }
         }
 
 

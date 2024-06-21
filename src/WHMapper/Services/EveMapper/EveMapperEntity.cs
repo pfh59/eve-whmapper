@@ -71,12 +71,12 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<T>? results = await GetEntitiesFromCache<T>();
-            if(results == null)
+            if (results == null)
             {
                 results = new HashSet<T>();
             }
 
-            if(results.Contains(entity))
+            if (results.Contains(entity))
             {
                 _logger.LogInformation("{entityName} already in cache", typeof(T).Name);
                 return true;
@@ -98,11 +98,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<AllianceEntity>? results = await GetEntitiesFromCache<AllianceEntity>();
-            if(results != null)
+            if (results != null)
             {
                 AllianceEntity? entityItem = results.FirstOrDefault(x => x.Id == allianceId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -111,15 +111,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get alliance from API
             Alliance? alliance = await _eveApiService.AllianceServices.GetAlliance(allianceId);
-            if(alliance == null)
+            if (alliance == null)
             {
                 _logger.LogWarning("Alliance {allianceId} not found", allianceId);
                 return null;
             }
 
             //put on cache and return return entity
-            AllianceEntity entity = new AllianceEntity(allianceId,alliance);
-            if(await SetEntityCahing(entity))
+            AllianceEntity entity = new AllianceEntity(allianceId, alliance);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -128,7 +128,7 @@ public class EveMapperEntity : IEveMapperEntity
                 _logger.LogError("Error while saving entity {entity} on cache", entity.Name);
                 return null;
             }
-            
+
         }
         catch (Exception e)
         {
@@ -142,11 +142,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<CharactereEntity>? results = await GetEntitiesFromCache<CharactereEntity>();
-            if(results != null)
+            if (results != null)
             {
                 CharactereEntity? entityItem = results.FirstOrDefault(x => x.Id == characterId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -155,15 +155,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get character from API
             Character? character = await _eveApiService.CharacterServices.GetCharacter(characterId);
-            if(character == null)
+            if (character == null)
             {
                 _logger.LogWarning("Character {characterId} not found", characterId);
                 return null;
             }
 
             //put on cache and return return entity
-            CharactereEntity entity = new CharactereEntity(characterId,character);
-            if(await SetEntityCahing(entity))
+            CharactereEntity entity = new CharactereEntity(characterId, character);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -185,11 +185,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<CorporationEntity>? results = await GetEntitiesFromCache<CorporationEntity>();
-            if(results != null)
+            if (results != null)
             {
                 CorporationEntity? entityItem = results.FirstOrDefault(x => x.Id == corporationId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -198,15 +198,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get corporation from API
             Corporation? corporation = await _eveApiService.CorporationServices.GetCorporation(corporationId);
-            if(corporation == null)
+            if (corporation == null)
             {
                 _logger.LogWarning("Corporation {corporationId} not found", corporationId);
                 return null;
             }
 
             //put on cache and return return entity
-            CorporationEntity entity = new CorporationEntity(corporationId,corporation);
-            if(await SetEntityCahing(entity))
+            CorporationEntity entity = new CorporationEntity(corporationId, corporation);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -225,45 +225,45 @@ public class EveMapperEntity : IEveMapperEntity
 
     public async Task<ShipEntity?> GetShip(int shipTypeId)
     {
-       try
-       {
-              IEnumerable<ShipEntity>? results = await GetEntitiesFromCache<ShipEntity>();
-              if(results != null)
-              {
+        try
+        {
+            IEnumerable<ShipEntity>? results = await GetEntitiesFromCache<ShipEntity>();
+            if (results != null)
+            {
                 ShipEntity? entityItem = results.FirstOrDefault(x => x.Id == shipTypeId);
-    
-                if(entityItem != null)
+
+                if (entityItem != null)
                 {
-                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
-                     return entityItem;
+                    _logger.LogInformation("{entityName} found in cache", entityItem.Name);
+                    return entityItem;
                 }
-              }
-    
-              // Get ship from API
-              Models.DTO.EveAPI.Universe.Type? ship = await _eveApiService.UniverseServices.GetType(shipTypeId);
-              if(ship == null)
-              {
+            }
+
+            // Get ship from API
+            Models.DTO.EveAPI.Universe.Type? ship = await _eveApiService.UniverseServices.GetType(shipTypeId);
+            if (ship == null)
+            {
                 _logger.LogWarning("Ship {shipTypeId} not found", shipTypeId);
                 return null;
-              }
-    
-              //put on cache and return return entity
-              ShipEntity entity = new ShipEntity(shipTypeId,ship);
-              if(await SetEntityCahing(entity))
-              {
+            }
+
+            //put on cache and return return entity
+            ShipEntity entity = new ShipEntity(shipTypeId, ship);
+            if (await SetEntityCahing(entity))
+            {
                 return entity;
-              }
-              else
-              {
+            }
+            else
+            {
                 _logger.LogError("Error while saving entity {entity} on cache", entity.Name);
                 return null;
-              }
-       }
-       catch (Exception e)
-       {
-           _logger.LogError(e, "Error while getting ship {shipTypeId}", shipTypeId);
-           return null;
-       }
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while getting ship {shipTypeId}", shipTypeId);
+            return null;
+        }
     }
 
     public async Task<SystemEntity?> GetSystem(int systemId)
@@ -272,11 +272,11 @@ public class EveMapperEntity : IEveMapperEntity
         {
 
             IEnumerable<SystemEntity>? results = await GetEntitiesFromCache<SystemEntity>();
-            if(results != null)
+            if (results != null)
             {
                 SystemEntity? entityItem = results.FirstOrDefault(x => x.Id == systemId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -285,15 +285,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get system from API
             ESISolarSystem? system = await _eveApiService.UniverseServices.GetSystem(systemId);
-            if(system == null)
+            if (system == null)
             {
                 _logger.LogWarning("System {systemId} not found", systemId);
                 return null;
             }
 
             //put on cache and return return entity
-            SystemEntity entity = new SystemEntity(systemId,system);
-            if(await SetEntityCahing(entity))
+            SystemEntity entity = new SystemEntity(systemId, system);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -315,11 +315,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<ConstellationEntity>? results = await GetEntitiesFromCache<ConstellationEntity>();
-            if(results != null)
+            if (results != null)
             {
                 ConstellationEntity? entityItem = results.FirstOrDefault(x => x.Id == constellationId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -328,15 +328,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get constellation from API
             Constellation? constellation = await _eveApiService.UniverseServices.GetConstellation(constellationId);
-            if(constellation == null)
+            if (constellation == null)
             {
                 _logger.LogWarning("Constellation {constellationId} not found", constellationId);
                 return null;
             }
 
             //put on cache and return return entity
-            ConstellationEntity entity = new ConstellationEntity(constellationId,constellation);
-            if(await SetEntityCahing(entity))
+            ConstellationEntity entity = new ConstellationEntity(constellationId, constellation);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -358,11 +358,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<RegionEntity>? results = await GetEntitiesFromCache<RegionEntity>();
-            if(results != null)
+            if (results != null)
             {
                 RegionEntity? entityItem = results.FirstOrDefault(x => x.Id == regionId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -371,15 +371,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get region from API
             Region? region = await _eveApiService.UniverseServices.GetRegion(regionId);
-            if(region == null)
+            if (region == null)
             {
                 _logger.LogWarning("Region {regionId} not found", regionId);
                 return null;
             }
 
             //put on cache and return return entity
-            RegionEntity entity = new RegionEntity(regionId,region);
-            if(await SetEntityCahing(entity))
+            RegionEntity entity = new RegionEntity(regionId, region);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -395,17 +395,17 @@ public class EveMapperEntity : IEveMapperEntity
             return null;
         }
     }
-    
+
     public async Task<StargateEntity?> GetStargate(int stargateId)
     {
         try
         {
             IEnumerable<StargateEntity>? results = await GetEntitiesFromCache<StargateEntity>();
-            if(results != null)
+            if (results != null)
             {
                 StargateEntity? entityItem = results.FirstOrDefault(x => x.Id == stargateId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -414,15 +414,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get stargate from API
             Stargate? stargate = await _eveApiService.UniverseServices.GetStargate(stargateId);
-            if(stargate == null)
+            if (stargate == null)
             {
                 _logger.LogWarning("Stargate {stargateId} not found", stargateId);
                 return null;
             }
 
             //put on cache and return return entity
-            StargateEntity entity = new StargateEntity(stargateId,stargate);
-            if(await SetEntityCahing(entity))
+            StargateEntity entity = new StargateEntity(stargateId, stargate);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -444,11 +444,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<GroupEntity>? results = await GetEntitiesFromCache<GroupEntity>();
-            if(results != null)
+            if (results != null)
             {
                 GroupEntity? entityItem = results.FirstOrDefault(x => x.Id == groupId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -457,15 +457,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get group from API
             Group? group = await _eveApiService.UniverseServices.GetGroup(groupId);
-            if(group == null)
+            if (group == null)
             {
                 _logger.LogWarning("Group {groupId} not found", groupId);
                 return null;
             }
 
             //put on cache and return return entity
-            GroupEntity entity = new GroupEntity(groupId,group);
-            if(await SetEntityCahing(entity))
+            GroupEntity entity = new GroupEntity(groupId, group);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -487,11 +487,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<WHEntity>? results = await GetEntitiesFromCache<WHEntity>();
-            if(results != null)
+            if (results != null)
             {
                 WHEntity? entityItem = results.FirstOrDefault(x => x.Id == wormholeTypeId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -500,15 +500,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get wormhole from API
             Models.DTO.EveAPI.Universe.Type? wormhole = await _eveApiService.UniverseServices.GetType(wormholeTypeId);
-            if(wormhole == null)
+            if (wormhole == null)
             {
                 _logger.LogWarning("Wormhole {wormholeTypeId} not found", wormholeTypeId);
                 return null;
             }
 
             //put on cache and return return entity
-            WHEntity entity = new WHEntity(wormholeTypeId,wormhole);
-            if(await SetEntityCahing(entity))
+            WHEntity entity = new WHEntity(wormholeTypeId, wormhole);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }
@@ -530,11 +530,11 @@ public class EveMapperEntity : IEveMapperEntity
         try
         {
             IEnumerable<SunEntity>? results = await GetEntitiesFromCache<SunEntity>();
-            if(results != null)
+            if (results != null)
             {
                 SunEntity? entityItem = results.FirstOrDefault(x => x.Id == sunTypeId);
 
-                if(entityItem != null)
+                if (entityItem != null)
                 {
                     _logger.LogInformation("{entityName} found in cache", entityItem.Name);
                     return entityItem;
@@ -543,15 +543,15 @@ public class EveMapperEntity : IEveMapperEntity
 
             // Get sun from API
             Models.DTO.EveAPI.Universe.Type? sun = await _eveApiService.UniverseServices.GetType(sunTypeId);
-            if(sun == null)
+            if (sun == null)
             {
                 _logger.LogWarning("Sun {sunTypeId} not found", sunTypeId);
                 return null;
             }
 
             //put on cache and return return entity
-            SunEntity entity = new SunEntity(sunTypeId,sun);
-            if(await SetEntityCahing(entity))
+            SunEntity entity = new SunEntity(sunTypeId, sun);
+            if (await SetEntityCahing(entity))
             {
                 return entity;
             }

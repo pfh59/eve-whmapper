@@ -3,7 +3,7 @@ using WHMapper.Services.EveAPI;
 
 namespace WHMapper;
 
-public class RouteServices : AEveApiServices,IRouteServices
+public class RouteServices : AEveApiServices, IRouteServices
 {
     public RouteServices(HttpClient httpClient) : base(httpClient)
     {
@@ -11,12 +11,12 @@ public class RouteServices : AEveApiServices,IRouteServices
 
     public async Task<int[]?> GetRoute(int from, int to)
     {
-        return await GetRoute(from, to, null,null);
+        return await GetRoute(from, to, null, null);
     }
 
     public async Task<int[]?> GetRoute(int from, int to, int[]? avoid)
     {
-        return await GetRoute(from, to, avoid,null);
+        return await GetRoute(from, to, avoid, null);
     }
 
     public async Task<int[]?> GetRoute(int from, int to, int[][]? connections)
@@ -33,15 +33,15 @@ public class RouteServices : AEveApiServices,IRouteServices
     {
         if (avoid != null && connections != null)
         {
-            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&avoid={2}&connections={3}&flag={4}", from, to, string.Join(",", avoid), string.Join(",", connections.Select(x=>string.Join("|",x))),routeType.ToString().ToLower()));
+            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&avoid={2}&connections={3}&flag={4}", from, to, string.Join(",", avoid), string.Join(",", connections.Select(x => string.Join("|", x))), routeType.ToString().ToLower()));
         }
         else if (avoid != null)
         {
-            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&avoid={2}&flag={3}", from, to, string.Join(",", avoid),routeType.ToString().ToLower()));
+            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&avoid={2}&flag={3}", from, to, string.Join(",", avoid), routeType.ToString().ToLower()));
         }
         else if (connections != null)
         {
-            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&connections={2}&flag={3}", from, to, string.Join(",", connections.Select(x=>string.Join("|",x))), routeType.ToString().ToLower()));
+            return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&connections={2}&flag={3}", from, to, string.Join(",", connections.Select(x => string.Join("|", x))), routeType.ToString().ToLower()));
         }
         else
             return await base.Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&flag={2}", from, to, routeType.ToString().ToLower()));

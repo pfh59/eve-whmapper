@@ -6,14 +6,14 @@ using WHMapper.Services.EveAPI.Character;
 namespace WHMapper.Services.EveMapper
 {
     public class EveMapperAccessHelper : IEveMapperAccessHelper
-	{
-		private readonly IWHAccessRepository _accessRepo;
+    {
+        private readonly IWHAccessRepository _accessRepo;
         private readonly IWHAdminRepository _adminRepo;
         private readonly ICharacterServices _characterServices;
 
         public EveMapperAccessHelper(IWHAccessRepository accessRepo, IWHAdminRepository adminRepo, ICharacterServices eveCharacterServices)
-		{
-			_accessRepo = accessRepo;
+        {
+            _accessRepo = accessRepo;
             _adminRepo = adminRepo;
             _characterServices = eveCharacterServices;
         }
@@ -31,7 +31,7 @@ namespace WHMapper.Services.EveMapper
                     return false;
 
                 var res = userAccesses?.FirstOrDefault(x => (x.EveEntityId == eveCharacterId && x.EveEntity == WHAccessEntity.Character) || (x.EveEntityId == character.CorporationId && x.EveEntity == WHAccessEntity.Corporation) || (x.EveEntityId == character.AllianceId && x.EveEntity == WHAccessEntity.Alliance));
-            
+
                 if (res == null)
                     return false;//todo check alliance and corpo and add db methodes
 
@@ -48,7 +48,7 @@ namespace WHMapper.Services.EveMapper
                 return true;
             else
             {
-                var res = adminAccesses?.FirstOrDefault(x=> x.EveCharacterId==eveCharacterId);
+                var res = adminAccesses?.FirstOrDefault(x => x.EveCharacterId == eveCharacterId);
 
                 if (res == null)
                     return false;

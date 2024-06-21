@@ -22,7 +22,7 @@ namespace WHMapper.Services.EveJwkExtensions
             TokenValidationParameters tokenValidationParams = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidAudience= EveOnlineJwkDefaults.ValideAudience,
+                ValidAudience = EveOnlineJwkDefaults.ValideAudience,
                 ValidateIssuer = true,
                 ValidIssuer = EveOnlineJwkDefaults.ValideIssuer,
                 ValidateIssuerSigningKey = true,
@@ -32,7 +32,7 @@ namespace WHMapper.Services.EveJwkExtensions
             };
 
 
-            return builder.AddJwtBearer(EveOnlineJwkDefaults.AuthenticationScheme,options =>
+            return builder.AddJwtBearer(EveOnlineJwkDefaults.AuthenticationScheme, options =>
             {
                 options.RequireHttpsMetadata = true;
                 options.SaveToken = true;
@@ -58,7 +58,7 @@ namespace WHMapper.Services.EveJwkExtensions
 
                 };
             });
-    }
+        }
     }
 }
 

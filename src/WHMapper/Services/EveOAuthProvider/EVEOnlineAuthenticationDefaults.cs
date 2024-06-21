@@ -43,5 +43,5 @@
 
         public const string Scopes = "urn:eveonline:scopes";
     }
-    
+
 }

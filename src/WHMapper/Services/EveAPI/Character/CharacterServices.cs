@@ -2,9 +2,9 @@
 {
     public class CharacterServices : AEveApiServices, ICharacterServices
     {
-		public CharacterServices(HttpClient httpClient) : base(httpClient)
-		{
-		}
+        public CharacterServices(HttpClient httpClient) : base(httpClient)
+        {
+        }
 
         public async Task<Models.DTO.EveAPI.Character.Character?> GetCharacter(int character_id)
         {

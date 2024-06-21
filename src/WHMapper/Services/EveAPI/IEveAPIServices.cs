@@ -16,11 +16,11 @@ namespace WHMapper.Services.EveAPI
         IUniverseServices UniverseServices { get; }
         IUserInterfaceServices UserInterfaceServices { get; }
         IAllianceServices AllianceServices { get; }
-        ICorporationServices CorporationServices {get;}
+        ICorporationServices CorporationServices { get; }
         ICharacterServices CharacterServices { get; }
         ISearchServices SearchServices { get; }
         IDogmaServices DogmaServices { get; }
         IRouteServices RouteServices { get; }
-        IAssetsServices AssetsServices { get;}
+        IAssetsServices AssetsServices { get; }
     }
 }

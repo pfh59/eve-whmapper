@@ -34,7 +34,7 @@ namespace WHMapper.Services.EveAPI
             _tokenProvider = tokenProvider;
         }
 
-        public AEveApiServices(HttpClient httpClient) : this(httpClient,null)
+        public AEveApiServices(HttpClient httpClient) : this(httpClient, null)
         {
         }
 
@@ -53,10 +53,10 @@ namespace WHMapper.Services.EveAPI
 
             //Serialize post body data
             HttpContent? postBody = null;
-         
+
             if (body != null)
                 postBody = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-            
+
 
             HttpResponseMessage? response = null;
             switch (method)
@@ -71,7 +71,7 @@ namespace WHMapper.Services.EveAPI
 
                 case RequestMethod.Post:
                     response = await _httpClient.PostAsync(uri, postBody).ConfigureAwait(false);
-           
+
                     break;
 
                 case RequestMethod.Put:
@@ -79,18 +79,18 @@ namespace WHMapper.Services.EveAPI
                     break;
             }
 
-           
+
 
             if (response != null && response.StatusCode != HttpStatusCode.NoContent && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created || response.StatusCode == HttpStatusCode.Accepted))
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-                if(string.IsNullOrEmpty(result))
+                if (string.IsNullOrEmpty(result))
                     return default(T);
                 else
                     return JsonSerializer.Deserialize<T>(result);
             }
             else
-               return default(T);
+                return default(T);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace WHMapper.Services.EveOAuthProvider
 {
     public static class EVEOnlineAuthenticationExtensions
     {
-        
+
         public static AuthenticationBuilder AddEVEOnline([NotNull] this AuthenticationBuilder builder)
         {
             return builder.AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, options => { });
@@ -20,7 +20,7 @@ namespace WHMapper.Services.EveOAuthProvider
             return builder.AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, configuration);
         }
 
-        
+
         public static AuthenticationBuilder AddEVEOnline(
     [NotNull] this AuthenticationBuilder builder,
     [NotNull] string scheme,
@@ -29,7 +29,7 @@ namespace WHMapper.Services.EveOAuthProvider
             return builder.AddEVEOnline(scheme, EVEOnlineAuthenticationDefaults.AuthenticationScheme, configuration);
         }
 
-        
+
         public static AuthenticationBuilder AddEVEOnline(
     [NotNull] this AuthenticationBuilder builder,
     [NotNull] string scheme,

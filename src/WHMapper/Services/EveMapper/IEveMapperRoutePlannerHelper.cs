@@ -12,7 +12,7 @@ public interface IEveMapperRoutePlannerHelper
     /// <param name="fromSolarSystemId"></param>
     /// <param name="extraConnections"></param>
     /// <returns></returns>
-    Task<IEnumerable<EveRoute>?> GetRoutesForAll(int fromSolarSystemId,RouteType routeType,IEnumerable<RouteConnection>? extraConnections);
+    Task<IEnumerable<EveRoute>?> GetRoutesForAll(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections);
 
     /// <summary>
     /// Get my favorites routes from selected system
@@ -20,9 +20,9 @@ public interface IEveMapperRoutePlannerHelper
     /// <param name="fromSolarSystemId"></param>
     /// <param name="extraConnections"></param>
     /// <returns></returns>
-    Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId,RouteType routeType,IEnumerable<RouteConnection>? extraConnections);
-    
-    Task<WHRoute?> AddRoute(int soloarSystemId,bool global);
-   
+    Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections);
+
+    Task<WHRoute?> AddRoute(int soloarSystemId, bool global);
+
     Task<bool> DeleteRoute(int routeId);
 }

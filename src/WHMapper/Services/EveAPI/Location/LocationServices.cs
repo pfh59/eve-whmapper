@@ -4,7 +4,7 @@ using WHMapper.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Services.EveAPI.Location
 {
-    internal class LocationServices : AEveApiServices,ILocationServices
+    internal class LocationServices : AEveApiServices, ILocationServices
     {
         private readonly IEveUserInfosServices? _userService = null!;
 
@@ -34,6 +34,6 @@ namespace WHMapper.Services.EveAPI.Location
             }
             return null;
         }
-        
+
     }
 }

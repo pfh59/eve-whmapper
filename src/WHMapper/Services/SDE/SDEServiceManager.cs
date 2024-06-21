@@ -23,9 +23,9 @@ namespace WHMapper.Services.SDE
         private readonly ISDEDataSupplier _dataSupplier;
         private readonly ICacheService _cacheService;
 
-        public SDEServiceManager(ILogger<SDEServiceManager> logger, 
-            IFileSystem fileSystem, 
-            ISDEDataSupplier dataSupplier, 
+        public SDEServiceManager(ILogger<SDEServiceManager> logger,
+            IFileSystem fileSystem,
+            ISDEDataSupplier dataSupplier,
             ICacheService cacheService)
         {
             _logger = logger;

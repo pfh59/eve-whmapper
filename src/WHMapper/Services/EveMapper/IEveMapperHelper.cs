@@ -8,12 +8,12 @@ using WHMapper.Models.DTO.EveMapper.EveEntity;
 namespace WHMapper.Services.EveMapper
 {
     public interface IEveMapperHelper
-	{
+    {
         ReadOnlyCollection<WormholeType> WormholeTypes { get; }
         Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh);
         bool IsWorhmole(string systemName);
         Task<EveSystemType> GetWHClass(SystemEntity whSystem);
-        Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName,float securityStatus);
+        Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float securityStatus);
         Task<bool> IsRouteViaWH(SystemEntity src, SystemEntity dst);
     }
 }

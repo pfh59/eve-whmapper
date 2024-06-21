@@ -18,7 +18,8 @@
                 var checksum = _httpClient.GetStringAsync("checksum").Result;
                 _logger.LogInformation($"Retrieved checksum: {checksum}");
                 return checksum;
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogWarning($"Couldn't retrieve checksum: {ex}");
             }

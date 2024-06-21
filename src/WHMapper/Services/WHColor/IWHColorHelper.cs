@@ -4,7 +4,7 @@ using WHMapper.Models.DTO.EveMapper.Enums;
 namespace WHMapper.Services.WHColor
 {
     public interface IWHColorHelper
-    { 
+    {
         const string DEFAULT_COLOR = "grey";
 
         string GetSecurityStatusColor(float secStatus);

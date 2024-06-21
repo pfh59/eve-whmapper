@@ -2,7 +2,7 @@
 
 public class PasteServices : IPasteServices
 {
-    public event Func<string?, Task> Pasted=null!;
+    public event Func<string?, Task> Pasted = null!;
 
     public Task Paste(string? value)
     {

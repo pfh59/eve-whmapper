@@ -18,7 +18,7 @@ namespace WHMapper.Services.EveAPI.Search
             if (_userService != null)
             {
                 int characterId = await _userService.GetCharactedID();
-                return await base.Execute<SearchAllianceResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=alliance&strict={2}", characterId,searchValue,isStrict));
+                return await base.Execute<SearchAllianceResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=alliance&strict={2}", characterId, searchValue, isStrict));
 
             }
             return null;
