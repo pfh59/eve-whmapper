@@ -2,7 +2,7 @@
 using WHMapper.Models.DTO.EveAPI.Location;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 
-namespace WHMapper.Services.EveAPI.Location
+namespace WHMapper.Services.EveAPI.Locations
 {
     internal class LocationServices : EveApiServiceBase, ILocationServices
     {

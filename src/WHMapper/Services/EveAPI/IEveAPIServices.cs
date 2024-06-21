@@ -3,7 +3,7 @@ using WHMapper.Services.EveAPI.Assets;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveAPI.Corporations;
 using WHMapper.Services.EveAPI.Dogma;
-using WHMapper.Services.EveAPI.Location;
+using WHMapper.Services.EveAPI.Locations;
 using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;
