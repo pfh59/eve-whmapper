@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Models.Db;
 using WHMapper.Services.WHSignature;
-using WHMapper.Models.Custom;
-using System.Security.Cryptography;
-using MudBlazor;
 using Microsoft.AspNetCore.Components;
 using WHMapper.Repositories.WHSignatures;
-using WHMapper.Repositories.WHSystems;
-using System.Linq;
 
 namespace WHMapper.Services.WHSignatures
 {
@@ -101,101 +95,76 @@ namespace WHMapper.Services.WHSignatures
 
         }
 
-        public async Task<bool> ImportScanResult(string scanUser,int currentSystemScannedId,string? scanResult,bool lazyDeleted)
+        public async Task<bool> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted)
         {
-            
-            bool sigUpdated = false;
-            bool sigAdded = false;
-
             if (!await ValidateScanResult(scanResult))
                 throw new Exception("Bad signatures format");
 
-
-            var sigs = await ParseScanResult(scanUser, currentSystemScannedId,scanResult);
-
-            if (sigs != null && sigs.Count() > 0)
-            {
-
-                if (currentSystemScannedId >0)
-                {
-                    var currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
-                    if (currentSystemSigs == null)
-                        return false;//to do lod
-
-                    if (lazyDeleted)
-                    {
-                        var sigsToDeleted = currentSystemSigs.ExceptBy(sigs.Select(x => x.Name), y => y.Name);
-                        if (sigsToDeleted != null && sigsToDeleted.Count() > 0)
-                        {
-                            foreach (var sig in sigsToDeleted)
-                            {
-                                await _dbWHSignatures.DeleteById(sig.Id);
-                            }
-
-                            currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
-                            if (currentSystemSigs == null)
-                                return false;
-                        }
-
-                    }
-                    var sigsToUpdate = currentSystemSigs.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
-                    if (sigsToUpdate != null && sigsToUpdate.Count() > 0)
-                    {
-                        foreach (var sig in sigsToUpdate)
-                        {
-                            var sigParse = sigs.Where(x => x.Name == sig.Name).FirstOrDefault();
-                            if (sigParse != null)
-                            {
-                                if (sigParse.Group != WHSignatureGroup.Unknow)
-                                {
-
-                                    sig.Group = sigParse.Group;
-                                    if (String.IsNullOrEmpty(sig.Type))
-                                        sig.Type = sigParse.Type;
-
-                                }
-
-                                sig.Updated = sigParse.Updated;
-                                sig.UpdatedBy = sigParse.UpdatedBy;
-                            }
-                            else
-                            {
-                                //todo add log
-                            }
-                        }
-
-                        var resUpdate = await _dbWHSignatures.Update(sigsToUpdate);
-
-                        if (resUpdate != null && resUpdate.Count() == sigsToUpdate.Count())
-                            sigUpdated = true;
-                        else
-                            sigUpdated = false;
-                    }
-
-
-                    var sigsToAdd = sigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
-                    if (sigsToAdd != null && sigsToAdd.Count() > 0)
-                    {
-                        //var resAdd = await _dbWHSystem.AddWHSignatures(currentSystemScannedId, sigsToAdd);
-
-                        var resAdd = await _dbWHSignatures.Create(sigsToAdd);
-                        if (resAdd != null && resAdd.Count() == sigsToAdd.Count())
-                            sigAdded = true;
-                        else
-                            sigAdded = false;
-                    }
-                    await Task.Delay(500);
-                    return (sigUpdated || sigAdded);
-                }
-                else
-                    throw new Exception("Current System is nullable");
-            }
-            else
+            var sigs = await ParseScanResult(scanUser, currentSystemScannedId, scanResult);
+            if (sigs == null || !sigs.Any())
                 throw new Exception("Bad signature parsing parameters");
+
+            if (currentSystemScannedId <= 0)
+                throw new Exception("Current System is nullable");
+
+            var currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
+            if (currentSystemSigs == null) return false;
+
+            bool sigUpdated = false, sigAdded = false;
+
+            if (lazyDeleted)
+            {
+                await DeleteSignatures(currentSystemSigs, sigs);
+                currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
+                if (currentSystemSigs == null) return false;
+            }
+
+            sigUpdated = await UpdateSignatures(currentSystemSigs, sigs);
+            sigAdded = await AddNewSignatures(currentSystemSigs, sigs, currentSystemScannedId);
+
+            await Task.Delay(500); // Consider removing or justifying this delay.
+            return sigUpdated || sigAdded;
+        }
+
+        private async Task<bool> UpdateSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs)
+        {
+            var sigsToUpdate = currentSystemSigs.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
+            if (!sigsToUpdate.Any()) return false;
+
+            foreach (var sig in sigsToUpdate)
+            {
+                var sigParse = sigs.FirstOrDefault(x => x.Name == sig.Name);
+                if (sigParse != null && sigParse.Group != WHSignatureGroup.Unknow)
+                {
+                    sig.Group = sigParse.Group;
+                    sig.Type = String.IsNullOrEmpty(sig.Type) ? sigParse.Type : sig.Type;
+                    sig.Updated = sigParse.Updated;
+                    sig.UpdatedBy = sigParse.UpdatedBy;
+                }
+            }
+
+            var resUpdate = await _dbWHSignatures.Update(sigsToUpdate);
+                return resUpdate != null && resUpdate.Count() == sigsToUpdate.Count();
+        }
+
+        private async Task<bool> AddNewSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs, int currentSystemScannedId)
+        {
+            var sigsToAdd = sigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
+            if (!sigsToAdd.Any()) return false;
+
+            var resAdd = await _dbWHSignatures.Create(sigsToAdd);
+            return resAdd != null && resAdd.Count() == sigsToAdd.Count();
+        }
+
+        private async Task DeleteSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs)
+        {
+            var sigsToDeleted = currentSystemSigs.ExceptBy(sigs.Select(x => x.Name), y => y.Name);
+            foreach (var sig in sigsToDeleted)
+            {
+                await _dbWHSignatures.DeleteById(sig.Id);
+            }
         }
 
 
     }
-
 }
-
