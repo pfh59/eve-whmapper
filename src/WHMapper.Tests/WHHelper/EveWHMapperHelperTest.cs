@@ -142,16 +142,16 @@ public class EveWHMapperHelperTest
     [Fact, Priority(1)]
     public Task Is_Wormhole()
     {
-        bool not_wh_result = _whEveMapper.IsWorhmole(SOLAR_SYSTEM_JITA_NAME);
+        bool not_wh_result = _whEveMapper.IsWormhole(SOLAR_SYSTEM_JITA_NAME);
         Assert.False(not_wh_result);
 
-        bool is_wh_result = _whEveMapper.IsWorhmole(SOLAR_SYSTEM_WH_NAME);
+        bool is_wh_result = _whEveMapper.IsWormhole(SOLAR_SYSTEM_WH_NAME);
         Assert.True(is_wh_result);
 
-        bool bad_result = _whEveMapper.IsWorhmole("BAD_NAME");
+        bool bad_result = _whEveMapper.IsWormhole("BAD_NAME");
         Assert.False(bad_result);
 
-        bool bad_empty_result = _whEveMapper.IsWorhmole(string.Empty);
+        bool bad_empty_result = _whEveMapper.IsWormhole(string.Empty);
         Assert.False(bad_empty_result);
 
         return Task.CompletedTask;
