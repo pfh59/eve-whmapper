@@ -212,67 +212,32 @@ namespace WHMapper.Services.SDE
                 }
 
                 var searchPaths = new[] {
-                    Path.GetFullPath(SDE_WORMHOLE_TARGET_DIRECTORY),
-                    Path.GetFullPath(SDE_EVE_TARGET_DIRECTORY)
+                    Path.Combine(SDE_WORMHOLE_TARGET_DIRECTORY),
+                    Path.Combine(SDE_EVE_TARGET_DIRECTORY)
                 };
 
-                var collectionOfFiles = new List<string>();
-                foreach (var path in searchPaths)
-                {
-                    var result = _fileSystem.Directory.GetFiles(path, "solarsystem.yaml", SearchOption.AllDirectories);
-                    if (result.Length != 0)
-                    {
-                        collectionOfFiles.AddRange(result);
-                    }
-                }
+                var collectionOfFiles = searchPaths.SelectMany(path => 
+                    _fileSystem.Directory.EnumerateFiles(path, "solarsystem.yaml", SearchOption.AllDirectories))
+                    .ToList();
 
-                if (collectionOfFiles.Count == 0)
+                if (!collectionOfFiles.Any())
                 {
-                    _logger.LogError("Impossible to rebuild solar system cache, no files were found: probably a bad SDE extract.");
+                    _logger.LogError("No SDE files found for import.");
                     return false;
                 }
 
-                var collectionOfSolarSystems = new BlockingCollection<SDESolarSystem>();
-                Parallel.ForEach(collectionOfFiles, (file) =>
+                var collectionOfSolarSystems = new ConcurrentBag<SDESolarSystem>();
+                Parallel.ForEach(collectionOfFiles, file =>
                 {
-                    var deserializer = new DeserializerBuilder()
-                        .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                        .IgnoreUnmatchedProperties()
-                        .Build();
-
-                    using (var text_reader = File.OpenText(file))
+                    var solarSystem = DeserializeSDESolarSystem(file);
+                    if (solarSystem != null)
                     {
-                        var solarSystem = deserializer.Deserialize<SDESolarSystem>(text_reader);
-                        var systemName = Path.GetFileName(Path.GetDirectoryName(file));
-                        solarSystem.Name = (string.IsNullOrEmpty(systemName)) ? "Unknown" : systemName;
-
                         collectionOfSolarSystems.Add(solarSystem);
                     }
                 });
 
-                var collectionOfJumps = new List<SolarSystemJump>();
-                //after all sde system loading build SolarSystemJumps
-                foreach (var system in collectionOfSolarSystems)
-                {
-                    var JumpSystemList = new List<SolarSystem>();
+                var collectionOfJumps = collectionOfSolarSystems.AsParallel().Select(system => BuildSolarSystemJump(system, collectionOfSolarSystems)).ToList();
 
-                    if (system.Stargates != null || !system.Stargates!.IsEmpty)
-                    {
-                        foreach (var stargate in system.Stargates.Values)
-                        {
-                            var s = collectionOfSolarSystems.FirstOrDefault(x => x.Stargates.ContainsKey(stargate.Destination));
-                            if (s != null)
-                            {
-                                JumpSystemList.Add(new SolarSystem(s.SolarSystemID, s.Security));
-                            }
-                        }
-                    }
-
-                    var result = new SolarSystemJump(system.SolarSystemID, system.Security, JumpSystemList);
-                    collectionOfJumps.Add(result);
-                };
-
-                //clean old cache and add new one
                 await ClearCache();
                 await _cacheService.Set(SDEConstants.REDIS_SDE_SOLAR_SYSTEMS_KEY, collectionOfSolarSystems);
                 await _cacheService.Set(SDEConstants.REDIS_SOLAR_SYSTEM_JUMPS_KEY, collectionOfJumps);
@@ -281,9 +246,44 @@ namespace WHMapper.Services.SDE
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Imported SolarSystemJumpList and SolarSystemList");
+                _logger.LogError(ex, "Failed to build cache from SDE files.");
                 return false;
             }
+        }
+
+        private SDESolarSystem? DeserializeSDESolarSystem(string filePath)
+        {
+            try
+            {
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .IgnoreUnmatchedProperties()
+                    .Build();
+
+                using (var reader = File.OpenText(filePath))
+                {
+                    var solarSystem = deserializer.Deserialize<SDESolarSystem>(reader);
+                    var systemName = Path.GetFileName(Path.GetDirectoryName(filePath));
+                    solarSystem.Name = string.IsNullOrEmpty(systemName) ? "Unknown" : systemName;
+                    return solarSystem;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deserializing SDE solar system file: {filePath}");
+                return null;
+            }
+        }
+
+        private SolarSystemJump BuildSolarSystemJump(SDESolarSystem system, IEnumerable<SDESolarSystem> allSystems)
+        {
+                var jumpSystemList = system.Stargates?.Values
+                    .Select(stargate => allSystems.FirstOrDefault(s => s.Stargates.ContainsKey(stargate.Destination)))
+                    .Where(s => s != null)
+                    .Select(s => new SolarSystem(s!.SolarSystemID, s.Security))
+                    .ToList() ?? new List<SolarSystem>();
+
+                return new SolarSystemJump(system.SolarSystemID, system.Security, jumpSystemList);
         }
     }
 }
