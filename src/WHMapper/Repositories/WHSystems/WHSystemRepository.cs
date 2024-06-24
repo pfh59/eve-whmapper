@@ -53,7 +53,7 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (context.DbWHSystems.Count() == 0)
+                if (await context.DbWHSystems.CountAsync() == 0)
                     return await context.DbWHSystems.ToListAsync();
                 else
                     return await context.DbWHSystems.OrderBy(x => x.Name)
@@ -64,7 +64,7 @@ namespace WHMapper.Repositories.WHSystems
 
         protected override async Task<WHSystem?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHSystems
                         .Include(x => x.WHSignatures)
@@ -98,7 +98,6 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                //return await context.DbWHSystems.Include(x => x.WHSignatures).FirstOrDefaultAsync(x => x.Name == name);
                 return await context.DbWHSystems.FirstOrDefaultAsync(x => x.Name == name);
             }
         }

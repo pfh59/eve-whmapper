@@ -40,6 +40,8 @@ namespace WHMapper.Pages.Mapper
     [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase, IAsyncDisposable
     {
+        private const float EPSILON = 0.0001f; // or some other small value
+
         protected BlazorDiagram _blazorDiagram  = null!;
         private WHMapper.Pages.Mapper.Signatures.Overview WHSignaturesView { get; set; } = null!;
         
@@ -876,7 +878,12 @@ namespace WHMapper.Pages.Mapper
                     var wh = await DbWHSystems.GetById(((EveSystemNodeModel)item).IdWH);
                     if (wh != null)
                     {
-                        if (wh.PosX != ((EveSystemNodeModel)item).Position.X || wh.PosY != ((EveSystemNodeModel)item).Position.Y)
+                        if (Math.Abs(wh.PosX - ((EveSystemNodeModel)item).Position.X) < EPSILON && Math.Abs(wh.PosY - ((EveSystemNodeModel)item).Position.Y) < EPSILON)
+                        {
+                            Logger.LogError("On Mouse pointer up, unable to find moved wormhole node db error");
+                            Snackbar?.Add("Unable to find moved wormhole node dd error", Severity.Error);
+                        }
+                        else
                         {
                             wh.PosX = ((EveSystemNodeModel)item).Position.X;
                             wh.PosY = ((EveSystemNodeModel)item).Position.Y;
@@ -895,12 +902,6 @@ namespace WHMapper.Pages.Mapper
                             }
                         }
                     }
-                    else
-                    {
-                        Logger.LogError("On Mouse pointer up, unable to find moved wormhole node db error");
-                        Snackbar?.Add("Unable to find moved wormhole node dd error", Severity.Error);
-                    }
-
                 }
                 catch (Exception ex)
                 {
@@ -1752,7 +1753,7 @@ namespace WHMapper.Pages.Mapper
             parameters.Add("MouseX", e.MouseEvent.ClientX);
             parameters.Add("MouseY", e.MouseEvent.ClientY);
 
-            var dialog = DialogService.Show<Add>("Search and Add System Dialog", parameters, disableBackdropClick);
+            var dialog = await DialogService.ShowAsync<Add>("Search and Add System Dialog", parameters, disableBackdropClick);
             DialogResult result = await dialog.Result;
 
             if (!result.Canceled && result.Data != null)
