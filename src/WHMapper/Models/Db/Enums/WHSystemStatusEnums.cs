@@ -1,7 +1,7 @@
 using System;
 namespace WHMapper.Models.Db.Enums
 {
-    public enum WHSystemStatusEnum
+    public enum WHSystemStatus
     {
         Unknown,
         Friendly,

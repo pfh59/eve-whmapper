@@ -503,7 +503,7 @@ namespace WHMapper.Pages.Mapper
 
                     });
 
-                    _hubConnection.On<string, int, int, WHSystemStatusEnum>("NotifyWormholeSystemStatusChanged", async (user, mapId, wormholeId, systemStatus) =>
+                    _hubConnection.On<string, int, int, WHSystemStatus>("NotifyWormholeSystemStatusChanged", async (user, mapId, wormholeId, systemStatus) =>
                     {
                         try
                         {
@@ -619,7 +619,7 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-        private async Task NotifyWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatusEnum systemStatus)
+        private async Task NotifyWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatus systemStatus)
         {
             if (_hubConnection is not null)
             {
@@ -1569,7 +1569,7 @@ namespace WHMapper.Pages.Mapper
             }
          
         }
-        private async Task<bool> SetSelectedSystemStatus(WHSystemStatusEnum systemStatus)
+        private async Task<bool> SetSelectedSystemStatus(WHSystemStatus systemStatus)
         {
             try
             {

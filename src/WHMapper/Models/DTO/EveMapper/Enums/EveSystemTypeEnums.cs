@@ -4,30 +4,27 @@ using System.Reflection;
 
 namespace WHMapper.Models.DTO.EveMapper.Enums
 {
-    public enum EveSystemType
+    public enum EveSystemType :int
     {
-        HS,
-        LS,
-        NS,
+        HS=7,
+        LS=8,
+        NS=9,
         [Description("T")]
-        Pochven,
-        C1,
-        C2,
-        C3,
-        C4,
-        C5,
-        C6,
-        C13,
-        C14,
-        C15,
-        C16,
-        C17,
-        C18,
-        Thera,
-        K162,
-        C123,
-        C45,
-        None
+        Pochven=25,
+        C1=1,
+        C2=2,
+        C3=3,
+        C4=4,
+        C5=5,
+        C6=6,
+        C13=13,
+        C14=14,
+        C15=15,
+        C16=16,
+        C17=17,
+        C18=18,
+        Thera=12,
+        None=-1
     }
 
     public static class EveSystemTypeExtensions

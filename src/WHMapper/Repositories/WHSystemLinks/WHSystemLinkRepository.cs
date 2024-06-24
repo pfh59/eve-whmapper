@@ -18,7 +18,7 @@ namespace WHMapper.Repositories.WHSystemLinks
 
         protected override async Task<WHSystemLink?> ACreate(WHSystemLink item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -29,7 +29,7 @@ namespace WHMapper.Repositories.WHSystemLinks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WHSystemLink From/To : {0}/{1}", item.IdWHSystemFrom,item.IdWHSystemTo));
+                    _logger.LogError(ex, "Impossible to create WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom,item.IdWHSystemTo);
                     return null;
                 }
             }
@@ -37,7 +37,7 @@ namespace WHMapper.Repositories.WHSystemLinks
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 int rowDeleted = await context.DbWHSystemLinks.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (rowDeleted > 0)
@@ -49,7 +49,7 @@ namespace WHMapper.Repositories.WHSystemLinks
 
         protected override async Task<IEnumerable<WHSystemLink>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 if (context.DbWHSystemLinks.Count() == 0)
                     return await context.DbWHSystemLinks.ToListAsync();
@@ -62,7 +62,7 @@ namespace WHMapper.Repositories.WHSystemLinks
 
         protected override async Task<WHSystemLink?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHSystemLinks.Include(x => x.JumpHistory).SingleOrDefaultAsync(x => x.Id == id);
             }
@@ -70,7 +70,7 @@ namespace WHMapper.Repositories.WHSystemLinks
 
         protected override async Task<WHSystemLink?> AUpdate(int id, WHSystemLink item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -83,7 +83,7 @@ namespace WHMapper.Repositories.WHSystemLinks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to update WHSystemLink From/To : {0}/{1}", item.IdWHSystemFrom,item.IdWHSystemTo));
+                    _logger.LogError(ex, "Impossible to update WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom,item.IdWHSystemTo);
                     return null;
                 }
             }

@@ -18,7 +18,8 @@ namespace WHMapper.Repositories.WHAccesses
 
         protected override async Task<WHAccess?> ACreate(WHAccess item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -29,7 +30,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WHAccess for : {0}",item.EveEntityName));
+                    _logger.LogError(ex, "Impossible to create WHAccess for : {EveEntityName}",item.EveEntityName);
                     return null;
                 }
 
@@ -38,7 +39,7 @@ namespace WHMapper.Repositories.WHAccesses
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
 
                 var deleteRow = await context.DbWHAccesses.Where(x => x.Id == id).ExecuteDeleteAsync();
@@ -51,7 +52,7 @@ namespace WHMapper.Repositories.WHAccesses
 
         protected override async Task<IEnumerable<WHAccess>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHAccesses.ToListAsync();
             }
@@ -59,7 +60,7 @@ namespace WHMapper.Repositories.WHAccesses
 
         protected override async Task<WHAccess?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHAccesses.FindAsync(id);
             }
@@ -67,7 +68,7 @@ namespace WHMapper.Repositories.WHAccesses
 
         protected override async Task<WHAccess?> AUpdate(int id, WHAccess item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -80,7 +81,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to update WHAccess : {0}", item.EveEntityName));
+                    _logger.LogError(ex, "Impossible to update WHAccess : {EveEntityName}", item.EveEntityName);
                     return null;
                 }
             }

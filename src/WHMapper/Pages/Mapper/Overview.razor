@@ -56,10 +56,10 @@
         
        <Item><MudIcon Icon="@Icons.Material.Filled.GraphicEq" Size="MudBlazor.Size.Small"/> System Status
             <SubMenu>
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Unknown))"> Unknown </Item>
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Occupied))"> Occupied </Item>    
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Hostile))"> Hostile </Item>     
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatusEnum.Friendly))"> Friendly </Item>
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Unknown))"> Unknown </Item>
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Occupied))"> Occupied </Item>    
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Hostile))"> Hostile </Item>     
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Friendly))"> Friendly </Item>
             </SubMenu>
        </Item>
 }

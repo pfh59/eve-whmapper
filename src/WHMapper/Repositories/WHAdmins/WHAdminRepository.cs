@@ -17,7 +17,7 @@ namespace WHMapper.Repositories.WHAdmins
 
         protected override async Task<WHAdmin?> ACreate(WHAdmin item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -28,7 +28,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WHAdmin access : {0}", item.EveCharacterName));
+                    _logger.LogError(ex,"Impossible to create WHAdmin access : {EveCharacterName}", item.EveCharacterName);
                     return null;
                 }
             }
@@ -37,7 +37,7 @@ namespace WHMapper.Repositories.WHAdmins
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 var deleteRow = await context.DbWHAdmins.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
@@ -49,7 +49,7 @@ namespace WHMapper.Repositories.WHAdmins
 
         protected override async Task<IEnumerable<WHAdmin>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHAdmins.ToListAsync();
             }
@@ -57,7 +57,7 @@ namespace WHMapper.Repositories.WHAdmins
 
         protected override async Task<WHAdmin?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHAdmins.FindAsync(id);
             }
@@ -66,7 +66,7 @@ namespace WHMapper.Repositories.WHAdmins
 
         protected override async Task<WHAdmin?> AUpdate(int id, WHAdmin item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -79,7 +79,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to update WHAdmin access : {0}", item.EveCharacterName));
+                    _logger.LogError(ex, "Impossible to update WHAdmin access : {EveCharacterName}", item.EveCharacterName);
                     return null;
                 }
             }

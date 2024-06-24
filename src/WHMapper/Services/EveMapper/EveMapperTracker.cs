@@ -75,41 +75,45 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
         return Task.CompletedTask;
     }
 
-     private async void OnTimedEvent(object? sender, ElapsedEventArgs e)
+    private async void OnTimedEvent(object? sender, ElapsedEventArgs e)
     {
         try
         {
             var state = await _authState.GetAuthenticationStateAsync();
-            if (!string.IsNullOrEmpty(state?.User?.Identity?.Name) && _eveAPIServices!=null && _eveAPIServices.LocationServices!=null && _eveMapperEntity!=null)
-            {
-                EveLocation? el = await _eveAPIServices.LocationServices.GetLocation();
-                Ship? ship = await _eveAPIServices.LocationServices.GetCurrentShip();
+            if (string.IsNullOrEmpty(state?.User?.Identity?.Name) || _eveAPIServices?.LocationServices == null || _eveMapperEntity == null) return;
 
-                if(ship!=null && (_currentShip == null || _currentShip.ShipItemId != ship.ShipItemId))
-                {
-                    _logger.LogInformation("Ship Changed");
-                    _currentShip = ship;
-                    _currentShiptInfos = await _eveMapperEntity.GetShip(ship.ShipTypeId);
-                 
-                    
-                    if(_currentShip!=null && _currentShiptInfos!=null)
-                        ShipChanged?.Invoke(_currentShip,_currentShiptInfos);
-                }
-
-                if (el != null && (_currentLocation == null || _currentLocation.SolarSystemId != el.SolarSystemId) )
-                {   
-                    _logger.LogInformation("System Changed");
-                    _currentLocation = el;
-                    _currentSolarSystem = await _eveMapperEntity.GetSystem(el.SolarSystemId);
-
-                    if(_currentSolarSystem!=null)
-                        SystemChanged?.Invoke(_currentSolarSystem);
-                }
-            }
+            await UpdateCurrentShip();
+            await UpdateCurrentLocation();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Track error");
         }
+    }
+
+    private async Task UpdateCurrentShip()
+    {
+        var ship = await _eveAPIServices.LocationServices.GetCurrentShip();
+        if (ship == null || _currentShip?.ShipItemId == ship.ShipItemId) return;
+
+        _logger.LogInformation("Ship Changed");
+        _currentShip = ship;
+        _currentShiptInfos = await _eveMapperEntity.GetShip(ship.ShipTypeId);
+
+        if (_currentShiptInfos != null)
+            ShipChanged?.Invoke(_currentShip, _currentShiptInfos);
+    }
+
+    private async Task UpdateCurrentLocation()
+    {
+        var el = await _eveAPIServices.LocationServices.GetLocation();
+        if (el == null || _currentLocation?.SolarSystemId == el.SolarSystemId) return;
+
+        _logger.LogInformation("System Changed");
+        _currentLocation = el;
+        _currentSolarSystem = await _eveMapperEntity.GetSystem(el.SolarSystemId);
+
+        if (_currentSolarSystem != null)
+            SystemChanged?.Invoke(_currentSolarSystem);
     }
 }

@@ -168,11 +168,11 @@ public class WHColorHelperTest
     [Fact]
     public void Get_Node_Status_Color()
     {
-        Assert.Equal(NODE_STATUS_FRIENDLY_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Friendly));
-        Assert.Equal(NODE_STATUS_OCCUPIED_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Occupied));
-        Assert.Equal(NODE_STATUS_HOSTILE_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Hostile));
-        Assert.Equal(NODE_STATUS_UNKNOWN_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatusEnum.Unknown));
-        Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetNodeStatusColor((WHSystemStatusEnum)28));
+        Assert.Equal(NODE_STATUS_FRIENDLY_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Friendly));
+        Assert.Equal(NODE_STATUS_OCCUPIED_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Occupied));
+        Assert.Equal(NODE_STATUS_HOSTILE_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Hostile));
+        Assert.Equal(NODE_STATUS_UNKNOWN_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Unknown));
+        Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetNodeStatusColor((WHSystemStatus)28));
     }
 }
 
