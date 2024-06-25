@@ -181,7 +181,7 @@ namespace WHMapper.Pages.Mapper.Administration
 
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-            var dialog = DialogService.Show<Delete>("Delete WHMapper Access", parameters, options);
+            var dialog = await DialogService.ShowAsync<Delete>("Delete WHMapper Access", parameters, options);
             DialogResult result = await dialog.Result;
 
             if (result!=null && !result.Canceled)
@@ -196,7 +196,7 @@ namespace WHMapper.Pages.Mapper.Administration
 
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-            var dialog = DialogService.Show<Delete>("Delete WHMapper Admin", parameters, options);
+            var dialog = await DialogService.ShowAsync<Delete>("Delete WHMapper Admin", parameters, options);
             DialogResult result = await dialog.Result;
 
             if (result != null && !result.Canceled)

@@ -24,7 +24,7 @@ namespace WHMapper.Repositories
         protected abstract Task<T?> AUpdate(U id, T item);
         protected abstract Task<bool> ADeleteById(U id);
 
-        public ADefaultRepository(ILogger logger,IDbContextFactory<C> dbContext)
+        protected ADefaultRepository(ILogger logger,IDbContextFactory<C> dbContext)
         {
             _logger = logger;
             _contextFactory = dbContext;

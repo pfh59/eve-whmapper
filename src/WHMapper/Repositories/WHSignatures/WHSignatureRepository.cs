@@ -20,7 +20,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         protected override async Task<WHSignature?> ACreate(WHSignature item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -31,7 +31,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WHSignature : {0}", item.Name));
+                    _logger.LogError(ex, "Impossible to create WHSignature : {Name}", item.Name);
                     return null;
                 }
             }
@@ -39,7 +39,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 int rowDeleted = await context.DbWHSignatures.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (rowDeleted > 0)
@@ -51,9 +51,9 @@ namespace WHMapper.Repositories.WHSignatures
 
         protected override async Task<IEnumerable<WHSignature>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (context.DbWHSignatures.Count() == 0)
+                if (!await context.DbWHSignatures.AnyAsync())
                     return await context.DbWHSignatures.ToListAsync();
                 else
                     return await context.DbWHSignatures.OrderBy(x => x.Id)
@@ -63,7 +63,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         protected override async Task<WHSignature?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHSignatures.SingleOrDefaultAsync(x => x.Id == id);;
             }
@@ -71,7 +71,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         protected override async Task<WHSignature?> AUpdate(int id, WHSignature item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -84,7 +84,7 @@ namespace WHMapper.Repositories.WHSignatures
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to update WHSignature : {0}", item.Name));
+                    _logger.LogError(ex, "Impossible to update WHSignature : {Name}", item.Name);
                     return null;
                 }
             }
@@ -92,7 +92,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         public async Task<WHSignature?> GetByName(string name)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHSignatures.FirstOrDefaultAsync(x => x.Name == name);
             }
@@ -101,7 +101,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         public async Task<IEnumerable<WHSignature?>?> Update(IEnumerable<WHSignature> whSignatures)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -125,7 +125,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         public async Task<IEnumerable<WHSignature>?> GetByWHId(int whid)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 if (context.DbWHSignatures.Count() == 0)
                     return await context.DbWHSignatures.ToListAsync();
@@ -139,7 +139,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         public async Task<bool> DeleteByWHId(int whid)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 int rowDeleted = await context.DbWHSignatures.Where(x => x.WHId == whid).ExecuteDeleteAsync();
                 if (rowDeleted > 0)
@@ -151,7 +151,7 @@ namespace WHMapper.Repositories.WHSignatures
 
         public async Task<IEnumerable<WHSignature?>?> Create(IEnumerable<WHSignature> whSignatures)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {

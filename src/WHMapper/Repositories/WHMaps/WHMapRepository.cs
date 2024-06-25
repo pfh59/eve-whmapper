@@ -19,7 +19,7 @@ namespace WHMapper.Repositories.WHMaps
 
         protected override async Task<WHMap?> ACreate(WHMap item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -30,7 +30,7 @@ namespace WHMapper.Repositories.WHMaps
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to create WHMap : {0}", item.Name));
+                    _logger.LogError(ex, "Impossible to create WHMap : {Name}", item.Name);
                     return null;
                 }
             }
@@ -39,7 +39,7 @@ namespace WHMapper.Repositories.WHMaps
 
         protected override async Task<bool> ADeleteById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 var deleteRow = await context.DbWHMaps.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
@@ -51,9 +51,9 @@ namespace WHMapper.Repositories.WHMaps
 
         protected override async Task<IEnumerable<WHMap>?> AGetAll()
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (context.DbWHMaps.Count() == 0)
+                if (!await context.DbWHMaps.AnyAsync())
                     return await context.DbWHMaps.OrderBy(x => x.Name).ToListAsync();
                 else
                     return await context.DbWHMaps
@@ -66,7 +66,7 @@ namespace WHMapper.Repositories.WHMaps
 
         protected override async Task<WHMap?> AGetById(int id)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHMaps
                             .Include(x => x.WHSystems)
@@ -78,7 +78,7 @@ namespace WHMapper.Repositories.WHMaps
 
         protected override async Task<WHMap?> AUpdate(int id, WHMap item)
         {
-            using (var context = _contextFactory.CreateDbContext())
+            using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 try
                 {
@@ -91,7 +91,7 @@ namespace WHMapper.Repositories.WHMaps
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, String.Format("Impossible to update WHMap : {0}", item.Name));
+                    _logger.LogError(ex, "Impossible to update WHMap : {Name}", item.Name);
                     return null;
                 }
             }

@@ -11,7 +11,7 @@ namespace WHMapper.Services.EveMapper
     {
         ReadOnlyCollection<WormholeType> WormholeTypes { get; }
         Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh);
-        bool IsWorhmole(string systemName);
+        bool IsWormhole(string systemName);
         Task<EveSystemType> GetWHClass(SystemEntity whSystem);
         Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float securityStatus);
         Task<bool> IsRouteViaWH(SystemEntity src, SystemEntity dst);

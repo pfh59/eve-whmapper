@@ -23,17 +23,16 @@ namespace WHMapper.Tests.Services;
 [Collection("C2-Services")]
 public class DbIntegrationTest
 {
-    private int EVE_CHARACTERE_ID = 2113720458;
-    private int EVE_CHARACTERE_ID2 = 2113932209;
-    private string EVE_CHARACTERE_NAME = "TOTO";
-    private string EVE_CHARACTERE_NAME2 = "TITI";
+    private const int EVE_CHARACTERE_ID = 2113720458;
+    private const int EVE_CHARACTERE_ID2 = 2113932209;
+    private const string EVE_CHARACTERE_NAME = "TOTO";
+    private const string EVE_CHARACTERE_NAME2 = "TITI";
 
-    private int EVE_CORPO_ID = 1344654522;
-    private string EVE_CORPO_NAME = "Corp1";
-    private int EVE_CORPO_ID2 = 123456789;
-    private string EVE_CORPO_NAME2 = "Corp12";
-
-    private int EVE_ALLIANCE_ID = 1354830081;
+    private const int EVE_CORPO_ID = 1344654522;
+    private const string EVE_CORPO_NAME = "Corp1";
+    private const int EVE_CORPO_ID2 = 123456789;
+    private const string EVE_CORPO_NAME2 = "Corp12";
+    private const int EVE_ALLIANCE_ID = 1354830081;
         
 
     private const int FOOBAR_SYSTEM_ID = 123456;
@@ -669,14 +668,14 @@ public class DbIntegrationTest
         Assert.NotNull(result1);
         Assert.Equal(FOOBAR_SYSTEM_ID, result1.SoloarSystemId);
         Assert.Equal(FOOBAR, result1.Comment);
-        Assert.Equal(WHSystemStatusEnum.Unknown, result1.SystemStatus);
+        Assert.Equal(WHSystemStatus.Unknown, result1.SystemStatus);
 
         //ADD Note2
-        var result2 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2,WHSystemStatusEnum.Hostile));
+        var result2 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2,WHSystemStatus.Hostile));
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SoloarSystemId);
         Assert.Equal(string.Empty, result2.Comment);
-        Assert.Equal(WHSystemStatusEnum.Hostile,result2.SystemStatus);
+        Assert.Equal(WHSystemStatus.Hostile,result2.SystemStatus);
 
         //ADD Access dupkicate
         var resultDuplicate = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2, FOOBAR));

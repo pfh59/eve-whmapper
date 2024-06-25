@@ -78,17 +78,17 @@ namespace WHMapper.Services.WHColor
         }
 
 
-        public string GetNodeStatusColor(WHSystemStatusEnum status)
+        public string GetNodeStatusColor(WHSystemStatus status)
         {
             switch (status)
             {
-                case WHSystemStatusEnum.Unknown:
+                case WHSystemStatus.Unknown:
                     return NODE_STATUS_UNKNOWN_COLOR;
-                case WHSystemStatusEnum.Friendly:
+                case WHSystemStatus.Friendly:
                     return NODE_STATUS_FRIENDLY_COLOR;
-                case WHSystemStatusEnum.Occupied:
+                case WHSystemStatus.Occupied:
                     return NODE_STATUS_OCCUPIED_COLOR;
-                case WHSystemStatusEnum.Hostile:
+                case WHSystemStatus.Hostile:
                     return NODE_STATUS_HOSTILE_COLOR;
                 default:
                     return IWHColorHelper.DEFAULT_COLOR;

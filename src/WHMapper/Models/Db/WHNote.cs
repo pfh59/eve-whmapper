@@ -15,25 +15,25 @@ namespace WHMapper.Models.Db
         [Required, StringLength(255, ErrorMessage = "Comment is too long.")]
         public String Comment { get; set; } = string.Empty;
 
-        public WHSystemStatusEnum SystemStatus { get; set; } = WHSystemStatusEnum.Unknown;
+        public WHSystemStatus SystemStatus { get; set; } = WHSystemStatus.Unknown;
 
         [Obsolete("EF Requires it")]
         protected WHNote() { }
 
         public WHNote(int soloarSystemId,string comment) 
-        : this(soloarSystemId,WHSystemStatusEnum.Unknown,comment)
+        : this(soloarSystemId,WHSystemStatus.Unknown,comment)
         {
 
         }
 
-        public WHNote(int soloarSystemId, WHSystemStatusEnum systemStatus)
+        public WHNote(int soloarSystemId, WHSystemStatus systemStatus)
             :this(soloarSystemId,systemStatus,string.Empty)
 
         {
 
         }
 
-        public WHNote(int soloarSystemId, WHSystemStatusEnum systemStatus,string comment)
+        public WHNote(int soloarSystemId, WHSystemStatus systemStatus,string comment)
         {
             SoloarSystemId = soloarSystemId;
             SystemStatus = systemStatus;
