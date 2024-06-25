@@ -53,7 +53,7 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (context.DbWHMaps.Count() == 0)
+                if (!await context.DbWHMaps.AnyAsync())
                     return await context.DbWHMaps.OrderBy(x => x.Name).ToListAsync();
                 else
                     return await context.DbWHMaps

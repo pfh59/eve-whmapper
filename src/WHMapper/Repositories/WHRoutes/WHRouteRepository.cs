@@ -63,7 +63,7 @@ namespace WHMapper
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (context.DbWHRoutes.Count() == 0)
+                if (!await context.DbWHRoutes.AnyAsync())
                     return await context.DbWHRoutes.ToListAsync();
                 else
                     return await context.DbWHRoutes.OrderBy(x => x.Id)
