@@ -1,20 +1,12 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.Http;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using WHMapper.Models.DTO;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveOAuthProvider;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WHMapper.Services.EveJwkExtensions
 {
     public static class EveOnlineJwtBearerExtensions
     {
-
         public static AuthenticationBuilder AddEveOnlineJwtBearer([NotNull] this AuthenticationBuilder builder)
         {
             HttpClient httpClient = new HttpClient();
@@ -25,11 +17,10 @@ namespace WHMapper.Services.EveJwkExtensions
             var jwks = new JsonWebKeySet(response);
             var jwk = jwks.Keys.First();
 
-
             TokenValidationParameters tokenValidationParams = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidAudience= EveOnlineJwkDefaults.ValideAudience,
+                ValidAudience = EveOnlineJwkDefaults.ValideAudience,
                 ValidateIssuer = true,
                 ValidIssuer = EveOnlineJwkDefaults.ValideIssuer,
                 ValidateIssuerSigningKey = true,
@@ -38,8 +29,7 @@ namespace WHMapper.Services.EveJwkExtensions
                 ClockSkew = TimeSpan.FromSeconds(2), // CCP's servers seem slightly ahead (~1s)
             };
 
-
-            return builder.AddJwtBearer(EveOnlineJwkDefaults.AuthenticationScheme,options =>
+            return builder.AddJwtBearer(EveOnlineJwkDefaults.AuthenticationScheme, options =>
             {
                 options.RequireHttpsMetadata = true;
                 options.SaveToken = true;
@@ -65,7 +55,6 @@ namespace WHMapper.Services.EveJwkExtensions
 
                 };
             });
-    }
+        }
     }
 }
-

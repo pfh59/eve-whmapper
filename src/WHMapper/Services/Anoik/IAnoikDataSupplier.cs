@@ -4,7 +4,7 @@ namespace WHMapper.Services.Anoik
 {
     public interface IAnoikDataSupplier
     {
-        JsonElement GetEffect();
+        JsonElement GetEffects();
         JsonElement GetSystems();
         JsonElement GetWormHoles();
     }

@@ -1,10 +1,10 @@
-﻿using WHMapper.Models.DTO.SDE;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization;
+﻿using System.Collections.Concurrent;
 using System.IO.Abstractions;
 using Testably.Abstractions;
+using WHMapper.Models.DTO.SDE;
 using WHMapper.Services.Cache;
-using System.Collections.Concurrent;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace WHMapper.Services.SDE
 {
@@ -23,9 +23,9 @@ namespace WHMapper.Services.SDE
         private readonly ISDEDataSupplier _dataSupplier;
         private readonly ICacheService _cacheService;
 
-        public SDEServiceManager(ILogger<SDEServiceManager> logger, 
-            IFileSystem fileSystem, 
-            ISDEDataSupplier dataSupplier, 
+        public SDEServiceManager(ILogger<SDEServiceManager> logger,
+            IFileSystem fileSystem,
+            ISDEDataSupplier dataSupplier,
             ICacheService cacheService)
         {
             _logger = logger;

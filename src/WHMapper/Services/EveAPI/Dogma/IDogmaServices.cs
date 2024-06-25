@@ -1,9 +1,8 @@
-﻿using System;
-using WHMapper.Models.DTO.EveAPI.Dogma;
+﻿using WHMapper.Models.DTO.EveAPI.Dogma;
 
 namespace WHMapper.Services.EveAPI.Dogma
 {
-	public interface IDogmaServices
+    public interface IDogmaServices
     {
         Task<int[]?> GetAttributes();
         Task<Models.DTO.EveAPI.Dogma.Attribute?> GetAttribute(int attribute_id);
@@ -11,4 +10,3 @@ namespace WHMapper.Services.EveAPI.Dogma
         Task<Effect?> GetEffect(int effect_id);
     }
 }
-

@@ -1,11 +1,8 @@
-﻿using System.Security;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-
-namespace WHMapper;
+﻿namespace WHMapper;
 
 public class PasteServices : IPasteServices
 {
-    public event Func<string?, Task> Pasted=null!;
+    public event Func<string?, Task> Pasted = null!;
 
     public Task Paste(string? value)
     {
@@ -13,4 +10,3 @@ public class PasteServices : IPasteServices
         return Task.CompletedTask;
     }
 }
-

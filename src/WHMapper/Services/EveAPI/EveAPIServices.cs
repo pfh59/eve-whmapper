@@ -1,8 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Assets;
+﻿using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI.Alliance;
 using WHMapper.Services.EveAPI.Assets;
 using WHMapper.Services.EveAPI.Character;
@@ -29,14 +25,12 @@ namespace WHMapper.Services.EveAPI
         public IAllianceServices AllianceServices { get; private set; }
         public ICorporationServices CorporationServices { get; private set; }
         public ICharacterServices CharacterServices { get; private set; }
-        public ISearchServices SearchServices { get;private set; }
+        public ISearchServices SearchServices { get; private set; }
         public IDogmaServices DogmaServices { get; private set; }
-
         public IAssetsServices AssetsServices { get; private set; }
-
         public IRouteServices RouteServices { get; private set; }
 
-        public EveAPIServices(ILogger<EveAPIServices> logger,IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)
+        public EveAPIServices(ILogger<EveAPIServices> logger, IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
@@ -54,8 +48,7 @@ namespace WHMapper.Services.EveAPI
             SearchServices = new SearchServices(eveAPIClient, _tokenProvider, userService);
             DogmaServices = new DogmaServices(eveAPIClient);
             RouteServices = new RouteServices(eveAPIClient);
-            AssetsServices = new AssetsServices(eveAPIClient, _tokenProvider,userService);
+            AssetsServices = new AssetsServices(eveAPIClient, _tokenProvider, userService);
         }
     }
 }
-

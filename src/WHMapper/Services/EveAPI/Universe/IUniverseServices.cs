@@ -1,11 +1,9 @@
-﻿using System.Threading.Tasks;
-using WHMapper.Models.DTO.EveAPI.Universe;
+﻿using WHMapper.Models.DTO.EveAPI.Universe;
 
 namespace WHMapper.Services.EveAPI.Universe
 {
     public interface IUniverseServices
     {
-
         Task<int[]?> GetSystems();
         Task<ESISolarSystem?> GetSystem(int system_id);
         Task<Star?> GetStar(int star_id);

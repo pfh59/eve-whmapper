@@ -1,37 +1,35 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 namespace WHMapper.Services.EveOAuthProvider
 {
 
     public partial class EVEOnlineAuthenticationHandler : OAuthHandler<EVEOnlineAuthenticationOptions>
     {
-
         public EVEOnlineAuthenticationHandler(
             [NotNull] IOptionsMonitor<EVEOnlineAuthenticationOptions> options,
             [NotNull] ILoggerFactory logger,
             [NotNull] UrlEncoder encoder)
             : base(options, logger, encoder)
-                {
-         
-                }
+        {
+
+        }
 
         protected override Task<OAuthTokenResponse> ExchangeCodeAsync(OAuthCodeExchangeContext context)
         {
             return base.ExchangeCodeAsync(context);
         }
 
-
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
             string? accessToken = tokens.AccessToken;
-            
+
             if (string.IsNullOrWhiteSpace(accessToken))
             {
                 throw new InvalidOperationException("No access token was returned in the OAuth token.");
@@ -44,7 +42,6 @@ namespace WHMapper.Services.EveOAuthProvider
                 identity.AddClaim(claim);
             }
 
-
             var principal = new ClaimsPrincipal(identity);
             var context = new OAuthCreatingTicketContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response!.RootElement);
             context.RunClaimActions();
@@ -52,12 +49,11 @@ namespace WHMapper.Services.EveOAuthProvider
             await Events.CreatingTicket(context);
             return new AuthenticationTicket(context.Principal!, context.Properties, Scheme.Name);
         }
-     
+
         protected virtual IEnumerable<Claim> ExtractClaimsFromToken([NotNull] string token)
         {
             try
             {
-             
                 var securityToken = Options.SecurityTokenHandler.ReadJsonWebToken(token);
 
                 var nameClaim = ExtractClaim(securityToken, "name");
@@ -138,5 +134,4 @@ namespace WHMapper.Services.EveOAuthProvider
             return offset.ToString("o", CultureInfo.InvariantCulture);
         }
     }
-    
 }

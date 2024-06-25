@@ -152,7 +152,7 @@ namespace WHMapper.Tests.Services.Anoik
         private static void SetupMockDataSupplier(Mock<IAnoikDataSupplier> anoikDataSupplier)
         {
             anoikDataSupplier.Setup(x => x.GetSystems()).Returns(AnoikServiceTestConstants.GetElement("systems"));
-            anoikDataSupplier.Setup(x => x.GetEffect()).Returns(AnoikServiceTestConstants.GetElement("effects"));
+            anoikDataSupplier.Setup(x => x.GetEffects()).Returns(AnoikServiceTestConstants.GetElement("effects"));
             anoikDataSupplier.Setup(x => x.GetWormHoles()).Returns(AnoikServiceTestConstants.GetElement("wormholes"));
         }
     }

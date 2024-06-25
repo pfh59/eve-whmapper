@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
 namespace WHMapper.Services.Cache;
 
@@ -30,7 +30,7 @@ public class CacheService : ICacheService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error getting cache key {key}");
-            return default(T);
+            return default;
         }
     }
 

@@ -1,16 +1,15 @@
-﻿using System;
 using System.Text.RegularExpressions;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Services.WHSignature;
-using Microsoft.AspNetCore.Components;
 using WHMapper.Repositories.WHSignatures;
+using WHMapper.Services.WHSignature;
+
 
 namespace WHMapper.Services.WHSignatures
 {
     public class WHSignatureHelper : IWHSignatureHelper
     {
         private IWHSignatureRepository _dbWHSignatures;
-        
+
         public WHSignatureHelper(IWHSignatureRepository sigRepo)
         {
             _dbWHSignatures = sigRepo;
@@ -27,22 +26,20 @@ namespace WHMapper.Services.WHSignatures
                 }
                 return Task.FromResult<bool>(false);
             }
-            catch(RegexMatchTimeoutException)
+            catch (RegexMatchTimeoutException)
             {
                 return Task.FromResult<bool>(false);
             }
 
         }
 
-        public  Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser,int currentSystemScannedId,string? scanResult)
+        public Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser, int currentSystemScannedId, string? scanResult)
         {
             string sigName = string.Empty;
             WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
             string sigType = string.Empty;
             string[]? sigvalues = null;
             string[]? splittedSig = null;
-            
-
 
             IList<WHMapper.Models.Db.WHSignature> sigResult = new List<WHMapper.Models.Db.WHSignature>();
 
@@ -52,7 +49,7 @@ namespace WHMapper.Services.WHSignatures
                 Regex tabRegex = new Regex("\t", RegexOptions.None, TimeSpan.FromSeconds(2));
                 try
                 {
-                   sigvalues = lineRegex.Split(scanResult);
+                    sigvalues = lineRegex.Split(scanResult);
                 }
                 catch (RegexMatchTimeoutException)
                 {
@@ -65,7 +62,7 @@ namespace WHMapper.Services.WHSignatures
                     sigType = string.Empty;
 
                     try
-                    { 
+                    {
                         splittedSig = tabRegex.Split(sigValue);
                     }
                     catch (RegexMatchTimeoutException)
@@ -74,7 +71,7 @@ namespace WHMapper.Services.WHSignatures
                     }
 
                     sigName = splittedSig[0];
-                    
+
 
                     if (!String.IsNullOrWhiteSpace(splittedSig[2]))
                     {
@@ -86,7 +83,7 @@ namespace WHMapper.Services.WHSignatures
 
                         sigType = splittedSig[3];
                     }
-         
+
                     sigResult.Add(new WHMapper.Models.Db.WHSignature(currentSystemScannedId, sigName, sigGroup, sigType, scanUser));
                 }
             }
@@ -101,6 +98,7 @@ namespace WHMapper.Services.WHSignatures
                 throw new Exception("Bad signatures format");
 
             var sigs = await ParseScanResult(scanUser, currentSystemScannedId, scanResult);
+
             if (sigs == null || !sigs.Any())
                 throw new Exception("Bad signature parsing parameters");
 
@@ -109,6 +107,7 @@ namespace WHMapper.Services.WHSignatures
 
             var currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
             if (currentSystemSigs == null) return false;
+
 
             bool sigUpdated = false, sigAdded = false;
 
@@ -121,6 +120,7 @@ namespace WHMapper.Services.WHSignatures
 
             sigUpdated = await UpdateSignatures(currentSystemSigs, sigs);
             sigAdded = await AddNewSignatures(currentSystemSigs, sigs, currentSystemScannedId);
+
 
             await Task.Delay(500); // Consider removing or justifying this delay.
             return sigUpdated || sigAdded;
@@ -164,7 +164,5 @@ namespace WHMapper.Services.WHSignatures
                 await _dbWHSignatures.DeleteById(sig.Id);
             }
         }
-
-
     }
 }

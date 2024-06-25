@@ -1,53 +1,46 @@
-﻿
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Timers;
-using Microsoft.AspNetCore.Components.Authorization;
-using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveJwtAuthenticationStateProvider;
 using WHMapper.Services.EveMapper;
 
 namespace WHMapper;
 
-public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
-{  
+public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
+{
     private const int TRACK_HIT_IN_MS = 1000;
     private readonly ILogger _logger;
-    private readonly AuthenticationStateProvider _authState ;
+    private readonly AuthenticationStateProvider _authState;
     private readonly IEveAPIServices? _eveAPIServices;
 
     private readonly IEveMapperEntity _eveMapperEntity;
 
-
-    private System.Timers.Timer? _timer=null!;
-
+    private System.Timers.Timer? _timer = null!;
 
     private EveLocation? _currentLocation = null!;
     private SystemEntity? _currentSolarSystem = null!;
     private Ship? _currentShip = null!;
     private ShipEntity _currentShiptInfos = null!;
 
-    public event Func< SystemEntity, Task> SystemChanged =null!;
-    public event Func<Ship,ShipEntity,Task> ShipChanged=null!;
+    public event Func<SystemEntity, Task> SystemChanged = null!;
+    public event Func<Ship, ShipEntity, Task> ShipChanged = null!;
 
-    public EveMapperTracker(ILogger<EveMapperTracker> logger,AuthenticationStateProvider authState,IEveAPIServices eveAPI,IEveMapperEntity eveMapperEntity)
+    public EveMapperTracker(ILogger<EveMapperTracker> logger, AuthenticationStateProvider authState, IEveAPIServices eveAPI, IEveMapperEntity eveMapperEntity)
     {
-        _logger=logger;
-        _authState=authState;
-        _eveAPIServices=eveAPI;
-        _eveMapperEntity=eveMapperEntity;
+        _logger = logger;
+        _authState = authState;
+        _eveAPIServices = eveAPI;
+        _eveMapperEntity = eveMapperEntity;
 
         _timer = new System.Timers.Timer(TRACK_HIT_IN_MS);
         _timer.Elapsed += OnTimedEvent;
         _timer.AutoReset = true;
-
     }
 
     public async ValueTask DisposeAsync()
     {
-        if(_timer!=null)
+        if (_timer != null)
         {
             await StopTracking();
             _timer.Elapsed -= OnTimedEvent;
@@ -84,6 +77,7 @@ public class EveMapperTracker : IEveMapperTracker,IAsyncDisposable
 
             await UpdateCurrentShip();
             await UpdateCurrentLocation();
+
         }
         catch (Exception ex)
         {

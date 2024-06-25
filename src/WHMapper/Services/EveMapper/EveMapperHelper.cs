@@ -1,19 +1,14 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Mvc;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Models.DTO.SDE;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.SDE;
 
 namespace WHMapper.Services.EveMapper
@@ -22,7 +17,6 @@ namespace WHMapper.Services.EveMapper
     {
         private const string WH_VALIDATION_REGEX = "J[0-9]{6}|Thera|J1226-0";
         private const string REGION_POCHVVEN_NAME = "Pochven";
-
 
         private const int GROUPE_WORMHOLE_ID = 988;
         private const string C14_NAME = "J055520";
@@ -49,9 +43,9 @@ namespace WHMapper.Services.EveMapper
         private readonly IWHNoteRepository _noteServices;
         private readonly IEveMapperEntity _eveMapperEntity;
 
-        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveMapperEntity eveMapperEntity,ISDEService sdeServices, IAnoikServices anoikServices, IWHNoteRepository noteServices)
+        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveMapperEntity eveMapperEntity, ISDEService sdeServices, IAnoikServices anoikServices, IWHNoteRepository noteServices)
         {
-            
+
             _logger = logger;
             _eveMapperEntity = eveMapperEntity;
             _sdeServices = sdeServices;
@@ -501,18 +495,18 @@ namespace WHMapper.Services.EveMapper
                 return new ReadOnlyCollection<WormholeType>(_whTypes);
             }
         }
-            
+
         private WHEffect GetWHEffectValueDescription(string description)
         {
             object? res = null;
             foreach (var field in typeof(WHEffect).GetFields())
             {
-                if (System.Attribute.GetCustomAttribute(field,typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
+                if (System.Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
                 {
                     if (attribute.Description == description)
                     {
                         res = field.GetValue(null);
-                        if(res is WHEffect)
+                        if (res is WHEffect)
                             return (WHEffect)res;
                         else
                             return WHEffect.None;
@@ -524,7 +518,7 @@ namespace WHMapper.Services.EveMapper
                     if (field.Name == description)
                     {
                         res = field.GetValue(null);
-                        if(res is WHEffect)
+                        if (res is WHEffect)
                             return (WHEffect)res;
                         else
                             return WHEffect.None;
@@ -555,14 +549,14 @@ namespace WHMapper.Services.EveMapper
         public async Task<EveSystemType> GetWHClass(SystemEntity whSystem)
         {
             var system_constellation = await _eveMapperEntity.GetConstellation(whSystem.ConstellationId);
-            if(system_constellation==null)
+            if (system_constellation == null)
                 throw new InvalidDataException("Constellation not found");
-                
+
             var system_region = await _eveMapperEntity.GetRegion(system_constellation!.RegionId);
-            if(system_region==null)
-                throw new InvalidDataException("Region not found");               
-                
-            return await GetWHClass(system_region!.Name, system_constellation!.Name, whSystem.Name,whSystem.SecurityStatus);
+            if (system_region == null)
+                throw new InvalidDataException("Region not found");
+
+            return await GetWHClass(system_region!.Name, system_constellation!.Name, whSystem.Name, whSystem.SecurityStatus);
         }
 
     public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float securityStatus)
@@ -630,10 +624,10 @@ namespace WHMapper.Services.EveMapper
                 IEnumerable<SDESolarSystem>? sdeWormholesInfos = await _sdeServices!.SearchSystem(systemName);
                 SDESolarSystem? sdeInfos = sdeWormholesInfos?.FirstOrDefault();
 
-                if (sdeInfos!=null && sdeInfos.SecondarySun != null)
+                if (sdeInfos != null && sdeInfos.SecondarySun != null)
                 {
                     SunEntity? secondSun = await _eveMapperEntity.GetSun(sdeInfos.SecondarySun.TypeID);
-                    if(secondSun!=null)
+                    if (secondSun != null)
                         effect = GetWHEffectValueDescription(secondSun.Name);
                     else
                         effect = WHEffect.None;
@@ -669,22 +663,22 @@ namespace WHMapper.Services.EveMapper
             EveSystemNodeModel res = null!;
 
             var system = await _eveMapperEntity.GetSystem(wh.SoloarSystemId);
-            if(system==null)
+            if (system == null)
                 throw new InvalidDataException("System not found");
 
             var system_constellation = await _eveMapperEntity.GetConstellation(system.ConstellationId);
-            if(system_constellation==null)
+            if (system_constellation == null)
                 throw new InvalidDataException("Constellation not found");
 
             var system_region = await _eveMapperEntity.GetRegion(system_constellation.RegionId);
-            if(system_region==null)
+            if (system_region == null)
                 throw new InvalidDataException("Region not found");
 
             var note = await _noteServices.GetBySolarSystemId(system.Id);
 
             if (IsWormhole(wh.Name))//WH system
             {
-                EveSystemType whClass = await GetWHClass(system_region!.Name, system_constellation.Name, system.Name,system.SecurityStatus);
+                EveSystemType whClass = await GetWHClass(system_region!.Name, system_constellation.Name, system.Name, system.SecurityStatus);
                 WHEffect whEffect = await GetSystemEffect(system.Name);
                 IList<EveSystemEffect>? effectDetails = GetWHEffectDetails(whEffect, whClass);
                 IList<WHStatic>? statics = null;
@@ -699,7 +693,7 @@ namespace WHMapper.Services.EveMapper
             }
             else if (system_region!.Name == REGION_POCHVVEN_NAME)//trig system
             {
-                res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, EveSystemType.Pochven, WHEffect.None,null,null);
+                res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, EveSystemType.Pochven, WHEffect.None, null, null);
             }
             else// K-space
             {
@@ -712,8 +706,7 @@ namespace WHMapper.Services.EveMapper
 
         private async Task InitWormholeTypeList()
         {
-            _logger?.LogInformation("Init wormhole type list");
-            
+            _logger?.LogInformation("Init wormhole type list");           
             GroupEntity? whGroup = await _eveMapperEntity.GetGroup(GROUPE_WORMHOLE_ID);
             if(whGroup==null)
                 throw new InvalidDataException("Wormhole group not found");
@@ -767,27 +760,27 @@ namespace WHMapper.Services.EveMapper
                     _logger?.LogWarning("Nullable wormhole type, value : {whTypeId}", whTypeId);
                 }
             });
-            _whTypes = _whTypes.OrderBy(x => x.Name).ToList<WormholeType> ();
-            
+            _whTypes = _whTypes.OrderBy(x => x.Name).ToList<WormholeType>();
+
         }
 
         public async Task<bool> IsRouteViaWH(SystemEntity src, SystemEntity dst)
         {
-            if(src==null)
+            if (src == null)
                 throw new ArgumentNullException(nameof(src));
-            
-            if(dst==null)
+
+            if (dst == null)
                 throw new ArgumentNullException(nameof(dst));
 
-            if(src.Stargates==null || dst.Stargates==null)
+            if (src.Stargates == null || dst.Stargates == null)
                 return true;
 
-            if(src.Stargates.Length==0 || dst.Stargates.Length==0)
+            if (src.Stargates.Length == 0 || dst.Stargates.Length == 0)
                 return true;
-            
+
             int[]? startgatesToCheck = null;
             int systemTarget = -1;
-            
+
             if (src.Stargates.Length <= dst.Stargates.Length)
             {
                 startgatesToCheck = dst.Stargates;
@@ -802,13 +795,11 @@ namespace WHMapper.Services.EveMapper
             foreach (int sgId in startgatesToCheck)
             {
                 var sg = await _eveMapperEntity.GetStargate(sgId);
-                if (sg!=null && sg.DestinationId== systemTarget)
+                if (sg != null && sg.DestinationId == systemTarget)
                     return false;
             }
 
             return true;
-            
         }
-
     }
 }

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Drawing;
-using WHMapper.Models.Custom.Node;
+﻿using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Services.WHColor
 {
@@ -66,14 +63,14 @@ namespace WHMapper.Services.WHColor
         private const string WH_MASS_CRITICAL_COLOR = "#e28a0d";
         private const string WH_MASS_VERGE_COLOR = "#a52521";
 
-        private const string SELECTED_LINK_COLOR= "white";
+        private const string SELECTED_LINK_COLOR = "white";
 
 
         private const string NODE_STATUS_FRIENDLY_COLOR = "#428bca";
         private const string NODE_STATUS_OCCUPIED_COLOR = "#e28a0d";
         private const string NODE_STATUS_HOSTILE_COLOR = "#be0000";
         private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
-        
+
 
         private bool FloatEquals(float a, float b)
         {
@@ -102,29 +99,29 @@ namespace WHMapper.Services.WHColor
         public string GetSecurityStatusColor(float secStatus)
         {
             float secStatusRounded = (float)Math.Round(secStatus, 1);
-            if (secStatus<= -0.99)
-                secStatusRounded= -1.0f;
+            if (secStatus <= -0.99)
+                secStatusRounded = -1.0f;
 
 
-            if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_10_VALUE))
+            if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_10_VALUE))
                 return SECUTIRTY_STATUS_10_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_09_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_09_VALUE))
                 return SECUTIRTY_STATUS_09_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_08_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_08_VALUE))
                 return SECUTIRTY_STATUS_08_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_07_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_07_VALUE))
                 return SECUTIRTY_STATUS_07_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_06_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_06_VALUE))
                 return SECUTIRTY_STATUS_06_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_05_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_05_VALUE))
                 return SECUTIRTY_STATUS_05_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_04_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_04_VALUE))
                 return SECUTIRTY_STATUS_04_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_03_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_03_VALUE))
                 return SECUTIRTY_STATUS_03_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_02_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_02_VALUE))
                 return SECUTIRTY_STATUS_02_COLOR;
-            else if (FloatEquals(secStatusRounded,SECUTIRTY_STATUS_01_VALUE))
+            else if (FloatEquals(secStatusRounded, SECUTIRTY_STATUS_01_VALUE))
                 return SECUTIRTY_STATUS_01_COLOR;
             else if (secStatusRounded <= SECUTIRTY_STATUS_00_VALUE)
                 return SECUTIRTY_STATUS_00_COLOR;
@@ -177,7 +174,7 @@ namespace WHMapper.Services.WHColor
 
         public string GetEffectColor(WHEffect effect)
         {
-            switch(effect)
+            switch (effect)
             {
                 case WHEffect.Magnetar:
                     return MAGNETAR_COLOR;

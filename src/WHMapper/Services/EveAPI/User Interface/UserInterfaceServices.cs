@@ -1,19 +1,13 @@
-﻿using System;
-using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI;
-using WHMapper.Models.DTO.EveAPI.Universe;
-using WHMapper.Services.EveAPI.Universe;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+﻿using WHMapper.Models.DTO;
 
 namespace WHMapper.Services.EveAPI.UserInterface
 {
-	public class UserInterfaceServices : AEveApiServices, IUserInterfaceServices
+    public class UserInterfaceServices : EveApiServiceBase, IUserInterfaceServices
     {
         public UserInterfaceServices(HttpClient httpClient, TokenProvider _tokenProvider)
             : base(httpClient, _tokenProvider)
         {
         }
-
 
         public async Task<string?> SetWaypoint(int destination_id, bool add_to_beginning = false, bool clear_other_waypoints = false)
         {
@@ -21,4 +15,3 @@ namespace WHMapper.Services.EveAPI.UserInterface
         }
     }
 }
-

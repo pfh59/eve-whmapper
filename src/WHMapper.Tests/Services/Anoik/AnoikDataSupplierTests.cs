@@ -63,7 +63,7 @@ namespace WHMapper.Tests.Services.Anoik
         {
             var sut = new AnoikJsonDataSupplier(ValidJsonFilePath);
 
-            var effects = sut.GetEffect();
+            var effects = sut.GetEffects();
 
             Assert.True(effects.TryGetProperty("Pulsar", out var pulsar));
             Assert.Equal("+30%", pulsar.GetProperty("Shield Capacity").EnumerateArray().ElementAt(0).GetString());

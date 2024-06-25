@@ -1,5 +1,4 @@
-﻿using System;
-namespace WHMapper.Services.EveOAuthProvider
+﻿namespace WHMapper.Services.EveOAuthProvider
 {
     public static class EVEOnlineAuthenticationDefaults
     {
@@ -23,8 +22,6 @@ namespace WHMapper.Services.EveOAuthProvider
         /// </summary>
         public static readonly string CallbackPath = "/signin-eveonline";
 
-
-
         /// <summary>
         /// Default value for <see cref="OAuthOptions.AuthorizationEndpoint"/>.
         /// </summary>
@@ -41,8 +38,6 @@ namespace WHMapper.Services.EveOAuthProvider
         //[Obsolete("This endpoint is no longer used by the EVEOnline provider.")]
         //public static readonly string UserInformationEndpoint = "https://login.eveonline.com/oauth/verify";
 
-
         public const string Scopes = "urn:eveonline:scopes";
     }
-    
 }
