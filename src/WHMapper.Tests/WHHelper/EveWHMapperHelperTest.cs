@@ -15,6 +15,7 @@ using WHMapper.Services.Anoik;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
+using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
 
@@ -126,7 +127,10 @@ public class EveWHMapperHelperTest
         if (httpclientfactory != null && _contextFactory != null && _distriCache != null)
         {
             ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
-            IEveMapperEntity apiServices = new EveMapperEntity(loggerEveMapperEntity, cacheService, new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!));
+
+            var userInfoService = new EveUserInfosServices(null!);
+            var apiServices = new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService);
+            var mapperEntity = new EveMapperEntity(loggerEveMapperEntity, cacheService, apiServices);
 
             IFileSystem fileSystem = new FileSystem();
             HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
@@ -136,7 +140,7 @@ public class EveWHMapperHelperTest
             IAnoikServices anoikServices = new AnoikServices(loggerAnoik, new AnoikJsonDataSupplier(@"./Resources/Anoik/static.json"));
             IWHNoteRepository wHNoteRepository = new WHNoteRepository(loggerWHNoteRepository, _contextFactory);
 
-            _whEveMapper = new EveMapperHelper(loggerMapperHelper, apiServices, sDEServices, anoikServices, wHNoteRepository);
+            _whEveMapper = new EveMapperHelper(loggerMapperHelper, mapperEntity, sDEServices, anoikServices, wHNoteRepository);
         }
     }
 
