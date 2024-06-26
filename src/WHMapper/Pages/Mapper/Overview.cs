@@ -878,12 +878,7 @@ namespace WHMapper.Pages.Mapper
                     var wh = await DbWHSystems.GetById(((EveSystemNodeModel)item).IdWH);
                     if (wh != null)
                     {
-                        if (Math.Abs(wh.PosX - ((EveSystemNodeModel)item).Position.X) < EPSILON && Math.Abs(wh.PosY - ((EveSystemNodeModel)item).Position.Y) < EPSILON)
-                        {
-                            Logger.LogError("On Mouse pointer up, unable to find moved wormhole node db error");
-                            Snackbar?.Add("Unable to find moved wormhole node dd error", Severity.Error);
-                        }
-                        else
+                        if(Math.Abs(wh.PosX - ((EveSystemNodeModel)item).Position.X) >= EPSILON || Math.Abs(wh.PosY - ((EveSystemNodeModel)item).Position.Y) >= EPSILON)
                         {
                             wh.PosX = ((EveSystemNodeModel)item).Position.X;
                             wh.PosY = ((EveSystemNodeModel)item).Position.Y;
@@ -902,6 +897,11 @@ namespace WHMapper.Pages.Mapper
                             }
                         }
                     }
+                    else
+                    {
+                        Logger.LogError("On Mouse pointer up, unable to find moved wormhole node db error");
+                        Snackbar?.Add("Unable to find moved wormhole node dd error", Severity.Error);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -915,7 +915,6 @@ namespace WHMapper.Pages.Mapper
             }
             
         }
-
         private async Task<bool> Restore()
         {
             ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
