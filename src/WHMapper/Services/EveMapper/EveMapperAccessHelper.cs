@@ -22,6 +22,7 @@ namespace WHMapper.Services.EveMapper
         {
             var userAccesses = await _accessRepo.GetAll();
 
+            //If there is no user access registered return true, this is the probably the first user using the tool. 
             if (userAccesses?.Count() == 0)
                 return true;
             else
@@ -44,6 +45,7 @@ namespace WHMapper.Services.EveMapper
         {
             var adminAccesses = await _adminRepo.GetAll();
 
+            //If there is no user access registered return true, this is the probably the first user using the tool. 
             if (adminAccesses?.Count() == 0)
                 return true;
             else
