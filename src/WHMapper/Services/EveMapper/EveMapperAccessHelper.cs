@@ -33,11 +33,13 @@ namespace WHMapper.Services.EveMapper
                 if (character == null)
                     return false;
 
-                var res = userAccesses?.FirstOrDefault(x => (x.EveEntityId == eveCharacterId && x.EveEntity == WHAccessEntity.Character) || (x.EveEntityId == character.CorporationId && x.EveEntity == WHAccessEntity.Corporation) || (x.EveEntityId == character.AllianceId && x.EveEntity == WHAccessEntity.Alliance));
+                var result = userAccesses?.FirstOrDefault(x => 
+                (x.EveEntityId == eveCharacterId && x.EveEntity == WHAccessEntity.Character) || 
+                (x.EveEntityId == character.CorporationId && x.EveEntity == WHAccessEntity.Corporation) || 
+                (x.EveEntityId == character.AllianceId && x.EveEntity == WHAccessEntity.Alliance));
 
-                if (res == null)
-                    return false;//todo check alliance and corpo and add db methodes
-
+                if (result == null)
+                    return false; //TODO: check alliance and corpo and add db methodes
                 else
                     return true;
             }
@@ -54,9 +56,9 @@ namespace WHMapper.Services.EveMapper
             }
             else
             {
-                var res = adminAccesses?.FirstOrDefault(x => x.EveCharacterId == eveCharacterId);
+                var result = adminAccesses?.FirstOrDefault(x => x.EveCharacterId == eveCharacterId);
 
-                if (res == null)
+                if (result == null)
                     return false;
                 else
                     return true;
