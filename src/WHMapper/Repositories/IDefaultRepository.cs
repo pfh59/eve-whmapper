@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WHMapper.Repositories
+﻿namespace WHMapper.Repositories
 {
     public interface IDefaultRepository<T, U>
     {
