@@ -1,9 +1,10 @@
-﻿using WHMapper.Services.EveAPI.Alliance;
+﻿using WHMapper.Services.EveAPI.Alliances;
 using WHMapper.Services.EveAPI.Assets;
-using WHMapper.Services.EveAPI.Character;
-using WHMapper.Services.EveAPI.Corporation;
+using WHMapper.Services.EveAPI.Characters;
+using WHMapper.Services.EveAPI.Corporations;
 using WHMapper.Services.EveAPI.Dogma;
-using WHMapper.Services.EveAPI.Location;
+using WHMapper.Services.EveAPI.Locations;
+using WHMapper.Services.EveAPI.Routes;
 using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;

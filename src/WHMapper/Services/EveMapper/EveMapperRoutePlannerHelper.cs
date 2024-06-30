@@ -12,7 +12,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly IWHRouteRepository _routeRepository;
     private readonly ILogger<EveMapperRoutePlannerHelper> _logger;
     private readonly IEveUserInfosServices _eveUserInfosServices;
-
     private readonly ISDEService _sdeServices;
     private IEnumerable<SolarSystemJump> _solarSystemJumpConnections = null!;
 
@@ -24,42 +23,42 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         _sdeServices = sdeServices;
     }
 
-
     public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
     {
+        if (_eveUserInfosServices == null)
+        {
+            _logger.LogError("EveUserInfosServices is null");
+            return null;
+        }
+
         return await GetRoutes(fromSolarSystemId, routeType, extraConnections, false);
     }
 
     public async Task<IEnumerable<EveRoute>?> GetRoutesForAll(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
     {
-        return await GetRoutes(fromSolarSystemId, routeType, extraConnections, true);
-    }
-
-    private async Task<IEnumerable<EveRoute>?> GetRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections, bool global)
-    {
-
-        IList<EveRoute> routes = new List<EveRoute>();
-        IEnumerable<WHRoute> whRoutes;
-
         if (_routeRepository == null)
         {
             _logger.LogError("Route Repository is null");
             return null;
         }
 
+        return await GetRoutes(fromSolarSystemId, routeType, extraConnections, true);
+    }
+
+    private async Task<IEnumerable<EveRoute>?> GetRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections, bool global)
+    {
+        IList<EveRoute> routes = new List<EveRoute>();
+        IEnumerable<WHRoute> whRoutes;
+
         if (global)
+        {
             whRoutes = await _routeRepository.GetRoutesForAll();
+        }
         else
         {
-            if (_eveUserInfosServices == null)
-            {
-                _logger.LogError("EveUserInfosServices is null");
-                return null;
-            }
             var characterId = await _eveUserInfosServices.GetCharactedID();
             whRoutes = await _routeRepository.GetRoutesByEveEntityId(characterId);
         }
-
 
         foreach (var whRoute in whRoutes)
         {
@@ -68,6 +67,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             var route = await CalculateRoute(fromSolarSystemId, whRoute.SolarSystemId, routeType, extraConnections);
             routes.Add(new EveRoute(whRoute.Id, destName, route));
         }
+
         return routes;
     }
 
@@ -112,6 +112,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
         var fromSolarSystemJump = extendedSolarSystemJumps.FirstOrDefault(x => x.System.SolarSystemId == fromSolarSystemId);
         var toSolarSystemJump = extendedSolarSystemJumps.FirstOrDefault(x => x.System.SolarSystemId == toSolarSystemId);
+
         if (fromSolarSystemJump == null || toSolarSystemJump == null)
         {
             _logger.LogError("Solar System {0} doesn't exist", fromSolarSystemId);

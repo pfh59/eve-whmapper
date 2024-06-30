@@ -42,7 +42,6 @@ namespace WHMapper.Services.EveAPI
             if (body != null)
                 postBody = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
-
             HttpResponseMessage? response = null;
             switch (method)
             {

@@ -1,10 +1,11 @@
 ﻿using WHMapper.Models.DTO;
-using WHMapper.Services.EveAPI.Alliance;
+using WHMapper.Services.EveAPI.Alliances;
 using WHMapper.Services.EveAPI.Assets;
-using WHMapper.Services.EveAPI.Character;
-using WHMapper.Services.EveAPI.Corporation;
+using WHMapper.Services.EveAPI.Characters;
+using WHMapper.Services.EveAPI.Corporations;
 using WHMapper.Services.EveAPI.Dogma;
-using WHMapper.Services.EveAPI.Location;
+using WHMapper.Services.EveAPI.Locations;
+using WHMapper.Services.EveAPI.Routes;
 using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;
@@ -30,8 +31,16 @@ namespace WHMapper.Services.EveAPI
         public IAssetsServices AssetsServices { get; private set; }
         public IRouteServices RouteServices { get; private set; }
 
-        public EveAPIServices(ILogger<EveAPIServices> logger, IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IEveUserInfosServices userService)
+        public EveAPIServices(ILogger<EveAPIServices> logger, 
+            IHttpClientFactory httpClientFactory, 
+            TokenProvider tokenProvider, 
+            IEveUserInfosServices userService)
         {
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(httpClientFactory);
+            ArgumentNullException.ThrowIfNull(tokenProvider);
+            ArgumentNullException.ThrowIfNull(userService);
+
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
             _logger = logger;

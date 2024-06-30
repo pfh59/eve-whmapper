@@ -9,6 +9,7 @@ using WHMapper.Models.DTO;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
+using WHMapper.Services.EveOnlineUserInfosProvider;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;
@@ -54,9 +55,6 @@ public class EveWHMapperEntityTest
 
     private readonly IEveMapperEntity _whMapperEntity;
 
-    
-
-
     public EveWHMapperEntityTest()
     {
         //Create DB Context
@@ -82,14 +80,14 @@ public class EveWHMapperEntityTest
 
             if(_distriCache != null && httpclientfactory!=null)
             {
-
+                var userInfoService = new EveUserInfosServices(null!);
                 ILogger<EveMapperEntity> logger = new NullLogger<EveMapperEntity>();
                 ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
                 ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
 
                 _whMapperEntity = new EveMapperEntity(logger, 
                     new CacheService(loggerCacheService, _distriCache), 
-                    new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), null!));
+                    new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService));
             }
         }
     }

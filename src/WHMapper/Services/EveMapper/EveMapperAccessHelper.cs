@@ -1,7 +1,7 @@
 ﻿using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
-using WHMapper.Services.EveAPI.Character;
+using WHMapper.Services.EveAPI.Characters;
 
 namespace WHMapper.Services.EveMapper
 {
