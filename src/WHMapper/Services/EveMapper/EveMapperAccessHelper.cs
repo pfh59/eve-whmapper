@@ -24,7 +24,9 @@ namespace WHMapper.Services.EveMapper
 
             //If there is no user access registered return true, this is the probably the first user using the tool. 
             if (userAccesses?.Count() == 0)
+            {
                 return true;
+            }
             else
             {
                 var character = await _characterServices.GetCharacter(eveCharacterId);
@@ -47,7 +49,9 @@ namespace WHMapper.Services.EveMapper
 
             //If there is no user access registered return true, this is the probably the first user using the tool. 
             if (adminAccesses?.Count() == 0)
+            {
                 return true;
+            }
             else
             {
                 var res = adminAccesses?.FirstOrDefault(x => x.EveCharacterId == eveCharacterId);
