@@ -21,7 +21,8 @@ public class EveMapperEntity : IEveMapperEntity
         _eveApiService = eveApiService;
     }
 
-    private Task<string> GetEntityCacheKey<T>() where T : AEveEntity
+    private Task<string> GetEntityCacheKey<T>() 
+        where T : AEveEntity
     {
         switch (typeof(T).Name)
         {
@@ -270,7 +271,6 @@ public class EveMapperEntity : IEveMapperEntity
     {
         try
         {
-
             IEnumerable<SystemEntity>? results = await GetEntitiesFromCache<SystemEntity>();
             if (results != null)
             {
@@ -569,11 +569,12 @@ public class EveMapperEntity : IEveMapperEntity
 
     }
 
-    public async Task<bool> ClearAllianceCache()
+    private async Task<bool> ClearCache<T>()
+        where T : AEveEntity
     {
         try
         {
-            string redis_key = await GetEntityCacheKey<AllianceEntity>();
+            string redis_key = await GetEntityCacheKey<T>();
             return await _cacheService.Remove(redis_key);
         }
         catch (Exception e)
@@ -583,143 +584,58 @@ public class EveMapperEntity : IEveMapperEntity
         }
     }
 
+    public async Task<bool> ClearAllianceCache()
+    {
+        return await ClearCache<AllianceEntity>();
+    }
+
     public async Task<bool> ClearCharacterCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<CharactereEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing character cache");
-            return false;
-        }
+        return await ClearCache<CharactereEntity>();
     }
 
     public async Task<bool> ClearCorporationCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<CorporationEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing corporation cache");
-            return false;
-        }
+        return await ClearCache<CorporationEntity>();
     }
 
     public async Task<bool> ClearShipCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<ShipEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing ship cache");
-            return false;
-        }
+        return await ClearCache<ShipEntity>();
     }
 
     public async Task<bool> ClearSystemCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<SystemEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing system cache");
-            return false;
-        }
+        return await ClearCache<SystemEntity>();
     }
 
     public async Task<bool> ClearConstellationCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<ConstellationEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing constellation cache");
-            return false;
-        }
+        return await ClearCache<ConstellationEntity>();
     }
 
     public async Task<bool> ClearRegionCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<RegionEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing region cache");
-            return false;
-        }
+        return await ClearCache<RegionEntity>();
     }
 
     public async Task<bool> ClearStargateCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<StargateEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing stargate cache");
-            return false;
-        }
+        return await ClearCache<StargateEntity>();
     }
 
     public async Task<bool> ClearGroupCache()
     {
-        try
-        {
-            string redis_key = await GetEntityCacheKey<GroupEntity>();
-            return await _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing group cache");
-            return false;
-        }
+        return await ClearCache<GroupEntity>();
     }
 
-    public Task<bool> ClearWormholeCache()
+    public async Task<bool> ClearWormholeCache()
     {
-        try
-        {
-            string redis_key = IEveMapperEntity.REDIS_WORMHOLE_KEY;
-            return _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing wormhole cache");
-            return Task.FromResult(false);
-        }
+        return await ClearCache<WHEntity>();
     }
 
-    public Task<bool> ClearSunCache()
+    public async Task<bool> ClearSunCache()
     {
-        try
-        {
-            string redis_key = IEveMapperEntity.REDIS_SUN_KEY;
-            return _cacheService.Remove(redis_key);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while clearing sun cache");
-            return Task.FromResult(false);
-        }
+        return await ClearCache<SunEntity>();
     }
 }
