@@ -67,7 +67,7 @@ public class EveMapperEntity : IEveMapperEntity
         }
     }
 
-    private async Task<bool> SetEntityCahing<T>(T entity) where T : AEveEntity
+    private async Task<bool> SetEntityCaching<T>(T entity) where T : AEveEntity
     {
         try
         {
@@ -120,7 +120,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             AllianceEntity entity = new AllianceEntity(allianceId, alliance);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -164,7 +164,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             CharactereEntity entity = new CharactereEntity(characterId, character);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -207,7 +207,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             CorporationEntity entity = new CorporationEntity(corporationId, corporation);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -250,7 +250,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             ShipEntity entity = new ShipEntity(shipTypeId, ship);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -293,7 +293,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             SystemEntity entity = new SystemEntity(systemId, system);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -336,7 +336,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             ConstellationEntity entity = new ConstellationEntity(constellationId, constellation);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -379,7 +379,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             RegionEntity entity = new RegionEntity(regionId, region);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -422,7 +422,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             StargateEntity entity = new StargateEntity(stargateId, stargate);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -465,7 +465,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             GroupEntity entity = new GroupEntity(groupId, group);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -508,7 +508,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             WHEntity entity = new WHEntity(wormholeTypeId, wormhole);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
@@ -551,7 +551,7 @@ public class EveMapperEntity : IEveMapperEntity
 
             //put on cache and return return entity
             SunEntity entity = new SunEntity(sunTypeId, sun);
-            if (await SetEntityCahing(entity))
+            if (await SetEntityCaching(entity))
             {
                 return entity;
             }
