@@ -53,7 +53,7 @@ public class EveWHMapperEntityTest
     private const int WH_TYPE_ID1 = 30583;
     private const int WH_TYPE_ID2 = 30584;
 
-    private readonly IEveMapperEntity _whMapperEntity;
+    private readonly IEveMapperService _whMapperEntity;
 
     public EveWHMapperEntityTest()
     {
@@ -81,11 +81,11 @@ public class EveWHMapperEntityTest
             if(_distriCache != null && httpclientfactory!=null)
             {
                 var userInfoService = new EveUserInfosServices(null!);
-                ILogger<EveMapperEntity> logger = new NullLogger<EveMapperEntity>();
+                ILogger<EveMapperService> logger = new NullLogger<EveMapperService>();
                 ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
                 ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
 
-                _whMapperEntity = new EveMapperEntity(logger, 
+                _whMapperEntity = new EveMapperService(logger, 
                     new CacheService(loggerCacheService, _distriCache), 
                     new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService));
             }

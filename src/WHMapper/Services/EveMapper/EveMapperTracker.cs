@@ -14,7 +14,7 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
     private readonly AuthenticationStateProvider _authState;
     private readonly IEveAPIServices? _eveAPIServices;
 
-    private readonly IEveMapperEntity _eveMapperEntity;
+    private readonly IEveMapperService _eveMapperEntity;
 
     private System.Timers.Timer? _timer = null!;
 
@@ -26,7 +26,7 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
     public event Func<SystemEntity, Task> SystemChanged = null!;
     public event Func<Ship, ShipEntity, Task> ShipChanged = null!;
 
-    public EveMapperTracker(ILogger<EveMapperTracker> logger, AuthenticationStateProvider authState, IEveAPIServices eveAPI, IEveMapperEntity eveMapperEntity)
+    public EveMapperTracker(ILogger<EveMapperTracker> logger, AuthenticationStateProvider authState, IEveAPIServices eveAPI, IEveMapperService eveMapperEntity)
     {
         _logger = logger;
         _authState = authState;

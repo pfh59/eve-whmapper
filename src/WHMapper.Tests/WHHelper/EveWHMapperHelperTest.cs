@@ -121,7 +121,7 @@ public class EveWHMapperHelperTest
         ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
         ILogger<WHNoteRepository> loggerWHNoteRepository = new NullLogger<WHNoteRepository>();
         ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
-        ILogger<EveMapperEntity> loggerEveMapperEntity = new NullLogger<EveMapperEntity>();
+        ILogger<EveMapperService> loggerEveMapperEntity = new NullLogger<EveMapperService>();
         ILogger<SdeDataSupplier> loggerSdeDataSupplier = new NullLogger<SdeDataSupplier>();
 
         if (httpclientfactory != null && _contextFactory != null && _distriCache != null)
@@ -130,7 +130,7 @@ public class EveWHMapperHelperTest
 
             var userInfoService = new EveUserInfosServices(null!);
             var apiServices = new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService);
-            var mapperEntity = new EveMapperEntity(loggerEveMapperEntity, cacheService, apiServices);
+            var mapperEntity = new EveMapperService(loggerEveMapperEntity, cacheService, apiServices);
 
             IFileSystem fileSystem = new FileSystem();
             HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };

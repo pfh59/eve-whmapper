@@ -130,7 +130,6 @@
     <Folder Include="Services\EveAPI\User Interface\" />
     <Folder Include="Resources\SDE\" />
     <Folder Include="Models\DTO\SDE\" />
-    <Folder Include="Services\EveMapper\" />
     <Folder Include="Services\EveMapper\AuthorizationPolicies\" />
     <Folder Include="Pages\Mapper\Administration\" />
     <Folder Include="Models\DTO\EveMapper\" />

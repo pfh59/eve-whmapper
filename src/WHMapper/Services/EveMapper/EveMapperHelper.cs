@@ -41,9 +41,9 @@ namespace WHMapper.Services.EveMapper
         private readonly IAnoikServices _anoikServices;
         private readonly ISDEService _sdeServices;
         private readonly IWHNoteRepository _noteServices;
-        private readonly IEveMapperEntity _eveMapperEntity;
+        private readonly IEveMapperService _eveMapperEntity;
 
-        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveMapperEntity eveMapperEntity, ISDEService sdeServices, IAnoikServices anoikServices, IWHNoteRepository noteServices)
+        public EveMapperHelper(ILogger<EveMapperHelper> logger, IEveMapperService eveMapperEntity, ISDEService sdeServices, IAnoikServices anoikServices, IWHNoteRepository noteServices)
         {
 
             _logger = logger;
