@@ -1,5 +1,6 @@
 ﻿using AutoFixture.Xunit2;
 using Moq;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveMapper;
 
@@ -8,74 +9,85 @@ namespace WHMapper.Tests.Services.EveMapperService
     public class EveMapperServiceTests
     {
         [Theory]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearAllianceCache), IEveMapperService.REDIS_ALLIANCE_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearCharacterCache), IEveMapperService.REDIS_CHARACTER_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearCorporationCache), IEveMapperService.REDIS_COORPORATION_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearShipCache), IEveMapperService.REDIS_SHIP_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearSystemCache), IEveMapperService.REDIS_SYSTEM_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearConstellationCache), IEveMapperService.REDIS_CONSTELLATION_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearRegionCache), IEveMapperService.REDIS_REGION_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearStargateCache), IEveMapperService.REDIS_STARTGATE_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearGroupCache), IEveMapperService.REDIS_GROUP_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearWormholeCache), IEveMapperService.REDIS_WORMHOLE_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearSunCache), IEveMapperService.REDIS_SUN_KEY)]
-        public async Task IfCacheIsEmpty_WhenClearingCache_CallsRemoveForCorrectEntity(
-            string methodName,
+        [InlineAutoMoqData(typeof(AllianceEntity), IEveMapperCacheService.REDIS_ALLIANCE_KEY)]
+        [InlineAutoMoqData(typeof(CorporationEntity), IEveMapperCacheService.REDIS_COORPORATION_KEY)]
+        [InlineAutoMoqData(typeof(CharactereEntity), IEveMapperCacheService.REDIS_CHARACTER_KEY)]
+        [InlineAutoMoqData(typeof(ShipEntity), IEveMapperCacheService.REDIS_SHIP_KEY)]
+        [InlineAutoMoqData(typeof(SystemEntity), IEveMapperCacheService.REDIS_SYSTEM_KEY)]
+        [InlineAutoMoqData(typeof(ConstellationEntity), IEveMapperCacheService.REDIS_CONSTELLATION_KEY)]
+        [InlineAutoMoqData(typeof(RegionEntity), IEveMapperCacheService.REDIS_REGION_KEY)]
+        [InlineAutoMoqData(typeof(StargateEntity), IEveMapperCacheService.REDIS_STARTGATE_KEY)]
+        [InlineAutoMoqData(typeof(GroupEntity), IEveMapperCacheService.REDIS_GROUP_KEY)]
+        [InlineAutoMoqData(typeof(WHEntity), IEveMapperCacheService.REDIS_WORMHOLE_KEY)]
+        [InlineAutoMoqData(typeof(SunEntity), IEveMapperCacheService.REDIS_SUN_KEY)]
+        public async Task IfEntityIsMapped_WhenClearingCache_CallsRemoveForCorrectEntity(
+            Type entityType,
             string redisKey,
-            [Frozen]Mock<ICacheService> cacheService,
-            WHMapper.Services.EveMapper.EveMapperService sut
+            [Frozen] Mock<ICacheService> cacheService,
+            EveMapperCacheService sut
             )
         {
             cacheService.Setup(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))))
                 .Returns(Task.FromResult(true))
                 .Verifiable();
 
-            var method = sut.GetType().GetMethod(methodName);
-            if (method == null)
-                throw new Exception("Method not found");
+            var sutMethod = sut.GetType().GetMethod("ClearCacheAsync")!.MakeGenericMethod(entityType);
 
-            var task = (Task<bool>)method.Invoke(sut, null)!;
-            var result = await task;
+            var result = await (Task<bool>)sutMethod.Invoke(sut, null)!;
 
             Assert.True(result);
             cacheService.Verify(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))), Times.Once);
             cacheService.VerifyNoOtherCalls();
-        }              
-        
+        }
+
         [Theory]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearAllianceCache), IEveMapperService.REDIS_ALLIANCE_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearCharacterCache), IEveMapperService.REDIS_CHARACTER_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearCorporationCache), IEveMapperService.REDIS_COORPORATION_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearShipCache), IEveMapperService.REDIS_SHIP_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearSystemCache), IEveMapperService.REDIS_SYSTEM_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearConstellationCache), IEveMapperService.REDIS_CONSTELLATION_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearRegionCache), IEveMapperService.REDIS_REGION_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearStargateCache), IEveMapperService.REDIS_STARTGATE_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearGroupCache), IEveMapperService.REDIS_GROUP_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearWormholeCache), IEveMapperService.REDIS_WORMHOLE_KEY)]
-        [InlineAutoMoqData(nameof(WHMapper.Services.EveMapper.EveMapperService.ClearSunCache), IEveMapperService.REDIS_SUN_KEY)]
+        [InlineAutoMoqData(typeof(AllianceEntity), IEveMapperCacheService.REDIS_ALLIANCE_KEY)]
+        [InlineAutoMoqData(typeof(CorporationEntity), IEveMapperCacheService.REDIS_COORPORATION_KEY)]
+        [InlineAutoMoqData(typeof(CharactereEntity), IEveMapperCacheService.REDIS_CHARACTER_KEY)]
+        [InlineAutoMoqData(typeof(ShipEntity), IEveMapperCacheService.REDIS_SHIP_KEY)]
+        [InlineAutoMoqData(typeof(SystemEntity), IEveMapperCacheService.REDIS_SYSTEM_KEY)]
+        [InlineAutoMoqData(typeof(ConstellationEntity), IEveMapperCacheService.REDIS_CONSTELLATION_KEY)]
+        [InlineAutoMoqData(typeof(RegionEntity), IEveMapperCacheService.REDIS_REGION_KEY)]
+        [InlineAutoMoqData(typeof(StargateEntity), IEveMapperCacheService.REDIS_STARTGATE_KEY)]
+        [InlineAutoMoqData(typeof(GroupEntity), IEveMapperCacheService.REDIS_GROUP_KEY)]
+        [InlineAutoMoqData(typeof(WHEntity), IEveMapperCacheService.REDIS_WORMHOLE_KEY)]
+        [InlineAutoMoqData(typeof(SunEntity), IEveMapperCacheService.REDIS_SUN_KEY)]
         public async Task IfCacheThrowsException_WhenClearingCache_ReturnsFalse(
-            string methodName,
+            Type entityType,
             string redisKey,
-            [Frozen]Mock<ICacheService> cacheService,
-            WHMapper.Services.EveMapper.EveMapperService sut
+            [Frozen] Mock<ICacheService> cacheService,
+            EveMapperCacheService sut
             )
         {
-            cacheService
-                .Setup(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))))
+            cacheService.Setup(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))))
                 .Throws<Exception>()
                 .Verifiable();
 
-            var method = sut.GetType().GetMethod(methodName);
-            if (method == null)
-                throw new Exception("Method not found");
-
-            var task = (Task<bool>)method.Invoke(sut, null)!;
-            var result = await task;
+            var sutMethod = sut.GetType().GetMethod("ClearCacheAsync")!.MakeGenericMethod(entityType);
+            var result = await (Task<bool>)sutMethod.Invoke(sut, null)!;
 
             Assert.False(result);
             cacheService.Verify(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))), Times.Once);
             cacheService.VerifyNoOtherCalls();
-        }              
+        }
+
+        [Theory]
+        [InlineAutoMoqData(typeof(AEveEntity))]
+        public async Task IfEntityIsNotMapped_WhenClearingCache_ReturnsFalse(
+            Type entityType,
+            [Frozen] Mock<ICacheService> cacheService,
+            EveMapperCacheService sut
+        )
+        {
+            cacheService.Setup(x => x.Remove(It.IsAny<string>()))
+                .Returns(Task.FromResult(true))
+                .Verifiable();
+
+            var sutMethod = sut.GetType().GetMethod("ClearCacheAsync")!.MakeGenericMethod(entityType);
+            var result = await (Task<bool>)sutMethod.Invoke(sut, null)!;
+
+            Assert.False(result);
+            cacheService.VerifyNoOtherCalls();
+        }
     }
 }

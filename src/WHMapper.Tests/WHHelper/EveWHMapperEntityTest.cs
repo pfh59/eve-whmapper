@@ -1,4 +1,3 @@
-
 using System.Diagnostics;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
@@ -44,7 +44,7 @@ public class EveWHMapperEntityTest
 
     private const int STARGATE_JITA_TO_MAURASI_ID = 50001248;
     private const string STARGATE_JITA_TO_MAURASI_NAME = "Maurasi";
-    
+
 
     private const int GROUPE_WORMHOLE_ID = 988;
 
@@ -53,7 +53,8 @@ public class EveWHMapperEntityTest
     private const int WH_TYPE_ID1 = 30583;
     private const int WH_TYPE_ID2 = 30584;
 
-    private readonly IEveMapperService _whMapperEntity;
+    private readonly IEveMapperService _eveMapperService;
+    private readonly IEveMapperCacheService _eveMapperCacheService;
 
     public EveWHMapperEntityTest()
     {
@@ -78,64 +79,67 @@ public class EveWHMapperEntityTest
             var httpclientfactory = provider.GetService<IHttpClientFactory>();
             IDistributedCache? _distriCache = provider.GetService<IDistributedCache>();
 
-            if(_distriCache != null && httpclientfactory!=null)
+            if (_distriCache != null && httpclientfactory != null)
             {
                 var userInfoService = new EveUserInfosServices(null!);
                 ILogger<EveMapperService> logger = new NullLogger<EveMapperService>();
                 ILogger<EveAPIServices> loggerAPI = new NullLogger<EveAPIServices>();
                 ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
+                ILogger<EveMapperCacheService> loggereveMapperCacheService = new NullLogger<EveMapperCacheService>();
 
-                _whMapperEntity = new EveMapperService(logger, 
-                    new CacheService(loggerCacheService, _distriCache), 
-                    new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService));
+                var cacheService = new CacheService(loggerCacheService, _distriCache);
+                _eveMapperCacheService = new EveMapperCacheService(loggereveMapperCacheService, cacheService);
+                var eveApiservice = new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService);
+
+                _eveMapperService = new EveMapperService(logger, _eveMapperCacheService, eveApiservice);
             }
         }
     }
 
     [Fact, Priority(1)]
-    
-    private async Task Get_Character_Test()
-    {   
-        var clearing = await _whMapperEntity.ClearCharacterCache();
+
+    public async Task Get_Character_Test()
+    {
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<CharactereEntity>();
         Assert.True(clearing);
-        
-        var character = await _whMapperEntity.GetCharacter(BAD_ID);
+
+        var character = await _eveMapperService.GetCharacter(BAD_ID);
         Assert.Null(character);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        character = await _whMapperEntity.GetCharacter(CHARACTER_GOONS_ID);
+        character = await _eveMapperService.GetCharacter(CHARACTER_GOONS_ID);
         sw.Stop();
         Assert.NotNull(character);
         Assert.Equal(CHARACTER_GOONS_NAME, character.Name);
         long without_cache = sw.ElapsedMilliseconds;
-        
+
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        character = await _whMapperEntity.GetCharacter(CHARACTER_GOONS_ID);
+        character = await _eveMapperService.GetCharacter(CHARACTER_GOONS_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(character);
         Assert.Equal(CHARACTER_GOONS_NAME, character.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearCharacterCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<CharactereEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(2)]
-    private async Task Get_Corporation_Test()
+    public async Task Get_Corporation_Test()
     {
-        var clearing = await _whMapperEntity.ClearCorporationCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<CorporationEntity>();
         Assert.True(clearing);
 
-        var corporation = await _whMapperEntity.GetCorporation(BAD_ID);
+        var corporation = await _eveMapperService.GetCorporation(BAD_ID);
         Assert.Null(corporation);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        corporation = await _whMapperEntity.GetCorporation(CORPORATION_GOONS_ID);
+        corporation = await _eveMapperService.GetCorporation(CORPORATION_GOONS_ID);
         sw.Stop();
         Assert.NotNull(corporation);
         Assert.Equal(CORPORATION_GOONS_NAME, corporation.Name);
@@ -144,29 +148,29 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        corporation = await _whMapperEntity.GetCorporation(CORPORATION_GOONS_ID);
+        corporation = await _eveMapperService.GetCorporation(CORPORATION_GOONS_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(corporation);
         Assert.Equal(CORPORATION_GOONS_NAME, corporation.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearCorporationCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<CorporationEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(3)]
-    private async Task Get_Alliance_Test()
+    public async Task Get_Alliance_Test()
     {
-        var clearing = await _whMapperEntity.ClearAllianceCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<AllianceEntity>();
         Assert.True(clearing);
 
-        var alliance = await _whMapperEntity.GetAlliance(BAD_ID);
+        var alliance = await _eveMapperService.GetAlliance(BAD_ID);
         Assert.Null(alliance);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        alliance = await _whMapperEntity.GetAlliance(ALLIANCE_GOONS_ID);
+        alliance = await _eveMapperService.GetAlliance(ALLIANCE_GOONS_ID);
         sw.Stop();
         Assert.NotNull(alliance);
         Assert.Equal(ALLIANCE_GOONS_NAME, alliance.Name);
@@ -175,29 +179,29 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        alliance = await _whMapperEntity.GetAlliance(ALLIANCE_GOONS_ID);
+        alliance = await _eveMapperService.GetAlliance(ALLIANCE_GOONS_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(alliance);
         Assert.Equal(ALLIANCE_GOONS_NAME, alliance.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearAllianceCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<AllianceEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(4)]
-    private async Task Get_Ship_Test()
+    public async Task Get_Ship_Test()
     {
-        var clearing = await _whMapperEntity.ClearShipCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<ShipEntity>();
         Assert.True(clearing);
 
-        var ship = await _whMapperEntity.GetShip(BAD_ID);
+        var ship = await _eveMapperService.GetShip(BAD_ID);
         Assert.Null(ship);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        ship = await _whMapperEntity.GetShip(SHIP_RIFTER_ID);
+        ship = await _eveMapperService.GetShip(SHIP_RIFTER_ID);
         sw.Stop();
         Assert.NotNull(ship);
         Assert.Equal(SHIP_RIFTER_NAME, ship.Name);
@@ -206,29 +210,29 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        ship = await _whMapperEntity.GetShip(SHIP_RIFTER_ID);
+        ship = await _eveMapperService.GetShip(SHIP_RIFTER_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(ship);
         Assert.Equal(SHIP_RIFTER_NAME, ship.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearShipCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<ShipEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(5)]
-    private async Task Get_System_Test()
+    public async Task Get_System_Test()
     {
-        var clearing = await _whMapperEntity.ClearSystemCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<SystemEntity>();
         Assert.True(clearing);
 
-        var system = await _whMapperEntity.GetSystem(BAD_ID);
+        var system = await _eveMapperService.GetSystem(BAD_ID);
         Assert.Null(system);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        system = await _whMapperEntity.GetSystem(SYSTEM_JITA_ID);
+        system = await _eveMapperService.GetSystem(SYSTEM_JITA_ID);
         sw.Stop();
         Assert.NotNull(system);
         Assert.Equal(SYSTEM_JITA_NAME, system.Name);
@@ -237,29 +241,29 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        system = await _whMapperEntity.GetSystem(SYSTEM_JITA_ID);
+        system = await _eveMapperService.GetSystem(SYSTEM_JITA_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(system);
         Assert.Equal(SYSTEM_JITA_NAME, system.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearSystemCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<SystemEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(6)]
-    private async Task Get_Constellation_Test()
+    public async Task Get_Constellation_Test()
     {
-        var clearing = await _whMapperEntity.ClearConstellationCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<ConstellationEntity>();
         Assert.True(clearing);
 
-        var constellation = await _whMapperEntity.GetConstellation(BAD_ID);
+        var constellation = await _eveMapperService.GetConstellation(BAD_ID);
         Assert.Null(constellation);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        constellation = await _whMapperEntity.GetConstellation(CONSTELLATION_Kimotoro_ID);
+        constellation = await _eveMapperService.GetConstellation(CONSTELLATION_Kimotoro_ID);
         sw.Stop();
         Assert.NotNull(constellation);
         Assert.Equal(CONSTELLATION_Kimotoro_NAME, constellation.Name);
@@ -268,29 +272,29 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        constellation = await _whMapperEntity.GetConstellation(CONSTELLATION_Kimotoro_ID);
+        constellation = await _eveMapperService.GetConstellation(CONSTELLATION_Kimotoro_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(constellation);
         Assert.Equal(CONSTELLATION_Kimotoro_NAME, constellation.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearConstellationCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<ConstellationEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(7)]
-    private async Task Get_Region_Test()
+    public async Task Get_Region_Test()
     {
-        var clearing = await _whMapperEntity.ClearRegionCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<RegionEntity>();
         Assert.True(clearing);
 
-        var region = await _whMapperEntity.GetRegion(BAD_ID);
+        var region = await _eveMapperService.GetRegion(BAD_ID);
         Assert.Null(region);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        region = await _whMapperEntity.GetRegion(REGION_THE_FORGE_ID);
+        region = await _eveMapperService.GetRegion(REGION_THE_FORGE_ID);
         sw.Stop();
         Assert.NotNull(region);
         Assert.Equal(REGION_THE_FORGE_NAME, region.Name);
@@ -299,29 +303,29 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        region = await _whMapperEntity.GetRegion(REGION_THE_FORGE_ID);
+        region = await _eveMapperService.GetRegion(REGION_THE_FORGE_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(region);
         Assert.Equal(REGION_THE_FORGE_NAME, region.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearRegionCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<RegionEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(8)]
-    private async Task Get_Stargate_Test()
+    public async Task Get_Stargate_Test()
     {
-        var clearing = await _whMapperEntity.ClearStargateCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<StargateEntity>();
         Assert.True(clearing);
 
-        var stargate = await _whMapperEntity.GetStargate(BAD_ID);
+        var stargate = await _eveMapperService.GetStargate(BAD_ID);
         Assert.Null(stargate);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        stargate = await _whMapperEntity.GetStargate(STARGATE_JITA_TO_MAURASI_ID);
+        stargate = await _eveMapperService.GetStargate(STARGATE_JITA_TO_MAURASI_ID);
         sw.Stop();
         Assert.NotNull(stargate);
         Assert.Equal(SYSTEM_JITA_ID, stargate.SourceId);
@@ -331,7 +335,7 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        stargate = await _whMapperEntity.GetStargate(STARGATE_JITA_TO_MAURASI_ID);
+        stargate = await _eveMapperService.GetStargate(STARGATE_JITA_TO_MAURASI_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(stargate);
@@ -339,22 +343,22 @@ public class EveWHMapperEntityTest
         Assert.Equal(SYSTEM_JITA_ID, stargate.SourceId);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearStargateCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<StargateEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(9)]
-    private async Task Get_Group_Test()
+    public async Task Get_Group_Test()
     {
-        var clearing = await _whMapperEntity.ClearGroupCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<GroupEntity>();
         Assert.True(clearing);
 
-        var group = await _whMapperEntity.GetGroup(BAD_ID);
+        var group = await _eveMapperService.GetGroup(BAD_ID);
         Assert.Null(group);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        group = await _whMapperEntity.GetGroup(GROUPE_WORMHOLE_ID);
+        group = await _eveMapperService.GetGroup(GROUPE_WORMHOLE_ID);
         sw.Stop();
         Assert.NotNull(group);
         Assert.NotEmpty(group.Types);
@@ -364,7 +368,7 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        group = await _whMapperEntity.GetGroup(GROUPE_WORMHOLE_ID);
+        group = await _eveMapperService.GetGroup(GROUPE_WORMHOLE_ID);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(group);
@@ -372,22 +376,22 @@ public class EveWHMapperEntityTest
         Assert.Equal(GROUPE_WORMHOLE_ID, group.Id);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearGroupCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<GroupEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(10)]
-    private async Task Get_Wormhole_Test()
+    public async Task Get_Wormhole_Test()
     {
-        var clearing = await _whMapperEntity.ClearWormholeCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<WHEntity>();
         Assert.True(clearing);
 
-        var wormhole = await _whMapperEntity.GetWormhole(BAD_ID);
+        var wormhole = await _eveMapperService.GetWormhole(BAD_ID);
         Assert.Null(wormhole);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        wormhole = await _whMapperEntity.GetWormhole(WH_TYPE_ID1);
+        wormhole = await _eveMapperService.GetWormhole(WH_TYPE_ID1);
         sw.Stop();
         Assert.NotNull(wormhole);
         Assert.Equal(WH_TYPE_ID1, wormhole.Id);
@@ -396,29 +400,29 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        wormhole = await _whMapperEntity.GetWormhole(WH_TYPE_ID1);
+        wormhole = await _eveMapperService.GetWormhole(WH_TYPE_ID1);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(wormhole);
         Assert.Equal(WH_TYPE_ID1, wormhole.Id);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearWormholeCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<WHEntity>();
         Assert.True(clearing);
     }
 
     [Fact, Priority(11)]
-    private async Task Get_Sun_Test()
+    public async Task Get_Sun_Test()
     {
-        var clearing = await _whMapperEntity.ClearSunCache();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<SunEntity>();
         Assert.True(clearing);
 
-        var sun = await _whMapperEntity.GetSun(BAD_ID);
+        var sun = await _eveMapperService.GetSun(BAD_ID);
         Assert.Null(sun);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        sun = await _whMapperEntity.GetSun(SECONDARY_SUN_ID_TYPE);
+        sun = await _eveMapperService.GetSun(SECONDARY_SUN_ID_TYPE);
         sw.Stop();
         Assert.NotNull(sun);
         Assert.Equal(SECONDARY_SUN_ID_TYPE, sun.Id);
@@ -427,16 +431,14 @@ public class EveWHMapperEntityTest
         //Check if cache is working
         sw.Reset();
         sw.Restart();
-        sun = await _whMapperEntity.GetSun(SECONDARY_SUN_ID_TYPE);
+        sun = await _eveMapperService.GetSun(SECONDARY_SUN_ID_TYPE);
         sw.Stop();
         long with_cache = sw.ElapsedMilliseconds;
         Assert.NotNull(sun);
         Assert.Equal(SECONDARY_SUN_ID_TYPE, sun.Id);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _whMapperEntity.ClearSunCache();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<SunEntity>();
         Assert.True(clearing);
     }
-
-
 }
