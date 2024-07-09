@@ -6,7 +6,7 @@ using WHMapper.Services.EveMapper;
 
 namespace WHMapper.Tests.Services.EveMapperService
 {
-    public class EveMapperServiceTests
+    public class EveMapperCacheServiceTests
     {
         [Theory]
         [InlineAutoMoqData(typeof(AllianceEntity), IEveMapperCacheService.REDIS_ALLIANCE_KEY)]
