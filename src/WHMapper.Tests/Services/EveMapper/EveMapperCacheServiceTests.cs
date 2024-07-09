@@ -4,7 +4,7 @@ using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveMapper;
 
-namespace WHMapper.Tests.Services.EveMapperService
+namespace WHMapper.Tests.Services.EveMapper
 {
     public class EveMapperCacheServiceTests
     {
@@ -27,7 +27,7 @@ namespace WHMapper.Tests.Services.EveMapperService
             EveMapperCacheService sut
             )
         {
-            cacheService.Setup(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))))
+            cacheService.Setup(x => x.Remove(It.Is<string>(x => x.Contains(redisKey))))
                 .Returns(Task.FromResult(true))
                 .Verifiable();
 
@@ -36,7 +36,7 @@ namespace WHMapper.Tests.Services.EveMapperService
             var result = await (Task<bool>)sutMethod.Invoke(sut, null)!;
 
             Assert.True(result);
-            cacheService.Verify(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))), Times.Once);
+            cacheService.Verify(x => x.Remove(It.Is<string>(x => x.Contains(redisKey))), Times.Once);
             cacheService.VerifyNoOtherCalls();
         }
 
@@ -59,7 +59,7 @@ namespace WHMapper.Tests.Services.EveMapperService
             EveMapperCacheService sut
             )
         {
-            cacheService.Setup(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))))
+            cacheService.Setup(x => x.Remove(It.Is<string>(x => x.Contains(redisKey))))
                 .Throws<Exception>()
                 .Verifiable();
 
@@ -67,7 +67,7 @@ namespace WHMapper.Tests.Services.EveMapperService
             var result = await (Task<bool>)sutMethod.Invoke(sut, null)!;
 
             Assert.False(result);
-            cacheService.Verify(x => x.Remove(It.Is<String>(x => x.Contains(redisKey))), Times.Once);
+            cacheService.Verify(x => x.Remove(It.Is<string>(x => x.Contains(redisKey))), Times.Once);
             cacheService.VerifyNoOtherCalls();
         }
 

@@ -7,7 +7,7 @@ using WHMapper.Repositories.WHAdmins;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 
-namespace WHMapper.Tests.Services.EveMapperService
+namespace WHMapper.Tests.Services.EveMapper
 {
     public class EveMapperAccessHelperTests
     {
@@ -90,8 +90,8 @@ namespace WHMapper.Tests.Services.EveMapperService
             accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
 
             Assert.True(await sut.IsEveMapperUserAccessAuthorized(characterId));
-        }        
-        
+        }
+
         [Theory]
         [InlineAutoMoqData(1)]
         [InlineAutoMoqData(10000)]
@@ -109,7 +109,7 @@ namespace WHMapper.Tests.Services.EveMapperService
             accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
 
             Assert.True(await sut.IsEveMapperUserAccessAuthorized(characterId));
-        }        
+        }
 
         [Theory]
         [InlineAutoMoqData(1)]
