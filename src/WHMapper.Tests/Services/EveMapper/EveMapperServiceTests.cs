@@ -25,6 +25,7 @@ namespace WHMapper.Tests.Services.EveMapper
 
             Assert.NotNull(result);
             Assert.Equal(groupEntity, result);
+            cacheService.Verify(x => x.GetAsync<GroupEntity>(1), Times.Once);
             cacheService.VerifyNoOtherCalls();
             apiService.VerifyNoOtherCalls();
         }        
