@@ -25,7 +25,7 @@ public partial class Overview : ComponentBase
         private IWHColorHelper? WHColorHelper { get; set; }
 
         [Inject]
-        private IEveMapperEntity EveMapperEntity { get; set; } = null!;
+        private IEveMapperService EveMapperEntity { get; set; } = null!;
 
         [Parameter]
         public EveSystemLinkModel CurrentSystemLink {get;set;}= null!;

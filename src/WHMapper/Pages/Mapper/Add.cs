@@ -42,7 +42,7 @@ namespace WHMapper.Pages.Mapper
         private IEveMapperHelper MapperServices { get; set; } = null!;
 
         [Inject]
-        private IEveMapperEntity EveMapperEntity { get; set; } = null!;
+        private IEveMapperService EveMapperEntity { get; set; } = null!;
 
         [Inject]
         IWHSystemRepository DbWHSystems { get; set; } = null!;
