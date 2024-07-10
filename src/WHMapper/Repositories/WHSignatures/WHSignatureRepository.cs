@@ -127,7 +127,7 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (context.DbWHSignatures.Count() == 0)
+                if (!await context.DbWHSignatures.AnyAsync())
                     return await context.DbWHSignatures.ToListAsync();
                 else
                 {
