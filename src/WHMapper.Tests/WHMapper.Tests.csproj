@@ -38,6 +38,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\WHMapper.Shared\WHMapper.Shared.csproj" />
     <ProjectReference Include="..\WHMapper\WHMapper.csproj" />
   </ItemGroup>
 </Project>

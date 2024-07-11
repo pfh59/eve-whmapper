@@ -11,6 +11,17 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\**" />
+    <Compile Remove="Services\**" />
+    <Content Remove="Models\**" />
+    <Content Remove="Services\**" />
+    <EmbeddedResource Remove="Models\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Models\**" />
+    <None Remove="Services\**" />
+  </ItemGroup>
   <ItemGroup>
     <None Remove="MudBlazor" />
     <None Remove="MudBlazor.ThemeManager" />
@@ -18,14 +29,6 @@
     <None Remove="Migrations\" />
     <None Remove="Services\" />
     <None Remove="Models\" />
-    <None Remove="Services\Anoik\" />
-    <None Remove="Services\EveAPI\" />
-    <None Remove="Models\Db\" />
-    <None Remove="Models\DTO\" />
-    <None Remove="Services\EveOAuthProvider\" />
-    <None Remove="Models\DTO\EveAPI\" />
-    <None Remove="Models\DTO\EveAPI\Universe\" />
-    <None Remove="Models\DTO\EveAPI\Location\" />
     <None Remove="Newtonsoft.Json" />
     <None Remove="Microsoft.IdentityModel.JsonWebTokens" />
     <None Remove="Pages\Mapper\" />
@@ -34,8 +37,6 @@
     <None Remove="Z.Blazor.Diagrams" />
     <None Remove="Z.Blazor.Diagrams.Algorithms" />
     <None Remove="Z.Blazor.Diagrams.Core" />
-    <None Remove="Models\Custom\" />
-    <None Remove="Models\Custom\Node\" />
     <None Remove="Pages\Mapper\CustomNode\" />
     <None Remove="Microsoft.EntityFrameworkCore" />
     <None Remove="Npgsql" />
@@ -43,35 +44,17 @@
     <None Remove="Microsoft.EntityFrameworkCore.Design" />
     <None Remove="Hubs\" />
     <None Remove="Repositories\" />
-    <None Remove="Repositories\WHMappers\" />
-    <None Remove="Repositories\WHSystems\" />
-    <None Remove="Repositories\WHSystems\IWHSystemcs" />
     <None Remove="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <None Remove="FluentValidation" />
     <None Remove="ESI.NET" />
     <None Remove="Microsoft.IdentityModel.Protocols" />
     <None Remove="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
     <None Remove="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
-    <None Remove="Models\DTO\EveAPI\SSO\" />
-    <None Remove="Services\WHColor\" />
-    <None Remove="Models\Db\Enums\" />
-    <None Remove="Repositories\WHSystemLinks\" />
     <None Remove="Resources\" />
     <None Remove="Resources\Anoik\" />
     <None Remove="Microsoft.AspNetCore.SignalR.Client" />
-    <None Remove="Services\EveRefreshService\" />
-    <None Remove="Models\DTO\EveAPI\Dogma\" />
-    <None Remove="Services\EveAPI\Dogma\" />
-    <None Remove="Models\DTO\Anoik\" />
-    <None Remove="Services\EveAPI\User Interface\" />
     <None Remove="Resources\SDE\" />
-    <None Remove="Services\SDE\" />
-    <None Remove="Models\DTO\SDE\" />
-    <None Remove="Services\EveMapper\" />
-    <None Remove="Services\EveMapper\AuthorizationPolicies\" />
     <None Remove="Pages\Mapper\Administration\" />
-    <None Remove="Models\DTO\EveMapper\" />
-    <None Remove="Models\DTO\EveMapper\Enums\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Blazor.ContextMenu" Version="2.0.0" />
@@ -99,41 +82,18 @@
     <PackageReference Include="MudBlazor" Version="6.19.1" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Data\" />
-    <Folder Include="Migrations\" />
-    <Folder Include="Models\" />
-    <Folder Include="Models\Db\" />
-    <Folder Include="Models\DTO\" />
-    <Folder Include="Services\EveOAuthProvider\" />
-    <Folder Include="Models\DTO\EveAPI\" />
-    <Folder Include="Models\DTO\EveAPI\Universe\" />
-    <Folder Include="Models\DTO\EveAPI\Location\" />
     <Folder Include="Pages\Mapper\" />
     <Folder Include="Pages\Mapper\Signatures\" />
     <Folder Include="Pages\Mapper\SystemInfos\" />
-    <Folder Include="Models\Custom\" />
-    <Folder Include="Models\Custom\Node\" />
     <Folder Include="Pages\Mapper\CustomNode\" />
     <Folder Include="Hubs\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Repositories\WHMaps\" />
-    <Folder Include="Repositories\WHSystems\" />
-    <Folder Include="Models\DTO\EveAPI\SSO\" />
-    <Folder Include="Services\WHColor\" />
-    <Folder Include="Models\Db\Enums\" />
-    <Folder Include="Repositories\WHSystemLinks\" />
     <Folder Include="Resources\" />
     <Folder Include="Resources\Anoik\" />
-    <Folder Include="Models\DTO\EveAPI\Dogma\" />
-    <Folder Include="Services\EveAPI\Dogma\" />
-    <Folder Include="Models\DTO\Anoik\" />
-    <Folder Include="Services\EveAPI\User Interface\" />
     <Folder Include="Resources\SDE\" />
-    <Folder Include="Models\DTO\SDE\" />
-    <Folder Include="Services\EveMapper\AuthorizationPolicies\" />
     <Folder Include="Pages\Mapper\Administration\" />
-    <Folder Include="Models\DTO\EveMapper\" />
-    <Folder Include="Models\DTO\EveMapper\Enums\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WHMapper.Shared\WHMapper.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Pages\_Layout.cshtml">
