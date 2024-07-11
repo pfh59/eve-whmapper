@@ -6,11 +6,11 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.SSO;
-using WHMapper.Services.EveOAuthProvider;
+using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Models.DTO.EveAPI.SSO;
+using WHMapper.Shared.Services.EveOAuthProvider;
 
-namespace WHMapper.Services.EveJwtAuthenticationStateProvider
+namespace WHMapper.Shared.Services.EveAuthenticationStateProvider
 {
     public class EveAuthenticationStateProvider : AuthenticationStateProvider
     {
@@ -47,7 +47,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
             if (await IsTokenExpired()) //auto renew token
             {
-                EveToken? newEveToken = await RenewToken();
+                var newEveToken = await RenewToken();
 
                 if (newEveToken == null)
                     return anonymousState;
@@ -64,7 +64,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
 
         private Task<bool> IsTokenExpired()
         {
-            JsonWebTokenHandler SecurityTokenHandle = new JsonWebTokenHandler();
+            var SecurityTokenHandle = new JsonWebTokenHandler();
             var securityToken = SecurityTokenHandle.ReadJsonWebToken(_tokenInfo.AccessToken);
             var expiry = EVEOnlineAuthenticationHandler.ExtractClaim(securityToken, "exp");
 

@@ -1,7 +1,7 @@
-﻿using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO.EveMapper.Enums;
+﻿using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
-namespace WHMapper.Services.WHColor
+namespace WHMapper.Shared.Services.WHColor
 {
     public class WHColorHelper : IWHColorHelper
     {
@@ -15,17 +15,17 @@ namespace WHMapper.Services.WHColor
         private const string BLACKHOLE_COLOR = "black";
 
 
-        private const float SECUTIRTY_STATUS_00_VALUE = ((float)0.0);
-        private const float SECUTIRTY_STATUS_01_VALUE = ((float)0.1);
-        private const float SECUTIRTY_STATUS_02_VALUE = ((float)0.2);
-        private const float SECUTIRTY_STATUS_03_VALUE = ((float)0.3);
-        private const float SECUTIRTY_STATUS_04_VALUE = ((float)0.4);
-        private const float SECUTIRTY_STATUS_05_VALUE = ((float)0.5);
-        private const float SECUTIRTY_STATUS_06_VALUE = ((float)0.6);
-        private const float SECUTIRTY_STATUS_07_VALUE = ((float)0.7);
-        private const float SECUTIRTY_STATUS_08_VALUE = ((float)0.8);
-        private const float SECUTIRTY_STATUS_09_VALUE = ((float)0.9);
-        private const float SECUTIRTY_STATUS_10_VALUE = ((float)1.0);
+        private const float SECUTIRTY_STATUS_00_VALUE = (float)0.0;
+        private const float SECUTIRTY_STATUS_01_VALUE = (float)0.1;
+        private const float SECUTIRTY_STATUS_02_VALUE = (float)0.2;
+        private const float SECUTIRTY_STATUS_03_VALUE = (float)0.3;
+        private const float SECUTIRTY_STATUS_04_VALUE = (float)0.4;
+        private const float SECUTIRTY_STATUS_05_VALUE = (float)0.5;
+        private const float SECUTIRTY_STATUS_06_VALUE = (float)0.6;
+        private const float SECUTIRTY_STATUS_07_VALUE = (float)0.7;
+        private const float SECUTIRTY_STATUS_08_VALUE = (float)0.8;
+        private const float SECUTIRTY_STATUS_09_VALUE = (float)0.9;
+        private const float SECUTIRTY_STATUS_10_VALUE = (float)1.0;
 
         private const string SECUTIRTY_STATUS_00_COLOR = "#be0000";
         private const string SECUTIRTY_STATUS_01_COLOR = "#ab2600";

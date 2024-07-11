@@ -1,14 +1,10 @@
-﻿using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.Intrinsics.X86;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Repositories.WHNotes;
-using WHMapper.Services.WHColor;
+using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Repositories.WHNotes;
+using WHMapper.Shared.Services.WHColor;
 
 
 namespace WHMapper.Pages.Mapper.SystemInfos

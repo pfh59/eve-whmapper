@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace WHMapper.Services.EveOAuthProvider
+namespace WHMapper.Shared.Services.EveOAuthProvider
 {
     public class EVEOnlineAuthenticationOptions : OAuthOptions
     {

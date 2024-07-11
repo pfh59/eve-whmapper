@@ -1,7 +1,9 @@
-using WHMapper.Models.DTO.EveAPI.Route.Enums;
-using WHMapper.Models.DTO.RoutePlanner;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.DTO.EveAPI.Route.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper;
+using WHMapper.Shared.Models.DTO.RoutePlanner;
 
-namespace WHMapper
+namespace WHMapper.Shared.Services.EveMapper
 {
     public interface IEveMapperRoutePlannerHelper
     {

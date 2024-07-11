@@ -1,19 +1,15 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
-using WHMapper.Data;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using static MudBlazor.CategoryTypes;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHMaps
+namespace WHMapper.Shared.Repositories.WHMaps
 {
     public class WHMapRepository : ADefaultRepository<WHMapperContext, WHMap, int>, IWHMapRepository
     {
 
         public WHMapRepository(ILogger<WHMapRepository> logger, IDbContextFactory<WHMapperContext> context)
-            : base(logger,context)
+            : base(logger, context)
         {
         }
 
@@ -34,7 +30,7 @@ namespace WHMapper.Repositories.WHMaps
                     return null;
                 }
             }
-            
+
         }
 
         protected override async Task<bool> ADeleteById(int id)
@@ -72,7 +68,8 @@ namespace WHMapper.Repositories.WHMaps
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)
                             .ThenInclude(x => x.JumpHistory)
-                            .SingleOrDefaultAsync(x => x.Id == id);;
+                            .SingleOrDefaultAsync(x => x.Id == id);
+                ;
             }
         }
 

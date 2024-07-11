@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using WHMapper.Models.DTO.Anoik;
+using WHMapper.Shared.Models.DTO.Anoik;
 
-namespace WHMapper.Services.Anoik
+namespace WHMapper.Shared.Services.Anoik
 {
     public class AnoikServices : IAnoikServices
     {
@@ -49,7 +49,7 @@ namespace WHMapper.Services.Anoik
                 var whClassJSON = sys.GetProperty("wormholeClass");
                 var whClass = whClassJSON.GetString();
 
-                if (String.IsNullOrEmpty(whClass))
+                if (string.IsNullOrEmpty(whClass))
                 {
                     return string.Empty;
                 }
@@ -77,7 +77,7 @@ namespace WHMapper.Services.Anoik
                 var sys = _jsonSystems.GetProperty(systemName);
                 var whEffect = sys.GetProperty("effectName");
 
-                return (whEffect.ValueKind == JsonValueKind.Null) ? String.Empty : whEffect.GetString();
+                return whEffect.ValueKind == JsonValueKind.Null ? string.Empty : whEffect.GetString();
 
             }
             catch (KeyNotFoundException)
@@ -105,7 +105,7 @@ namespace WHMapper.Services.Anoik
                 while (collectionOfStatics.MoveNext())
                 {
                     var whStaticType = collectionOfStatics.Current.GetString();
-                    if (!String.IsNullOrEmpty(whStaticType))
+                    if (!string.IsNullOrEmpty(whStaticType))
                     {
                         var whStaticDest = GetWHClassFromWHType(whStaticType);
                         if (!string.IsNullOrEmpty(whStaticDest))

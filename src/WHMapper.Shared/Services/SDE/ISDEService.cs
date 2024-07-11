@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.SDE;
+﻿using WHMapper.Shared.Models.DTO.SDE;
 
-namespace WHMapper.Services.SDE
+namespace WHMapper.Shared.Services.SDE
 {
     public interface ISDEService
     {

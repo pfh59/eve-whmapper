@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Assets;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Assets;
 
-namespace WHMapper.Services.EveAPI.Assets
+namespace WHMapper.Shared.Services.EveAPI.Assets
 {
     public interface IAssetsServices
     {

@@ -1,11 +1,10 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using WHMapper.Models.Db.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using WHMapper.Shared.Models.Db.Enums;
 
-namespace WHMapper.Models.Db
+namespace WHMapper.Shared.Models.Db
 {
-	public class WHAccess
-	{
+    public class WHAccess
+    {
         [Key]
         public int Id { get; set; }
 
@@ -13,7 +12,7 @@ namespace WHMapper.Models.Db
         public int EveEntityId { get; set; }
 
         [Required]
-        public string EveEntityName { get; set; }=string.Empty;
+        public string EveEntityName { get; set; } = string.Empty;
 
         [Required]
         public WHAccessEntity EveEntity { get; set; }
@@ -21,17 +20,17 @@ namespace WHMapper.Models.Db
 
         [Obsolete("EF Requires it")]
         protected WHAccess() { }
-        public WHAccess(int eveEntityId,string eveEntityName) : this(eveEntityId, eveEntityName, WHAccessEntity.Character)
+        public WHAccess(int eveEntityId, string eveEntityName) : this(eveEntityId, eveEntityName, WHAccessEntity.Character)
         {
-            
+
         }
 
-        public WHAccess(int eveEntityId,string eveEntityName, WHAccessEntity entityType)
-		{
+        public WHAccess(int eveEntityId, string eveEntityName, WHAccessEntity entityType)
+        {
             EveEntityId = eveEntityId;
             EveEntityName = eveEntityName;
             EveEntity = entityType;
         }
-	}
+    }
 }
 

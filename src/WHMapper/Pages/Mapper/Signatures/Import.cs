@@ -1,23 +1,10 @@
-﻿using System;
-using System.Net.NetworkInformation;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHSystems;
-using FluentValidation;
-using static MudBlazor.CategoryTypes;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Components.Authorization;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
+using WHMapper.Shared.Services.WHSignatures;
 using Severity = MudBlazor.Severity;
-using Microsoft.AspNetCore.Hosting.Server;
-using WHMapper.Repositories.WHSignatures;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-using WHMapper.Services.WHSignature;
-using System.Diagnostics.Tracing;
-using System.Reflection.Emit;
-using Microsoft.AspNetCore.Authorization;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {

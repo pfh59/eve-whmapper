@@ -2,17 +2,16 @@ using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveMapper;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Models.DTO.SDE;
-using WHMapper.Repositories.WHNotes;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.SDE;
+using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.DTO.EveMapper;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Repositories.WHNotes;
+using WHMapper.Shared.Services.Anoik;
+using WHMapper.Shared.Services.SDE;
 
-namespace WHMapper.Services.EveMapper
+namespace WHMapper.Shared.Services.EveMapper
 {
     public class EveMapperHelper : IEveMapperHelper
     {
@@ -502,7 +501,7 @@ namespace WHMapper.Services.EveMapper
             object? res = null;
             foreach (var field in typeof(WHEffect).GetFields())
             {
-                if (System.Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
+                if (Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
                 {
                     if (attribute.Description == description)
                     {
@@ -536,7 +535,7 @@ namespace WHMapper.Services.EveMapper
             {
                 if (!string.IsNullOrEmpty(systemName))
                 {
-                    Match match = Regex.Match(systemName, WH_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
+                    var match = Regex.Match(systemName, WH_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
                     return match.Success;
                 }
                 return false;
@@ -560,74 +559,74 @@ namespace WHMapper.Services.EveMapper
             return await GetWHClass(system_region!.Name, system_constellation!.Name, whSystem.Name, whSystem.SecurityStatus);
         }
 
-    public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float securityStatus)
-    {
-        if (IsWormhole(systemName))
+        public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float securityStatus)
         {
-            return Task.FromResult(GetWormholeSystemType(regionName, systemName));
+            if (IsWormhole(systemName))
+            {
+                return Task.FromResult(GetWormholeSystemType(regionName, systemName));
+            }
+            else if (regionName == REGION_POCHVVEN_NAME) // Trig system
+            {
+                return Task.FromResult(EveSystemType.Pochven);
+            }
+            else
+            {
+                return Task.FromResult(GetKSpaceSystemType(securityStatus));
+            }
         }
-        else if (regionName == REGION_POCHVVEN_NAME) // Trig system
+
+        private EveSystemType GetWormholeSystemType(string regionName, string systemName)
         {
-            return Task.FromResult(EveSystemType.Pochven);
+            var firstChar = regionName.FirstOrDefault();
+            return firstChar switch
+            {
+                'A' => EveSystemType.C1,
+                'B' => EveSystemType.C2,
+                'C' => EveSystemType.C3,
+                'D' => EveSystemType.C4,
+                'E' => EveSystemType.C5,
+                'F' => EveSystemType.C6,
+                'G' => EveSystemType.Thera,
+                'H' => EveSystemType.C13,
+                'K' => GetSpecialWormholeSystemType(systemName),
+                _ => EveSystemType.None,
+            };
         }
-        else
+
+        private EveSystemType GetSpecialWormholeSystemType(string systemName)
         {
-            return Task.FromResult(GetKSpaceSystemType(securityStatus));
+            return systemName switch
+            {
+                C14_NAME => EveSystemType.C14,
+                C15_NAME => EveSystemType.C15,
+                C16_NAME => EveSystemType.C16,
+                C17_NAME => EveSystemType.C17,
+                C18_NAME => EveSystemType.C18,
+                _ => EveSystemType.None,
+            };
         }
-    }
 
-    private EveSystemType GetWormholeSystemType(string regionName, string systemName)
-    {
-        var firstChar = regionName.FirstOrDefault();
-        return firstChar switch
+        private EveSystemType GetKSpaceSystemType(float securityStatus)
         {
-            'A' => EveSystemType.C1,
-            'B' => EveSystemType.C2,
-            'C' => EveSystemType.C3,
-            'D' => EveSystemType.C4,
-            'E' => EveSystemType.C5,
-            'F' => EveSystemType.C6,
-            'G' => EveSystemType.Thera,
-            'H' => EveSystemType.C13,
-            'K' => GetSpecialWormholeSystemType(systemName),
-            _ => EveSystemType.None,
-        };
-    }
-
-    private EveSystemType GetSpecialWormholeSystemType(string systemName)
-    {
-        return systemName switch
-        {
-            C14_NAME => EveSystemType.C14,
-            C15_NAME => EveSystemType.C15,
-            C16_NAME => EveSystemType.C16,
-            C17_NAME => EveSystemType.C17,
-            C18_NAME => EveSystemType.C18,
-            _ => EveSystemType.None,
-        };
-    }
-
-    private EveSystemType GetKSpaceSystemType(float securityStatus)
-    {
-        if (securityStatus >= 0.5)
-            return EveSystemType.HS;
-        else if (securityStatus < 0.5 && securityStatus > 0)
-            return EveSystemType.LS;
-        else
-            return EveSystemType.NS;
-    }
+            if (securityStatus >= 0.5)
+                return EveSystemType.HS;
+            else if (securityStatus < 0.5 && securityStatus > 0)
+                return EveSystemType.LS;
+            else
+                return EveSystemType.NS;
+        }
 
         private async Task<WHEffect> GetSystemEffect(string systemName)
         {
-            WHEffect effect = WHEffect.None;
+            var effect = WHEffect.None;
             if (IsWormhole(systemName))//WH system
             {
-                IEnumerable<SDESolarSystem>? sdeWormholesInfos = await _sdeServices!.SearchSystem(systemName);
-                SDESolarSystem? sdeInfos = sdeWormholesInfos?.FirstOrDefault();
+                var sdeWormholesInfos = await _sdeServices!.SearchSystem(systemName);
+                var sdeInfos = sdeWormholesInfos?.FirstOrDefault();
 
                 if (sdeInfos != null && sdeInfos.SecondarySun != null)
                 {
-                    SunEntity? secondSun = await _eveMapperEntity.GetSun(sdeInfos.SecondarySun.TypeID);
+                    var secondSun = await _eveMapperEntity.GetSun(sdeInfos.SecondarySun.TypeID);
                     if (secondSun != null)
                         effect = GetWHEffectValueDescription(secondSun.Name);
                     else
@@ -679,15 +678,15 @@ namespace WHMapper.Services.EveMapper
 
             if (IsWormhole(wh.Name))//WH system
             {
-                EveSystemType whClass = await GetWHClass(system_region!.Name, system_constellation.Name, system.Name, system.SecurityStatus);
-                WHEffect whEffect = await GetSystemEffect(system.Name);
-                IList<EveSystemEffect>? effectDetails = GetWHEffectDetails(whEffect, whClass);
+                var whClass = await GetWHClass(system_region!.Name, system_constellation.Name, system.Name, system.SecurityStatus);
+                var whEffect = await GetSystemEffect(system.Name);
+                var effectDetails = GetWHEffectDetails(whEffect, whClass);
                 IList<WHStatic>? statics = null;
 
-                IEnumerable<KeyValuePair<string, string>>? whStatics = await _anoikServices!.GetSystemStatics(wh.Name);
+                var whStatics = await _anoikServices!.GetSystemStatics(wh.Name);
                 if (whStatics != null)
                 {
-                    statics = whStatics.Select(x => new WHStatic(x.Key, Enum.Parse<EveSystemType>(x.Value, true))).ToList<WHStatic>();
+                    statics = whStatics.Select(x => new WHStatic(x.Key, Enum.Parse<EveSystemType>(x.Value, true))).ToList();
                 }
 
                 res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, whClass, whEffect, effectDetails, statics);
@@ -707,11 +706,11 @@ namespace WHMapper.Services.EveMapper
 
         private async Task InitWormholeTypeList()
         {
-            _logger?.LogInformation("Init wormhole type list");           
-            GroupEntity? whGroup = await _eveMapperEntity.GetGroup(GROUPE_WORMHOLE_ID);
-            if(whGroup==null)
+            _logger?.LogInformation("Init wormhole type list");
+            var whGroup = await _eveMapperEntity.GetGroup(GROUPE_WORMHOLE_ID);
+            if (whGroup == null)
                 throw new InvalidDataException("Wormhole group not found");
-            
+
             await Parallel.ForEachAsync(whGroup!.Types, _options, async (whTypeId, token) =>
             {
                 var whType = await _eveMapperEntity.GetWormhole(whTypeId);
@@ -738,7 +737,7 @@ namespace WHMapper.Services.EveMapper
                                 break;
                             default:
 
-                                int sys_type_value=(int)whType.SystemTypeValue;
+                                int sys_type_value = (int)whType.SystemTypeValue;
                                 if (Enum.IsDefined(typeof(EveSystemType), sys_type_value))
                                 {
                                     _whTypes.Add(new WormholeType(whType.Name, (EveSystemType)whType.SystemTypeValue, null));
@@ -761,7 +760,7 @@ namespace WHMapper.Services.EveMapper
                     _logger?.LogWarning("Nullable wormhole type, value : {whTypeId}", whTypeId);
                 }
             });
-            _whTypes = _whTypes.OrderBy(x => x.Name).ToList<WormholeType>();
+            _whTypes = _whTypes.OrderBy(x => x.Name).ToList();
 
         }
 

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace WHMapper;
+namespace WHMapper.Shared.Models.DTO.EveAPI.Assets;
 
 public class AssetName
 {

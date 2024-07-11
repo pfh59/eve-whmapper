@@ -2,7 +2,7 @@
 
 namespace WHMapper.Tests;
 
-  public class DisplayNameOrderer : ITestCollectionOrderer
+public class DisplayNameOrderer : ITestCollectionOrderer
         {
             public IEnumerable<ITestCollection> OrderTestCollections(IEnumerable<ITestCollection> testCollections)
             {

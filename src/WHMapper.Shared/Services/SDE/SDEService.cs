@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using WHMapper.Models.DTO.SDE;
-using WHMapper.Services.Cache;
+using WHMapper.Shared.Models.DTO.SDE;
+using WHMapper.Shared.Services.Cache;
 
-namespace WHMapper.Services.SDE
+namespace WHMapper.Shared.Services.SDE
 {
     public class SDEService : ISDEService
     {
@@ -20,7 +20,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                IEnumerable<SDESolarSystem>? results = await _cacheService.Get<IEnumerable<SDESolarSystem>?>(SDEConstants.REDIS_SDE_SOLAR_SYSTEMS_KEY);
+                var results = await _cacheService.Get<IEnumerable<SDESolarSystem>?>(SDEConstants.REDIS_SDE_SOLAR_SYSTEMS_KEY);
                 if (results == null)
                     return new List<SDESolarSystem>();
                 return results;
@@ -36,7 +36,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                IEnumerable<SolarSystemJump>? results = await _cacheService.Get<IEnumerable<SolarSystemJump>?>(SDEConstants.REDIS_SOLAR_SYSTEM_JUMPS_KEY);
+                var results = await _cacheService.Get<IEnumerable<SolarSystemJump>?>(SDEConstants.REDIS_SOLAR_SYSTEM_JUMPS_KEY);
                 if (results == null)
                     return new List<SolarSystemJump>();
 
@@ -82,9 +82,9 @@ namespace WHMapper.Services.SDE
                 }
 
 
-                if (!String.IsNullOrEmpty(value) && value.Length > 2)
+                if (!string.IsNullOrEmpty(value) && value.Length > 2)
                 {
-                    BlockingCollection<SDESolarSystem> results = new BlockingCollection<SDESolarSystem>();
+                    var results = new BlockingCollection<SDESolarSystem>();
                     SDESystems.AsParallel().Where(x => x.Name.ToLower().Contains(value.ToLower())).ForAll(x => results.Add(x));
                     return results.OrderBy(x => x.Name);
                 }

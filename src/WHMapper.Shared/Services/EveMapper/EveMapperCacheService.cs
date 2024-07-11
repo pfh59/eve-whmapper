@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Services.Cache;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Services.Cache;
 
-namespace WHMapper.Services.EveMapper;
+namespace WHMapper.Shared.Services.EveMapper;
 
 public class EveMapperCacheService : IEveMapperCacheService
 {
@@ -38,8 +38,8 @@ public class EveMapperCacheService : IEveMapperCacheService
             string cacheKey = GetEntityCacheKey<TEntity>();
             var result = await _cacheService.Get<IEnumerable<TEntity>>(cacheKey);
             return result?.Single(x => x.Id == key)!;
-        } 
-        catch(InvalidOperationException e)
+        }
+        catch (InvalidOperationException e)
         {
             _logger.LogWarning(e, "Warning while getting entities {entity}", typeof(TEntity).Name);
         }

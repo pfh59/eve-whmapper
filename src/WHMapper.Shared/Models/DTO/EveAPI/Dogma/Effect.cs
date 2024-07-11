@@ -1,11 +1,9 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using static MudBlazor.FilterOperator;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Dogma
+namespace WHMapper.Shared.Models.DTO.EveAPI.Dogma
 {
-	public class Effect
-	{
+    public class Effect
+    {
         [JsonPropertyName("description")]
         public string Description { get; set; } = string.Empty;
 
@@ -46,7 +44,7 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
         public bool IsWarpSafe { get; set; }
 
         [JsonPropertyName("modifiers")]
-        public Modifier[] Modifiers { get; set; } =null!;
+        public Modifier[] Modifiers { get; set; } = null!;
 
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
@@ -70,9 +68,9 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
         public int TrackingSpeedAttributeId { get; set; }
 
         public Effect()
-		{
-		}
-	}
+        {
+        }
+    }
 
     public class Modifier
     {

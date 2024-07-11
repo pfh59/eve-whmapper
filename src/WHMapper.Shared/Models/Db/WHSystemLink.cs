@@ -1,8 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using WHMapper.Models.Db.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using WHMapper.Shared.Models.Db.Enums;
 
-namespace WHMapper.Models.Db
+namespace WHMapper.Shared.Models.Db
 {
     public class WHSystemLink
     {
@@ -16,7 +15,7 @@ namespace WHMapper.Models.Db
         public int IdWHSystemFrom { get; set; }
 
         [Required]
-        public int IdWHSystemTo  { get; set; }
+        public int IdWHSystemTo { get; set; }
 
         [Required]
         public bool IsEndOfLifeConnection { get; set; } = false;
@@ -34,11 +33,11 @@ namespace WHMapper.Models.Db
         [Obsolete("EF Requires it")]
         protected WHSystemLink() { }
         public WHSystemLink(int idWHSystemFrom, int idWHSystemTo) :
-            this(0,idWHSystemFrom,idWHSystemTo)
+            this(0, idWHSystemFrom, idWHSystemTo)
         {
         }
 
-        public WHSystemLink(int whMapId,int idWHSystemFrom, int idWHSystemTo)
+        public WHSystemLink(int whMapId, int idWHSystemFrom, int idWHSystemTo)
         {
             WHMapId = whMapId;
             IdWHSystemFrom = idWHSystemFrom;

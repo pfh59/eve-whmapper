@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Corporation;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Corporation;
 
-namespace WHMapper.Services.EveAPI.Corporations
+namespace WHMapper.Shared.Services.EveAPI.Corporations
 {
     public class CorporationServices : EveApiServiceBase, ICorporationServices
 

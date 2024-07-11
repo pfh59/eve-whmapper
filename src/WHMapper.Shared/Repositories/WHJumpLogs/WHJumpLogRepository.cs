@@ -1,16 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WHMapper.Data;
-using WHMapper.Models.Db;
-using WHMapper.Repositories;
-using WHMapper.Repositories.WHJumpLogs;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHJumpLogs
+namespace WHMapper.Shared.Repositories.WHJumpLogs
 {
     public class WHJumpLogRepository : ADefaultRepository<WHMapperContext, WHJumpLog, int>, IWHJumpLogRepository
     {
         public WHJumpLogRepository(ILogger<WHJumpLogRepository> logger, IDbContextFactory<WHMapperContext> context)
-            : base(logger,context)
+            : base(logger, context)
         {
         }
 
@@ -61,10 +59,10 @@ namespace WHMapper.Repositories.WHJumpLogs
             }
         }
 
-        protected override async Task<WHJumpLog?> AUpdate(int id,WHJumpLog item)
+        protected override async Task<WHJumpLog?> AUpdate(int id, WHJumpLog item)
         {
 
-            if(item==null)
+            if (item == null)
             {
                 _logger.LogError("Impossible to update WHJumpLog, item is null");
                 return null;
@@ -86,7 +84,7 @@ namespace WHMapper.Repositories.WHJumpLogs
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,"Impossible to update WHJumpLog : {Id}", item.Id);
+                    _logger.LogError(ex, "Impossible to update WHJumpLog : {Id}", item.Id);
                     return null;
                 }
             }

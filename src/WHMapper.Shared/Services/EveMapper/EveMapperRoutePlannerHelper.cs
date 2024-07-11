@@ -1,12 +1,15 @@
 ﻿using FibonacciHeap;
 using Microsoft.Extensions.Logging;
-using WHMapper.Models.DTO.EveAPI.Route.Enums;
-using WHMapper.Models.DTO.RoutePlanner;
-using WHMapper.Models.DTO.SDE;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-using WHMapper.Services.SDE;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.DTO.EveAPI.Route.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper;
+using WHMapper.Shared.Models.DTO.RoutePlanner;
+using WHMapper.Shared.Models.DTO.SDE;
+using WHMapper.Shared.Repositories.WHRoutes;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
+using WHMapper.Shared.Services.SDE;
 
-namespace WHMapper;
+namespace WHMapper.Shared.Services.EveMapper;
 
 public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 {
@@ -64,7 +67,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         foreach (var whRoute in whRoutes)
         {
             var destSystemInfo = await _sdeServices.SearchSystemById(whRoute.SolarSystemId);
-            string destName = (destSystemInfo != null) ? destSystemInfo.Name : string.Empty;
+            string destName = destSystemInfo != null ? destSystemInfo.Name : string.Empty;
             var route = await CalculateRoute(fromSolarSystemId, whRoute.SolarSystemId, routeType, extraConnections);
             routes.Add(new EveRoute(whRoute.Id, destName, route));
         }
@@ -138,7 +141,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         IDictionary<int, int> previousSystems = new Dictionary<int, int>();
         IDictionary<int, float> costs = new Dictionary<int, float>();
 
-        FibonacciHeap<int, float> queue = new FibonacciHeap<int, float>(0);
+        var queue = new FibonacciHeap<int, float>(0);
 
         remainingSystems.Add(toSolarSystemId);
 
@@ -160,7 +163,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
             IEnumerable<SolarSystem>? nextSystems = extendedSolarSystemJumps.Where(x => x.System.SolarSystemId == currentSystem && x.JumpList != null).SelectMany(x => x.JumpList).ToArray();
 
-            foreach (SolarSystem nextSystem in nextSystems)
+            foreach (var nextSystem in nextSystems)
             {
                 //case of wh with no link on map
                 if (nextSystem == null)

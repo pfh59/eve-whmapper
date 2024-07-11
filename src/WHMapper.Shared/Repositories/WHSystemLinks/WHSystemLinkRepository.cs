@@ -1,19 +1,14 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
-using WHMapper.Data;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHSystems;
-using static MudBlazor.CategoryTypes;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHSystemLinks
+namespace WHMapper.Shared.Repositories.WHSystemLinks
 {
     public class WHSystemLinkRepository : ADefaultRepository<WHMapperContext, WHSystemLink, int>, IWHSystemLinkRepository
-	{
-        public WHSystemLinkRepository(ILogger<WHSystemLinkRepository> logger,IDbContextFactory<WHMapperContext> context)
-            : base(logger,context)
+    {
+        public WHSystemLinkRepository(ILogger<WHSystemLinkRepository> logger, IDbContextFactory<WHMapperContext> context)
+            : base(logger, context)
         {
         }
 
@@ -30,7 +25,7 @@ namespace WHMapper.Repositories.WHSystemLinks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Impossible to create WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom,item.IdWHSystemTo);
+                    _logger.LogError(ex, "Impossible to create WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom, item.IdWHSystemTo);
                     return null;
                 }
             }
@@ -84,7 +79,7 @@ namespace WHMapper.Repositories.WHSystemLinks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Impossible to update WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom,item.IdWHSystemTo);
+                    _logger.LogError(ex, "Impossible to update WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom, item.IdWHSystemTo);
                     return null;
                 }
             }

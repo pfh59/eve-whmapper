@@ -1,7 +1,7 @@
-﻿using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO.EveMapper.Enums;
+﻿using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
-namespace WHMapper.Services.WHColor
+namespace WHMapper.Shared.Services.WHColor
 {
     public interface IWHColorHelper
     {

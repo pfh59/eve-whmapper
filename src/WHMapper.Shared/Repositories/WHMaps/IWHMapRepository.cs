@@ -1,9 +1,8 @@
-﻿using System;
-using WHMapper.Models.Db;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHMaps
+namespace WHMapper.Shared.Repositories.WHMaps
 {
-    public interface IWHMapRepository : IDefaultRepository<WHMap,int>
+    public interface IWHMapRepository : IDefaultRepository<WHMap, int>
     {
     }
 }

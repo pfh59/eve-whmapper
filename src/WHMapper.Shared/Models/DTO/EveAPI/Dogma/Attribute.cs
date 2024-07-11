@@ -1,11 +1,9 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using static MudBlazor.FilterOperator;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Dogma
+namespace WHMapper.Shared.Models.DTO.EveAPI.Dogma
 {
-	public class Attribute
-	{
+    public class Attribute
+    {
         [JsonPropertyName("attribute_id")]
         public int AttributeId { get; set; }
 
@@ -38,9 +36,9 @@ namespace WHMapper.Models.DTO.EveAPI.Dogma
 
 
         public Attribute()
-		{
+        {
 
-		}
-	}
+        }
+    }
 }
 

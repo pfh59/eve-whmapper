@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Services.Cache;
+﻿namespace WHMapper.Shared.Services.Cache;
 
 public interface ICacheService
 {

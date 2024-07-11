@@ -1,9 +1,10 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Authentication
-@using WHMapper.Models.DTO;
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
 @using Microsoft.Net.Http.Headers;
-@using WHMapper.Services.EveOAuthProvider;
+@using WHMapper.Shared.Models.DTO;
+@using WHMapper.Shared.Services.EveOAuthProvider;
+    
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
 
 @namespace WHMapper.Pages

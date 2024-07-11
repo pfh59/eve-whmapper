@@ -1,4 +1,5 @@
-﻿using WHMapper.Models.DTO;
+﻿using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Services.EveAPI;
 
 namespace WHMapper.Services.EveAPI.UserInterface
 {

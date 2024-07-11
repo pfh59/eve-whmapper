@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
-using WHMapper.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
-namespace WHMapper.Models.DTO.EveMapper.EveEntity;
+namespace WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
 
 public class SunEntity : AEveEntity
 {
-    public SunEntity(int id, WHMapper.Models.DTO.EveAPI.Universe.Type type)
+    public SunEntity(int id, EveAPI.Universe.Type type)
         : base(id, type.Name, EveEntityEnums.Sun)
     {
     }

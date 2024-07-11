@@ -1,8 +1,8 @@
-﻿using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Search;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+﻿using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Models.DTO.EveAPI.Search;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
 
-namespace WHMapper.Services.EveAPI.Search
+namespace WHMapper.Shared.Services.EveAPI.Search
 {
     public class SearchServices : EveApiServiceBase, ISearchServices
     {
@@ -18,7 +18,7 @@ namespace WHMapper.Services.EveAPI.Search
             if (_userService != null)
             {
                 int characterId = await _userService.GetCharactedID();
-                return await base.Execute<SearchAllianceResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=alliance&strict={2}", characterId, searchValue, isStrict));
+                return await Execute<SearchAllianceResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=alliance&strict={2}", characterId, searchValue, isStrict));
 
             }
             return null;
@@ -29,7 +29,7 @@ namespace WHMapper.Services.EveAPI.Search
             if (_userService != null)
             {
                 int characterId = await _userService.GetCharactedID();
-                return await base.Execute<SearchCharacterResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=character&strict={2}", characterId, searchValue, isStrict));
+                return await Execute<SearchCharacterResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=character&strict={2}", characterId, searchValue, isStrict));
 
             }
             return null;
@@ -40,7 +40,7 @@ namespace WHMapper.Services.EveAPI.Search
             if (_userService != null)
             {
                 int characterId = await _userService.GetCharactedID();
-                return await base.Execute<SearchCoporationResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=corporation&strict={2}", characterId, searchValue, isStrict));
+                return await Execute<SearchCoporationResults>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v3/characters/{0}/search/?datasource=tranquility&search={1}&categories=corporation&strict={2}", characterId, searchValue, isStrict));
 
             }
             return null;

@@ -1,11 +1,10 @@
-﻿using System.IO.Abstractions;
-using Testably.Abstractions;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using WHMapper.Services.Cache;
-using WHMapper.Services.SDE;
+using System.IO.Abstractions;
+using WHMapper.Shared.Services.Cache;
+using WHMapper.Shared.Services.SDE;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.Services.SDE;

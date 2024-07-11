@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Route.Enums;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Route.Enums;
 
-namespace WHMapper.Services.EveAPI.Routes
+namespace WHMapper.Shared.Services.EveAPI.Routes
 {
     public class RouteServices : EveApiServiceBase, IRouteServices
     {

@@ -1,11 +1,11 @@
 ﻿using System.Collections.ObjectModel;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveMapper;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.DTO.EveMapper;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
 
-namespace WHMapper.Services.EveMapper
+namespace WHMapper.Shared.Services.EveMapper
 {
     public interface IEveMapperHelper
     {

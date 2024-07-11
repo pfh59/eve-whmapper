@@ -1,14 +1,13 @@
-﻿using System;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using WHMapper.Models.Db;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHAdmins;
-using WHMapper.Services.EveMapper;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Repositories.WHAccesses;
+using WHMapper.Shared.Repositories.WHAdmins;
+using WHMapper.Shared.Services.EveMapper;
 namespace WHMapper.Pages.Mapper.Administration
 {
     [Authorize(Policy = "Admin")]

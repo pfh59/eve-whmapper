@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace WHMapper.Services.SDE
+namespace WHMapper.Shared.Services.SDE
 {
     public class SdeDataSupplier : ISDEDataSupplier
     {

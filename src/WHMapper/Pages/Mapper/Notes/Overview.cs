@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Repositories.WHNotes;
+using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Repositories.WHNotes;
 
 
 namespace WHMapper.Pages.Mapper.Notes

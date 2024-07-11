@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Dogma;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Dogma;
 
-namespace WHMapper.Services.EveAPI.Dogma
+namespace WHMapper.Shared.Services.EveAPI.Dogma
 {
     public interface IDogmaServices
     {

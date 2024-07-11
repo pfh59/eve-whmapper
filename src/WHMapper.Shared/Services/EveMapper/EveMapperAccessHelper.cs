@@ -1,9 +1,9 @@
-﻿using WHMapper.Models.Db.Enums;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHAdmins;
-using WHMapper.Services.EveAPI.Characters;
+﻿using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Repositories.WHAccesses;
+using WHMapper.Shared.Repositories.WHAdmins;
+using WHMapper.Shared.Services.EveAPI.Characters;
 
-namespace WHMapper.Services.EveMapper
+namespace WHMapper.Shared.Services.EveMapper
 {
     public class EveMapperAccessHelper : IEveMapperAccessHelper
     {
@@ -33,10 +33,10 @@ namespace WHMapper.Services.EveMapper
                 if (character == null)
                     return false;
 
-                var result = userAccesses?.FirstOrDefault(x => 
-                (x.EveEntityId == eveCharacterId && x.EveEntity == WHAccessEntity.Character) || 
-                (x.EveEntityId == character.CorporationId && x.EveEntity == WHAccessEntity.Corporation) || 
-                (x.EveEntityId == character.AllianceId && x.EveEntity == WHAccessEntity.Alliance));
+                var result = userAccesses?.FirstOrDefault(x =>
+                x.EveEntityId == eveCharacterId && x.EveEntity == WHAccessEntity.Character ||
+                x.EveEntityId == character.CorporationId && x.EveEntity == WHAccessEntity.Corporation ||
+                x.EveEntityId == character.AllianceId && x.EveEntity == WHAccessEntity.Alliance);
 
                 if (result == null)
                     return false; //TODO: check alliance and corpo and add db methodes

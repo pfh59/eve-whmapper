@@ -2,9 +2,9 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using WHMapper.Models.DTO;
+using WHMapper.Shared.Models.DTO;
 
-namespace WHMapper.Services.EveAPI
+namespace WHMapper.Shared.Services.EveAPI
 {
     public abstract class EveApiServiceBase
     {
@@ -67,12 +67,12 @@ namespace WHMapper.Services.EveAPI
             {
                 string result = response.Content.ReadAsStringAsync().Result;
                 if (string.IsNullOrEmpty(result))
-                    return default(T);
+                    return default;
                 else
                     return JsonSerializer.Deserialize<T>(result);
             }
             else
-                return default(T);
+                return default;
         }
     }
 }

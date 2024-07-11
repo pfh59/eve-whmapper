@@ -1,10 +1,9 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Universe
+namespace WHMapper.Shared.Models.DTO.EveAPI.Universe
 {
-	public class Region
-	{
+    public class Region
+    {
         [JsonPropertyName("region_id")]
         public required int RegionId { get; set; }
 

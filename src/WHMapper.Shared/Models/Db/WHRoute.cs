@@ -1,29 +1,29 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WHMapper;
+namespace WHMapper.Shared.Models.Db;
 
 public class WHRoute
 {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        
-        public int? EveEntityId { get; set; }
 
-        [Required]
-        public int SolarSystemId { get; set; }
+    public int? EveEntityId { get; set; }
 
-        [Obsolete("EF Requires it")]
-        protected WHRoute() { }
+    [Required]
+    public int SolarSystemId { get; set; }
 
-        public WHRoute(int solarSystemId)
-        {
-            SolarSystemId = solarSystemId;
-        }
+    [Obsolete("EF Requires it")]
+    protected WHRoute() { }
 
-        public WHRoute(int solarSystemId,int eveEntityId)
-        {
-            EveEntityId = eveEntityId;
-            SolarSystemId = solarSystemId;
-        }
+    public WHRoute(int solarSystemId)
+    {
+        SolarSystemId = solarSystemId;
+    }
+
+    public WHRoute(int solarSystemId, int eveEntityId)
+    {
+        EveEntityId = eveEntityId;
+        SolarSystemId = solarSystemId;
+    }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace WHMapper.Services.Anoik
+namespace WHMapper.Shared.Services.Anoik
 {
     public class AnoikJsonDataSupplier : IAnoikDataSupplier
     {
@@ -8,7 +8,7 @@ namespace WHMapper.Services.Anoik
 
         public AnoikJsonDataSupplier(string jsonFilePath)
         {
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(jsonFilePath);
+            ArgumentException.ThrowIfNullOrWhiteSpace(jsonFilePath);
 
             try
             {

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using MudBlazor;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Universe
+namespace WHMapper.Shared.Models.DTO.EveAPI.Universe
 {
     public class Category
     {
@@ -22,8 +18,8 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
 
 
         [JsonConstructor]
-        public Category(int categoryId, int[] groups,string name, bool published) =>
-        (CategoryId, Groups,Name, Published) = (categoryId, groups,name, published);
+        public Category(int categoryId, int[] groups, string name, bool published) =>
+        (CategoryId, Groups, Name, Published) = (categoryId, groups, name, published);
 
     }
 

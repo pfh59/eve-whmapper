@@ -1,13 +1,13 @@
 ﻿using System.Text.Json.Serialization;
-using WHMapper.Models.DTO.EveAPI.Alliance;
-using WHMapper.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveAPI.Alliance;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
-namespace WHMapper.Models.DTO.EveMapper.EveEntity
+namespace WHMapper.Shared.Models.DTO.EveMapper.EveEntity
 {
 
     public class AllianceEntity : AEveEntity
     {
-        public AllianceEntity(int id, Alliance entity) 
+        public AllianceEntity(int id, Alliance entity)
             : base(id, entity.Name, EveEntityEnums.Alliance)
         {
         }

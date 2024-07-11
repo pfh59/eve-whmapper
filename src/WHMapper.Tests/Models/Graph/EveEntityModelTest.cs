@@ -1,15 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Pipelines.Sockets.Unofficial.Arenas;
-using WHMapper.Models.DTO.EveAPI.Alliance;
-using WHMapper.Models.DTO.EveAPI.Character;
-using WHMapper.Models.DTO.EveAPI.Corporation;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Alliance;
+using WHMapper.Shared.Models.DTO.EveAPI.Character;
+using WHMapper.Shared.Models.DTO.EveAPI.Corporation;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.Models.Graph
 {
-    
+
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
 
     public class EveEntityModelTest

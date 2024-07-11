@@ -1,17 +1,11 @@
-﻿using System;
+﻿using Blazor.Diagrams.Core.Models;
 using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Xml.Linq;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Models.Base;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
-using WHMapper.Models.DTO.EveMapper;
-using WHMapper.Models.Db.Enums;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
-namespace WHMapper.Models.Custom.Node
+namespace WHMapper.Shared.Models.Custom.Node
 {
     public class EveSystemNodeModel : NodeModel
     {
@@ -19,7 +13,7 @@ namespace WHMapper.Models.Custom.Node
         public event Action<EveSystemNodeModel>? OnSystemStatusChanged;
 
         private readonly WHSystem _wh;
-        
+
         private WHSystemStatus _systemStatus;
 
         public int IdWH
@@ -40,25 +34,25 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
-        public String Name
+        public string Name
         {
             get
             {
                 return _wh.Name;
             }
-         }
+        }
 
-        public String? NameExtension
+        public string? NameExtension
         {
             get
             {
-                if(_wh!=null && _wh.NameExtension!=0)
+                if (_wh != null && _wh.NameExtension != 0)
                     return Convert.ToChar(_wh.NameExtension).ToString();
                 return null;
             }
         }
 
-        
+
         public int SolarSystemId
         {
             get
@@ -75,7 +69,7 @@ namespace WHMapper.Models.Custom.Node
             }
         }
 
-        
+
         public new bool Locked
         {
             get
@@ -110,29 +104,29 @@ namespace WHMapper.Models.Custom.Node
         }
 
         public string RegionName { get; private set; }
-        public string ConstellationName { get; private set;}
+        public string ConstellationName { get; private set; }
 
-        public EveSystemType SystemType { get; private set; } 
+        public EveSystemType SystemType { get; private set; }
         public WHEffect Effect { get; private set; } = WHEffect.None;
         public IList<EveSystemEffect>? EffectDetails { get; private set; } = null!;
         public IList<WHStatic>? Statics { get; private set; } = null!;
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
 
-        public bool IsRouteWaypoint{get;set;} = false;
+        public bool IsRouteWaypoint { get; set; } = false;
 
 
-        public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics) 
+        public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName, EveSystemType systemType, WHEffect whEffect, IList<EveSystemEffect>? effectDetails, IList<WHStatic>? whStatics)
         {
-            this._wh = wh;
-            if(note != null)
+            _wh = wh;
+            if (note != null)
                 _systemStatus = note.SystemStatus;
             else
-                _systemStatus=WHSystemStatus.Unknown;
-            
+                _systemStatus = WHSystemStatus.Unknown;
+
             RegionName = regionName;
             ConstellationName = constellationName;
 
-            Title = this.Name;
+            Title = Name;
             SystemType = systemType;
             Effect = whEffect;
             EffectDetails = effectDetails;
@@ -147,27 +141,27 @@ namespace WHMapper.Models.Custom.Node
 
         public EveSystemNodeModel(WHSystem wh, WHNote? note, string regionName, string constellationName)
         {
-            this._wh = wh;
-            if(note != null)
+            _wh = wh;
+            if (note != null)
                 _systemStatus = note.SystemStatus;
             else
-                _systemStatus=WHSystemStatus.Unknown;
+                _systemStatus = WHSystemStatus.Unknown;
 
 
             RegionName = regionName;
             ConstellationName = constellationName;
 
-            Title = this.Name;
+            Title = Name;
             Locked = wh.Locked;
 
-            
+
             if (SecurityStatus >= 0.45)
                 SystemType = EveSystemType.HS;
             else if (SecurityStatus < 0.45 && SecurityStatus > 0)
                 SystemType = EveSystemType.LS;
             else
                 SystemType = EveSystemType.NS;
-            
+
 
             AddPort(PortAlignment.Bottom);
             AddPort(PortAlignment.Top);
@@ -205,7 +199,7 @@ namespace WHMapper.Models.Custom.Node
                 while (!ConnectedUsers.TryAdd(userName))
                     await Task.Delay(1);
 
-                this.Refresh();
+                Refresh();
             }
         }
 
@@ -226,10 +220,10 @@ namespace WHMapper.Models.Custom.Node
                     {
                         itemsList.Add(comparedItem);
                     }
-                } while (!(comparedItem.Equals(userName)));
+                } while (!comparedItem.Equals(userName));
                 Parallel.ForEach(itemsList, async t => await AddConnectedUser(t));
 
-                this.Refresh();
+                Refresh();
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Services.EveMapper
+﻿namespace WHMapper.Shared.Services.EveMapper
 {
     public interface IEveMapperAccessHelper
     {

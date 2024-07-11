@@ -1,8 +1,8 @@
-﻿using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Assets;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+﻿using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Models.DTO.EveAPI.Assets;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
 
-namespace WHMapper.Services.EveAPI.Assets
+namespace WHMapper.Shared.Services.EveAPI.Assets
 {
     public class AssetsServices : EveApiServiceBase, IAssetsServices
     {
@@ -15,7 +15,7 @@ namespace WHMapper.Services.EveAPI.Assets
 
         public async Task<ICollection<Asset>?> GetCharacterAssets(int character_id, int page = 1)
         {
-            return await base.Execute<ICollection<Asset>?>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v5/characters/{0}/assets/?datasource=tranquility&page{1}", character_id, page));
+            return await Execute<ICollection<Asset>?>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v5/characters/{0}/assets/?datasource=tranquility&page{1}", character_id, page));
         }
 
         public async Task<ICollection<Asset>?> GetMyAssets(int page = 1)

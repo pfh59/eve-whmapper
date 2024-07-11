@@ -1,10 +1,9 @@
-﻿using System;
-using WHMapper.Models.Db;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHAccesses
+namespace WHMapper.Shared.Repositories.WHAccesses
 {
-	public interface IWHAccessRepository : IDefaultRepository<WHAccess, int>
+    public interface IWHAccessRepository : IDefaultRepository<WHAccess, int>
     {
-	}
+    }
 }
 

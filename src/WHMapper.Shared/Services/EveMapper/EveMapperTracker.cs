@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using System.Timers;
-using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveMapper;
+using WHMapper.Shared.Models.DTO.EveAPI.Location;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Services.EveAPI;
 
-namespace WHMapper;
+namespace WHMapper.Shared.Services.EveMapper;
 
 public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
 {
@@ -74,7 +73,8 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
         try
         {
             var state = await _authState.GetAuthenticationStateAsync();
-            if (string.IsNullOrEmpty(state?.User?.Identity?.Name) || _eveAPIServices?.LocationServices == null || _eveMapperEntity == null) return;
+            if (string.IsNullOrEmpty(state?.User?.Identity?.Name) || _eveAPIServices?.LocationServices == null || _eveMapperEntity == null)
+                return;
 
             await UpdateCurrentShip();
             await UpdateCurrentLocation();
@@ -89,7 +89,8 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
     private async Task UpdateCurrentShip()
     {
         var ship = await _eveAPIServices.LocationServices.GetCurrentShip();
-        if (ship == null || _currentShip?.ShipItemId == ship.ShipItemId) return;
+        if (ship == null || _currentShip?.ShipItemId == ship.ShipItemId)
+            return;
 
         _logger.LogInformation("Ship Changed");
         _currentShip = ship;
@@ -102,7 +103,8 @@ public class EveMapperTracker : IEveMapperTracker, IAsyncDisposable
     private async Task UpdateCurrentLocation()
     {
         var el = await _eveAPIServices.LocationServices.GetLocation();
-        if (el == null || _currentLocation?.SolarSystemId == el.SolarSystemId) return;
+        if (el == null || _currentLocation?.SolarSystemId == el.SolarSystemId)
+            return;
 
         _logger.LogInformation("System Changed");
         _currentLocation = el;

@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Services.EveOAuthProvider
+﻿namespace WHMapper.Shared.Services.EveOAuthProvider
 {
     public static class EVEOnlineAuthenticationDefaults
     {

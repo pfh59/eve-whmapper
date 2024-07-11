@@ -1,7 +1,6 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.SSO
+namespace WHMapper.Shared.Models.DTO.EveAPI.SSO
 {
 
     public class EveToken

@@ -1,7 +1,6 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace WHMapper.Models.Db
+namespace WHMapper.Shared.Models.Db
 {
     public class WHMap
     {

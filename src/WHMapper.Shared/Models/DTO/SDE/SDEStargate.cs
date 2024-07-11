@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Models.DTO.SDE;
+﻿namespace WHMapper.Shared.Models.DTO.SDE;
 
 public class SDEStargate
 {
