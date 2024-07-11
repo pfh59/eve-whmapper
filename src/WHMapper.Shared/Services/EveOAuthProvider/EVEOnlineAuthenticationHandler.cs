@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
-namespace WHMapper.Services.EveOAuthProvider
+namespace WHMapper.Shared.Services.EveOAuthProvider
 {
 
     public partial class EVEOnlineAuthenticationHandler : OAuthHandler<EVEOnlineAuthenticationOptions>
@@ -85,7 +85,7 @@ namespace WHMapper.Services.EveOAuthProvider
         {
             try
             {
-                JsonWebTokenHandler securityTokenHandler = new JsonWebTokenHandler();
+                var securityTokenHandler = new JsonWebTokenHandler();
                 var securityToken = securityTokenHandler.ReadJsonWebToken(token);
 
                 var nameClaim = ExtractClaim(securityToken, "name");
@@ -131,7 +131,7 @@ namespace WHMapper.Services.EveOAuthProvider
                 throw new InvalidOperationException($"The value {unixTimeStamp} of the 'exp' claim is not a valid 64-bit integer.");
             }
 
-            DateTimeOffset offset = DateTimeOffset.FromUnixTimeSeconds(unixTime);
+            var offset = DateTimeOffset.FromUnixTimeSeconds(unixTime);
             return offset.ToString("o", CultureInfo.InvariantCulture);
         }
     }

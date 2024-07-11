@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using WHMapper.Models.DTO;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Services.EveAPI;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
 
 namespace WHMapper.Tests.Services.EveApi
 {

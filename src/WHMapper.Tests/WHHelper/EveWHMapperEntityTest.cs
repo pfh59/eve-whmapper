@@ -1,15 +1,15 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Services.Cache;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using System.Diagnostics;
+using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Services.Cache;
+using WHMapper.Shared.Services.EveAPI;
+using WHMapper.Shared.Services.EveMapper;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;

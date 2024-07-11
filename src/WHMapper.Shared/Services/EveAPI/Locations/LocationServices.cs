@@ -1,8 +1,8 @@
-﻿using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+﻿using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Models.DTO.EveAPI.Location;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
 
-namespace WHMapper.Services.EveAPI.Locations
+namespace WHMapper.Shared.Services.EveAPI.Locations
 {
     internal class LocationServices : EveApiServiceBase, ILocationServices
     {
@@ -18,7 +18,7 @@ namespace WHMapper.Services.EveAPI.Locations
             if (_userService != null)
             {
                 int characterId = await _userService.GetCharactedID();
-                return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", characterId));
+                return await Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", characterId));
 
             }
             return null;
@@ -29,7 +29,7 @@ namespace WHMapper.Services.EveAPI.Locations
             if (_userService != null)
             {
                 int characterId = await _userService.GetCharactedID();
-                return await base.Execute<Ship>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/ship/?datasource=tranquility", characterId));
+                return await Execute<Ship>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/ship/?datasource=tranquility", characterId));
             }
             return null;
         }

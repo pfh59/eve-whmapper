@@ -1,19 +1,14 @@
-﻿using System;
-using System.Security.Cryptography.Xml;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WHMapper.Data;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using YamlDotNet.Core;
-using static MudBlazor.CategoryTypes;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHSystems
+namespace WHMapper.Shared.Repositories.WHSystems
 {
     public class WHSystemRepository : ADefaultRepository<WHMapperContext, WHSystem, int>, IWHSystemRepository
     {
-        public WHSystemRepository(ILogger<WHSystemRepository> logger,IDbContextFactory<WHMapperContext> context)
-            : base(logger,context)
+        public WHSystemRepository(ILogger<WHSystemRepository> logger, IDbContextFactory<WHMapperContext> context)
+            : base(logger, context)
         {
         }
 

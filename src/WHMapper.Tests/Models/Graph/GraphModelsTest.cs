@@ -1,9 +1,8 @@
-﻿using Blazor.Diagrams.Core.Models;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO.EveMapper;
-using WHMapper.Models.DTO.EveMapper.Enums;
+﻿using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.Models.Graph

@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Search;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Search;
 
-namespace WHMapper.Services.EveAPI.Search
+namespace WHMapper.Shared.Services.EveAPI.Search
 {
     public interface ISearchServices
     {

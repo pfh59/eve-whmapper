@@ -1,29 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection.Emit;
-using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Events;
+﻿using Blazor.Diagrams;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Logging;
 using MudBlazor;
-using MudBlazor.Charts;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Models.DTO.SDE;
-using WHMapper.Repositories.WHMaps;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-using WHMapper.Services.SDE;
-using WHMapper.Services.WHSignature;
-using YamlDotNet.Core.Tokens;
-using static MudBlazor.Colors;
+using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Models.DTO.SDE;
+using WHMapper.Shared.Repositories.WHSystems;
+using WHMapper.Shared.Services.EveMapper;
 
 namespace WHMapper.Pages.Mapper
 {

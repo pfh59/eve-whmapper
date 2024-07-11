@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Moq;
 using System.Text;
 using System.Text.Json;
-using WHMapper.Services.Cache;
+using WHMapper.Shared.Services.Cache;
 
 namespace WHMapper.Tests.Services.Cache
 {

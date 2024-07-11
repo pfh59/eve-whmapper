@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.Db;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHJumpLogs
+namespace WHMapper.Shared.Repositories.WHJumpLogs
 {
     public interface IWHJumpLogRepository : IDefaultRepository<WHJumpLog, int>
     {

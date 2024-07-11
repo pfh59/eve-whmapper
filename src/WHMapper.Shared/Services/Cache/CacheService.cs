@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
-namespace WHMapper.Services.Cache;
+namespace WHMapper.Shared.Services.Cache;
 
 public class CacheService : ICacheService
 {
@@ -23,7 +23,7 @@ public class CacheService : ICacheService
             var value = await _cache.GetStringAsync(key);
             if (value == null)
             {
-                return default;       
+                return default;
             }
 
             return JsonSerializer.Deserialize<T>(value);

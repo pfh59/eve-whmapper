@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Services.WHColor;
-using WHMapper.Services.WHSignature;
-using WHMapper.Services.WHSignatures;
+﻿using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Services.WHSignatures;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;

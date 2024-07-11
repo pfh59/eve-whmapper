@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Services.SDE
+﻿namespace WHMapper.Shared.Services.SDE
 {
     public interface ISDEDataSupplier
     {

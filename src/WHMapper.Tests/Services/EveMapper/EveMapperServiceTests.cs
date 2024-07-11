@@ -1,8 +1,8 @@
 ﻿using AutoFixture.Xunit2;
 using Moq;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveMapper;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Services.EveAPI;
+using WHMapper.Shared.Services.EveMapper;
 
 namespace WHMapper.Tests.Services.EveMapper
 {
@@ -16,7 +16,7 @@ namespace WHMapper.Tests.Services.EveMapper
             EveMapperService sut
             )
         {
-            var groupEntity = new GroupEntity(1, new WHMapper.Models.DTO.EveAPI.Universe.Group(1, "1", true, 1, []));
+            var groupEntity = new GroupEntity(1, new WHMapper.Shared.Models.DTO.EveAPI.Universe.Group(1, "1", true, 1, []));
             cacheService.Setup(x => x.GetAsync<GroupEntity>(1))
                 .ReturnsAsync(groupEntity)
                 .Verifiable();
@@ -43,7 +43,7 @@ namespace WHMapper.Tests.Services.EveMapper
                 .ReturnsAsync(groupEntity)
                 .Verifiable();
 
-            var group = new WHMapper.Models.DTO.EveAPI.Universe.Group(1, "hi", true, 1, []);
+            var group = new WHMapper.Shared.Models.DTO.EveAPI.Universe.Group(1, "hi", true, 1, []);
             apiService.Setup(x => x.UniverseServices.GetGroup(1)).ReturnsAsync(group);
 
             var result = await sut.GetGroup(1);

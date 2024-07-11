@@ -1,7 +1,6 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Universe
+namespace WHMapper.Shared.Models.DTO.EveAPI.Universe
 {
 
     public class Stargate
@@ -17,7 +16,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
 
         [JsonPropertyName("position")]
         public required Position Position { get; set; }
-        
+
         [JsonPropertyName("system_id")]
         public required int SystemId { get; set; }
 
@@ -33,6 +32,6 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
         [JsonPropertyName("stargate_id")]
         public required int StargateId { get; set; }
     }
-    
+
 }
 

@@ -1,16 +1,16 @@
-﻿namespace WHMapper;
+﻿namespace WHMapper.Shared.Models.DTO.EveMapper;
 
 public class EveRoute
 {
-    public int Id {get;private set;}
-    public string DestinationName {get;private set;}
-    public int[]? Route {get;private set;}
+    public int Id { get; private set; }
+    public string DestinationName { get; private set; }
+    public int[]? Route { get; private set; }
 
     public int RouteLength
     {
         get
         {
-            if(Route == null)
+            if (Route == null)
                 return 0;
             else
             {
@@ -27,9 +27,9 @@ public class EveRoute
         }
     }
 
-    public bool IsShowed {get;set;} = false;
+    public bool IsShowed { get; set; } = false;
 
-    public EveRoute(int id, string destinationName,int[]? route)
+    public EveRoute(int id, string destinationName, int[]? route)
     {
         Id = id;
         DestinationName = destinationName;

@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveMapper.EveEntity;
+﻿using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
 
-namespace WHMapper.Services.EveMapper
+namespace WHMapper.Shared.Services.EveMapper
 {
     public interface IEveMapperCacheService
     {
@@ -15,7 +15,7 @@ namespace WHMapper.Services.EveMapper
         const string REDIS_GROUP_KEY = "group:list";
         const string REDIS_WORMHOLE_KEY = "wormhole:list";
         const string REDIS_SUN_KEY = "sun:list";
-        
+
         Task<TEntity> GetAsync<TEntity>(int key)
             where TEntity : AEveEntity;
 

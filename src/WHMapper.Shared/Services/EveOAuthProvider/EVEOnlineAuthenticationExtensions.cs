@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 
-namespace WHMapper.Services.EveOAuthProvider
+namespace WHMapper.Shared.Services.EveOAuthProvider
 {
     public static class EVEOnlineAuthenticationExtensions
     {

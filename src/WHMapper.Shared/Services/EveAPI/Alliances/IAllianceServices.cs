@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Alliance;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Alliance;
 
-namespace WHMapper.Services.EveAPI.Alliances
+namespace WHMapper.Shared.Services.EveAPI.Alliances
 {
     public interface IAllianceServices
     {

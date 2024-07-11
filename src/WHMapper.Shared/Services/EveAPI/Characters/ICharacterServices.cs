@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Character;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Character;
 
-namespace WHMapper.Services.EveAPI.Characters
+namespace WHMapper.Shared.Services.EveAPI.Characters
 {
     public interface ICharacterServices
     {

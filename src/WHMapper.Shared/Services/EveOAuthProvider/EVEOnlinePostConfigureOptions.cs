@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace WHMapper.Services.EveOAuthProvider
+namespace WHMapper.Shared.Services.EveOAuthProvider
 {
     public class EVEOnlinePostConfigureOptions : IPostConfigureOptions<EVEOnlineAuthenticationOptions>
     {

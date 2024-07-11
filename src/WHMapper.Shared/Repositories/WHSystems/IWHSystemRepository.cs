@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using WHMapper.Models.Db;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHSystems
+namespace WHMapper.Shared.Repositories.WHSystems
 {
     public interface IWHSystemRepository : IDefaultRepository<WHSystem, int>
     {

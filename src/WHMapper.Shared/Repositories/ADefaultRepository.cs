@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace WHMapper.Repositories
+namespace WHMapper.Shared.Repositories
 {
 
     /// <summary>
@@ -14,7 +10,7 @@ namespace WHMapper.Repositories
     /// <typeparam name="C">Server DbContext</typeparam>
     /// <typeparam name="T">Object to Manage in database</typeparam>
     /// <typeparam name="U">type of Id of Object</typeparam>
-    public abstract class ADefaultRepository<C,T, U>  where C : DbContext 
+    public abstract class ADefaultRepository<C, T, U> where C : DbContext
     {
         protected readonly ILogger _logger;
         protected readonly IDbContextFactory<C> _contextFactory;
@@ -25,7 +21,7 @@ namespace WHMapper.Repositories
         protected abstract Task<T?> AUpdate(U id, T item);
         protected abstract Task<bool> ADeleteById(U id);
 
-        protected ADefaultRepository(ILogger logger,IDbContextFactory<C> dbContext)
+        protected ADefaultRepository(ILogger logger, IDbContextFactory<C> dbContext)
         {
             _logger = logger;
             _contextFactory = dbContext;
@@ -58,7 +54,7 @@ namespace WHMapper.Repositories
             return await AUpdate(id, item);
         }
 
-        
+
 
     }
 }

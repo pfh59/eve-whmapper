@@ -1,4 +1,4 @@
-﻿namespace WHMapper;
+﻿namespace WHMapper.Shared.Services.Paste;
 
 public class PasteServices : IPasteServices
 {

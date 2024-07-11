@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using WHMapper.Models.Db;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Services.EveJwkExtensions;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-using static MudBlazor.CategoryTypes;
+using System.Collections.Concurrent;
+using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Services.EveJwTExtensions;
 
 namespace WHMapper.Hubs
 {

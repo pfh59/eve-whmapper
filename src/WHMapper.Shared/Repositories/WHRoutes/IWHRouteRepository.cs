@@ -1,6 +1,6 @@
-﻿using WHMapper.Repositories;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper;
+namespace WHMapper.Shared.Repositories.WHRoutes;
 
 public interface IWHRouteRepository : IDefaultRepository<WHRoute, int>
 {

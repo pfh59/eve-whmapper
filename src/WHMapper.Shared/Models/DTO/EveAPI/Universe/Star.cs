@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Universe
+namespace WHMapper.Shared.Models.DTO.EveAPI.Universe
 {
     public class Star
     {

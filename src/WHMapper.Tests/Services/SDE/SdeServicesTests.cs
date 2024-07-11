@@ -4,7 +4,7 @@ using Moq;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
-using WHMapper.Services.SDE;
+using WHMapper.Shared.Services.SDE;
 
 namespace WHMapper.Tests.Services.SDE
 {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Services.Cache;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Services.Cache;
 
-namespace WHMapper.Services.EveMapper;
+namespace WHMapper.Shared.Services.EveMapper;
 
 public class EveMapperCacheService : IEveMapperCacheService
 {

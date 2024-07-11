@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using WHMapper.Models.Db.Enums;
+﻿using WHMapper.Shared.Models.Db.Enums;
 
 namespace WHMapper.Hubs
 {

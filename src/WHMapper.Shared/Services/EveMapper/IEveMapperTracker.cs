@@ -1,7 +1,7 @@
-﻿using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Location;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
 
-namespace WHMapper;
+namespace WHMapper.Shared.Services.EveMapper;
 
 public interface IEveMapperTracker
 {

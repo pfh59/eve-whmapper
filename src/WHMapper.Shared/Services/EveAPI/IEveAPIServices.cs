@@ -1,15 +1,15 @@
-﻿using WHMapper.Services.EveAPI.Alliances;
-using WHMapper.Services.EveAPI.Assets;
-using WHMapper.Services.EveAPI.Characters;
-using WHMapper.Services.EveAPI.Corporations;
-using WHMapper.Services.EveAPI.Dogma;
-using WHMapper.Services.EveAPI.Locations;
-using WHMapper.Services.EveAPI.Routes;
-using WHMapper.Services.EveAPI.Search;
-using WHMapper.Services.EveAPI.Universe;
-using WHMapper.Services.EveAPI.UserInterface;
+﻿using WHMapper.Services.EveAPI.UserInterface;
+using WHMapper.Shared.Services.EveAPI.Alliances;
+using WHMapper.Shared.Services.EveAPI.Assets;
+using WHMapper.Shared.Services.EveAPI.Characters;
+using WHMapper.Shared.Services.EveAPI.Corporations;
+using WHMapper.Shared.Services.EveAPI.Dogma;
+using WHMapper.Shared.Services.EveAPI.Locations;
+using WHMapper.Shared.Services.EveAPI.Routes;
+using WHMapper.Shared.Services.EveAPI.Search;
+using WHMapper.Shared.Services.EveAPI.Universe;
 
-namespace WHMapper.Services.EveAPI
+namespace WHMapper.Shared.Services.EveAPI
 {
     public interface IEveAPIServices
     {

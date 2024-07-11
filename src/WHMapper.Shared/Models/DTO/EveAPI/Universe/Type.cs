@@ -1,7 +1,6 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Universe
+namespace WHMapper.Shared.Models.DTO.EveAPI.Universe
 {
     public class Type
     {
@@ -13,7 +12,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
         public string Description { get; set; } = string.Empty;
 
         [JsonPropertyName("dogma_attributes")]
-        public Attribute[] DogmaAttributes { get; set; } =null!;
+        public Attribute[] DogmaAttributes { get; set; } = null!;
 
         [JsonPropertyName("dogma_effects")]
         public Effect[] DogmaEffects { get; set; } = null!;

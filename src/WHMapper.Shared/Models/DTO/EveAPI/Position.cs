@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI
+namespace WHMapper.Shared.Models.DTO.EveAPI
 {
     public class Position
     {
@@ -16,5 +16,5 @@ namespace WHMapper.Models.DTO.EveAPI
         [JsonConstructor]
         public Position(double x, double y, double z) => (X, Y, Z) = (x, y, z);
     }
-    
+
 }

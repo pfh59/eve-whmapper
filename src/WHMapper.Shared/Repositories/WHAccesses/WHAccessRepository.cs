@@ -1,19 +1,15 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WHMapper.Data;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAdmins;
-using WHMapper.Services.EveAPI;
-using static MudBlazor.CategoryTypes;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHAccesses
+namespace WHMapper.Shared.Repositories.WHAccesses
 {
     public class WHAccessRepository : ADefaultRepository<WHMapperContext, WHAccess, int>, IWHAccessRepository
     {
 
-        public WHAccessRepository(ILogger<WHAccessRepository> logger,IDbContextFactory<WHMapperContext> context)
-            : base(logger,context)
+        public WHAccessRepository(ILogger<WHAccessRepository> logger, IDbContextFactory<WHMapperContext> context)
+            : base(logger, context)
         {
         }
 
@@ -31,7 +27,7 @@ namespace WHMapper.Repositories.WHAccesses
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Impossible to create WHAccess for : {EveEntityName}",item.EveEntityName);
+                    _logger.LogError(ex, "Impossible to create WHAccess for : {EveEntityName}", item.EveEntityName);
                     return null;
                 }
 

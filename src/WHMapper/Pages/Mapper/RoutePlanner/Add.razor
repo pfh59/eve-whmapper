@@ -1,4 +1,6 @@
-﻿@using WHMapper.Models.DTO.SDE
+﻿@using WHMapper.Shared.Models.DTO.SDE;
+@using WHMapper.Shared.Services.EveMapper
+    
 <MudDialog>
     <DialogContent>
 
@@ -10,7 +12,7 @@
                 AdornmentIcon="@Icons.Material.Filled.Search" 
                 AdornmentColor="Color.Primary" 
                 ToStringFunc="@(x=> x==null?null : $"{x.Name}")" 
-                MinCharacters="@Services.EveMapper.IEveMapperSearch.MIN_SEARCH_SYSTEM_CHARACTERS" />
+                MinCharacters="@IEveMapperSearch.MIN_SEARCH_SYSTEM_CHARACTERS" />
 
             <AuthorizeView Policy="Admin" Context="adminContext">
                 <MudCheckBox T="bool" Label="As default route" @bind-Value="@_global" Dense="true" Size="Size.Small"></MudCheckBox>

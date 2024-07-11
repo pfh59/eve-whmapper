@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.IdentityModel.JsonWebTokens;
-
-namespace WHMapper.Models.DTO
+﻿namespace WHMapper.Shared.Models.DTO
 {
     public class TokenProvider
     {

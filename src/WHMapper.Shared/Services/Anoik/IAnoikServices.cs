@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.Anoik;
+﻿using WHMapper.Shared.Models.DTO.Anoik;
 
-namespace WHMapper.Services.Anoik
+namespace WHMapper.Shared.Services.Anoik
 {
     public interface IAnoikServices
     {
@@ -10,5 +10,5 @@ namespace WHMapper.Services.Anoik
         public Task<IEnumerable<KeyValuePair<string, string>>> GetSystemStatics(string systemName);
         public IEnumerable<KeyValuePair<string, string>> GetSystemEffectsInfos(string effectName, string systemClass);
         public Task<IEnumerable<WormholeTypeInfo>> GetWormholeTypes();
-    } 
+    }
 }

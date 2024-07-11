@@ -1,18 +1,14 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WHMapper.Data;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHMaps;
-using static MudBlazor.CategoryTypes;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHAdmins
+namespace WHMapper.Shared.Repositories.WHAdmins
 {
-	public class WHAdminRepository : ADefaultRepository<WHMapperContext, WHAdmin, int>, IWHAdminRepository
+    public class WHAdminRepository : ADefaultRepository<WHMapperContext, WHAdmin, int>, IWHAdminRepository
     {
-        public WHAdminRepository(ILogger<WHAdminRepository> logger,IDbContextFactory<WHMapperContext> context)
-            : base(logger,context)
+        public WHAdminRepository(ILogger<WHAdminRepository> logger, IDbContextFactory<WHMapperContext> context)
+            : base(logger, context)
         {
         }
 
@@ -29,7 +25,7 @@ namespace WHMapper.Repositories.WHAdmins
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,"Impossible to create WHAdmin access : {EveCharacterName}", item.EveCharacterName);
+                    _logger.LogError(ex, "Impossible to create WHAdmin access : {EveCharacterName}", item.EveCharacterName);
                     return null;
                 }
             }

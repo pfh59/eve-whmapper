@@ -1,11 +1,9 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using WHMapper.Models.DTO.EveAPI.Universe;
+﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Search
+namespace WHMapper.Shared.Models.DTO.EveAPI.Search
 {
-	public class SearchCoporationResults
-	{
+    public class SearchCoporationResults
+    {
         [JsonPropertyName("corporation")]
         public int[]? Corporations { get; set; }
     }

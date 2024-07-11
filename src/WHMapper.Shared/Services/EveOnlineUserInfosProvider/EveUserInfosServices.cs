@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 
-
-namespace WHMapper.Services.EveOnlineUserInfosProvider
+namespace WHMapper.Shared.Services.EveOnlineUserInfosProvider
 {
     public class EveUserInfosServices : IEveUserInfosServices
     {

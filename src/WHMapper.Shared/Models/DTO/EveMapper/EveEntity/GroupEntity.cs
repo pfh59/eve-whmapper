@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
-using WHMapper.Models.DTO.EveAPI.Universe;
-using WHMapper.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveAPI.Universe;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
-namespace WHMapper.Models.DTO.EveMapper.EveEntity;
+namespace WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
 
 public class GroupEntity : AEveEntity
 {
@@ -16,7 +16,7 @@ public class GroupEntity : AEveEntity
     }
 
     [JsonConstructor]
-    public GroupEntity(int id, string name,int[] types,int categoryId)
+    public GroupEntity(int id, string name, int[] types, int categoryId)
         : base(id, name, EveEntityEnums.Group)
     {
         Types = types;

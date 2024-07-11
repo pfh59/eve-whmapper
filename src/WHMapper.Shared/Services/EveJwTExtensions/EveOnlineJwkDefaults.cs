@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Services.EveJwkExtensions
+﻿namespace WHMapper.Shared.Services.EveJwTExtensions
 {
     public class EveOnlineJwkDefaults
     {

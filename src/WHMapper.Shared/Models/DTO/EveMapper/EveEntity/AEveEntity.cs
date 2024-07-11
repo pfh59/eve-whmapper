@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveMapper.Enums;
+﻿using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
-namespace WHMapper.Models.DTO.EveMapper.EveEntity
+namespace WHMapper.Shared.Models.DTO.EveMapper.EveEntity
 {
     public abstract class AEveEntity
     {
@@ -14,6 +14,6 @@ namespace WHMapper.Models.DTO.EveMapper.EveEntity
             Id = id;
             Name = name;
             EntityType = entityType;
-        }     
+        }
     }
 }

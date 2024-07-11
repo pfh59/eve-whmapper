@@ -1,24 +1,14 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
+using MudBlazor;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.JSInterop;
-using MudBlazor;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
-using WHMapper.Repositories.WHSignatures;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-using WHMapper.Services.WHColor;
-using WHMapper.Services.WHSignature;
-using static MudBlazor.CategoryTypes;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Repositories.WHSignatures;
+using WHMapper.Shared.Services.EveMapper;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
+using WHMapper.Shared.Services.WHColor;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
 namespace WHMapper.Pages.Mapper.Signatures

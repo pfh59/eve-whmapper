@@ -1,15 +1,8 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using MudBlazor;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHAdmins;
-using WHMapper.Repositories.WHSignatures;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.EveAPI;
+using WHMapper.Shared.Repositories.WHAccesses;
+using WHMapper.Shared.Repositories.WHAdmins;
 
 namespace WHMapper.Pages.Mapper.Administration
 {

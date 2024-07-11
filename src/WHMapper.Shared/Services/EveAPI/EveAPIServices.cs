@@ -1,18 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
-using WHMapper.Models.DTO;
-using WHMapper.Services.EveAPI.Alliances;
-using WHMapper.Services.EveAPI.Assets;
-using WHMapper.Services.EveAPI.Characters;
-using WHMapper.Services.EveAPI.Corporations;
-using WHMapper.Services.EveAPI.Dogma;
-using WHMapper.Services.EveAPI.Locations;
-using WHMapper.Services.EveAPI.Routes;
-using WHMapper.Services.EveAPI.Search;
-using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Services.EveAPI.Alliances;
+using WHMapper.Shared.Services.EveAPI.Assets;
+using WHMapper.Shared.Services.EveAPI.Characters;
+using WHMapper.Shared.Services.EveAPI.Corporations;
+using WHMapper.Shared.Services.EveAPI.Dogma;
+using WHMapper.Shared.Services.EveAPI.Locations;
+using WHMapper.Shared.Services.EveAPI.Routes;
+using WHMapper.Shared.Services.EveAPI.Search;
+using WHMapper.Shared.Services.EveAPI.Universe;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
 
-namespace WHMapper.Services.EveAPI
+namespace WHMapper.Shared.Services.EveAPI
 {
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class EveAPIServices : IEveAPIServices
@@ -32,9 +32,9 @@ namespace WHMapper.Services.EveAPI
         public IAssetsServices AssetsServices { get; private set; }
         public IRouteServices RouteServices { get; private set; }
 
-        public EveAPIServices(ILogger<EveAPIServices> logger, 
-            IHttpClientFactory httpClientFactory, 
-            TokenProvider tokenProvider, 
+        public EveAPIServices(ILogger<EveAPIServices> logger,
+            IHttpClientFactory httpClientFactory,
+            TokenProvider tokenProvider,
             IEveUserInfosServices userService)
         {
             ArgumentNullException.ThrowIfNull(logger);

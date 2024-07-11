@@ -1,9 +1,8 @@
-﻿using System;
-using WHMapper.Models.Db;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHNotes
+namespace WHMapper.Shared.Repositories.WHNotes
 {
-	public interface IWHNoteRepository : IDefaultRepository<WHNote, int>
+    public interface IWHNoteRepository : IDefaultRepository<WHNote, int>
     {
         public Task<WHNote?> GetBySolarSystemId(int solardSystemId);
     }

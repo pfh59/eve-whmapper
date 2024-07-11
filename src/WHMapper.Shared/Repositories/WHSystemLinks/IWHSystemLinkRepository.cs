@@ -1,10 +1,9 @@
-﻿using System;
-using WHMapper.Models.Db;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHSystemLinks
+namespace WHMapper.Shared.Repositories.WHSystemLinks
 {
-	public interface IWHSystemLinkRepository : IDefaultRepository<WHSystemLink, int>
+    public interface IWHSystemLinkRepository : IDefaultRepository<WHSystemLink, int>
     {
-	}
+    }
 }
 

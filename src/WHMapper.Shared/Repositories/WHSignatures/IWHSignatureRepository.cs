@@ -1,7 +1,6 @@
-﻿using System;
-using WHMapper.Models.Db;
+﻿using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHSignatures
+namespace WHMapper.Shared.Repositories.WHSignatures
 {
 
     public interface IWHSignatureRepository : IDefaultRepository<WHSignature, int>

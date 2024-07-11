@@ -1,11 +1,11 @@
 ﻿using AutoFixture.Xunit2;
 using Moq;
-using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Character;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHAdmins;
-using WHMapper.Services.EveAPI.Characters;
-using WHMapper.Services.EveMapper;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.DTO.EveAPI.Character;
+using WHMapper.Shared.Repositories.WHAccesses;
+using WHMapper.Shared.Repositories.WHAdmins;
+using WHMapper.Shared.Services.EveAPI.Characters;
+using WHMapper.Shared.Services.EveMapper;
 
 namespace WHMapper.Tests.Services.EveMapper
 {

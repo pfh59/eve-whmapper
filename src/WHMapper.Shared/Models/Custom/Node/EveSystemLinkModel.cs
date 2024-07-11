@@ -1,20 +1,14 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Extensions;
-using WHMapper.Models.Db;
-using WHMapper.Models.Db.Enums;
-using static MudBlazor.CategoryTypes;
-using WHMapper.Services.WHColor;
-using Blazor.Diagrams.Core.Geometry;
+﻿using Blazor.Diagrams.Core.Models;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.Db.Enums;
 
-namespace WHMapper.Models.Custom.Node
+namespace WHMapper.Shared.Models.Custom.Node
 {
 
     public class EveSystemLinkModel : LinkModel
     {
         private WHSystemLink _whLink;
-        private LinkLabelModel? _labelSize=null;
+        private LinkLabelModel? _labelSize = null;
 
         public new int Id
         {
@@ -66,32 +60,32 @@ namespace WHMapper.Models.Custom.Node
 
         private Task SetLabel(SystemLinkSize size)
         {
-            this.Labels.Clear();
-            this._labelSize=null;
+            Labels.Clear();
+            _labelSize = null;
             switch (size)
             {
                 case SystemLinkSize.Small:
                     _labelSize = new LinkLabelModel(this, "S");
-                    this.Labels.Add(_labelSize);
+                    Labels.Add(_labelSize);
                     break;
                 case SystemLinkSize.Medium:
                     _labelSize = new LinkLabelModel(this, "M");
-                    this.Labels.Add(_labelSize);
+                    Labels.Add(_labelSize);
                     break;
                 case SystemLinkSize.XLarge:
                     _labelSize = new LinkLabelModel(this, "XL");
-                    this.Labels.Add(_labelSize);
+                    Labels.Add(_labelSize);
                     break;
-                
+
             }
 
             return Task.CompletedTask;
         }
 
-        public bool IsRouteWaypoint{get;set;} = false;
+        public bool IsRouteWaypoint { get; set; } = false;
 
-        public EveSystemLinkModel(WHSystemLink whLink,EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
-            : base (sourcePort, targetPort)
+        public EveSystemLinkModel(WHSystemLink whLink, EveSystemNodeModel sourcePort, EveSystemNodeModel targetPort)
+            : base(sourcePort, targetPort)
         {
             var linkMarker = new LinkMarker("M 0 4 C 1.5 5.5 3.5 6 6 6 L 6 -6 C 3.5 -6 1.5 -5.5 0 -4 L 0 4", 6);
             SourceMarker = linkMarker;
@@ -100,7 +94,7 @@ namespace WHMapper.Models.Custom.Node
             SetLabel(_whLink.Size);
         }
 
-        
+
     }
 }
 

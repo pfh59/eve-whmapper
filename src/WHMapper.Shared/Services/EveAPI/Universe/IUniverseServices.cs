@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Universe;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Universe;
 
-namespace WHMapper.Services.EveAPI.Universe
+namespace WHMapper.Shared.Services.EveAPI.Universe
 {
     public interface IUniverseServices
     {

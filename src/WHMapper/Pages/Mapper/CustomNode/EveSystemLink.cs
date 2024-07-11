@@ -1,15 +1,6 @@
-﻿using System;
-using System.Reflection.Emit;
-using System.Xml.Linq;
-using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Models.Base;
-using Blazor.Diagrams.Extensions;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Services.WHColor;
+﻿using Microsoft.AspNetCore.Components;
+using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Services.WHColor;
 
 namespace WHMapper.Pages.Mapper.CustomNode
 {

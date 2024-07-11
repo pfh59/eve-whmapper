@@ -5,13 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics.CodeAnalysis;
 
-namespace WHMapper.Services.EveJwkExtensions
+namespace WHMapper.Shared.Services.EveJwTExtensions
 {
     public static class EveOnlineJwtBearerExtensions
     {
         public static AuthenticationBuilder AddEveOnlineJwtBearer([NotNull] this AuthenticationBuilder builder)
         {
-            HttpClient httpClient = new HttpClient();
+            var httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(EveOnlineJwkDefaults.SSOUrl);
             httpClient.DefaultRequestHeaders.Host = EveOnlineJwkDefaults.EVE_HOST;
 
@@ -19,7 +19,7 @@ namespace WHMapper.Services.EveJwkExtensions
             var jwks = new JsonWebKeySet(response);
             var jwk = jwks.Keys.First();
 
-            TokenValidationParameters tokenValidationParams = new TokenValidationParameters
+            var tokenValidationParams = new TokenValidationParameters
             {
                 ValidateAudience = true,
                 ValidAudience = EveOnlineJwkDefaults.ValideAudience,

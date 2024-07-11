@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Models.DTO.ResponseMessage
+﻿namespace WHMapper.Shared.Models.DTO.ResponseMessage
 {
     public class SuccessMessage<T> : IResponseMessage
     {

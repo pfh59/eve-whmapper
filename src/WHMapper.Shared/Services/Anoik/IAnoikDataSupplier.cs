@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace WHMapper.Services.Anoik
+namespace WHMapper.Shared.Services.Anoik
 {
     public interface IAnoikDataSupplier
     {

@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Services.EveOnlineUserInfosProvider
+﻿namespace WHMapper.Shared.Services.EveOnlineUserInfosProvider
 {
     public interface IEveUserInfosServices
     {

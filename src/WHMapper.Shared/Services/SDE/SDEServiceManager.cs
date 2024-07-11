@@ -2,12 +2,12 @@
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
 using Testably.Abstractions;
-using WHMapper.Models.DTO.SDE;
-using WHMapper.Services.Cache;
+using WHMapper.Shared.Models.DTO.SDE;
+using WHMapper.Shared.Services.Cache;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace WHMapper.Services.SDE
+namespace WHMapper.Shared.Services.SDE
 {
     public class SDEServiceManager : ISDEServiceManager
     {
@@ -202,11 +202,11 @@ namespace WHMapper.Services.SDE
         /// <summary>
         /// Imports the local SDE files into the cache. 
         /// </summary>
-                public async Task<bool> BuildCache()
+        public async Task<bool> BuildCache()
         {
             try
             {
-                if (!this.IsExtractionSuccesful())
+                if (!IsExtractionSuccesful())
                 {
                     _logger.LogError("Impossible to import SDE, bad SDE extract.");
                     return false;

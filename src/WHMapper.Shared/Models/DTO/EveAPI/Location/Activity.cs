@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Models.DTO.EveAPI.Location
+﻿namespace WHMapper.Shared.Models.DTO.EveAPI.Location
 {
     public class Activity
     {

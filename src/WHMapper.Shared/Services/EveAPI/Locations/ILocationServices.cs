@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveAPI.Location;
+﻿using WHMapper.Shared.Models.DTO.EveAPI.Location;
 
-namespace WHMapper.Services.EveAPI.Locations
+namespace WHMapper.Shared.Services.EveAPI.Locations
 {
     public interface ILocationServices
     {

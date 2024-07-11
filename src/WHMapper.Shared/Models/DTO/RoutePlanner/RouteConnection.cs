@@ -1,19 +1,19 @@
-﻿namespace WHMapper.Models.DTO.RoutePlanner;
+﻿namespace WHMapper.Shared.Models.DTO.RoutePlanner;
 
 public class RouteConnection
 {
-    public int FromSolarSystemId { get;  set; }
-    public float FromSecurity { get;  set; }
+    public int FromSolarSystemId { get; set; }
+    public float FromSecurity { get; set; }
 
-    public int ToSolarSystemId { get;  set; }
-    public float ToSecurity { get;  set; }
+    public int ToSolarSystemId { get; set; }
+    public float ToSecurity { get; set; }
 
     public RouteConnection()
     {
 
     }
 
-    public RouteConnection(int fromSolarSystemId,float fromSecurity,int toSolarSystemId,float toSecurity)
+    public RouteConnection(int fromSolarSystemId, float fromSecurity, int toSolarSystemId, float toSecurity)
     {
         FromSolarSystemId = fromSolarSystemId;
         FromSecurity = fromSecurity;

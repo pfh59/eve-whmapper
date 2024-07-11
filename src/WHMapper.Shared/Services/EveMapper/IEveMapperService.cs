@@ -1,6 +1,6 @@
-﻿using WHMapper.Models.DTO.EveMapper.EveEntity;
+﻿using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
 
-namespace WHMapper.Services.EveMapper;
+namespace WHMapper.Shared.Services.EveMapper;
 
 public interface IEveMapperService
 {

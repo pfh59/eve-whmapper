@@ -1,4 +1,4 @@
-﻿namespace WHMapper.Repositories
+﻿namespace WHMapper.Shared.Repositories
 {
     public interface IDefaultRepository<T, U>
     {

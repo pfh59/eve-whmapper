@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace WHMapper.Models.DTO.EveAPI.Universe
+namespace WHMapper.Shared.Models.DTO.EveAPI.Universe
 {
     public class Planet
     {
@@ -15,7 +15,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
 
         [JsonPropertyName("position")]
         public Position Position { get; private set; }
- 
+
         [JsonPropertyName("system_id")]
         public int SystemId { get; private set; }
 
@@ -27,7 +27,7 @@ namespace WHMapper.Models.DTO.EveAPI.Universe
         public int[] Moons { get; private set; }
 
         [JsonConstructor]
-        public Planet(int planetId,string name, int typeId, Position pos,int systemId,int[] asteroidBelts,int[] moons) =>
-            (PlanetId,Name, TypeId, Position, SystemId, AsteroidBelts, Moons) = (planetId, name, typeId, pos, systemId, asteroidBelts, moons);
+        public Planet(int planetId, string name, int typeId, Position pos, int systemId, int[] asteroidBelts, int[] moons) =>
+            (PlanetId, Name, TypeId, Position, SystemId, AsteroidBelts, Moons) = (planetId, name, typeId, pos, systemId, asteroidBelts, moons);
     }
 }

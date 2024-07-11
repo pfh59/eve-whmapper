@@ -1,14 +1,11 @@
-﻿using System;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WHMapper.Data;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHSystems;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper.Repositories.WHNotes
+namespace WHMapper.Shared.Repositories.WHNotes
 {
-	public class WHNoteRepository : ADefaultRepository<WHMapperContext, WHNote, int>, IWHNoteRepository
+    public class WHNoteRepository : ADefaultRepository<WHMapperContext, WHNote, int>, IWHNoteRepository
     {
         public WHNoteRepository(ILogger<WHNoteRepository> logger, IDbContextFactory<WHMapperContext> context)
             : base(logger, context)
@@ -66,7 +63,7 @@ namespace WHMapper.Repositories.WHNotes
 
         protected override async Task<WHNote?> AUpdate(int id, WHNote item)
         {
-            if(item==null)
+            if (item == null)
             {
                 _logger.LogError("Impossible to update WHNote, item is null");
                 return null;

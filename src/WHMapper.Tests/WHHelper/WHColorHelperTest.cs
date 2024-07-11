@@ -1,8 +1,6 @@
-﻿using System;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Services.EveAPI.Universe;
-using WHMapper.Services.WHColor;
+﻿using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Services.WHColor;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;
@@ -88,7 +86,7 @@ public class WHColorHelperTest
 
     public WHColorHelperTest()
     {
-        _whHelper = new WHMapper.Services.WHColor.WHColorHelper();
+        _whHelper = new WHMapper.Shared.Services.WHColor.WHColorHelper();
     }
 
     [Fact]

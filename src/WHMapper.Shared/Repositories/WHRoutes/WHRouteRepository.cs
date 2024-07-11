@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WHMapper.Data;
-using WHMapper.Repositories;
+using WHMapper.Shared.Data;
+using WHMapper.Shared.Models.Db;
 
-namespace WHMapper
+namespace WHMapper.Shared.Repositories.WHRoutes
 {
     public class WHRouteRepository : ADefaultRepository<WHMapperContext, WHRoute, int>, IWHRouteRepository
     {
@@ -25,7 +25,7 @@ namespace WHMapper
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHRoutes.Where(x => x.EveEntityId==null).ToListAsync();
+                return await context.DbWHRoutes.Where(x => x.EveEntityId == null).ToListAsync();
             }
         }
 
@@ -88,7 +88,7 @@ namespace WHMapper
                 return null;
             }
 
-            if(item.Id!=id)
+            if (item.Id != id)
             {
                 _logger.LogError("Impossible to update WHRoute, item.Id is not equal to id");
                 return null;
