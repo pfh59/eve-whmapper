@@ -1,6 +1,6 @@
 @using Blazor.Diagrams.Components.Renderers;
-@using WHMapper.Models.Custom.Node;
-@using WHMapper.Models.DTO.EveMapper.Enums;
+@using WHMapper.Shared.Models.Custom.Node;
+@using WHMapper.Shared.Models.DTO.EveMapper.Enums;
 
 
 <MudCard Outlined="true" Style="@systemStyle" Class="_class">
@@ -18,7 +18,7 @@
             {
                 <MudIcon Icon="@Icons.Material.Sharp.Lock" DisableElevation="true" Size="Size.Small" Style="margin-top:-3px" />
             }
-            @if (Node != null && Node.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
+            @if (Node != null && Node.Effect != WHEffect.None)
             {
                 <MudTooltip Text="@Node.Effect.ToString()" Arrow="true" Placement="Placement.Bottom">
                     <ChildContent>

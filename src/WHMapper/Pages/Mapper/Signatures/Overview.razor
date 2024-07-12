@@ -1,5 +1,7 @@
-@using WHMapper.Models.DTO.EveMapper;
-@using WHMapper.Models.DTO.EveMapper.Enums
+@using WHMapper.Shared.Models.Db
+@using WHMapper.Shared.Models.Db.Enums;
+@using WHMapper.Shared.Models.DTO.EveMapper;
+@using WHMapper.Shared.Models.DTO.EveMapper.Enums
 
 <MudPaper hidden="@(CurrentSystemNodeId == null)" Outlined="true" class="d-flex">
 <MudTable @ref="_signatureTable" Height="calc(100%)" Outlined="true" Items="@Signatures" Breakpoint="Breakpoint.Xs"
@@ -19,12 +21,12 @@
         <col />
     </ColGroup>
     <HeaderContent>
-        <MudTh Style="text-align:left"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
-        <MudTh Style="text-align:left"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Group.ToString())">Group</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:left"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WHSignature, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:left"><MudTableSortLabel SortBy="new Func<WHSignature, object>(x=>x.Group.ToString())">Group</MudTableSortLabel></MudTh>
         <MudTh Style="text-align:left">Type</MudTh>
-        <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Created)">Created</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHSignature, object>(x=>x.Created)">Created</MudTableSortLabel></MudTh>
         <MudTh Style="text-align:center">Creator</MudTh>
-        <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHMapper.Models.Db.WHSignature, object>(x=>x.Updated)">Updated</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<WHSignature, object>(x=>x.Updated)">Updated</MudTableSortLabel></MudTh>
         <MudTh Style="text-align:center">Updater</MudTh>
         <MudTh>
             <MudStack Row="true">
@@ -36,7 +38,7 @@
     <RowTemplate>
         <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
         <MudTd DataLabel="Group" Style="text-align:left">@context.Group</MudTd>
-        @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type) && context.Type.Contains(" -> "))
+        @if (@context.Group == WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type) && context.Type.Contains(" -> "))
         {
             var splitRes = @context.Type.Split(" -> ");
             <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(Enum.Parse<EveSystemType>(splitRes[1]))}; text-align:left")">@context.Type</MudTd>
@@ -57,7 +59,7 @@
         <MudTd DataLabel="Id" Style="text-align:left">@context.Name</MudTd>
         <MudTd DataLabel="Group" Style="text-align:left">
             <MudSelect @bind-Value="@context.Group" Dense="true" Margin="Margin.Dense" Required="true">
-                @foreach (WHMapper.Models.Db.Enums.WHSignatureGroup item in Enum.GetValues(typeof(WHMapper.Models.Db.Enums.WHSignatureGroup)))
+                @foreach (WHSignatureGroup item in Enum.GetValues(typeof(WHSignatureGroup)))
                 {
                     <MudSelectItem Value="@item" Style="text-align:left">@GetDisplayText(item)</MudSelectItem>
                 }
@@ -65,7 +67,7 @@
 
         </MudTd>
         <MudTd DataLabel="Type" Style="text-align:left; text-overflow: ellipsis;">
-            @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole)
+            @if (@context.Group == WHSignatureGroup.Wormhole)
             {
                 <MudSelect @bind-Value="@context.Type" AnchorOrigin="Origin.BottomCenter" Dense="true" Margin="Margin.Dense">
                     @foreach (WormholeType wti in EveMapperHelperServices.WormholeTypes)

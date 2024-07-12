@@ -1,37 +1,33 @@
 
 
-using Microsoft.AspNetCore.Components;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Models.DTO.EveAPI.Universe;
-using WHMapper.Pages.Mapper.CustomNode;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
-using Microsoft.AspNetCore.Components.Authorization;
-using WHMapper.Repositories.WHMaps;
-using WHMapper.Models.Db;
-using WHMapper.Repositories.WHSystems;
-using MudBlazor;
 using Blazor.Diagrams;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Repositories.WHSystemLinks;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.AspNetCore.Authorization;
-using WHMapper.Models.DTO;
-using WHMapper.Services.EveOnlineUserInfosProvider;
-using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
-using System.Data;
-using Microsoft.AspNetCore.Components.Web;
-using WHMapper.Services.WHSignature;
-using WHMapper.Services.EveMapper;
 using Blazor.Diagrams.Core.Behaviors;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Repositories.WHJumpLogs;
-using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 using BlazorContextMenu;
-using WHMapper.Repositories.WHNotes;
-using WHMapper.Services.WHColor;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.SignalR.Client;
+using MudBlazor;
+using System.Data;
+using WHMapper.Pages.Mapper.CustomNode;
+using WHMapper.Shared.Models.Custom.Node;
+using WHMapper.Shared.Models.Db;
+using WHMapper.Shared.Models.Db.Enums;
+using WHMapper.Shared.Models.DTO;
+using WHMapper.Shared.Models.DTO.EveAPI.Location;
+using WHMapper.Shared.Models.DTO.EveMapper.Enums;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Repositories.WHJumpLogs;
+using WHMapper.Shared.Repositories.WHMaps;
+using WHMapper.Shared.Repositories.WHNotes;
+using WHMapper.Shared.Repositories.WHSystemLinks;
+using WHMapper.Shared.Repositories.WHSystems;
+using WHMapper.Shared.Services.EveAPI;
+using WHMapper.Shared.Services.EveMapper;
+using WHMapper.Shared.Services.EveOnlineUserInfosProvider;
+using WHMapper.Shared.Services.Paste;
+using WHMapper.Shared.Services.WHSignatures;
+using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
 namespace WHMapper.Pages.Mapper
 {

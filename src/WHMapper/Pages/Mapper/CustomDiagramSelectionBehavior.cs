@@ -4,7 +4,7 @@ using Blazor.Diagrams.Core.Models.Base;
 
 namespace WHMapper.Pages.Mapper
 {
-	public class CustomDiagramSelectionBehavior : Behavior
+    public class CustomDiagramSelectionBehavior : Behavior
     {
 		public CustomDiagramSelectionBehavior(Diagram diagram) : base(diagram)
         {

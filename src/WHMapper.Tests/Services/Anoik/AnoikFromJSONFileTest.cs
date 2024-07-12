@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using WHMapper.Services.Anoik;
+using WHMapper.Shared.Services.Anoik;
 
 namespace WHMapper.Tests.Services.Anoik;
 

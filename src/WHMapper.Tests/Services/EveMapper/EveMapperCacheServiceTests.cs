@@ -1,8 +1,8 @@
 ﻿using AutoFixture.Xunit2;
 using Moq;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
-using WHMapper.Services.Cache;
-using WHMapper.Services.EveMapper;
+using WHMapper.Shared.Models.DTO.EveMapper.EveEntity;
+using WHMapper.Shared.Services.Cache;
+using WHMapper.Shared.Services.EveMapper;
 
 namespace WHMapper.Tests.Services.EveMapper
 {

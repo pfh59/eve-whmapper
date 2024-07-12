@@ -3,11 +3,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using WHMapper.Models.DTO.SDE;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveMapper;
-using WHMapper.Services.SDE;
+using WHMapper.Shared.Models.DTO.SDE;
+using WHMapper.Shared.Services.EveMapper;
 
 namespace WHMapper.Pages.Mapper.RoutePlanner
 {
