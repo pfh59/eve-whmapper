@@ -1,4 +1,6 @@
-﻿namespace WHMapper.Services.WHSignature
+﻿using WHMapper.Models.DTO.EveMapper;
+
+namespace WHMapper.Services.WHSignature
 {
     public interface IWHSignatureHelper
     {
@@ -6,5 +8,7 @@
         Task<bool> ValidateScanResult(string? scanResult);
         Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser, int currentSystemScannedId, string? scanResult);
         Task<bool> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted);
+        Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> GetCurrentSystemSignatures(int whId);
+        Task<IEnumerable<WHAnalizedSignature>?> AnalyzedSignatures(IEnumerable<WHMapper.Models.Db.WHSignature>? parsedSigs,IEnumerable<WHMapper.Models.Db.WHSignature>? currentSystemSigs , bool lazyDeleted);
     }
 }

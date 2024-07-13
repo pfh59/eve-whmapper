@@ -18,6 +18,9 @@ using WHMapper.Services.WHSignature;
 using System.Diagnostics.Tracing;
 using System.Reflection.Emit;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Rendering;
+using WHMapper.Models.DTO.EveMapper.Enums;
+using WHMapper.Models.DTO.EveMapper;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -40,9 +43,28 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Parameter]
         public int CurrentSystemNodeId { get; set; }
 
+        private IEnumerable<WHSignature>? currentSystemSigs = null!;
+        private string scanUser = String.Empty;
 
         private MudForm _form = null!;
         private bool _success = false;
+        private bool Success
+        {
+            get => _success;
+            set
+            {
+                _success = value;   
+                if(_success)
+                {
+                    Task.Run(()=>Analyze());  
+                }              
+                
+            }
+        }
+
+        private IEnumerable<WHAnalizedSignature>? AnalyzesSignatures { get; set; } = null!;
+
+
         private FluentValueValidator<string> _ccValidator = new FluentValueValidator<string>(x => x
             .NotEmpty()
             .NotNull()
@@ -50,8 +72,35 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private string _scanResult = String.Empty;
         private bool _lazyDeleted = false;
-        
 
+        private bool LazyDeleted 
+        {
+            get => _lazyDeleted;
+            set
+            {
+                _lazyDeleted = value;
+                if(_lazyDeleted)
+                {
+                    Task.Run(()=>Analyze());
+                }  
+            }
+        }
+
+
+        protected override Task OnParametersSetAsync()
+        {
+            Task.Run(() => Restore());
+            return base.OnParametersSetAsync();
+        }
+
+        private async Task Restore()
+        {
+            _scanResult = String.Empty;
+            _lazyDeleted = false;
+            Success = false;
+            currentSystemSigs = await SignatureHelper.GetCurrentSystemSignatures(CurrentSystemNodeId);
+            scanUser = await UserService.GetUserName();
+        }
 
         private async Task Submit()
         {
@@ -61,8 +110,6 @@ namespace WHMapper.Pages.Mapper.Signatures
             {
                 try
                 {
-                    String scanUser = await UserService.GetUserName();
-
                     if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult, _lazyDeleted))
                     {
                         Snackbar.Add("Signatures successfully added/updated", Severity.Success);
@@ -93,6 +140,14 @@ namespace WHMapper.Pages.Mapper.Signatures
             return Task.CompletedTask;
         }
 
+        private async Task Analyze()
+        {
+            var sigs = await SignatureHelper.ParseScanResult(scanUser, CurrentSystemNodeId, _scanResult);
+            AnalyzesSignatures = await SignatureHelper.AnalyzedSignatures(sigs, currentSystemSigs, _lazyDeleted);
+            StateHasChanged();
+
+        }
+
     }
 
     /// <summary>
@@ -115,7 +170,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             return result.Errors.Select(e => e.ErrorMessage);
         }
 
-        public Func<T, IEnumerable<string>> Validation => ValidateValue;
+        public Func<T, IEnumerable<string>> Validation => item => ValidateValue(item);
     }
 
 }

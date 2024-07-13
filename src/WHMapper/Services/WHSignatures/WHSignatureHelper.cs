@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.WHSignature;
 
@@ -8,7 +10,7 @@ namespace WHMapper.Services.WHSignatures
 {
     public class WHSignatureHelper : IWHSignatureHelper
     {
-        private IWHSignatureRepository _dbWHSignatures;
+        private readonly IWHSignatureRepository _dbWHSignatures;
 
         public WHSignatureHelper(IWHSignatureRepository sigRepo)
         {
@@ -89,8 +91,48 @@ namespace WHMapper.Services.WHSignatures
             }
 
             return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(sigResult);
-
         }
+
+        public Task<IEnumerable<WHAnalizedSignature>?> AnalyzedSignatures(IEnumerable<WHMapper.Models.Db.WHSignature>? parsedSigs,IEnumerable<WHMapper.Models.Db.WHSignature>? currentSystemSigs , bool lazyDeleted)
+        {
+            IEnumerable<WHAnalizedSignature>? toAdd = new List<WHAnalizedSignature>();
+            IEnumerable<WHAnalizedSignature>? toUpdate = new List<WHAnalizedSignature>();
+            IEnumerable<WHAnalizedSignature>? toDelete = new List<WHAnalizedSignature>();
+
+            if (parsedSigs == null || !parsedSigs.Any()) return Task.FromResult<IEnumerable<WHAnalizedSignature>?>(null);
+
+            if (currentSystemSigs == null || !currentSystemSigs.Any())
+            {
+                toAdd = parsedSigs.Select(x => new WHAnalizedSignature(x, WHAnalizedSignatureEnums.toAdd)).ToList();
+                return Task.FromResult<IEnumerable<WHAnalizedSignature>?>(toAdd);
+            }
+
+            var sigsToAdd = parsedSigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
+            if (sigsToAdd.Any()) 
+                toAdd=sigsToAdd.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toAdd)).ToList();
+
+            var sigsToUpdate = currentSystemSigs.IntersectBy(parsedSigs.Select(x => x.Name), y => y.Name);
+            if (sigsToUpdate.Any())
+                toUpdate = sigsToUpdate.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toUpdate)).ToList();
+
+            if (lazyDeleted)
+            {
+                var sigsToDeleted = currentSystemSigs.ExceptBy(parsedSigs.Select(x => x.Name), y => y.Name);
+                if (sigsToDeleted.Any())
+                    toDelete = sigsToDeleted.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toDelete)).ToList();
+            }
+           
+
+            return Task.FromResult<IEnumerable<WHAnalizedSignature>?>(toAdd.Concat(toUpdate).Concat(toDelete));
+        }
+
+
+        public async Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> GetCurrentSystemSignatures(int whId)
+        {
+            var signatures = await _dbWHSignatures.GetByWHId(whId);
+            return signatures;
+        }
+
 
         public async Task<bool> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted)
         {
@@ -164,5 +206,7 @@ namespace WHMapper.Services.WHSignatures
                 await _dbWHSignatures.DeleteById(sig.Id);
             }
         }
+
+
     }
 }

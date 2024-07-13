@@ -1,11 +1,29 @@
 ﻿<MudDialog>
     <DialogContent>
-        <MudForm @bind-IsValid="@_success" @ref="@_form">
-            <MudTextField T="string" Variant="Variant.Outlined" @bind-Value="@_scanResult"
-                          Label="Scan Result" Lines="10" Required="true"
-                          RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true" />
-            <MudCheckBox @bind-Checked="@_lazyDeleted" Label="Lazy Deleted" Color="Color.Secondary"></MudCheckBox>
-        </MudForm>
+        <div class="d-flex flex-row py-1">
+            <MudForm @bind-IsValid="@Success" @ref="@_form">
+                <MudTextField T="string" Variant="Variant.Outlined" @bind-Value="@_scanResult"
+                            Label="Scan Result" Lines="10" Required="true"
+                            RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true"/>
+                <MudCheckBox @bind-Checked="@LazyDeleted" Label="Lazy Deleted" Color="Color.Secondary"></MudCheckBox>
+            </MudForm>
+            @if(AnalyzesSignatures!=null)
+            {
+                <MudTable Items=@AnalyzesSignatures Hover="true" Dense="true" FixedHeader="true" ReadOnly="true"
+                    Virtualize="true" Loading="@(AnalyzesSignatures==null)" LoadingProgressColor="Color.Info" Editable="false">
+                    <HeaderContent>
+                        <MudTh> Name</MudTh>
+                        <MudTh> Group</MudTh>
+                        <MudTh> Type</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Id">@context.Name</MudTd>
+                        <MudTd DataLabel="Group">@context.Group</MudTd>
+                        <MudTd DataLabel="Type" Style="text-align:left">@context.Type</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </div>
 </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
