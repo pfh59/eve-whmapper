@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Rendering;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Services.WHColor;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -37,13 +38,16 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Inject]
         private IWHSignatureHelper SignatureHelper { get; set; } = null!;
 
+        [Inject]
+        private IWHColorHelper ColorHelper { get; set; } = null!;
+
         [CascadingParameter]
         MudDialogInstance MudDialog { get; set; } = null!;
 
         [Parameter]
         public int CurrentSystemNodeId { get; set; }
 
-        private IEnumerable<WHSignature>? currentSystemSigs = null!;
+        private IEnumerable<WHSignature>? _currentSystemSigs = null!;
         private string scanUser = String.Empty;
 
         private MudForm _form = null!;
@@ -57,8 +61,11 @@ namespace WHMapper.Pages.Mapper.Signatures
                 if(_success)
                 {
                     Task.Run(()=>Analyze());  
-                }              
-                
+                } 
+                else
+                {
+                    AnalyzesSignatures = null!;
+                } 
             }
         }
 
@@ -79,10 +86,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             set
             {
                 _lazyDeleted = value;
-                if(_lazyDeleted)
-                {
-                    Task.Run(()=>Analyze());
-                }  
+                Task.Run(()=>Analyze());
             }
         }
 
@@ -98,7 +102,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             _scanResult = String.Empty;
             _lazyDeleted = false;
             Success = false;
-            currentSystemSigs = await SignatureHelper.GetCurrentSystemSignatures(CurrentSystemNodeId);
+            _currentSystemSigs = await SignatureHelper.GetCurrentSystemSignatures(CurrentSystemNodeId);
             scanUser = await UserService.GetUserName();
         }
 
@@ -143,11 +147,16 @@ namespace WHMapper.Pages.Mapper.Signatures
         private async Task Analyze()
         {
             var sigs = await SignatureHelper.ParseScanResult(scanUser, CurrentSystemNodeId, _scanResult);
-            AnalyzesSignatures = await SignatureHelper.AnalyzedSignatures(sigs, currentSystemSigs, _lazyDeleted);
-            StateHasChanged();
-
+            AnalyzesSignatures = await SignatureHelper.AnalyzedSignatures(sigs, _currentSystemSigs, _lazyDeleted);
+            await InvokeAsync(() => {
+                StateHasChanged();
+            });
         }
 
+        private string RowStyleFunc(WHAnalizedSignature item, int index)
+        {
+            return "background-color:"+ColorHelper.GetWHAnalyzedSignatureColor(item.Status);
+        }
     }
 
     /// <summary>

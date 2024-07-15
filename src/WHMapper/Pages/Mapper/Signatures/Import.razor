@@ -1,16 +1,20 @@
 ﻿<MudDialog>
     <DialogContent>
-        <div class="d-flex flex-row py-1">
-            <MudForm @bind-IsValid="@Success" @ref="@_form">
+        <MudForm @bind-IsValid="@Success" @ref="@_form">
+            <MudStack Row="true">
                 <MudTextField T="string" Variant="Variant.Outlined" @bind-Value="@_scanResult"
-                            Label="Scan Result" Lines="10" Required="true"
-                            RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true"/>
-                <MudCheckBox @bind-Checked="@LazyDeleted" Label="Lazy Deleted" Color="Color.Secondary"></MudCheckBox>
-            </MudForm>
-            @if(AnalyzesSignatures!=null)
-            {
-                <MudTable Items=@AnalyzesSignatures Hover="true" Dense="true" FixedHeader="true" ReadOnly="true"
-                    Virtualize="true" Loading="@(AnalyzesSignatures==null)" LoadingProgressColor="Color.Info" Editable="false">
+                        Label="Scan Result" Lines="10" Required="true"
+                        RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true"/>
+            
+                <MudTable Items=@AnalyzesSignatures Outlined="true" Hover="false" Dense="true" Bordered=true Striped=true AllowUnsorted=false FixedHeader="true" ReadOnly="true"
+                    Virtualize="true" Loading="@(AnalyzesSignatures==null)" LoadingProgressColor="Color.Info" Editable="false" Height="calc(100%)" HorizontalScrollbar="false"  RowStyleFunc="RowStyleFunc">
+                    <ColGroup>
+                        <col />
+                        <col style="width: 150px;"/>
+                        <col style="width: 165px;"/>
+                        <col style="width: 170px;"/>
+                        <col />
+                    </ColGroup>
                     <HeaderContent>
                         <MudTh> Name</MudTh>
                         <MudTh> Group</MudTh>
@@ -22,8 +26,10 @@
                         <MudTd DataLabel="Type" Style="text-align:left">@context.Type</MudTd>
                     </RowTemplate>
                 </MudTable>
-            }
-        </div>
+            </MudStack>
+
+            <MudCheckBox @bind-Checked="@LazyDeleted" Label="Lazy Deleted" Color="Color.Secondary"></MudCheckBox>
+        </MudForm>
 </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>

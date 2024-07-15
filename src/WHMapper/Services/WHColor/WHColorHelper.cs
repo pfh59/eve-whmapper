@@ -72,6 +72,11 @@ namespace WHMapper.Services.WHColor
         private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
 
 
+        private const string WH_ANALYZED_SIGNATURE_ADD = "#5cb85c";
+        private const string WH_ANALYZED_SIGNATURE_UPDATE = IWHColorHelper.DEFAULT_COLOR;
+        private const string WH_ANALYZED_SIGNATURE_DELETE = "#a52521";
+
+
         private bool FloatEquals(float a, float b)
         {
             return Math.Abs(a - b) < EPSILON;
@@ -222,6 +227,20 @@ namespace WHMapper.Services.WHColor
         }
         #endregion
 
+        public string GetWHAnalyzedSignatureColor(WHAnalizedSignatureEnums status)
+        {
+            switch (status)
+            {
+                case WHAnalizedSignatureEnums.toAdd:
+                    return WH_ANALYZED_SIGNATURE_ADD;
+                case WHAnalizedSignatureEnums.toUpdate:
+                    return WH_ANALYZED_SIGNATURE_UPDATE;
+                case WHAnalizedSignatureEnums.toDelete:
+                    return WH_ANALYZED_SIGNATURE_DELETE;
+                default:
+                    return IWHColorHelper.DEFAULT_COLOR;
+            }
+        }
 
     }
 }
