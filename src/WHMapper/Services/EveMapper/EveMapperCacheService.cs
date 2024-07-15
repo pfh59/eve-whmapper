@@ -36,7 +36,6 @@ public class EveMapperCacheService : IEveMapperCacheService
         {
             string cacheKey = GetEntityCacheKey<TEntity>();
             var result = await _cacheService.Get<IEnumerable<TEntity>>(cacheKey);
-
             return result?.FirstOrDefault(x => x.Id == key)!;
         } 
         catch(InvalidOperationException e)
