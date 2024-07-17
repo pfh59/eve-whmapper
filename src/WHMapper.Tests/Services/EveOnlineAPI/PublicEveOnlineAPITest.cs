@@ -278,9 +278,9 @@ public class PublicEveOnlineAPITest
         var route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID);
         Assert.NotNull(route);
         Assert.NotEmpty(route);
-        Assert.Equal(24, route.Length);
+        Assert.Equal(12, route.Length);
         Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[0]);
-        Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[23]);
+        Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[11]);
 
         //WH route to Jita without connections
         route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID);
@@ -292,10 +292,10 @@ public class PublicEveOnlineAPITest
         route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID, connections);
         Assert.NotNull(route);
         Assert.NotEmpty(route);
-        Assert.Equal(25, route.Length);
+        Assert.Equal(13, route.Length);
         Assert.Equal(SOLAR_SYSTEM_WH_ID, route[0]);
         Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[1]);
-        Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[24]);
+        Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[12]);
 
         //wh route from jita to amarr with avoid Ahbazon
         var avoid = new int[] { SOLAR_SYSTEM_AHBAZON_ID };
