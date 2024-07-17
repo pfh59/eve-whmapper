@@ -1,10 +1,10 @@
 ﻿namespace WHMapper.Models.DTO.EveMapper.Enums
 {
 
-    public enum WHAnalizedSignatureEnums :int
+    public enum WHAnalizedSignatureEnums
     {
-        toAdd=1,
-        toUpdate=0,
-        toDelete=-1
+        toAdd,
+        toUpdate,
+        toDelete
     }
 }

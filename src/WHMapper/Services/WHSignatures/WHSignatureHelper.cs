@@ -126,13 +126,11 @@ namespace WHMapper.Services.WHSignatures
             return Task.FromResult<IEnumerable<WHAnalizedSignature>?>(toAdd.Concat(toUpdate).Concat(toDelete));
         }
 
-
         public async Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> GetCurrentSystemSignatures(int whId)
         {
             var signatures = await _dbWHSignatures.GetByWHId(whId);
             return signatures;
         }
-
 
         public async Task<bool> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted)
         {

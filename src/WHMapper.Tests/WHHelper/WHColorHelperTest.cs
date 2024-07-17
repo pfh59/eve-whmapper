@@ -84,6 +84,11 @@ public class WHColorHelperTest
     private const string NODE_STATUS_HOSTILE_COLOR = "#be0000";
     private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
 
+
+    private const string WH_SIGNATURE_ADD_COLOR = "#5cb85c";
+    private const string WH_SIGNATURE_UPDATE_COLOR = "#f0ad4e";
+    private const string WH_SIGNATURE_DELETE_COLOR = "#d9534f";
+
     private IWHColorHelper _whHelper;
 
     public WHColorHelperTest()
@@ -173,6 +178,15 @@ public class WHColorHelperTest
         Assert.Equal(NODE_STATUS_HOSTILE_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Hostile));
         Assert.Equal(NODE_STATUS_UNKNOWN_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Unknown));
         Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetNodeStatusColor((WHSystemStatus)28));
+    }
+
+    [Fact]
+    public void Get_Analyzed_Signature_Color()
+    {
+        Assert.Equal(WH_SIGNATURE_ADD_COLOR, _whHelper.GetWHAnalyzedSignatureColor(WHAnalizedSignatureEnums.toAdd));
+        Assert.Equal(WH_SIGNATURE_DELETE_COLOR, _whHelper.GetWHAnalyzedSignatureColor(WHAnalizedSignatureEnums.toDelete));
+        Assert.Equal(WH_SIGNATURE_UPDATE_COLOR, _whHelper.GetWHAnalyzedSignatureColor(WHAnalizedSignatureEnums.toUpdate));
+        Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetWHAnalyzedSignatureColor((WHAnalizedSignatureEnums)28));
     }
 }
 
