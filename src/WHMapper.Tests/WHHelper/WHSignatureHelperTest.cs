@@ -108,6 +108,8 @@ public class WHSignatureHelperTest
         var firstSig = analyzedSigs.First();
         Assert.Equal(FIRST_SIG_NAME, firstSig.Name);
         Assert.Equal(WHAnalizedSignatureEnums.toUpdate, firstSig.Status);
+        Assert.Equal(WHSignatureGroup.Unknow.ToString(), firstSig.Group);
+        Assert.Equal(string.Empty, firstSig.Type);
 
         parsedSigs.RemoveAt(0);
         parsedSigs.Add(new WHSignature(0, "NEW_SIG", WHSignatureGroup.Unknow, string.Empty, SCAN_USER));
