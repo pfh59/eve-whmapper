@@ -86,8 +86,8 @@ public class WHColorHelperTest
 
 
     private const string WH_SIGNATURE_ADD_COLOR = "#5cb85c";
-    private const string WH_SIGNATURE_UPDATE_COLOR = "#f0ad4e";
-    private const string WH_SIGNATURE_DELETE_COLOR = "#d9534f";
+    private const string WH_SIGNATURE_UPDATE_COLOR = IWHColorHelper.DEFAULT_COLOR;
+    private const string WH_SIGNATURE_DELETE_COLOR = "#a52521";
 
     private IWHColorHelper _whHelper;
 
