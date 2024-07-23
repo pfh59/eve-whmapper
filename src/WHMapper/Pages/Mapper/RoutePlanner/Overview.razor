@@ -34,7 +34,7 @@
                 <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="1">
                     <MudStack Row="true" Spacing="1">
                         <MudText Typo="Typo.body2">@route.DestinationName</MudText>
-                        <MudChip Class="mt-n1" Color="@(route.IsAvailable==true ? Color.Dark : Color.Error )" Size="Size.Small">@route.RouteLength</MudChip> 
+                        <MudChip T="int" Class="mt-n1" Color="@(route.IsAvailable==true ? Color.Dark : Color.Error )" Size="Size.Small">@route.RouteLength</MudChip> 
                     </MudStack>
                     <MudIconButton Class="mt-n1" Icon="@(route.IsShowed ? Icons.Material.Filled.GpsOff : @Icons.Material.Filled.GpsFixed)" Color="@(route.IsShowed ? Color.Error : Color.Success)" Size="Size.Small" Disabled="@(route.IsAvailable==false)" OnClick="@((e)=>ToggleShowRoute(route))"/>
                     <AuthorizeView Policy="Admin" Context="adminContext">
@@ -54,7 +54,7 @@
                 <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="1">
                     <MudStack Row="true" Spacing="1">
                         <MudText Typo="Typo.body2">@route.DestinationName</MudText>
-                        <MudChip Class="mt-n1" Color="@(route.IsAvailable==true ? Color.Dark : Color.Error )" Size="Size.Small">@route.RouteLength</MudChip> 
+                        <MudChip T="int" Class="mt-n1" Color="@(route.IsAvailable==true ? Color.Dark : Color.Error )" Size="Size.Small">@route.RouteLength</MudChip> 
                     </MudStack>
                     <MudIconButton Class="mt-n1" Icon="@(route.IsShowed ? Icons.Material.Filled.GpsOff : @Icons.Material.Filled.GpsFixed)" Color="@(route.IsShowed ? Color.Error : Color.Success)" Size="Size.Small" Disabled="@(route.IsAvailable==false)" OnClick="@((e)=>ToggleShowRoute(route))"/>
                     @if(_isEditable)

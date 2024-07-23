@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.WHSignature;
 
@@ -8,7 +10,7 @@ namespace WHMapper.Services.WHSignatures
 {
     public class WHSignatureHelper : IWHSignatureHelper
     {
-        private IWHSignatureRepository _dbWHSignatures;
+        private readonly IWHSignatureRepository _dbWHSignatures;
 
         public WHSignatureHelper(IWHSignatureRepository sigRepo)
         {
@@ -21,8 +23,11 @@ namespace WHMapper.Services.WHSignatures
             {
                 if (!string.IsNullOrEmpty(scanResult))
                 {
-                    Match match = Regex.Match(scanResult, IWHSignatureHelper.SCAN_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
-                    return Task.FromResult<bool>(match.Success);
+                    var matches = Regex.Matches(scanResult, IWHSignatureHelper.SCAN_VALIDATION_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.ExplicitCapture, TimeSpan.FromSeconds(2));
+                    // Compter le nombre de lignes non vides dans scanResult
+                    int nonEmptyLinesCount = scanResult.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Length;
+                    
+                    return Task.FromResult<bool>(matches.Count == nonEmptyLinesCount);
                 }
                 return Task.FromResult<bool>(false);
             }
@@ -33,63 +38,85 @@ namespace WHMapper.Services.WHSignatures
 
         }
 
-        public Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser, int currentSystemScannedId, string? scanResult)
+    public Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser, int currentSystemScannedId, string? scanResult)
+    {
+
+        IList<WHMapper.Models.Db.WHSignature> sigResult = new List<WHMapper.Models.Db.WHSignature>();
+
+        if (string.IsNullOrEmpty(scanResult))
         {
-            string sigName = string.Empty;
-            WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
-            string sigType = string.Empty;
-            string[]? sigvalues = null;
-            string[]? splittedSig = null;
+            return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(sigResult);
+        }
 
-            IList<WHMapper.Models.Db.WHSignature> sigResult = new List<WHMapper.Models.Db.WHSignature>();
+        try
+        {
+            string[] sigValues = scanResult.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (!string.IsNullOrEmpty(scanResult))
+            foreach (string sigValue in sigValues)
             {
-                Regex lineRegex = new Regex("\n", RegexOptions.None, TimeSpan.FromSeconds(2));
-                Regex tabRegex = new Regex("\t", RegexOptions.None, TimeSpan.FromSeconds(2));
-                try
+                string[] splittedSig = sigValue.Split('\t');
+                if (splittedSig.Length < 4) continue; // Assurez-vous qu'il y a suffisamment d'éléments pour éviter les erreurs d'index
+
+                string sigName = splittedSig[0];
+                WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
+                string sigType = string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(splittedSig[2]))
                 {
-                    sigvalues = lineRegex.Split(scanResult);
-                }
-                catch (RegexMatchTimeoutException)
-                {
-                    return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
+                    string textGroup = splittedSig[2].Contains(' ') ? splittedSig[2].Split(' ').First() : splittedSig[2];
+                    Enum.TryParse(textGroup, out sigGroup);
+                    sigType = splittedSig[3];
                 }
 
-                foreach (string sigValue in sigvalues)
-                {
-                    sigGroup = WHSignatureGroup.Unknow;
-                    sigType = string.Empty;
+                sigResult.Add(new WHMapper.Models.Db.WHSignature(currentSystemScannedId, sigName, sigGroup, sigType, scanUser));
+            }
+        }
+        catch (Exception ex) when (ex is RegexMatchTimeoutException || ex is ArgumentException)
+        {
+            // Log l'exception si nécessaire
+            return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
+        }
 
-                    try
-                    {
-                        splittedSig = tabRegex.Split(sigValue);
-                    }
-                    catch (RegexMatchTimeoutException)
-                    {
-                        return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
-                    }
+        return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(sigResult);
+    }
 
-                    sigName = splittedSig[0];
+        public Task<IEnumerable<WHAnalizedSignature>?> AnalyzedSignatures(IEnumerable<WHMapper.Models.Db.WHSignature>? parsedSigs,IEnumerable<WHMapper.Models.Db.WHSignature>? currentSystemSigs , bool lazyDeleted)
+        {
+            IEnumerable<WHAnalizedSignature>? toAdd = new List<WHAnalizedSignature>();
+            IEnumerable<WHAnalizedSignature>? toUpdate = new List<WHAnalizedSignature>();
+            IEnumerable<WHAnalizedSignature>? toDelete = new List<WHAnalizedSignature>();
 
+            if (parsedSigs == null || !parsedSigs.Any()) return Task.FromResult<IEnumerable<WHAnalizedSignature>?>(null);
 
-                    if (!String.IsNullOrWhiteSpace(splittedSig[2]))
-                    {
-                        var textGroup = splittedSig[2];
-                        if (splittedSig[2].Contains(' '))
-                            textGroup = splittedSig[2].Split(' ').First();
-
-                        Enum.TryParse<WHSignatureGroup>(textGroup, out sigGroup);
-
-                        sigType = splittedSig[3];
-                    }
-
-                    sigResult.Add(new WHMapper.Models.Db.WHSignature(currentSystemScannedId, sigName, sigGroup, sigType, scanUser));
-                }
+            if (currentSystemSigs == null || !currentSystemSigs.Any())
+            {
+                toAdd = parsedSigs.Select(x => new WHAnalizedSignature(x, WHAnalizedSignatureEnums.toAdd)).ToList();
+                return Task.FromResult<IEnumerable<WHAnalizedSignature>?>(toAdd);
             }
 
-            return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(sigResult);
+            var sigsToAdd = parsedSigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
+            if (sigsToAdd.Any()) 
+                toAdd=sigsToAdd.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toAdd)).ToList();
 
+            var sigsToUpdate = currentSystemSigs.IntersectBy(parsedSigs.Select(x => x.Name), y => y.Name);
+            if (sigsToUpdate.Any())
+                toUpdate = sigsToUpdate.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toUpdate)).ToList();
+
+            if (lazyDeleted)
+            {
+                var sigsToDeleted = currentSystemSigs.ExceptBy(parsedSigs.Select(x => x.Name), y => y.Name);
+                if (sigsToDeleted.Any())
+                    toDelete = sigsToDeleted.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toDelete)).ToList();
+            }
+           
+
+            return Task.FromResult<IEnumerable<WHAnalizedSignature>?>(toAdd.Concat(toUpdate).Concat(toDelete));
+        }
+
+        public async Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> GetCurrentSystemSignatures(int whId)
+        {
+            var signatures = await _dbWHSignatures.GetByWHId(whId);
+            return signatures;
         }
 
         public async Task<bool> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted)
@@ -164,5 +191,7 @@ namespace WHMapper.Services.WHSignatures
                 await _dbWHSignatures.DeleteById(sig.Id);
             }
         }
+
+
     }
 }

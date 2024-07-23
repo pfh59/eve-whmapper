@@ -7,7 +7,7 @@
            <Authorized>
                 <MudMenu Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft">
                     <ActivatorContent>
-                        <MudChip Icon="@Icons.Material.Filled.Person">@_username</MudChip>
+                        <MudChip T="string" Icon="@Icons.Material.Filled.Person">@_username</MudChip>
                     </ActivatorContent>
                     <ChildContent>
                         <form action="login?redirectUri=/" method="get" target="_blank">
@@ -34,7 +34,7 @@
             <NotAuthorized>
                 <MudMenu Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft">
                     <ActivatorContent>
-                        <MudChip Icon="@Icons.Material.Filled.Person">@_username</MudChip>
+                        <MudChip T="string" Icon="@Icons.Material.Filled.Person">@_username</MudChip>
                     </ActivatorContent>
                     <ChildContent>
                         <form action="login?redirectUri=/" method="get" target="_blank">
@@ -58,7 +58,7 @@
     <NotAuthorized>
         <MudMenu Dense="true">
             <ActivatorContent>
-                <MudChip Icon="@Icons.Material.Filled.Person">Account</MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Person">Account</MudChip>
             </ActivatorContent>
             <ChildContent>
                 <form action="login?redirectUri=/" method="get">
