@@ -38,65 +38,47 @@ namespace WHMapper.Services.WHSignatures
 
         }
 
-        public Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser, int currentSystemScannedId, string? scanResult)
+    public Task<IEnumerable<WHMapper.Models.Db.WHSignature>?> ParseScanResult(string scanUser, int currentSystemScannedId, string? scanResult)
+    {
+
+        IList<WHMapper.Models.Db.WHSignature> sigResult = new List<WHMapper.Models.Db.WHSignature>();
+
+        if (string.IsNullOrEmpty(scanResult))
         {
-            string sigName = string.Empty;
-            WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
-            string sigType = string.Empty;
-            string[]? sigvalues = null;
-            string[]? splittedSig = null;
-
-            IList<WHMapper.Models.Db.WHSignature> sigResult = new List<WHMapper.Models.Db.WHSignature>();
-
-            if (!string.IsNullOrEmpty(scanResult))
-            {
-                Regex lineRegex = new Regex("\n", RegexOptions.None, TimeSpan.FromSeconds(2));
-                Regex tabRegex = new Regex("\t", RegexOptions.None, TimeSpan.FromSeconds(2));
-                try
-                {
-                    sigvalues = lineRegex.Split(scanResult);
-                }
-                catch (RegexMatchTimeoutException)
-                {
-                    return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
-                }
-
-                foreach (string sigValue in sigvalues)
-                {
-                    if(string.IsNullOrWhiteSpace(sigValue)) continue;
-
-                    sigGroup = WHSignatureGroup.Unknow;
-                    sigType = string.Empty;
-
-                    try
-                    {
-                        splittedSig = tabRegex.Split(sigValue);
-                    }
-                    catch (RegexMatchTimeoutException)
-                    {
-                        return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
-                    }
-
-                    sigName = splittedSig[0];
-
-
-                    if (!String.IsNullOrWhiteSpace(splittedSig[2]))
-                    {
-                        var textGroup = splittedSig[2];
-                        if (splittedSig[2].Contains(' '))
-                            textGroup = splittedSig[2].Split(' ').First();
-
-                        Enum.TryParse<WHSignatureGroup>(textGroup, out sigGroup);
-
-                        sigType = splittedSig[3];
-                    }
-
-                    sigResult.Add(new WHMapper.Models.Db.WHSignature(currentSystemScannedId, sigName, sigGroup, sigType, scanUser));
-                }
-            }
-
             return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(sigResult);
         }
+
+        try
+        {
+            string[] sigValues = scanResult.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string sigValue in sigValues)
+            {
+                string[] splittedSig = sigValue.Split('\t');
+                if (splittedSig.Length < 4) continue; // Assurez-vous qu'il y a suffisamment d'éléments pour éviter les erreurs d'index
+
+                string sigName = splittedSig[0];
+                WHSignatureGroup sigGroup = WHSignatureGroup.Unknow;
+                string sigType = string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(splittedSig[2]))
+                {
+                    string textGroup = splittedSig[2].Contains(' ') ? splittedSig[2].Split(' ').First() : splittedSig[2];
+                    Enum.TryParse(textGroup, out sigGroup);
+                    sigType = splittedSig[3];
+                }
+
+                sigResult.Add(new WHMapper.Models.Db.WHSignature(currentSystemScannedId, sigName, sigGroup, sigType, scanUser));
+            }
+        }
+        catch (Exception ex) when (ex is RegexMatchTimeoutException || ex is ArgumentException)
+        {
+            // Log l'exception si nécessaire
+            return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(null);
+        }
+
+        return Task.FromResult<IEnumerable<WHMapper.Models.Db.WHSignature>?>(sigResult);
+    }
 
         public Task<IEnumerable<WHAnalizedSignature>?> AnalyzedSignatures(IEnumerable<WHMapper.Models.Db.WHSignature>? parsedSigs,IEnumerable<WHMapper.Models.Db.WHSignature>? currentSystemSigs , bool lazyDeleted)
         {
