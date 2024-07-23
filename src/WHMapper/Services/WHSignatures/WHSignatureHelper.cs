@@ -23,8 +23,11 @@ namespace WHMapper.Services.WHSignatures
             {
                 if (!string.IsNullOrEmpty(scanResult))
                 {
-                    Match match = Regex.Match(scanResult, IWHSignatureHelper.SCAN_VALIDATION_REGEX, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
-                    return Task.FromResult<bool>(match.Success);
+                    var matches = Regex.Matches(scanResult, IWHSignatureHelper.SCAN_VALIDATION_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.ExplicitCapture, TimeSpan.FromSeconds(2));
+                    // Compter le nombre de lignes non vides dans scanResult
+                    int nonEmptyLinesCount = scanResult.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Length;
+                    
+                    return Task.FromResult<bool>(matches.Count == nonEmptyLinesCount);
                 }
                 return Task.FromResult<bool>(false);
             }
@@ -60,6 +63,8 @@ namespace WHMapper.Services.WHSignatures
 
                 foreach (string sigValue in sigvalues)
                 {
+                    if(string.IsNullOrWhiteSpace(sigValue)) continue;
+
                     sigGroup = WHSignatureGroup.Unknow;
                     sigType = string.Empty;
 

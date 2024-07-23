@@ -1,8 +1,8 @@
 ﻿<MudDialog>
     <DialogContent>
-        <MudForm @bind-IsValid="@Success" @ref="@_form">
+        <MudForm @bind-IsValid="Success" @ref="_form">
             <MudStack Row="true">
-                <MudTextField T="string" Variant="Variant.Outlined" @bind-Value="@_scanResult"
+                <MudTextField T="string" Variant="Variant.Outlined" @bind-Value="ScanResult"
                         Label="Scan Result" Lines="10" Required="true"
                         RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true"/>
             
@@ -28,7 +28,7 @@
                 </MudTable>
             </MudStack>
 
-            <MudCheckBox @bind-Checked="@LazyDeleted" Label="Lazy Deleted" Color="Color.Secondary"></MudCheckBox>
+            <MudCheckBox @bind-Value="LazyDeleted" Label="Lazy Deleted" Color="Color.Secondary"></MudCheckBox>
         </MudForm>
 </DialogContent>
     <DialogActions>

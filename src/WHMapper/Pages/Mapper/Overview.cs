@@ -1741,7 +1741,7 @@ namespace WHMapper.Pages.Mapper
         {
             DialogOptions disableBackdropClick = new DialogOptions()
             {
-                DisableBackdropClick = true,
+                BackdropClick=false,
                 Position = DialogPosition.Center,
                 MaxWidth = MaxWidth.Medium,
                 FullWidth = true

@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.WHColor;
+using Blazor.Diagrams.Core.Events;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -57,14 +58,14 @@ namespace WHMapper.Pages.Mapper.Signatures
             get => _success;
             set
             {
-                _success = value;   
+                _success = value;  
                 if(_success)
                 {
                     Task.Run(()=>Analyze());  
                 } 
                 else
                 {
-                    AnalyzesSignatures = null!;
+                    AnalyzesSignatures = Enumerable.Empty<WHAnalizedSignature>();
                 } 
             }
         }
@@ -72,12 +73,23 @@ namespace WHMapper.Pages.Mapper.Signatures
         private IEnumerable<WHAnalizedSignature>? AnalyzesSignatures { get; set; } = null!;
 
 
-        private FluentValueValidator<string> _ccValidator = new FluentValueValidator<string>(x => x
-            .NotEmpty()
-            .NotNull()
-            .Matches(IWHSignatureHelper.SCAN_VALIDATION_REGEX));
+        private FluentSignatureValueValidator<string> _ccValidator;
 
-        private string _scanResult = String.Empty;
+
+        private string _scanResult = string.Empty;
+        
+        private string ScanResult
+        { 
+            get
+            {
+                return _scanResult;
+            }
+            set
+            {
+                Success = false;
+                _scanResult = value;
+            }
+        }
         private bool _lazyDeleted = false;
 
         private bool LazyDeleted 
@@ -90,6 +102,14 @@ namespace WHMapper.Pages.Mapper.Signatures
             }
         }
 
+        protected override void OnInitialized()
+        {
+             _ccValidator  = new FluentSignatureValueValidator<string>(x => x
+                .NotEmpty()
+                .NotNull()
+                .MustAsync(async (context, value, cancellationToken) => await SignatureHelper.ValidateScanResult(value))
+            );
+        }
 
         protected override Task OnParametersSetAsync()
         {
@@ -99,7 +119,8 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async Task Restore()
         {
-            _scanResult = String.Empty;
+
+            ScanResult = String.Empty;
             _lazyDeleted = false;
             Success = false;
             _currentSystemSigs = await SignatureHelper.GetCurrentSystemSignatures(CurrentSystemNodeId);
@@ -114,7 +135,7 @@ namespace WHMapper.Pages.Mapper.Signatures
             {
                 try
                 {
-                    if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, _scanResult, _lazyDeleted))
+                    if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, ScanResult, _lazyDeleted))
                     {
                         Snackbar.Add("Signatures successfully added/updated", Severity.Success);
                         MudDialog.Close(DialogResult.Ok(true));
@@ -146,8 +167,9 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private async Task Analyze()
         {
-            var sigs = await SignatureHelper.ParseScanResult(scanUser, CurrentSystemNodeId, _scanResult);
-            AnalyzesSignatures = await SignatureHelper.AnalyzedSignatures(sigs, _currentSystemSigs, _lazyDeleted);
+            var sigs = await SignatureHelper.ParseScanResult(scanUser, CurrentSystemNodeId, ScanResult);
+            var res = await SignatureHelper.AnalyzedSignatures(sigs, _currentSystemSigs, _lazyDeleted);
+            AnalyzesSignatures = res?.OrderBy(x=>x.Name);
             await InvokeAsync(() => {
                 StateHasChanged();
             });
@@ -164,22 +186,22 @@ namespace WHMapper.Pages.Mapper.Signatures
     /// You can reuse this class for all your fields, like for the credit card rules above.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class FluentValueValidator<T> : AbstractValidator<T>
+    internal class FluentSignatureValueValidator<T> : AbstractValidator<T>
     {
-        public FluentValueValidator(Action<IRuleBuilderInitial<T, T>> rule)
+        public FluentSignatureValueValidator(Action<IRuleBuilderInitial<T, T>> rule)
         {
             rule(RuleFor(x => x));
         }
 
-        private IEnumerable<string> ValidateValue(T arg)
+        private async Task<IEnumerable<string>> ValidateValue(T arg)
         {
-            var result = Validate(arg);
+            var result = await ValidateAsync(arg);
             if (result.IsValid)
                 return new string[0];
             return result.Errors.Select(e => e.ErrorMessage);
         }
 
-        public Func<T, IEnumerable<string>> Validation => item => ValidateValue(item);
+        public Func<T, Task<IEnumerable<string>>> Validation => async item => await ValidateValue(item);
     }
 
 }

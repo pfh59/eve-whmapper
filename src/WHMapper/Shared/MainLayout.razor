@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="_currentTheme" DefaultScrollbar="false"/>
+<MudThemeProvider Theme="_currentTheme" DefaultScrollbar="false" IsDarkMode="true"/>
+<MudPopoverProvider/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -59,11 +60,11 @@
     {
         _currentTheme = new MudTheme()
         {
-            Palette = new PaletteDark()
+            PaletteDark = new PaletteDark()
             {
                 Black = "#27272f",
                 Background = "#32333d",
-                BackgroundGrey = "#27272f",
+                BackgroundGray = "#27272f",
                 Surface = "#373740",
                 DrawerBackground = "#27272f",
                 DrawerText = "rgba(255,255,255, 0.50)",
