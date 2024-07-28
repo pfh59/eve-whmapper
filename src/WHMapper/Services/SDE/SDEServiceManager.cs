@@ -70,13 +70,12 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if(!_fileSystem.File.Exists(SDE_CHECKSUM_FILE))
-                {
-                    return string.Empty;
-                }
-
                 var fileContent = _fileSystem.File.ReadLines(SDE_CHECKSUM_FILE);
                 return string.Join(";", fileContent);
+            }
+            catch (FileNotFoundException)
+            {
+                _logger.LogInformation("No checksum file found");
             }
             catch (Exception ex)
             {
