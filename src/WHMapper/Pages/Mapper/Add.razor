@@ -3,7 +3,7 @@
 <MudDialog>
     <DialogContent>
         <MudForm @bind-IsValid="@_success" @ref="@_form">
-            <MudAutocomplete T="SDESolarSystem" Label="System Name" @bind-Value="_searchResult" SearchFuncWithCancel="@EveMapperSearch.SearchSystem" 
+            <MudAutocomplete T="SDESolarSystem" Label="System Name" @bind-Value="_searchResult" SearchFunc="@EveMapperSearch.SearchSystem"
                 Margin="Margin.Dense" Dense="true"
                 Required="true" ResetValueOnEmptyText="true" CoerceValue="true" CoerceText="true"
                 Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"

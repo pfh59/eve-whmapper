@@ -163,7 +163,6 @@ namespace WHMapper.Pages.Mapper
             }
         }
 
-
         private void Cancel()
         {
             MudDialog.Cancel();
