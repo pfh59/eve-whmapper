@@ -16,7 +16,6 @@
     {
         AccessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token"),
         RefreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token"),
-        XsrfToken = Xsrf.GetAndStoreTokens(HttpContext).RequestToken
     };
 }
 
