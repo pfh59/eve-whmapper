@@ -98,7 +98,11 @@ namespace WHMapper.Services.WHSignatures
             if (sigsToAdd.Any()) 
                 toAdd=sigsToAdd.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toAdd)).ToList();
 
-            var sigsToUpdate = currentSystemSigs.IntersectBy(parsedSigs.Select(x => x.Name), y => y.Name);
+            var sigsToUpdate = currentSystemSigs.IntersectBy(parsedSigs.Where(x=> x.Group==WHSignatureGroup.Unknow).Select(x => x.Name), y => y.Name);
+            var sigsToUpdate2 = parsedSigs.Where(x=> x.Group!=WHSignatureGroup.Unknow).IntersectBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
+            
+            sigsToUpdate = sigsToUpdate.Concat(sigsToUpdate2);
+
             if (sigsToUpdate.Any())
                 toUpdate = sigsToUpdate.Select(x=>new WHAnalizedSignature(x,WHAnalizedSignatureEnums.toUpdate)).ToList();
 
@@ -148,8 +152,6 @@ namespace WHMapper.Services.WHSignatures
             sigUpdated = await UpdateSignatures(currentSystemSigs, sigs);
             sigAdded = await AddNewSignatures(currentSystemSigs, sigs, currentSystemScannedId);
 
-
-            await Task.Delay(500); // Consider removing or justifying this delay.
             return sigUpdated || sigAdded;
         }
 
@@ -161,17 +163,20 @@ namespace WHMapper.Services.WHSignatures
             foreach (var sig in sigsToUpdate)
             {
                 var sigParse = sigs.FirstOrDefault(x => x.Name == sig.Name);
-                if (sigParse != null && sigParse.Group != WHSignatureGroup.Unknow)
+                if (sigParse != null)
                 {
-                    sig.Group = sigParse.Group;
-                    sig.Type = String.IsNullOrEmpty(sig.Type) ? sigParse.Type : sig.Type;
                     sig.Updated = sigParse.Updated;
                     sig.UpdatedBy = sigParse.UpdatedBy;
+                    if(sigParse.Group != WHSignatureGroup.Unknow)
+                    {
+                        sig.Group = sigParse.Group;
+                        sig.Type = String.IsNullOrEmpty(sig.Type) ? sigParse.Type : sig.Type;
+                    }
                 }
             }
 
             var resUpdate = await _dbWHSignatures.Update(sigsToUpdate);
-                return resUpdate != null && resUpdate.Count() == sigsToUpdate.Count();
+            return resUpdate != null && resUpdate.Count() == sigsToUpdate.Count();
         }
 
         private async Task<bool> AddNewSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs, int currentSystemScannedId)
