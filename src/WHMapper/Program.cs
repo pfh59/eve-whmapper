@@ -52,16 +52,15 @@ namespace WHMapper
 
             ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection"));
 
-            builder.Services.AddDataProtection()
-                .SetApplicationName("WHMapper")
-                .PersistKeysToStackExchangeRedis(redis);
-
-
             builder.Services.AddStackExchangeRedisCache(option =>
             {
                 option.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
                 option.InstanceName = "WHMapper";
             });
+
+            builder.Services.AddDataProtection()
+                .SetApplicationName("WHMapper")
+                .PersistKeysToStackExchangeRedis(redis,"DataProtection-Keys");
 
             builder.Services.AddSignalR();
 

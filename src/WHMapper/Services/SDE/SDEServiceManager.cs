@@ -77,6 +77,10 @@ namespace WHMapper.Services.SDE
             {
                 _logger.LogInformation("No checksum file found");
             }
+            catch(DirectoryNotFoundException)
+            {
+                _logger.LogInformation("No checksum file found");
+            }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex.ToString());

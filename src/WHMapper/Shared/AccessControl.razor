@@ -5,50 +5,25 @@
     <Authorized>
         <AuthorizeView Policy="Admin" Context="innerContext">
            <Authorized>
-                <MudMenu Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft">
+                <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                     <ActivatorContent>
                         <MudChip T="string" Icon="@Icons.Material.Filled.Person">@_username</MudChip>
                     </ActivatorContent>
                     <ChildContent>
-                        <form action="login?redirectUri=/" method="get" target="_blank">
-                            <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
-                            <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
-                                <MudText>Add Account</MudText>
-                            </MudButton>
-                        </form>
-                        <form action="whmapperadmin" method="post">
-                            <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
-                            <MudButton StartIcon="@Icons.Material.Filled.SettingsAccessibility" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
-                                <MudText>Access List</MudText>
-                            </MudButton>
-                        </form>
-                        <form action="logout" method="get">
-                            <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
-                            <MudButton StartIcon="@Icons.Material.Filled.Logout" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
-                                <MudText>Logout</MudText>
-                            </MudButton>
-                        </form>
+                        <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="login?redirectUri=/" Target="_blank">Add Account</MudMenuItem>     
+                        <MudMenuItem Icon="@Icons.Material.Filled.SettingsAccessibility" IconColor="Color.Default" Href="whmapperadmin" Target="_blank">Access List</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="logout" Target="_blank">Logout</MudMenuItem>
                     </ChildContent>
                 </MudMenu>
             </Authorized>
             <NotAuthorized>
-                <MudMenu Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft">
+                <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                     <ActivatorContent>
                         <MudChip T="string" Icon="@Icons.Material.Filled.Person">@_username</MudChip>
                     </ActivatorContent>
                     <ChildContent>
-                        <form action="login?redirectUri=/" method="get" target="_blank">
-                            <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
-                            <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
-                                <MudText>Add Account</MudText>
-                            </MudButton>
-                        </form>
-                        <form action="logout" method="get">
-                            <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
-                            <MudButton StartIcon="@Icons.Material.Filled.Logout" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
-                                <MudText>Logout</MudText>
-                            </MudButton>
-                        </form>
+                        <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="login?redirectUri=/" Target="_blank">Add Account</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="logout" Target="_blank">Logout</MudMenuItem>
                     </ChildContent>
                 </MudMenu>
             </NotAuthorized>
@@ -56,17 +31,12 @@
 
     </Authorized>
     <NotAuthorized>
-        <MudMenu Dense="true">
+        <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
             <ActivatorContent>
                 <MudChip T="string" Icon="@Icons.Material.Filled.Person">Account</MudChip>
             </ActivatorContent>
             <ChildContent>
-                <form action="login?redirectUri=/" method="get">
-                    <input name="__RequestVerificationToken" type="hidden" value="@TokenProvider.XsrfToken">
-                    <MudButton StartIcon="@Icons.Material.Filled.Login" IconColor="Color.Default" ButtonType="ButtonType.Submit" FullWidth="true">
-                        <MudText>Login</MudText>
-                    </MudButton>
-                </form>
+                <MudMenuItem Icon=@Icons.Material.Filled.Login IconColor="Color.Default" Href="login?redirectUri=/" Target="_blank">Login</MudMenuItem>
             </ChildContent>
         </MudMenu>
     </NotAuthorized>
@@ -81,13 +51,9 @@
     [Inject]
     private IEveUserInfosServices UserService { get; set; } = null!;
 
-    [Inject]
-    private Models.DTO.TokenProvider TokenProvider {get;set;} = null!;
-
     protected override async Task OnInitializedAsync()
     {
         _username = await UserService.GetUserName();
         StateHasChanged();
-
     }
 }

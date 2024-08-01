@@ -36,38 +36,39 @@
                     </RowTemplate>
                 </MudTable>
 
-                <MudForm @bind-IsValid="@_successAccess" @ref="@_formAccess" class="d-flex align-center justify-end">
-                    <MudAutocomplete T="AEveEntity" Label="search eve character/corporation/alliance name"
-                        @bind-Value="_searchResultAccess" SearchFunc="@EveMapperSearch.SearchEveEntities" 
-                        MinCharacters="@IEveMapperSearch.MIN_SEARCH_ENTITY_CHARACTERS"
-                        ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
-                        Required="true" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="true"
-                        Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
-                        AdornmentIcon="@Icons.Material.Filled.Search" 
-                        AdornmentColor="Color.Primary" 
-                        ToStringFunc="@(x=> x==null ? null : $"{x.Name}")" 
-                        MaxItems="100">
-                        <ItemTemplate Context="item">
-                            <MudText>
-                                @if (item.EntityType == EveEntityEnums.Alliance)
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mb-n1 mr-3" />
-                                }
-                                else if (item.EntityType == EveEntityEnums.Corporation)
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.Grade" Class="mb-n1 mr-3" />
-                                }
-                                else
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />
-                                }
-                                @item.Name
-                            </MudText>
-                        </ItemTemplate>
-                    </MudAutocomplete>
-                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="SubmitAccess" />
+                <MudForm @bind-IsValid="@_successAccess" @ref="@_formAccess">
+                    <div class="d-flex align-center justify-space-between">
+                        <MudAutocomplete T="AEveEntity" Label="search eve character/corporation/alliance name"
+                            @bind-Value="_searchResultAccess" SearchFunc="@EveMapperSearch.SearchEveEntities" 
+                            MinCharacters="@IEveMapperSearch.MIN_SEARCH_ENTITY_CHARACTERS"
+                            ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
+                            Required="true" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="true"
+                            Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
+                            AdornmentIcon="@Icons.Material.Filled.Search" 
+                            AdornmentColor="Color.Primary" 
+                            ToStringFunc="@(x=> x==null ? null : $"{x.Name}")" 
+                            MaxItems="100">
+                            <ItemTemplate Context="item">
+                                <MudText>
+                                    @if (item.EntityType == EveEntityEnums.Alliance)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mb-n1 mr-3" />
+                                    }
+                                    else if (item.EntityType == EveEntityEnums.Corporation)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Grade" Class="mb-n1 mr-3" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />
+                                    }
+                                    @item.Name
+                                </MudText>
+                            </ItemTemplate>
+                        </MudAutocomplete>
+                        <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="SubmitAccess" />
+                    </div>
                 </MudForm>
-
             </MudPaper>
         </MudItem>
         <MudItem xs="6">
@@ -98,23 +99,25 @@
                     </RowTemplate>
                 </MudTable>
 
-                <MudForm @bind-IsValid="@_successAdmin" @ref="@_formAdmin" class="d-flex align-center justify-end">
-                    <MudAutocomplete T="CharactereEntity" Label="Search eve charactere name" 
-                    @bind-Value="_searchResultAdmin" SearchFunc="@EveMapperSearch.SearchCharactere" 
-                                    MinCharacters="@IEveMapperSearch.MIN_SEARCH_ENTITY_CHARACTERS"
-                                    ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
-                                    Required="true" ResetValueOnEmptyText="true" CoerceValue="true" CoerceText="true"
-                                    Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
-                                    AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" 
-                                    ToStringFunc="@(x=> x==null?null : $"{x.Name}")" MaxItems="100">
-                        <ItemTemplate Context="item">
-                            <MudText>
-                                <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />
-                                    @item?.Name
-                            </MudText>
-                        </ItemTemplate>
-                    </MudAutocomplete>
-                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="SubmitAdmin" />
+                <MudForm @bind-IsValid="@_successAdmin" @ref="@_formAdmin">
+                    <div class="d-flex align-center justify-space-between">
+                        <MudAutocomplete T="CharactereEntity" Label="Search eve charactere name" 
+                        @bind-Value="_searchResultAdmin" SearchFunc="@EveMapperSearch.SearchCharactere" 
+                                        MinCharacters="@IEveMapperSearch.MIN_SEARCH_ENTITY_CHARACTERS"
+                                        ShowProgressIndicator="true" Margin="Margin.Dense" Dense="true"
+                                        Required="true" ResetValueOnEmptyText="true" CoerceValue="true" CoerceText="true"
+                                        Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
+                                        AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" 
+                                        ToStringFunc="@(x=> x==null?null : $"{x.Name}")" MaxItems="100">
+                            <ItemTemplate Context="item">
+                                <MudText>
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />
+                                        @item?.Name
+                                </MudText>
+                            </ItemTemplate>
+                        </MudAutocomplete>
+                        <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="SubmitAdmin" />
+                    </div>
                 </MudForm>
                 
             </MudPaper>
