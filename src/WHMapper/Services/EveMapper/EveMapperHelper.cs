@@ -684,9 +684,9 @@ namespace WHMapper.Services.EveMapper
                 IList<WormholeType>? statics = null;
 
                 IEnumerable<KeyValuePair<string, string>>? whStatics = await _anoikServices!.GetSystemStatics(wh.Name);
-                if (whStatics.Any())
+                if (whStatics!=null && whStatics.Any() && _whTypes != null && _whTypes.Any()) 
                 {
-                    statics = whStatics.Select(x => _whTypes.FirstOrDefault<WormholeType>(y => y.Name == x.Key)).ToList<WormholeType>();
+                    statics = whStatics.Select(x => _whTypes.FirstOrDefault<WormholeType>(y => String.Equals(y.Name,x.Key,StringComparison.OrdinalIgnoreCase))).Where(y => y != null).ToList<WormholeType>();
                 }
 
                 res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, whClass, whEffect, effectDetails, statics);

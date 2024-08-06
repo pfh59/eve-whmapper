@@ -202,7 +202,6 @@ namespace WHMapper.Pages.Mapper.Signatures
                 Signatures = new List<WHSignature>();
             }
         }
-
         protected async Task DeleteSignature(int id)
         {
             if(CurrentSystemNodeId!=null)
@@ -228,7 +227,6 @@ namespace WHMapper.Pages.Mapper.Signatures
                 Snackbar.Add("No system selected", Severity.Error);
             }
         }
-
 
         protected async Task DeleteAllSignature()
         {
