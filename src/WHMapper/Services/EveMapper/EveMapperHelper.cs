@@ -681,12 +681,12 @@ namespace WHMapper.Services.EveMapper
                 EveSystemType whClass = await GetWHClass(system_region!.Name, system_constellation.Name, system.Name, system.SecurityStatus);
                 WHEffect whEffect = await GetSystemEffect(system.Name);
                 IList<EveSystemEffect>? effectDetails = GetWHEffectDetails(whEffect, whClass);
-                IList<WHStatic>? statics = null;
+                IList<WormholeType>? statics = null;
 
                 IEnumerable<KeyValuePair<string, string>>? whStatics = await _anoikServices!.GetSystemStatics(wh.Name);
-                if (whStatics != null)
+                if (whStatics.Any())
                 {
-                    statics = whStatics.Select(x => new WHStatic(x.Key, Enum.Parse<EveSystemType>(x.Value, true))).ToList<WHStatic>();
+                    statics = whStatics.Select(x => _whTypes.FirstOrDefault<WormholeType>(y => y.Name == x.Key)).ToList<WormholeType>();
                 }
 
                 res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, whClass, whEffect, effectDetails, statics);
@@ -721,15 +721,15 @@ namespace WHMapper.Services.EveMapper
                         switch (whType.SystemTypeValue)
                         {
                             case 0://K162
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C1, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C2, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C3, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C4, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C5, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C6, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.HS, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.LS, null));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.NS, null));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.C1));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.C2));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.C3));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.C4));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.C5));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.C6));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.HS));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.LS));
+                                _whTypes.Add(new WormholeType("K162", EveSystemType.NS));
                                 break;
                             case 10:
                             case 11:
@@ -740,7 +740,7 @@ namespace WHMapper.Services.EveMapper
                                 int sys_type_value=(int)whType.SystemTypeValue;
                                 if (Enum.IsDefined(typeof(EveSystemType), sys_type_value))
                                 {
-                                    _whTypes.Add(new WormholeType(whType.Name, (EveSystemType)whType.SystemTypeValue, null));
+                                    _whTypes.Add(new WormholeType(whType));
                                 }
                                 else
                                 {

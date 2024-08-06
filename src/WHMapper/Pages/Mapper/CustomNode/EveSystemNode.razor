@@ -69,7 +69,7 @@
             {
                 @foreach (var item in Node.Statics)
                 {
-                    <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.EveSystemDestinationType)};")">@item.EveSystemDestinationType.ToString()</MudText>
+                    <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Destination)};")">@item.Destination.ToString()</MudText>
                 }
             }
         </div>

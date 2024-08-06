@@ -78,9 +78,22 @@
             {
                 @foreach (var item in CurrentSystemNode.Statics)
                 {
-                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="1">
-                        <MudText Typo="Typo.body2" Class="d-inline-flex ml-1">@item.WHName</MudText>
-                        <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.EveSystemDestinationType)}; font-weight:bold;")">@item.EveSystemDestinationType.ToString()</MudText>
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="1" >
+                        <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
+                            <ChildContent>
+                                <MudText Typo="Typo.body2" Class="d-inline-flex ml-1">@item.Name</MudText>
+                            </ChildContent>
+                            <TooltipContent>
+                                <MudPaper Outlined>
+                                    <MudStack Justify="Justify.FlexStart" Spacing="1" StretchItems="StretchItems.All">
+                                        <MudText Typo="Typo.caption">Max Mass : @item.MassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Typo="Typo.caption">Max Jump Mass: @item.JumpMassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Typo="Typo.caption">Max Stable Time: @(item.StableTime/60) h</MudText>
+                                    </MudStack>
+                                </MudPaper>
+                            </TooltipContent>
+                        </MudTooltip>
+                        <MudText Typo="Typo.body2" Class="d-inline-flex" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Destination)}; font-weight:bold;")">@item.Destination.ToString()</MudText>
                     </MudStack>
                 }
             }

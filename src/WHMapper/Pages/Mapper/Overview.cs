@@ -161,22 +161,38 @@ namespace WHMapper.Pages.Mapper
             {
                 if (await InitNotificationHub())
                 {
-                    TrackerServices.SystemChanged+=OnSystemChanged;
-                    TrackerServices.ShipChanged+=OnShipChanged;
+                    InitTrackerServices();
                     await TrackerServices.StartTracking();
-
-                    PasteServices.Pasted+=OnPasted;
+                    InitPasteServices();
                 }
 
+                InitBlazorDiagramEvents();
+
                 _loading = false;
-                await InvokeAsync(() => {
-                    StateHasChanged();
-                });
+                await InvokeAsync(StateHasChanged);
             }
             else
             {
                 Snackbar?.Add("Mapper restore error", Severity.Error);
             }
+        }
+
+        private void InitTrackerServices()
+        {
+            TrackerServices.SystemChanged += OnSystemChanged;
+            TrackerServices.ShipChanged += OnShipChanged;
+        }
+
+        private void InitPasteServices()
+        {
+            PasteServices.Pasted += OnPasted;
+        }
+
+        private void InitBlazorDiagramEvents()
+        {
+            _blazorDiagram.SelectionChanged += async (item) => await OnDiagramSelectionChanged(item);
+            _blazorDiagram.KeyDown += async (kbevent) => await OnDiagramKeyDown(kbevent);
+            _blazorDiagram.PointerUp += async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
         }
 
         #region Hub methodes
@@ -643,9 +659,11 @@ namespace WHMapper.Pages.Mapper
                     _blazorDiagram.RegisterBehavior(new CustomDragMovablesBehavior(_blazorDiagram));
 
 
-                    _blazorDiagram.SelectionChanged += async (item) => await OnDiagramSelectionChanged(item);
-                    _blazorDiagram.KeyDown += async (kbevent) => await OnDiagramKeyDown(kbevent);
-                    _blazorDiagram.PointerUp += async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
+                    //_blazorDiagram.SelectionChanged += async (item) => await OnDiagramSelectionChanged(item);
+                    //_blazorDiagram.KeyDown += async (kbevent) => await OnDiagramKeyDown(kbevent);
+                    //_blazorDiagram.PointerUp += async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
+                    
+                    
                     //_blazorDiagram.PointerEnter += async (item, pointerEvent) => await OnDiagramPointerEnter(item, pointerEvent);
                     //_blazorDiagram.PointerLeave += async (item, pointerEvent) => await OnDiagramPointerLeave(item, pointerEvent);
 
@@ -927,86 +945,95 @@ namespace WHMapper.Pages.Mapper
                 }
 
                 Logger.LogInformation("Beginning Restore Mapper");
-                WHMaps = await DbWHMaps.GetAll();
-                if (WHMaps == null || WHMaps.Count() == 0)
-                {
-                    _selectedWHMap = await DbWHMaps.Create(new WHMap("Default Maps"));
-                    if (_selectedWHMap != null)
-                        WHMaps = await DbWHMaps.GetAll();
 
-                }
-                else
+                if (!await RetrieveMaps())
                 {
-                    _selectedWHMap = WHMaps.FirstOrDefault();
+                    return false;
                 }
 
-                if (_selectedWHMap != null && _selectedWHMap.WHSystems!=null &&_selectedWHMap.WHSystems.Count > 0)
+                if (_selectedWHMap != null && _selectedWHMap.WHSystems != null && _selectedWHMap.WHSystems.Count > 0)
                 {
-
-                    //await Parallel.ForEachAsync(_selectedWHMap.WHSystems, options, async (dbWHSys, token) =>
-                    //{
-                    foreach(var dbWHSys in _selectedWHMap.WHSystems)
-                    {
-                            EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
-                            whSysNode.OnLocked += OnWHSystemNodeLocked;
-                            whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
-                            _blazorDiagram.Nodes.Add(whSysNode);
-                    }
-                    //});
-                    //StateHasChanged();
-                
-
-                    if (_selectedWHMap.WHSystemLinks!=null && _selectedWHMap.WHSystemLinks.Count > 0)
-                    {
-                        EveSystemNodeModel? srcNode=null!;
-                        EveSystemNodeModel? targetNode=null!;
-
-                        //await Parallel.ForEachAsync(_selectedWHMap.WHSystemLinks, options, async (dbWHSysLink, token) =>
-                        foreach(var dbWHSysLink in _selectedWHMap.WHSystemLinks)
-                        {
-                            var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
-                            var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
-                            if (whFrom != null && whTo != null)
-                            {
-                                srcNode= _blazorDiagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
-                                targetNode = _blazorDiagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
-
-                                if(srcNode!=null && targetNode!=null)
-                                    _blazorDiagram.Links.Add(new EveSystemLinkModel(dbWHSysLink, srcNode, targetNode));
-                                else
-                                {
-                                    Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
-                                    if(await DbWHSystemLinks.DeleteById(dbWHSysLink.Id))
-                                    {
-                                        _selectedWHMap.WHSystemLinks.Remove(dbWHSysLink);
-                                    }
-
-                                }
-                            }
-                            else
-                            {
-                                Logger.LogWarning("Bad Link,Auto remove");
-                                if(await DbWHSystemLinks.DeleteById(dbWHSysLink.Id))
-                                {
-                                    _selectedWHMap.WHSystemLinks.Remove(dbWHSysLink);
-                                }
-                            }
-                        }
-                        //});
-                        await InvokeAsync(() => {
-                            StateHasChanged();
-                        });
-                    }
+                    await InitializeSystemNodes(options);
+                    await InitializeSystemLinks(options);
                 }
+
                 Logger.LogInformation("Restore Mapper Success");
-                
                 return true;
-                
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.LogError(ex, "Mapper Restore");
                 return false;
+            }
+        }
+
+        private async Task<bool> RetrieveMaps()
+        {
+            WHMaps = await DbWHMaps.GetAll();
+            if (WHMaps == null || !WHMaps.Any())
+            {
+                _selectedWHMap = await DbWHMaps.Create(new WHMap("Default Maps"));
+                if (_selectedWHMap != null)
+                {
+                    WHMaps = await DbWHMaps.GetAll();
+                }
+            }
+            else
+            {
+                _selectedWHMap = WHMaps.FirstOrDefault();
+            }
+
+            return _selectedWHMap != null;
+        }
+
+        private async Task InitializeSystemNodes(ParallelOptions options)
+        {
+            foreach (var dbWHSys in _selectedWHMap.WHSystems)
+            {
+                EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
+                whSysNode.OnLocked += OnWHSystemNodeLocked;
+                whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
+                _blazorDiagram.Nodes.Add(whSysNode);
+            }
+        }
+
+        private async Task InitializeSystemLinks(ParallelOptions options)
+        {
+            if (_selectedWHMap.WHSystemLinks != null && _selectedWHMap.WHSystemLinks.Count > 0)
+            {
+                foreach (var dbWHSysLink in _selectedWHMap.WHSystemLinks)
+                {
+                    var whFrom = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemFrom);
+                    var whTo = await DbWHSystems.GetById(dbWHSysLink.IdWHSystemTo);
+                    if (whFrom != null && whTo != null)
+                    {
+                        var srcNode = _blazorDiagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whFrom.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
+                        var targetNode = _blazorDiagram.Nodes.FirstOrDefault(x => string.Equals(x.Title, whTo.Name, StringComparison.OrdinalIgnoreCase)) as EveSystemNodeModel;
+
+                        if (srcNode != null && targetNode != null)
+                        {
+                            _blazorDiagram.Links.Add(new EveSystemLinkModel(dbWHSysLink, srcNode, targetNode));
+                        }
+                        else
+                        {
+                            Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
+                            if (await DbWHSystemLinks.DeleteById(dbWHSysLink.Id))
+                            {
+                                _selectedWHMap.WHSystemLinks.Remove(dbWHSysLink);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Bad Link, Auto remove");
+                        if (await DbWHSystemLinks.DeleteById(dbWHSysLink.Id))
+                        {
+                            _selectedWHMap.WHSystemLinks.Remove(dbWHSysLink);
+                        }
+                    }
+                }
+
+                await InvokeAsync(StateHasChanged);
             }
         }
         private async Task<bool> DeletedNodeOnMap(WHMap map, EveSystemNodeModel node)

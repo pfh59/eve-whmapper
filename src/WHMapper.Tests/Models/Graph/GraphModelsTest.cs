@@ -109,7 +109,7 @@ namespace WHMapper.Tests.Models.Graph
         {
             var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_JITA_SECURITY), null, REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
                 Assert.Equal(WHSystemStatus.Unknown,node.SystemStatus);
-            var node2 = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0F), null, REGION_WH_NAME, CONSTELLATION_WH_NAME,SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT,null, new List<WHStatic>() { new WHStatic(SOLAR_SYSTEM_WH_STATICS,EveSystemType.C3) }) ;
+            var node2 = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID, SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_WH_NAME, -1.0F), null, REGION_WH_NAME, CONSTELLATION_WH_NAME,SOLAR_SYSTEM_WH_CLASS, SOLAR_SYSTEM_WH_EFFECT,null, new List<WormholeType>() { new WormholeType(SOLAR_SYSTEM_WH_STATICS,EveSystemType.C3) }) ;
    
 
             var link = new EveSystemLinkModel(new WHSystemLink(1, 2), node, node2);
