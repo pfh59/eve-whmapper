@@ -352,7 +352,7 @@ namespace WHMapper.Pages.Mapper
                                     EveSystemNodeModel? newSystemNodeFrom = (EveSystemNodeModel?)(_blazorDiagram?.Nodes?.FirstOrDefault(x => (x as EveSystemNodeModel)!.IdWH == link.IdWHSystemFrom));
                                     EveSystemNodeModel? newSystemNodeTo = (EveSystemNodeModel?)(_blazorDiagram?.Nodes?.FirstOrDefault(x => (x as EveSystemNodeModel)!.IdWH == link.IdWHSystemTo));
                                     if(newSystemNodeTo!=null && newSystemNodeFrom!=null)
-                                        _blazorDiagram.Links?.Add(new EveSystemLinkModel(link, newSystemNodeFrom, newSystemNodeTo));
+                                        _blazorDiagram?.Links?.Add(new EveSystemLinkModel(link, newSystemNodeFrom, newSystemNodeTo));
                                     else
                                     {
                                         Logger.LogWarning("On NotifyLinkAdded, unable to find system to add link");
@@ -528,7 +528,7 @@ namespace WHMapper.Pages.Mapper
                             if (_blazorDiagram!=null && _selectedWHMap != null && wormholeId > 0 && mapId == _selectedWHMap.Id)
                             {
                                 _selectedWHMap = await DbWHMaps.GetById(mapId);
-                                EveSystemNodeModel whChangeSystemStatus = (EveSystemNodeModel?)_blazorDiagram.Nodes.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
+                                EveSystemNodeModel? whChangeSystemStatus = _blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId) as EveSystemNodeModel;
                                 if(whChangeSystemStatus!=null)
                                 {
                                     whChangeSystemStatus.SystemStatus = systemStatus;
@@ -1795,9 +1795,9 @@ namespace WHMapper.Pages.Mapper
             parameters.Add("MouseY", e.MouseEvent.ClientY);
 
             var dialog = await DialogService.ShowAsync<Add>("Search and Add System Dialog", parameters, disableBackdropClick);
-            DialogResult result = await dialog.Result;
+            DialogResult? result = await dialog.Result;
 
-            if (!result.Canceled && result.Data != null)
+            if (result != null && !result.Canceled && result.Data != null)
             {
                 int whAddedId = (int)result.Data;
                 if (_selectedWHMap!=null && whAddedId > 0)

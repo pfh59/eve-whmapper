@@ -53,8 +53,8 @@ public class EveWHMapperEntityTest
     private const int WH_TYPE_ID1 = 30583;
     private const int WH_TYPE_ID2 = 30584;
 
-    private readonly IEveMapperService _eveMapperService;
-    private readonly IEveMapperCacheService _eveMapperCacheService;
+    private readonly IEveMapperService _eveMapperService  = null!;
+    private readonly IEveMapperCacheService _eveMapperCacheService = null!;
 
     public EveWHMapperEntityTest()
     {

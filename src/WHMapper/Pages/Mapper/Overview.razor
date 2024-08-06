@@ -74,19 +74,22 @@
                 {
                     <MudTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" style="height: inherit; width: inherit;" Class="pa-5">
                         <ChildContent>
-                            @foreach (var item in WHMaps)
+                            @if(WHMaps!=null)
                             {
-                                <div style="width: inherit; height: inherit" Class="Rounded">
-                                    <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                        <CascadingValue Value="_blazorDiagram" IsFixed="true">
-                                            <DiagramCanvas>
-                                                <Widgets>
-                                                    <SelectionBoxWidget />
-                                                </Widgets>
-                                            </DiagramCanvas>
-                                        </CascadingValue>
-                                    </MudTabPanel>
-                                </div>
+                                foreach (var item in WHMaps)
+                                {
+                                    <div style="width: inherit; height: inherit" Class="Rounded">
+                                        <MudTabPanel Text="@item.Name" Tag="@item.Id">
+                                            <CascadingValue Value="_blazorDiagram" IsFixed="true">
+                                                <DiagramCanvas>
+                                                    <Widgets>
+                                                        <SelectionBoxWidget />
+                                                    </Widgets>
+                                                </DiagramCanvas>
+                                            </CascadingValue>
+                                        </MudTabPanel>
+                                    </div>
+                                }
                             }
                         </ChildContent>
                         <Header Context="tabs_context">
