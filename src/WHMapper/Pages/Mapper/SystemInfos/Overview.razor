@@ -1,6 +1,6 @@
 ﻿
 <MudPaper Outlined="true" hidden="@(CurrentSystemNode == null)" class="d-flex flex-column justify-space-between">
-    <MudStack class="pa-2" Spacing="1">
+    <MudStack Class="pa-2" Spacing="1">
         <MudStack Row="true" Justify="Justify.SpaceAround">
             <MudLink Href="@_linkToDotlan" Target="_blank">
                 <MudStack Row="true" Spacing=1>
@@ -31,41 +31,43 @@
             }
         </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
-            <MudText Typo="Typo.body2">Region:</MudText>
-            <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.RegionName) ? CurrentSystemNode.RegionName : String.Empty)</MudText>
+            <MudText Class="pointer-events-none" Typo="Typo.body2">Region:</MudText>
+            <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.RegionName) ? CurrentSystemNode.RegionName : String.Empty)</MudText>
         </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                <MudText Typo="Typo.body2">Constellation:</MudText>
-                <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.ConstellationName) ? CurrentSystemNode.ConstellationName : String.Empty)</MudText>
+                <MudText Class="pointer-events-none" Typo="Typo.body2">Constellation:</MudText>
+                <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.ConstellationName) ? CurrentSystemNode.ConstellationName : String.Empty)</MudText>
         </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
-            <MudText Typo="Typo.body2">Name:</MudText>
-            <MudText Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Name) ? CurrentSystemNode.Name : String.Empty)</MudText>
+            <MudText Class="pointer-events-none" Typo="Typo.body2">Name:</MudText>
+            <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">@(CurrentSystemNode != null && !String.IsNullOrWhiteSpace(CurrentSystemNode?.Name) ? CurrentSystemNode.Name : String.Empty)</MudText>
         </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
-            <MudText Typo="Typo.body2">Security:</MudText>
-            <MudText Typo="Typo.body2" Style="@($"color:{_secColor};")">@(CurrentSystemNode != null  ? _secStatus : String.Empty)</MudText>       
+            <MudText Class="pointer-events-none" Typo="Typo.body2">Security:</MudText>
+            <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"color:{_secColor};")">@(CurrentSystemNode != null  ? _secStatus : String.Empty)</MudText>       
         </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween">
-            <MudText Typo="Typo.body2">Class:</MudText>
-            <MudText Typo="Typo.body2" Style="@($"color:{_systemColor}; font-weight:bold;")">@_systemType</MudText>    
+            <MudText Class="pointer-events-none" Typo="Typo.body2">Class:</MudText>
+            <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"color:{_systemColor}; font-weight:bold;")">@_systemType</MudText>    
         </MudStack>
       
         <MudStack Row="true" Justify="Justify.SpaceBetween" hidden="@(CurrentSystemNode == null || CurrentSystemNode.Effect==WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)">
-            <MudText Typo="Typo.body2">Effect:</MudText>
+            <MudText Class="pointer-events-none" Typo="Typo.body2">Effect:</MudText>
                 <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
                     <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" DisableElevation="true" Style="@($"color:{_whEffectColor};")" />
+                        <MudIcon Icon="@Icons.Material.Filled.Square" Class="d-inline-flex" Size="Size.Small" Style="@($"color:{_whEffectColor};")" />
                     </ChildContent>
                     <TooltipContent>
-                        <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
+                        <MudPaper Elevation="0">
+                            <MudStack Spacing="0">
                             @if (CurrentSystemNode != null && CurrentSystemNode.EffectDetails != null)
                             {
                                 foreach (var effectInfo in CurrentSystemNode.EffectDetails)
                                 {
-                                    <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
+                                    <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">@effectInfo.Name : @effectInfo.Value%</MudText>
                                 }
                             }
+                            </MudStack>
                         </MudPaper>
                     </TooltipContent>
                 </MudTooltip> 
@@ -81,14 +83,14 @@
                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="1" >
                         <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
                             <ChildContent>
-                                <MudText Typo="Typo.body2" Class="d-inline-flex ml-1">@item.Name</MudText>
+                                <MudText Typo="Typo.body2" Class="d-inline-flex ml-1 pointer-events-none">@item.Name</MudText>
                             </ChildContent>
                             <TooltipContent>
-                                <MudPaper Outlined>
-                                    <MudStack Justify="Justify.FlexStart" Spacing="1" StretchItems="StretchItems.All">
-                                        <MudText Typo="Typo.caption">Max Mass : @item.MassMax.ToString("#,##0") kg</MudText>
-                                        <MudText Typo="Typo.caption">Max Jump Mass: @item.JumpMassMax.ToString("#,##0") kg</MudText>
-                                        <MudText Typo="Typo.caption">Max Stable Time: @(item.StableTime/60) h</MudText>
+                                <MudPaper Elevation="0">
+                                    <MudStack Spacing="0">
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Mass : @item.MassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Jump Mass: @item.JumpMassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Stable Time: @(item.StableTime/60) h</MudText>
                                     </MudStack>
                                 </MudPaper>
                             </TooltipContent>

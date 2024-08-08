@@ -48,11 +48,11 @@
                             @context.Type
                         </ChildContent>
                         <TooltipContent>
-                            <MudPaper Outlined>
-                                <MudStack Justify="Justify.FlexStart" Spacing="1" StretchItems="StretchItems.All">
-                                    <MudText Typo="Typo.caption">Max Mass : @wh_type.MassMax.ToString("#,##0") kg</MudText>
-                                    <MudText Typo="Typo.caption">Max Jump Mass: @wh_type.JumpMassMax.ToString("#,##0") kg</MudText>
-                                    <MudText Typo="Typo.caption">Max Stable Time: @(wh_type.StableTime/60) h</MudText>
+                            <MudPaper Elevation="0">
+                                <MudStack Spacing="0">
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Mass : @wh_type.MassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Jump Mass: @wh_type.JumpMassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Stable Time: @(wh_type.StableTime/60) h</MudText>
                                 </MudStack>
                             </MudPaper>
                         </TooltipContent>

@@ -1,50 +1,51 @@
 ﻿@using WHMapper.Models.Db.Enums
 @using WHMapper.Services.WHColor
-<MudPaper Outlined="true" hidden="@(_showing==false)" class="d-flex flex-row justify-space-between">
-        <MudStack class="pa-2" Spacing="1" Justify="Justify.FlexStart">
+
+    <MudPaper Outlined="true" hidden="@(_showing==false)" class="d-flex flex-row justify-space-between">
+        <MudStack Class="pa-2" Spacing="1" Justify="Justify.FlexStart">
             <MudStack Row=true Justify="Justify.SpaceBetween">
-                <MudText Typo="Typo.body2" Style="font-weight:bold;">Size:</MudText>
-                <MudText Typo="Typo.body2">@(CurrentSystemLink?.Size)</MudText>
+                <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">Size:</MudText>
+                <MudText Class="pointer-events-none" Typo="Typo.body2">@(CurrentSystemLink?.Size)</MudText>
             </MudStack>
 
             <MudStack Row=true Justify="Justify.SpaceBetween">
-                <MudText Typo="Typo.body2" Style="font-weight:bold;">Status:</MudText>
+                <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">Status:</MudText>
                 @if(CurrentSystemLink?.MassStatus==SystemLinkMassStatus.Normal)
                 {
-                    <MudText Typo="Typo.body2" Style="font-weight:bold;" Color="Color.Success">@CurrentSystemLink?.MassStatus</MudText>
+                    <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;" Color="Color.Success">@CurrentSystemLink?.MassStatus</MudText>
                 }
                 else
                 {
-                    <MudText Typo="Typo.body2" Style="@($"font-weight:bold;color:{((CurrentSystemLink==null) ? IWHColorHelper.DEFAULT_COLOR : WHColorHelper?.GetLinkStatusColor(CurrentSystemLink.MassStatus))};")">@CurrentSystemLink?.MassStatus</MudText>
+                    <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"font-weight:bold;color:{((CurrentSystemLink==null) ? IWHColorHelper.DEFAULT_COLOR : WHColorHelper?.GetLinkStatusColor(CurrentSystemLink.MassStatus))};")">@CurrentSystemLink?.MassStatus</MudText>
                 }
                 @if(CurrentSystemLink?.IsEoL==true)
                 {
-                    <MudText Typo="Typo.body2" tyle="@($"font-weight:bold;color:{WHColorHelper?.GetLinkEOLColor()}")" Color="Color.Error">End Of Life</MudText>
+                    <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"font-weight:bold;color:{WHColorHelper?.GetLinkEOLColor()}")" Color="Color.Error">End Of Life</MudText>
                 }  
             </MudStack> 
                            
                                 
             <MudDivider DividerType="DividerType.Middle" Class="my-2"/>
             <MudStack Justify="Justify.SpaceBetween">
-                <MudText Typo="Typo.body2" Style="font-weight:bold;">First Jump:</MudText>
+                <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">First Jump:</MudText>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(FirstJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(FirstJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(FirstJumpLogDate?.ToString("HH:mm:ss"))</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(FirstJumpLogDate?.ToString("HH:mm:ss"))</MudText>
                     </MudStack>
                 </MudStack>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(FirstJumpLogCharacterName)</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(FirstJumpLogCharacterName)</MudText>
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Rocket" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(FirstJumpLogShipName)</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(FirstJumpLogShipName)</MudText>
                     </MudStack>
                 </MudStack>
             </MudStack>
@@ -54,21 +55,21 @@
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(LastJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(LastJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(LastJumpLogDate?.ToString("HH:mm:ss"))</MudText>
+                        <MudText  Class="pointer-events-none"Typo="Typo.body2">@(LastJumpLogDate?.ToString("HH:mm:ss"))</MudText>
                     </MudStack>
                 </MudStack>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(LastJumpLogCharacterName)</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(LastJumpLogCharacterName)</MudText>
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Rocket" Size="Size.Small"/>
-                        <MudText Typo="Typo.body2">@(LastJumpLogShipName)</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(LastJumpLogShipName)</MudText>
                     </MudStack>
                 </MudStack>
             </MudStack>
