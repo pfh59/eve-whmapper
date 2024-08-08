@@ -1,8 +1,8 @@
 ﻿@using WHMapper.Models.DTO.EveAPI.Route.Enums;
 
 <MudPaper Class="d-flex flex-column pa-2" hidden="@(CurrentSystemNode == null)" Outlined="true" MinWidth="220px" >
-    <MudStack Class="flex-none d-flex" Width="100%" Height="25px" Row="true" Justify="Justify.FlexStart" Spacing="1" >
-        <MudText Typo="Typo.subtitle1">Routes :</MudText>
+    <MudStack Class="flex-none d-flex" Row="true" Justify="Justify.FlexStart" Spacing="1" >
+        <MudText Class="pointer-events-none" Typo="Typo.subtitle1">Routes :</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Add"  Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute())" Disabled="@(_isEditable || _loading)"/>
         <AuthorizeView Policy="Admin" Context="adminContext">
             <Authorized>
@@ -13,7 +13,7 @@
             </NotAuthorized>
         </AuthorizeView>
     </MudStack>
-    <MudRadioGroup Class="flex-none d-flex" Width="100%" Height="45px" @bind-Value="RType">
+    <MudRadioGroup Class="flex-none d-flex" @bind-Value="RType">
         <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Secure" Color="Color.Success" Size="Size.Small">Safer</MudRadio>
         <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Shortest"  Color="Color.Warning" Size="Size.Small">Shorter</MudRadio>
         <!--<MudRadio Class="ma-0" T="RouteType" Value="RouteType.Insecure"  Color="Color.Error" Size="Size.Small">Riskly</MudRadio>-->
@@ -33,7 +33,7 @@
             {
                 <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="1">
                     <MudStack Row="true" Spacing="1">
-                        <MudText Typo="Typo.body2">@route.DestinationName</MudText>
+                        <MudText Class="pointer-events-none" Typo="Typo.body2">@route.DestinationName</MudText>
                         <MudChip T="int" Class="mt-n1" Color="@(route.IsAvailable==true ? Color.Dark : Color.Error )" Size="Size.Small">@route.RouteLength</MudChip> 
                     </MudStack>
                     <MudIconButton Class="mt-n1" Icon="@(route.IsShowed ? Icons.Material.Filled.GpsOff : @Icons.Material.Filled.GpsFixed)" Color="@(route.IsShowed ? Color.Error : Color.Success)" Size="Size.Small" Disabled="@(route.IsAvailable==false)" OnClick="@((e)=>ToggleShowRoute(route))"/>

@@ -12,7 +12,7 @@
                     <ChildContent>
                         <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="login?redirectUri=/" Target="_blank">Add Account</MudMenuItem>     
                         <MudMenuItem Icon="@Icons.Material.Filled.SettingsAccessibility" IconColor="Color.Default" Href="whmapperadmin" Target="_blank">Access List</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="logout" Target="_blank">Logout</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="logout">Logout</MudMenuItem>
                     </ChildContent>
                 </MudMenu>
             </Authorized>
@@ -23,7 +23,7 @@
                     </ActivatorContent>
                     <ChildContent>
                         <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="login?redirectUri=/" Target="_blank">Add Account</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="logout" Target="_blank">Logout</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="logout">Logout</MudMenuItem>
                     </ChildContent>
                 </MudMenu>
             </NotAuthorized>
@@ -36,7 +36,7 @@
                 <MudChip T="string" Icon="@Icons.Material.Filled.Person">Account</MudChip>
             </ActivatorContent>
             <ChildContent>
-                <MudMenuItem Icon=@Icons.Material.Filled.Login IconColor="Color.Default" Href="login?redirectUri=/" Target="_blank">Login</MudMenuItem>
+                <MudMenuItem Icon=@Icons.Material.Filled.Login IconColor="Color.Default" Href="login?redirectUri=/">Login</MudMenuItem>
             </ChildContent>
         </MudMenu>
     </NotAuthorized>

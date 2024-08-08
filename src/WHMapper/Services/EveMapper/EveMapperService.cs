@@ -36,20 +36,24 @@ public class EveMapperService : IEveMapperService
             var apiResult = await getEveApiEntityAction.Invoke(_eveApiService);
             if (EqualityComparer<TEveApiEntity>.Default.Equals(apiResult, default(TEveApiEntity)))
             {
-                _logger.LogWarning($"{nameof(TEntity)} with Id {key} not found");
+                _logger.LogWarning("{entityname} with Id {key} not found", typeof(TEntity).Name, key);
                 return null;
             }
-
-            // Add to cache (fire and forget) and return the entity
-            var entity = entityMap(apiResult);
-            await _cacheService.AddAsync(entity);
-            return entity;
+            else
+            {
+                // Add to cache (fire and forget) and return the entity
+                var entity = entityMap(apiResult);
+                if (entity != null)
+                {
+                    await _cacheService.AddAsync(entity);
+                    return entity;
+                }
+            }
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Error while getting {nameof(TEntity)} with Id {key}");
+            _logger.LogError(e, "Error while getting {entityname} with Id {key}", typeof(TEntity).Name, key);
         }
-
         return null;
     }
 

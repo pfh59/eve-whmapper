@@ -39,7 +39,30 @@
         @if (@context.Group == Models.Db.Enums.WHSignatureGroup.Wormhole && !String.IsNullOrEmpty(context.Type) && context.Type.Contains(" -> "))
         {
             var splitRes = @context.Type.Split(" -> ");
-            <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(Enum.Parse<EveSystemType>(splitRes[1]))}; text-align:left")">@context.Type</MudTd>
+            var wh_type = EveMapperHelperServices.WormholeTypes.FirstOrDefault(x => string.Equals(x.Name,splitRes[0],StringComparison.OrdinalIgnoreCase));
+            if(wh_type!=null && wh_type.Name!="K162")
+            {
+                <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(Enum.Parse<EveSystemType>(splitRes[1]))}; text-align:left")">
+                    <MudTooltip Text="Arrow Right" Arrow="true" Placement="Placement.Bottom">
+                        <ChildContent>
+                            @context.Type
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudPaper Elevation="0">
+                                <MudStack Spacing="0">
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Mass : @wh_type.MassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Jump Mass: @wh_type.JumpMassMax.ToString("#,##0") kg</MudText>
+                                        <MudText Class="ml-1 mr-1 pointer-events-none" Typo="Typo.caption">Max Stable Time: @(wh_type.StableTime/60) h</MudText>
+                                </MudStack>
+                            </MudPaper>
+                        </TooltipContent>
+                    </MudTooltip>
+                </MudTd>
+            }
+            else
+            {
+                 <MudTd DataLabel="Type" Style="@($"color:{WHColorHelper?.GetSystemTypeColor(Enum.Parse<EveSystemType>(splitRes[1]))}; text-align:left")">@context.Type</MudTd>
+            }
         }
         else
         {

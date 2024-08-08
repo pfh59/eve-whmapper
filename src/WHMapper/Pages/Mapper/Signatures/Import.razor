@@ -7,7 +7,7 @@
                         RequiredError="Required Scan Result!" Validation="@_ccValidator.Validation" Immediate="true"/>
             
                 <MudTable Items=@AnalyzesSignatures Outlined="true" Hover="false" Dense="true" Bordered=true Striped=true AllowUnsorted=false FixedHeader="true" ReadOnly="true"
-                    Virtualize="true" Loading="@(AnalyzesSignatures==null)" LoadingProgressColor="Color.Info" Editable="false" Height="230px" HorizontalScrollbar="false"  RowStyleFunc="RowStyleFunc">
+                    Virtualize="true" Loading="@(AnalyzesSignatures==null)" LoadingProgressColor="Color.Info" Height="230px" HorizontalScrollbar="false"  RowStyleFunc="RowStyleFunc">
                     <ColGroup>
                         <col style="width: 105px;"/>
                         <col style="width: 150px;"/>

@@ -156,9 +156,9 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             var parameters = new DialogParameters();
 
             var dialog = await DialogService.ShowAsync<Add>("Add Route", parameters, disableBackdropClick);
-            DialogResult result = await dialog.Result;
+            DialogResult? result = await dialog.Result;
 
-            if (!result.Canceled)
+            if (result != null && !result.Canceled)
             {
                 await Restore();
             }
@@ -170,9 +170,9 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             var parameters = new DialogParameters();
             parameters.Add("RouteId", route.Id);
             var dialog = await DialogService.ShowAsync<Delete>("Delete Route", parameters);
-            DialogResult result = await dialog.Result;
+            DialogResult? result = await dialog.Result;
             
-            if (!result.Canceled)
+            if (result != null && !result.Canceled)
             {
                 await ShowRoute(route,false);
                 await Restore();

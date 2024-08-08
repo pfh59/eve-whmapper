@@ -170,9 +170,9 @@ namespace WHMapper.Pages.Mapper.Signatures
             parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId);
 
             var dialog = await DialogService.ShowAsync<Import>("Import Scan Dialog", parameters, disableBackdropClick);
-            DialogResult result = await dialog.Result;
+            DialogResult? result = await dialog.Result;
 
-            if (!result.Canceled && CurrentMapId!=null && CurrentSystemNodeId!=null)
+            if (result!=null && !result.Canceled && CurrentMapId.HasValue && CurrentSystemNodeId.HasValue)
             {
                 await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
@@ -202,7 +202,6 @@ namespace WHMapper.Pages.Mapper.Signatures
                 Signatures = new List<WHSignature>();
             }
         }
-
         protected async Task DeleteSignature(int id)
         {
             if(CurrentSystemNodeId!=null)
@@ -214,9 +213,9 @@ namespace WHMapper.Pages.Mapper.Signatures
                 var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
                 var dialog = await DialogService.ShowAsync<Delete>("Delete", parameters, options);
-                DialogResult result = await dialog.Result;
+                DialogResult? result = await dialog.Result;
 
-                if (!result.Canceled && CurrentMapId!=null)
+                if (result != null && !result.Canceled && CurrentMapId!=null)
                 {
                     await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                     await Restore();
@@ -228,7 +227,6 @@ namespace WHMapper.Pages.Mapper.Signatures
                 Snackbar.Add("No system selected", Severity.Error);
             }
         }
-
 
         protected async Task DeleteAllSignature()
         {
@@ -245,9 +243,9 @@ namespace WHMapper.Pages.Mapper.Signatures
             var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
             var dialog = await DialogService.ShowAsync<Delete>("Delete", parameters, options);
-            DialogResult result = await dialog.Result;
+            DialogResult? result = await dialog.Result;
 
-            if (!result.Canceled && CurrentMapId != null && CurrentSystemNodeId != null)
+            if (result!=null && !result.Canceled && CurrentMapId != null && CurrentSystemNodeId != null)
             {
                 await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();

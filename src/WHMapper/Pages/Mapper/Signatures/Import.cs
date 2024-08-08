@@ -73,7 +73,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         private IEnumerable<WHAnalizedSignature>? AnalyzesSignatures { get; set; } = null!;
 
 
-        private FluentSignatureValueValidator<string> _ccValidator;
+        private FluentSignatureValueValidator<string> _ccValidator =null!;
 
 
         private string _scanResult = string.Empty;
