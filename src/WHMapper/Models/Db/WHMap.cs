@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace WHMapper.Models.Db
 {
@@ -13,6 +12,7 @@ namespace WHMapper.Models.Db
         public string Name { get; set; } = string.Empty;
         public ICollection<WHSystem> WHSystems { get; } = new HashSet<WHSystem>();
         public ICollection<WHSystemLink> WHSystemLinks { get; } = new HashSet<WHSystemLink>();
+        public ICollection<WHAccess> WHAccesses { get; } = new HashSet<WHAccess>();
 
         [Obsolete("EF Requires it")]
         protected WHMap() { }

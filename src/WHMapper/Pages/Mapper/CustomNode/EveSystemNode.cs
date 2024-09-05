@@ -1,20 +1,6 @@
-﻿using System.Reflection.Emit;
-using System.Xml.Linq;
-using Blazor.Diagrams.Core.Models;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Logging;
-using MudBlazor;
+﻿using Microsoft.AspNetCore.Components;
 using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Repositories.WHNotes;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.EveAPI;
-using WHMapper.Services.SDE;
 using WHMapper.Services.WHColor;
-using static MudBlazor.CategoryTypes;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
 namespace WHMapper.Pages.Mapper.CustomNode

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Text.Json.Serialization;
+﻿using System.Collections.Concurrent;
 using YamlDotNet.Serialization;
 
 namespace WHMapper.Models.DTO.SDE
 {
-	public class SDESolarSystem
+    public class SDESolarSystem
 	{
         /*
         [JsonIgnore]

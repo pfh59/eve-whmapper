@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace WHMapper.Models.DTO.EveMapper.Enums
 {

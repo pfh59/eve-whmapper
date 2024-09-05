@@ -1,12 +1,6 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Extensions;
+﻿using Blazor.Diagrams.Core.Models;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
-using static MudBlazor.CategoryTypes;
-using WHMapper.Services.WHColor;
-using Blazor.Diagrams.Core.Geometry;
 
 namespace WHMapper.Models.Custom.Node
 {

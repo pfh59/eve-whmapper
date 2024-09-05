@@ -1,14 +1,10 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHMaps;
-using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHAdmins
 {
-	public class WHAdminRepository : ADefaultRepository<WHMapperContext, WHAdmin, int>, IWHAdminRepository
+    public class WHAdminRepository : ADefaultRepository<WHMapperContext, WHAdmin, int>, IWHAdminRepository
     {
         public WHAdminRepository(ILogger<WHAdminRepository> logger,IDbContextFactory<WHMapperContext> context)
             : base(logger,context)

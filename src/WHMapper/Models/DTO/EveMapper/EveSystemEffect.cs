@@ -1,7 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-
-namespace WHMapper.Models.DTO.EveMapper
+﻿namespace WHMapper.Models.DTO.EveMapper
 {
     public class EveSystemEffect
     {

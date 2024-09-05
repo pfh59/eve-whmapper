@@ -1,8 +1,4 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using MudBlazor;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+﻿using System.Text.Json.Serialization;
 
 namespace WHMapper.Models.DTO.EveAPI.Universe
 {

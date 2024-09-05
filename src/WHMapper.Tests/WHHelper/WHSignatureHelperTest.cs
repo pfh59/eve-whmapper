@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
 using Xunit.Priority;

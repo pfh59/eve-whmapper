@@ -220,6 +220,7 @@ namespace WHMapper
             builder.Services.AddScoped<IEveMapperRoutePlannerHelper, EveMapperRoutePlannerHelper>();
             builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();
             builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();
+            builder.Services.AddScoped<IEveMapperRealTimeService,EveMapperRealTimeService>();
             #endregion
 
             builder.Services.AddScoped<IPasteServices,PasteServices>();

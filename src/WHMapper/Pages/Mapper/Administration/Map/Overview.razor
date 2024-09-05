@@ -1,0 +1,58 @@
+﻿@page "/whmappermapadmin"
+@using WHMapper.Models.Db;
+@using WHMapper.Models.DTO.MapAdmin;
+
+
+<MudPaper Class="pa-4">
+    <MudTable T="MapAdmin"Items="@Maps" SelectedItem="@_selectedMap" Virtualize="true" 
+    Bordered=true Striped=true Hover=true FixedHeader=true>
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">List of WHMap : </MudText>
+            <MudStack Row="true">
+                <MudIconButton Color="Color.Surface" Icon="@Icons.Material.Filled.FileCopy" Size="Size.Small" OnClick="@((e) => OpenAddMap())" />
+                <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllMaps())"></MudIconButton>
+            </MudStack>
+        </ToolBarContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowMapAccess(context.Id))">@((context.ShowAccessDetails == true)? "Hide" : "Show") Access</MudButton>
+            </MudTd>
+        </RowTemplate>
+        <ChildRowContent>
+            @if(context.ShowAccessDetails)
+            {
+                <MudTable T="WHAccess" Items="@context.WHMapAccesses" Dense=true Hover=false Bordered=true Striped=true SortLabel="Sort By" Virtualize="true" Height="100%" Loading="@(context.WHMapAccesses==null)" LoadingProgressColor="Color.Info"
+                          CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" IsEditRowSwitchingBlocked="false" SelectedItem="@_selectedWHAccess"
+                          FixedHeader="true">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">WHMap Access : </MudText>
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col />
+                        <col />
+                        <col />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Eve Character Id</MudTh>
+                        <MudTh>Eve Character Name</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="accessContext">
+                        <MudTd DataLabel="Id">@accessContext.EveEntity.ToString()</MudTd>
+                        <MudTd DataLabel="EveEntityName">@accessContext.EveEntityName</MudTd>
+                        <MudTd Style="text-align:center">
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small"/>
+                            <!--<MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAdmin(@accessContext.Id))" />-->
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </ChildRowContent>
+    </MudTable>
+
+
+
+
+    
+</MudPaper>

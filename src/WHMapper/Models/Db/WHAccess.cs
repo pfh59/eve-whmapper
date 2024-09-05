@@ -1,10 +1,9 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Db
 {
-	public class WHAccess
+    public class WHAccess
 	{
         [Key]
         public int Id { get; set; }
@@ -17,7 +16,6 @@ namespace WHMapper.Models.Db
 
         [Required]
         public WHAccessEntity EveEntity { get; set; }
-
 
         [Obsolete("EF Requires it")]
         protected WHAccess() { }

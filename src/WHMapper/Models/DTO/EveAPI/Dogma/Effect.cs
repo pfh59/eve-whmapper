@@ -1,10 +1,8 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using static MudBlazor.FilterOperator;
+﻿using System.Text.Json.Serialization;
 
 namespace WHMapper.Models.DTO.EveAPI.Dogma
 {
-	public class Effect
+    public class Effect
 	{
         [JsonPropertyName("description")]
         public string Description { get; set; } = string.Empty;

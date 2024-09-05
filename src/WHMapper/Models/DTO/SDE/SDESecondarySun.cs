@@ -1,7 +1,6 @@
-﻿using System;
-namespace WHMapper.Models.DTO.SDE
+﻿namespace WHMapper.Models.DTO.SDE
 {
-	public class SDESecondarySun
+    public class SDESecondarySun
 	{
         public int EffectBeaconTypeID { get; set; }
         public int ItemID { get; set; }

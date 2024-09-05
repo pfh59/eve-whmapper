@@ -1,12 +1,6 @@
-﻿using System;
-using System.Security.Cryptography.Xml;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using YamlDotNet.Core;
-using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHSystems
 {

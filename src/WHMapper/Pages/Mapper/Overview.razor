@@ -8,129 +8,37 @@
 @using WHMapper.Models.Db.Enums;
 @using Blazor.Diagrams.Components.Widgets; 
 
-<!-- Blazor context menu from MudBlazor pallete -->
-<style>
-    .context-menu { color: var(--mud-palette-text-primary); background-color: var(--mud-palette-surface); border-radius: var(--mud-default-borderradius);box-shadow: var(--mud-elevation-8);}
-    /* using css specificity to override default background-color */
-    .context-menu .context-menu-item:hover { background-color: var(--mud-palette-action-default-hover);}
-</style>
-
-<!-- ContextMenu -->
-<ContextMenu Id="context-menu" Template="context-menu-template">
-@if (_selectedSystemLink == null && _selectedSystemNode == null)
-{
-    <Item OnClick="OpenSearchAndAddDialog">Add System</Item>
-}
-
-@if (_selectedSystemLink != null)
-{
-    <Item OnClick="@(() => ToggleSlectedSystemLinkEOL())"> Toggle EOL </Item>
-    <Item>Status
-        <SubMenu>
-            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))"> Normal </Item>
-            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))"> Critical </Item>
-            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))"> Verge </Item>
-        </SubMenu>
-    </Item>
-    <Item>Size
-        <SubMenu>
-            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))"> Small </Item>
-            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))"> Medium </Item>
-            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))"> Large </Item>
-            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))"> XLarge </Item>
-        </SubMenu>
-    </Item>
-}
-
-@if(_selectedSystemNode !=null)
-{
-       <Item OnClick="@(()=>SetSelectedSystemDestinationWaypoint())"><MudIcon Icon="@Icons.Material.Sharp.FlagCircle" Size="MudBlazor.Size.Small"/> Set Destination </Item>
-        if(_selectedSystemNode.Locked)
+<MudPaper class="d-flex" Width="100%" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" hidden="@(_loading)">
+        <!-- map zone-->
+        @if(WHMaps!=null && WHMaps.Any())
         {
-            <Item OnClick="@(() =>ToggleSystemLock())"><MudIcon Icon="@Icons.Material.Sharp.LockOpen" Size="MudBlazor.Size.Small"/> UnLock </Item>
+            @if(WHMaps.Count()>1)
+            {
+                <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="SelectedWHMapIndex" Rounded="true" Border="true" 
+                Class="d-flex align-stretch flex-grow-1"
+                PanelClass="d-flex align-stretch flex-grow-1">
+                    <ChildContent>
+                        @foreach (var item in WHMaps)
+                        {                   
+                            <MudTabPanel Text="@item.Name" Tag="@item.Id">
+                                <WHMapper.Pages.Mapper.Map.Overview MapId="@item.Id"/>
+                            </MudTabPanel>
+                        }
+                        
+                    </ChildContent>
+                </MudDynamicTabs>
+            }
+            else
+            {
+                <WHMapper.Pages.Mapper.Map.Overview MapId="@WHMaps.First().Id"/>
+            }
         }
         else
         {
-            <Item OnClick="@(() =>ToggleSystemLock())"><MudIcon Icon="@Icons.Material.Sharp.Lock" Size="MudBlazor.Size.Small"/> Lock </Item>
+            <MudPaper Class="d-flex flex-column flex-grow-1 justify-center align-center" Width="100%" Height="100%">
+                <MudText Typo="Typo.h4">No Map Found</MudText>
+            </MudPaper>
         }
-        
-       <Item><MudIcon Icon="@Icons.Material.Filled.GraphicEq" Size="MudBlazor.Size.Small"/> System Status
-            <SubMenu>
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Unknown))"> Unknown </Item>
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Occupied))"> Occupied </Item>    
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Hostile))"> Hostile </Item>     
-                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Friendly))"> Friendly </Item>
-            </SubMenu>
-       </Item>
-}
-
-</ContextMenu>
-
-<MudPaper class="d-flex flex-column flex-grow-1 gap-2" Width="100%" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" hidden="@(_loading)">
-    <MudPaper Class="flex-1 d-flex pa-1" Width="100%" Outlined="true" Square="true">
-        <ContextMenuTrigger MenuId="context-menu"  style="width: 100%; height: 100%;">
-        <!-- map zone-->
-                @if (!FeatureFlag.DISABLE_MULTI_MAP())
-                {
-                    <MudTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_selectedWHMapIndex" Rounded="true" Border="true" style="height: inherit; width: inherit;" Class="pa-5">
-                        <ChildContent>
-                            @if(WHMaps!=null)
-                            {
-                                foreach (var item in WHMaps)
-                                {
-                                    <div style="width: inherit; height: inherit" Class="Rounded">
-                                        <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                            <CascadingValue Value="_blazorDiagram" IsFixed="true">
-                                                <DiagramCanvas>
-                                                    <Widgets>
-                                                        <SelectionBoxWidget />
-                                                    </Widgets>
-                                                </DiagramCanvas>
-                                            </CascadingValue>
-                                        </MudTabPanel>
-                                    </div>
-                                }
-                            }
-                        </ChildContent>
-                        <Header Context="tabs_context">
-                                <AuthorizeView Policy="Admin">
-                                    <MudButtonGroup>
-                                        <MudTooltip Text="Add new map">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="AddNewMap" />
-                                        </MudTooltip>
-                                    </MudButtonGroup>
-                                </AuthorizeView>
-                        </Header>
-                    </MudTabs>
-                }
-                else
-                {
-                    <div Class="mud-height-full mud-width-full Rounded">
-                        <CascadingValue Value="_blazorDiagram">
-                            <DiagramCanvas>
-                                <Widgets>
-                                    <SelectionBoxWidget />
-                                </Widgets>
-                            </DiagramCanvas>
-                        </CascadingValue>
-                    </div>
-                }
-        </ContextMenuTrigger>
-    </MudPaper>
-
-    <!-- tools zone-->
-    <MudPaper Class="flex-none" Width="100%" Height="325px">
-        <MudStack Row="true" Justify="Justify.Center" class="mud-height-full mud-width-full">
-            <WHMapper.Pages.Mapper.LinkInfos.Overview CurrentSystemLink="@_selectedSystemLink" />
-            <MudHidden Breakpoint="Breakpoint.MdAndDown">
-                <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="@_selectedSystemNode"/>
-            </MudHidden>
-            <WHMapper.Pages.Mapper.Signatures.Overview @ref="WHSignaturesView" CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@_selectedSystemNode?.IdWH" NotificationHub="@_hubConnection" />
-            <MudHidden Breakpoint="Breakpoint.MdAndDown">
-                <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="@_selectedSystemNode" CurrentLinks="@_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
-            </MudHidden>
-        </MudStack>
-    </MudPaper>
 </MudPaper>
 
 @if(_loading)

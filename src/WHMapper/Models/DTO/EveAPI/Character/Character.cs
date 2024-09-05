@@ -1,9 +1,8 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace WHMapper.Models.DTO.EveAPI.Character
 {
-	public class Character
+    public class Character
 	{
         [JsonPropertyName("alliance_id")]
         public int AllianceId { get; set; }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Db

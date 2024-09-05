@@ -1,10 +1,8 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using WHMapper.Models.DTO.ResponseMessage;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace WHMapper.Models.Db
 {
-	public class WHAdmin
+    public class WHAdmin
 	{
         [Key]
         public int Id { get; set; }

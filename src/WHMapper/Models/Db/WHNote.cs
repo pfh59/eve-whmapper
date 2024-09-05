@@ -1,10 +1,9 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using WHMapper.Models.Db.Enums;
 
 namespace WHMapper.Models.Db
 {
-	public class WHNote
+    public class WHNote
 	{
         [Key]
         public int Id { get; set; }

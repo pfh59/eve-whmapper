@@ -1,10 +1,8 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using WHMapper.Models.DTO.EveAPI.Universe;
+﻿using System.Text.Json.Serialization;
 
 namespace WHMapper.Models.DTO.EveAPI.Alliance
 {
-	public class Alliance
+    public class Alliance
 	{
         [JsonPropertyName("creator_corporation_id")]
         public int CreatorCorporationId { get; set; }

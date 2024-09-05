@@ -15,7 +15,6 @@ using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
 
 using Xunit.Priority;
-using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Tests.Services;
 

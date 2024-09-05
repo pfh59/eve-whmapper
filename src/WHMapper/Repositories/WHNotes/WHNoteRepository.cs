@@ -1,13 +1,10 @@
-﻿using System;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHSystems;
 
 namespace WHMapper.Repositories.WHNotes
 {
-	public class WHNoteRepository : ADefaultRepository<WHMapperContext, WHNote, int>, IWHNoteRepository
+    public class WHNoteRepository : ADefaultRepository<WHMapperContext, WHNote, int>, IWHNoteRepository
     {
         public WHNoteRepository(ILogger<WHNoteRepository> logger, IDbContextFactory<WHMapperContext> context)
             : base(logger, context)

@@ -1,9 +1,8 @@
-﻿using System;
-using WHMapper.Models.Db;
+﻿using WHMapper.Models.Db;
 
 namespace WHMapper.Repositories.WHAdmins
 {
-	public interface IWHAdminRepository : IDefaultRepository<WHAdmin, int>
+    public interface IWHAdminRepository : IDefaultRepository<WHAdmin, int>
     {
 	}
 }

@@ -1,4 +1,3 @@
-using System;
 namespace WHMapper.Models.Db.Enums
 {
     public enum WHSystemStatus

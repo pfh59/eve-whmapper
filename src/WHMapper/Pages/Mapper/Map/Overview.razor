@@ -1,0 +1,99 @@
+﻿@using Blazor.Diagrams.Core;
+@using Blazor.Diagrams.Core.Geometry;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Components;
+@using Blazor.Diagrams.Algorithms;
+@using Blazor.Diagrams.Components.Widgets; 
+@using WHMapper.Models.Db.Enums
+
+<!-- Blazor context menu from MudBlazor pallete -->
+<style>
+    .context-menu { color: var(--mud-palette-text-primary); background-color: var(--mud-palette-surface); border-radius: var(--mud-default-borderradius);box-shadow: var(--mud-elevation-8);}
+    /* using css specificity to override default background-color */
+    .context-menu .context-menu-item:hover { background-color: var(--mud-palette-action-default-hover);}
+</style>
+
+<!-- ContextMenu -->
+<ContextMenu Id="context-menu" Template="context-menu-template">
+
+@if (SelectedSystemLink == null && SelectedSystemNode == null)
+{
+    <Item OnClick="OpenSearchAndAddDialog">Add System</Item>
+}
+
+@if (SelectedSystemLink != null)
+{
+    <Item OnClick="@(() => ToggleSlectedSystemLinkEOL())"> Toggle EOL </Item>
+    <Item>Status
+        <SubMenu>
+            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))"> Normal </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))"> Critical </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))"> Verge </Item>
+        </SubMenu>
+    </Item>
+    <Item>Size
+        <SubMenu>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))"> Small </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))"> Medium </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))"> Large </Item>
+            <Item OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))"> XLarge </Item>
+        </SubMenu>
+    </Item>
+}
+
+@if(SelectedSystemNode !=null)
+{
+       <Item OnClick="@(()=>SetSelectedSystemDestinationWaypoint())"><MudIcon Icon="@Icons.Material.Sharp.FlagCircle" Size="MudBlazor.Size.Small"/> Set Destination </Item>
+        if(SelectedSystemNode.Locked)
+        {
+            <Item OnClick="@(() =>ToggleSystemLock())"><MudIcon Icon="@Icons.Material.Sharp.LockOpen" Size="MudBlazor.Size.Small"/> UnLock </Item>
+        }
+        else
+        {
+            <Item OnClick="@(() =>ToggleSystemLock())"><MudIcon Icon="@Icons.Material.Sharp.Lock" Size="MudBlazor.Size.Small"/> Lock </Item>
+        }
+        
+       <Item><MudIcon Icon="@Icons.Material.Filled.GraphicEq" Size="MudBlazor.Size.Small"/> System Status
+            <SubMenu>
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Unknown))"> Unknown </Item>
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Occupied))"> Occupied </Item>    
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Hostile))"> Hostile </Item>     
+                <Item OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Friendly))"> Friendly </Item>
+            </SubMenu>
+       </Item>
+}
+
+</ContextMenu>
+
+
+<MudPaper class="d-flex flex-column flex-grow-1 gap-2 align-stretch">
+    <MudPaper Class="d-flex align-stretch flex-grow-1">
+        <ContextMenuTrigger MenuId="context-menu" class="d-flex align-stretch flex-grow-1">
+        <MudPaper Class="d-flex flex-1">
+            <CascadingValue Value="_blazorDiagram" IsFixed="true">
+                <DiagramCanvas>
+                    <Widgets>
+                        <SelectionBoxWidget />
+                    </Widgets>
+                </DiagramCanvas>
+            </CascadingValue>
+        </MudPaper>
+        </ContextMenuTrigger>
+    </MudPaper>
+
+    <MudPaper Class="flex-none" Width="100%" Height="325px">
+        <MudStack Row="true" Justify="Justify.Center">
+            <WHMapper.Pages.Mapper.LinkInfos.Overview CurrentSystemLink="SelectedSystemLink" />
+            <MudHidden Breakpoint="Breakpoint.MdAndDown">
+                <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="SelectedSystemNode"/>
+            </MudHidden>
+            <WHMapper.Pages.Mapper.Signatures.Overview CurrentMapId="@_selectedWHMap?.Id" CurrentSystemNodeId="@SelectedSystemNode?.IdWH"/>
+            <MudHidden Breakpoint="Breakpoint.MdAndDown">
+                <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="SelectedSystemNode" CurrentLinks="_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
+            </MudHidden>
+        </MudStack>
+    </MudPaper>
+</MudPaper>
+    
+
+

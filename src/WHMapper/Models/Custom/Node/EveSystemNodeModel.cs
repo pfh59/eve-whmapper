@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Xml.Linq;
-using Blazor.Diagrams.Core.Geometry;
+﻿using System.Collections.Concurrent;
 using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Models.Base;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.Db.Enums;
 

@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Db;
@@ -9,7 +8,8 @@ using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Services.EveMapper;
-namespace WHMapper.Pages.Mapper.Administration
+
+namespace WHMapper.Pages.Mapper.Administration.Access
 {
     [Authorize(Policy = "Admin")]
     public partial class Overview : ComponentBase

@@ -9,11 +9,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Models.DTO.RoutePlanner;
-using WHMapper.Repositories.WHNotes;
-using WHMapper.Services.Anoik;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveMapper;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
 

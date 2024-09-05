@@ -1,21 +1,14 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Characters;
-using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.SDE;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;

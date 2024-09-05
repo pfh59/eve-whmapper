@@ -1,8 +1,6 @@
 ﻿using Blazor.Diagrams.Core.Geometry;
 using Blazor.Diagrams.Core.Models.Base;
 using Blazor.Diagrams.Core.Events;
-using System;
-using System.Collections.Generic;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core;
 

@@ -1,11 +1,6 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHMaps
 {
@@ -56,11 +51,13 @@ namespace WHMapper.Repositories.WHMaps
                 if (!await context.DbWHMaps.AnyAsync())
                     return await context.DbWHMaps.OrderBy(x => x.Name).ToListAsync();
                 else
-                    return await context.DbWHMaps
+                    return await context.DbWHMaps.AsNoTracking()
+                            /*.Include(x => x.WHAccesses)
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)
-                            .ThenInclude(x => x.JumpHistory)
-                            .OrderBy(x => x.Name).ToListAsync();
+                                .ThenInclude(x => x.JumpHistory)*/
+                            .OrderBy(x => x.Name)
+                            .ToListAsync();
             }
         }
 

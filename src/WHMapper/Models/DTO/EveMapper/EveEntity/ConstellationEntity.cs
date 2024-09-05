@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
 
 namespace WHMapper.Models.DTO.EveMapper.EveEntity;
 

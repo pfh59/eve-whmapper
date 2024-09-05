@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories;
-using WHMapper.Repositories.WHJumpLogs;
 
 namespace WHMapper.Repositories.WHJumpLogs
 {

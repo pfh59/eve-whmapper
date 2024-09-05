@@ -1,5 +1,4 @@
-﻿using System;
-namespace WHMapper.Models.DTO
+﻿namespace WHMapper.Models.DTO
 {
     public class InitialApplicationState
     {
