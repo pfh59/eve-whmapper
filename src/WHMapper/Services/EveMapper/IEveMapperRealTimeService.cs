@@ -26,12 +26,13 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="systemName">The name of the system where the user is located.</param>
     event Func<string, string, Task> UserPosition;
 
+/*
     /// <summary>
     /// Triggered when there is an update of users' positions.
     /// </summary>
     /// <param name="usersPosition">A dictionary containing usernames and their corresponding system names.</param>
     event Func<IDictionary<string, string>, Task> UsersPosition;
-
+*/
     /// <summary>
     /// Triggered when a wormhole is added.
     /// </summary>
@@ -232,4 +233,10 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="systemStatus">The new system status of the wormhole.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task NotifyWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatus systemStatus);
+
+    /// <summary>
+    /// Gets the position of connected users.
+    /// </summary>
+    /// <returns></returns>
+    Task<IDictionary<string, string>> GetConnectedUsersPosition();
 }

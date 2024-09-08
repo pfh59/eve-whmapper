@@ -15,7 +15,6 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<string, Task>? UserConnected;
     public event Func<string, Task>? UserDisconnected;
     public event Func<string, string, Task>? UserPosition;
-    public event Func<IDictionary<string, string>, Task>? UsersPosition;
     public event Func<string, int, int, Task>? WormholeAdded;
     public event Func<string, int, int, Task>? WormholeRemoved;
     public event Func<string, int, int, Task>? LinkAdded;
@@ -49,7 +48,6 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         _hubConnection.On<string>("NotifyUserConnected", async (user) => await UserConnected?.Invoke(user));
         _hubConnection.On<string>("NotifyUserDisconnected", async (user) => await UserDisconnected?.Invoke(user));
         _hubConnection.On<string, string>("NotifyUserPosition", async (user, systemName) => await UserPosition?.Invoke(user, systemName));
-        _hubConnection.On<IDictionary<string, string>>("NotifyUsersPosition", async (usersPosition) => await UsersPosition?.Invoke(usersPosition));
         _hubConnection.On<string, int, int>("NotifyWormoleAdded", async (user, mapId, wormholeId) => await WormholeAdded?.Invoke(user, mapId, wormholeId));
         _hubConnection.On<string, int, int>("NotifyWormholeRemoved", async (user, mapId, wormholeId) => await WormholeRemoved?.Invoke(user, mapId, wormholeId));
         _hubConnection.On<string, int, int>("NotifyLinkAdded", async (user, mapId, linkId) => await LinkAdded?.Invoke(user, mapId, linkId));
@@ -176,6 +174,16 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         {
             await _hubConnection.SendAsync("SendWormholeSystemStatusChanged", mapId, wormholeId, systemStatus);
         }
+    }
+
+    public async Task<IDictionary<string, string>> GetConnectedUsersPosition()
+    {
+        if (_hubConnection is not null)
+        {
+            return await _hubConnection.InvokeAsync<IDictionary<string, string>>("GetConnectedUsersPosition");
+        }
+
+        return new Dictionary<string, string>();
     }
 
     public async ValueTask DisposeAsync()

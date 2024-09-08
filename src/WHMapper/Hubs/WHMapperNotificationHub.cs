@@ -36,8 +36,6 @@ namespace WHMapper.Hubs
             }
             await base.OnConnectedAsync();
             await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(userName);
-            await Clients.Caller.NotifyUsersPosition(_connectedUserPosition);
-            
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
@@ -163,7 +161,11 @@ namespace WHMapper.Hubs
                 await Clients.AllExcept(Context.ConnectionId).NotifyWormholeSystemStatusChanged(userName, mapId, wormholeId, systemStatus);
             }
         }
-    
+
+        public Task<IDictionary<string,string>> GetConnectedUsersPosition()
+        {
+            return Task.FromResult<IDictionary<string,string>>(_connectedUserPosition);
+        }
     }
 }
 
