@@ -9,6 +9,9 @@ namespace WHMapper.Models.Db
         public int Id { get; set; }
 
         [Required]
+        public int MapId { get; set; } = -1;
+
+        [Required]
         public int SoloarSystemId { get; set; } = -1;
 
         [Required, StringLength(255, ErrorMessage = "Comment is too long.")]
@@ -19,21 +22,22 @@ namespace WHMapper.Models.Db
         [Obsolete("EF Requires it")]
         protected WHNote() { }
 
-        public WHNote(int soloarSystemId,string comment) 
-        : this(soloarSystemId,WHSystemStatus.Unknown,comment)
+        public WHNote(int mapId,int soloarSystemId,string comment) 
+        : this(mapId,soloarSystemId,WHSystemStatus.Unknown,comment)
         {
 
         }
 
-        public WHNote(int soloarSystemId, WHSystemStatus systemStatus)
-            :this(soloarSystemId,systemStatus,string.Empty)
+        public WHNote(int mapId,int soloarSystemId, WHSystemStatus systemStatus)
+            :this(mapId,soloarSystemId,systemStatus,string.Empty)
 
         {
 
         }
 
-        public WHNote(int soloarSystemId, WHSystemStatus systemStatus,string comment)
+        public WHNote(int mapId,int soloarSystemId, WHSystemStatus systemStatus,string comment)
         {
+            MapId = mapId;
             SoloarSystemId = soloarSystemId;
             SystemStatus = systemStatus;
             Comment = comment;

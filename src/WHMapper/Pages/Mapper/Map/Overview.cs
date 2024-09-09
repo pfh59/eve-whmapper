@@ -2,6 +2,7 @@ using Blazor.Diagrams;
 using Blazor.Diagrams.Core.Behaviors;
 using BlazorContextMenu;
 using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
@@ -1150,6 +1151,13 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             try
             {
+                if(!MapId.HasValue)
+                {
+                    Logger.LogError("Set system status error, no map selected");
+                    return false;
+                }
+
+
                 if(SelectedSystemNode==null)
                 {
                     Logger.LogError("Set system status error, no node selected");
@@ -1158,11 +1166,11 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 int solarSystemId = SelectedSystemNode.SolarSystemId;
                 if (solarSystemId>0)
                 {
-                    var note = await DbNotes.GetBySolarSystemId(solarSystemId);
+                    var note = await DbNotes.Get(MapId.Value,solarSystemId);
 
                     if(note == null)
                     {
-                        note = await DbNotes.Create(new WHNote(solarSystemId, systemStatus));
+                        note = await DbNotes.Create(new WHNote(MapId.Value, solarSystemId, systemStatus));
                     }
                     else
                     {

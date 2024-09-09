@@ -44,8 +44,12 @@ namespace WHMapper.Pages.Mapper.SystemInfos
 
 
         [Parameter]
+        public int? CurrentMapId { get; set; } = null!;
+
+        [Parameter]
         public EveSystemNodeModel? CurrentSystemNode { get; set; } = null!;
 
+    
 
         protected override Task OnParametersSetAsync()
         {

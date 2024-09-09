@@ -58,9 +58,6 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Parameter]
         public int? CurrentSystemNodeId {  get; set; } = null!;
         
-        //[Parameter]
-        //public HubConnection NotificationHub { private get; set; } = null!;
-
 
         private WHSignature? _selectedSignature;
         private WHSignature _signatureBeforeEdit = null!;
@@ -76,11 +73,11 @@ namespace WHMapper.Pages.Mapper.Signatures
         private string? _currentUser;
 
 
-        protected override Task OnInitializedAsync()
+        protected override async  Task OnInitializedAsync()
         {
+            _currentUser = await UserInfos.GetUserName();
             EveMapperRealTimeService.WormholeSignaturesChanged += OnWormholeSignaturesChanged;
-
-            return base.OnInitializedAsync();
+            await base.OnInitializedAsync();
         }
 
         protected override Task OnParametersSetAsync()
@@ -193,12 +190,8 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         public async Task Restore()
         {
-            if(String.IsNullOrEmpty(_currentUser))
-                _currentUser = await UserInfos.GetUserName();
-
             if(_signatureTable is not null)
                 _signatureTable.SetEditingItem(null);
-
 
             if (DbWHSignatures!=null && CurrentSystemNodeId != null && CurrentSystemNodeId > 0)
             {

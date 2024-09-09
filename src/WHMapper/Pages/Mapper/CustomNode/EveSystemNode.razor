@@ -16,13 +16,13 @@
         <CardHeaderActions>
             @if (Locked)
             {
-                <MudIcon Icon="@Icons.Material.Sharp.Lock" DisableElevation="true" Size="Size.Small" Style="margin-top:-3px" />
+                <MudIcon Icon="@Icons.Material.Sharp.Lock" Size="Size.Small" Style="margin-top:-3px" />
             }
             @if (Node != null && Node.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
             {
                 <MudTooltip Text="@Node.Effect.ToString()" Arrow="true" Placement="Placement.Bottom">
                     <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.Square" DisableElevation="true" Style="@($"color:{_whEffectColor};")" Size="Size.Small" />
+                        <MudIcon Icon="@Icons.Material.Filled.Square" Style="@($"color:{_whEffectColor};")" Size="Size.Small"/>
                     </ChildContent>
                     <TooltipContent>
                         <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
@@ -44,7 +44,7 @@
         <div Class="d-flex justify-start">
             @if (Node != null && Node.ConnectedUsers != null && Node.ConnectedUsers.FirstOrDefault() != null)
             {
-                <MudTooltip Typo="Typo.caption" Arrow="true" Placement="Placement.Bottom">
+                <MudTooltip Arrow="true" Placement="Placement.Bottom">
                     <ChildContent>
                         <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Default Size="Size.Small" />
                     </ChildContent>

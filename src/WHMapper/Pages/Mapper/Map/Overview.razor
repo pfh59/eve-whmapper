@@ -85,7 +85,7 @@
         <MudStack Row="true" Justify="Justify.Center">
             <WHMapper.Pages.Mapper.LinkInfos.Overview CurrentSystemLink="SelectedSystemLink" />
             <MudHidden Breakpoint="Breakpoint.MdAndDown">
-                <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentSystemNode="SelectedSystemNode"/>
+                <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentMapId="@MapId" CurrentSystemNode="SelectedSystemNode"/>
             </MudHidden>
             <WHMapper.Pages.Mapper.Signatures.Overview CurrentMapId="@MapId" CurrentSystemNodeId="@SelectedSystemNode?.IdWH"/>
             <MudHidden Breakpoint="Breakpoint.MdAndDown">

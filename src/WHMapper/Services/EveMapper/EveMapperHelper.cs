@@ -674,7 +674,9 @@ namespace WHMapper.Services.EveMapper
             if (system_region == null)
                 throw new InvalidDataException("Region not found");
 
-            var note = await _noteServices.GetBySolarSystemId(system.Id);
+            
+
+            var note = await _noteServices.Get(wh.WHMapId,system.Id);
 
             if (IsWormhole(wh.Name))//WH system
             {

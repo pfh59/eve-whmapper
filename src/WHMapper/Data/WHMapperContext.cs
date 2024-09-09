@@ -47,7 +47,8 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHSignature>().HasOne<WHSystem>().WithMany(x => x.WHSignatures).HasForeignKey(x=>x.WHId).IsRequired().OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<WHNote>().ToTable("Notes");
-            modelBuilder.Entity<WHNote>().HasIndex(x => new { x.SoloarSystemId }).IsUnique(true);
+            modelBuilder.Entity<WHNote>().HasOne<WHMap>().WithMany().HasForeignKey(x => x.MapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHNote>().HasIndex(x => new { x.MapId, x.SoloarSystemId }).IsUnique(true);
 
             modelBuilder.Entity<WHRoute>().ToTable("Routes");
             modelBuilder.Entity<WHRoute>().HasIndex(x => new { x.SolarSystemId,x.EveEntityId }).IsUnique(true);
