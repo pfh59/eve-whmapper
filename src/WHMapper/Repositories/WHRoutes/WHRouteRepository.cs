@@ -12,19 +12,19 @@ namespace WHMapper
 
         }
 
-        public async Task<IEnumerable<WHRoute>> GetRoutesByEveEntityId(int eveEntityId)
+        public async Task<IEnumerable<WHRoute>> GetRoutesByEveEntityId(int mapId,int eveEntityId)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHRoutes.Where(x => x.EveEntityId == eveEntityId).ToListAsync();
+                return await context.DbWHRoutes.Where(x => x.MapId==mapId && x.EveEntityId == eveEntityId).ToListAsync();
             }
         }
 
-        public async Task<IEnumerable<WHRoute>> GetRoutesForAll()
+        public async Task<IEnumerable<WHRoute>> GetRoutesForAll(int mapId)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHRoutes.Where(x => x.EveEntityId==null).ToListAsync();
+                return await context.DbWHRoutes.Where(x => x.MapId==mapId && x.EveEntityId==null).ToListAsync();
             }
         }
 

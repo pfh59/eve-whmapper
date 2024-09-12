@@ -19,6 +19,7 @@ using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Pages.Mapper.Search;
 
 namespace WHMapper.Pages.Mapper.Map;
 

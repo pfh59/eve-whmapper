@@ -52,12 +52,11 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         private IEnumerable<WHSignature> Signatures { get; set; } = null!;
 
+        [Parameter]
+        public int? CurrentMapId {get;set;}=null!;
 
         [Parameter]
-        public int? CurrentMapId {  get; set; } = null!;
-        [Parameter]
         public int? CurrentSystemNodeId {  get; set; } = null!;
-        
 
         private WHSignature? _selectedSignature;
         private WHSignature _signatureBeforeEdit = null!;

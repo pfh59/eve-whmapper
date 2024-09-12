@@ -3,12 +3,14 @@
 <MudPaper Class="d-flex flex-column pa-2" hidden="@(CurrentSystemNode == null)" Outlined="true" MinWidth="220px" >
     <MudStack Class="flex-none d-flex" Row="true" Justify="Justify.FlexStart" Spacing="1" >
         <MudText Class="pointer-events-none" Typo="Typo.subtitle1">Routes :</MudText>
-        <MudIconButton Icon="@Icons.Material.Filled.Add"  Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute())" Disabled="@(_isEditable || _loading)"/>
         <AuthorizeView Policy="Admin" Context="adminContext">
             <Authorized>
+                <MudIconButton Icon="@Icons.Material.Filled.AddCircle" Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute(true))" Disabled="@(_isEditable || _loading)"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Add"  Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute(false))" Disabled="@(_isEditable || _loading)"/>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@((e) => Edit())" Disabled="@(_loading)"/>
             </Authorized>
             <NotAuthorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Add"  Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute(false))" Disabled="@(_isEditable || _loading)"/>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@((e) => Edit())" Disabled="@(((_myRoutes!=null && _myRoutes.Count()>0) || _loading) ? false : true)"/>
             </NotAuthorized>
         </AuthorizeView>

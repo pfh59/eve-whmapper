@@ -89,7 +89,7 @@
             </MudHidden>
             <WHMapper.Pages.Mapper.Signatures.Overview CurrentMapId="@MapId" CurrentSystemNodeId="@SelectedSystemNode?.IdWH"/>
             <MudHidden Breakpoint="Breakpoint.MdAndDown">
-                <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentSystemNode="SelectedSystemNode" CurrentLinks="_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
+                <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentMapId="@MapId" CurrentSystemNode="SelectedSystemNode" CurrentLinks="_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
             </MudHidden>
         </MudStack>
     </MudPaper>

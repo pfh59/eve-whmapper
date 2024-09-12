@@ -51,7 +51,8 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHNote>().HasIndex(x => new { x.MapId, x.SoloarSystemId }).IsUnique(true);
 
             modelBuilder.Entity<WHRoute>().ToTable("Routes");
-            modelBuilder.Entity<WHRoute>().HasIndex(x => new { x.SolarSystemId,x.EveEntityId }).IsUnique(true);
+            modelBuilder.Entity<WHRoute>().HasOne<WHMap>().WithMany().HasForeignKey(x => x.MapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHRoute>().HasIndex(x => new { x.MapId,x.SolarSystemId,x.EveEntityId }).IsUnique(true);
 
             modelBuilder.Entity<WHJumpLog>().ToTable("JumpLogs");
             modelBuilder.Entity<WHJumpLog>().HasIndex(x => new { x.CharacterId, x.JumpDate }).IsUnique(true);
