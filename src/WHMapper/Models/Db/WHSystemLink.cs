@@ -27,7 +27,7 @@ namespace WHMapper.Models.Db
         public SystemLinkMassStatus MassStatus { get; set; } = SystemLinkMassStatus.Normal;
 
         [Required]
-        public ICollection<WHJumpLog> JumpHistory { get; } = new HashSet<WHJumpLog>();
+        public virtual ICollection<WHJumpLog> JumpHistory { get; } = new HashSet<WHJumpLog>();
 
 
         [Obsolete("EF Requires it")]

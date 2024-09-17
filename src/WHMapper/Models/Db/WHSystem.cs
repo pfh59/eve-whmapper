@@ -23,7 +23,7 @@ namespace WHMapper.Models.Db
         [Required]
         public float SecurityStatus { get;  set; }
 
-        public ICollection<WHSignature> WHSignatures { get; } = new HashSet<WHSignature>();
+        public virtual ICollection<WHSignature> WHSignatures { get; } = new HashSet<WHSignature>();
 
         public double PosX { get; set; } = 0.0;
 

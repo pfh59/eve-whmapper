@@ -12,6 +12,41 @@ namespace WHMapper.Repositories.WHMaps
         {
         }
 
+        
+
+        public async Task<bool> DeleteAll()
+        {
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                var deleteRow = await context.DbWHMaps.ExecuteDeleteAsync();
+                if (deleteRow > 0)
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+
+        public async Task<WHMap?> GetByNameAsync(string mapName)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                try
+                {
+                    return await context.DbWHMaps.SingleOrDefaultAsync(x => x.Name == mapName);
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Impossible to get WHMap by name : {Name}", mapName);
+                    return null;
+                }
+            }
+           
+          
+        }
+
+
         protected override async Task<WHMap?> ACreate(WHMap item)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
@@ -52,10 +87,10 @@ namespace WHMapper.Repositories.WHMaps
                     return await context.DbWHMaps.OrderBy(x => x.Name).ToListAsync();
                 else
                     return await context.DbWHMaps.AsNoTracking()
-                            /*.Include(x => x.WHAccesses)
-                            .Include(x => x.WHSystems)
-                            .Include(x => x.WHSystemLinks)
-                                .ThenInclude(x => x.JumpHistory)*/
+                            .Include(x => x.WHAccesses)
+                            //.Include(x => x.WHSystems)
+                            //.Include(x => x.WHSystemLinks)
+                            //    .ThenInclude(x => x.JumpHistory)
                             .OrderBy(x => x.Name)
                             .ToListAsync();
             }
@@ -65,7 +100,8 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHMaps
+                return await context.DbWHMaps.AsNoTracking()
+                            .Include(x => x.WHAccesses)
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)
                             .ThenInclude(x => x.JumpHistory)
@@ -93,6 +129,8 @@ namespace WHMapper.Repositories.WHMaps
                 }
             }
         }
+
+        
     }
 }
 

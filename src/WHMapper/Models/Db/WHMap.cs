@@ -10,9 +10,9 @@ namespace WHMapper.Models.Db
         [Required]
         [StringLength(255, ErrorMessage = "Map name is too long.")]
         public string Name { get; set; } = string.Empty;
-        public ICollection<WHSystem> WHSystems { get; } = new HashSet<WHSystem>();
-        public ICollection<WHSystemLink> WHSystemLinks { get; } = new HashSet<WHSystemLink>();
-        public ICollection<WHAccess> WHAccesses { get; } = new HashSet<WHAccess>();
+        public virtual ICollection<WHSystem> WHSystems { get; } = new HashSet<WHSystem>();
+        public virtual ICollection<WHSystemLink> WHSystemLinks { get; } = new HashSet<WHSystemLink>();
+        public virtual ICollection<WHAccess> WHAccesses { get; } = new HashSet<WHAccess>();
 
         [Obsolete("EF Requires it")]
         protected WHMap() { }
