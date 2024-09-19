@@ -1,6 +1,7 @@
 ﻿using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
+using WHMapper.Repositories.WHMaps;
 using WHMapper.Services.EveAPI.Characters;
 
 namespace WHMapper.Services.EveMapper
@@ -10,11 +11,13 @@ namespace WHMapper.Services.EveMapper
         private readonly IWHAccessRepository _accessRepo;
         private readonly IWHAdminRepository _adminRepo;
         private readonly ICharacterServices _characterServices;
+        private readonly IWHMapRepository _mapRepo;
 
-        public EveMapperAccessHelper(IWHAccessRepository accessRepo, IWHAdminRepository adminRepo, ICharacterServices eveCharacterServices)
+        public EveMapperAccessHelper(IWHAccessRepository accessRepo, IWHAdminRepository adminRepo,IWHMapRepository mapRepo, ICharacterServices eveCharacterServices)
         {
             _accessRepo = accessRepo;
             _adminRepo = adminRepo;
+            _mapRepo = mapRepo;
             _characterServices = eveCharacterServices;
         }
 
@@ -62,6 +65,37 @@ namespace WHMapper.Services.EveMapper
                     return false;
                 else
                     return true;
+            }
+        }
+
+        public async Task<bool> IsEveMapperMapAccessAuthorized(int eveCharacterId, int mapId)
+        {
+            var userAccesses = await _accessRepo.GetAll();
+
+            //If there is no user access registered return true, this is the probably the first user using the tool. 
+            if (userAccesses?.Count() == 0)
+            {
+                return true;
+            }
+            else
+            {
+                var character = await _characterServices.GetCharacter(eveCharacterId);
+                if (character == null)
+                    return false;
+
+                var mapAccess = await _mapRepo.GetMapAccesses(mapId);
+                if (mapAccess == null || !mapAccess.Any())
+                    return true;
+                else
+                {
+                    if(mapAccess.FirstOrDefault(x => 
+                        (x.EveEntityId == eveCharacterId && x.EveEntity == WHAccessEntity.Character) || 
+                        (x.EveEntityId == character.CorporationId && x.EveEntity == WHAccessEntity.Corporation) || 
+                        (x.EveEntityId == character.AllianceId && x.EveEntity == WHAccessEntity.Alliance)) == null)
+                        return false;
+                    else
+                        return true;
+                }
             }
         }
     }

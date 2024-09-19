@@ -38,6 +38,7 @@
                         <MudText>Access : </MudText>
                         <MudStack Row="true">
                             <MudIconButton Color="Color.Info" Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Small" OnClick="@((e) => OpenAddAccess(context.Id))"/>
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => RemoveAllAccesses(context.Id))"/>
                         </MudStack>
                     </ToolBarContent>
                     <ColGroup>
@@ -55,7 +56,7 @@
                         <MudTd DataLabel="Id">@accessContext.EveEntity.ToString()</MudTd>
                         <MudTd DataLabel="EveEntityName">@accessContext.EveEntityName</MudTd>
                         <MudTd Style="text-align:center">
-                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.PersonRemove" Size="Size.Small" OnClick="@((e) => RemoveAccess(accessContext.Id))" />
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.PersonRemove" Size="Size.Small" OnClick="@((e) => RemoveAccess(context.Id,accessContext.Id))"/>
                         </MudTd>
                     </RowTemplate>
                 </MudTable>

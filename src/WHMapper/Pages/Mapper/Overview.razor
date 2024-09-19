@@ -6,42 +6,40 @@
 @using Blazor.Diagrams.Components;
 @using Blazor.Diagrams.Algorithms;
 @using WHMapper.Models.Db.Enums;
-@using Blazor.Diagrams.Components.Widgets; 
+@using Blazor.Diagrams.Components.Widgets;
+
 
 <MudPaper class="d-flex" Width="100%" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" hidden="@(_loading)">
-        <!-- map zone-->
-        @if(WHMaps!=null && WHMaps.Any())
+    @if (WHMaps != null && WHMaps.Any())
+    {
+        @if (WHMaps.Count() > 1)
         {
-            @if(WHMaps.Count()>1)
-            {
-                <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="SelectedWHMapIndex" Rounded="true" Border="true" 
-                Class="d-flex align-stretch flex-grow-1"
-                PanelClass="d-flex align-stretch flex-grow-1">
-                    <ChildContent>
-                        @foreach (var item in WHMaps)
-                        {                   
-                            <MudTabPanel Text="@item.Name" Tag="@item.Id">
-                                <WHMapper.Pages.Mapper.Map.Overview MapId="@item.Id"/>
-                            </MudTabPanel>
-                        }
-                        
-                    </ChildContent>
-                </MudDynamicTabs>
-            }
-            else
-            {
-                <WHMapper.Pages.Mapper.Map.Overview MapId="@WHMaps.First().Id"/>
-            }
+            <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="SelectedWHMapIndex" Rounded="true" Border="true" 
+                            Class="d-flex align-stretch flex-grow-1" PanelClass="d-flex align-stretch flex-grow-1">
+                <ChildContent>
+                    @foreach (var item in WHMaps)
+                    {
+                        <MudTabPanel Text="@item.Name" Tag="@item.Id">
+                            <WHMapper.Pages.Mapper.Map.Overview MapId="@item.Id" />
+                        </MudTabPanel>
+                    }
+                </ChildContent>
+            </MudDynamicTabs>
         }
         else
         {
-            <MudPaper Class="d-flex flex-column flex-grow-1 justify-center align-center" Width="100%" Height="100%">
-                <MudText Typo="Typo.h4">No Map Found</MudText>
-            </MudPaper>
+            <WHMapper.Pages.Mapper.Map.Overview MapId="@WHMaps.First().Id" />
         }
+    }
+    else
+    {
+        <MudPaper Class="d-flex flex-column flex-grow-1 justify-center align-center" Width="100%" Height="100%">
+            <MudText Typo="Typo.h4">No Map Found</MudText>
+        </MudPaper>
+    }
 </MudPaper>
 
-@if(_loading)
+@if (_loading)
 {
     <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
         <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />

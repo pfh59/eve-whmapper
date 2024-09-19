@@ -23,7 +23,7 @@
                 </MudCardContent>
             </MudCard>
         </MudPaper>
-}
+    }
     else
     {
         <MudLayout @oncustompaste="HandleCustomPaste" class="overflow-x-hidden">
@@ -34,6 +34,11 @@
             </MudAppBar>
             <MudMainContent>
                 <AuthorizeView>
+                    <Authorizing>
+                        <MudText class="py-1" Typo="Typo.body2">"Authorization in progress,please wait ...")
+                            <MudProgressCircular Color="Color.Secondary" Size="MudBlazor.Size.Small" />
+                        </MudText>
+                    </Authorizing>
                     <Authorized>
                         @Body
                     </Authorized>

@@ -105,7 +105,7 @@ namespace WHMapper.Repositories.WHMaps
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)
                             .ThenInclude(x => x.JumpHistory)
-                            .SingleOrDefaultAsync(x => x.Id == id);;
+                            .SingleOrDefaultAsync(x => x.Id == id);
             }
         }
 
@@ -127,6 +127,53 @@ namespace WHMapper.Repositories.WHMaps
                     _logger.LogError(ex, "Impossible to update WHMap : {Name}", item.Name);
                     return null;
                 }
+            }
+        }
+
+        public async Task<IEnumerable<WHAccess>?> GetMapAccesses(int id)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map =  await context.DbWHMaps.AsNoTracking()
+                            .Include(x => x.WHAccesses)
+                            .SingleOrDefaultAsync(x => x.Id == id);
+
+                if (map == null)
+                    return null;
+                else
+                    return map.WHAccesses;
+            }
+        }
+
+        public async Task<bool> DeleteMapAccess(int mapId, int accessId)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
+                if (map == null)
+                    return false;
+
+                var access = map.WHAccesses.SingleOrDefault(x => x.Id == accessId);
+                if (access == null)
+                    return false;
+
+                map.WHAccesses.Remove(access);
+                await context.SaveChangesAsync();
+                return true;
+            }
+        }
+
+        public async Task<bool> DeleteMapAccesses(int mapId)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
+                if (map == null)
+                    return false;
+
+                map.WHAccesses.Clear();
+                await context.SaveChangesAsync();
+                return true;
             }
         }
 

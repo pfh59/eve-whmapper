@@ -34,7 +34,7 @@ namespace WHMapper.Pages.Mapper;
 [Authorize(Policy = "Access")]
 public partial class Overview : ComponentBase, IAsyncDisposable
 {
-    private IEnumerable<WHMap>? WHMaps { get; set; } = new List<WHMap>();
+    private List<WHMap> WHMaps { get; set; } = new List<WHMap>();
 
     private int _selectedWHMapIndex = 0;
     private int SelectedWHMapIndex
@@ -60,6 +60,11 @@ public partial class Overview : ComponentBase, IAsyncDisposable
     public ISnackbar Snackbar { get; set; } = null!;
 
     [Inject]
+    private  AuthenticationStateProvider _authenticationStateProvider {get;set;} = null!;
+    [Inject]
+    private IAuthorizationService _authorizationService { get; set; } = null!;
+
+    [Inject]
     IEveMapperRealTimeService? RealTimeService {get;set;} = null!;
 
     [Inject]
@@ -70,6 +75,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     [Inject]
     private IPasteServices PasteServices { get; set; } = null!;
+
 
     private WHMap? _selectedWHMap = null!;
 
@@ -98,20 +104,31 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     private async Task<bool> RestoreMaps()
     {
-        WHMaps = await DbWHMaps.GetAll();
-        if (WHMaps == null || !WHMaps.Any())
+        var allMaps = await DbWHMaps.GetAll();
+        if (allMaps == null || !allMaps.Any())
         {
             _selectedWHMap = await DbWHMaps.Create(new WHMap("Default Maps"));
             if (_selectedWHMap != null)
             {
-                WHMaps = await DbWHMaps.GetAll();
+                await RestoreMaps();
             }
         }
         else
         {
+            WHMaps.Clear();
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+    
+            foreach (var map in allMaps)
+            {
+                var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
+                if (authorizationResult.Succeeded)
+                {
+                    WHMaps.Add(map);
+                }
+            }
+
             _selectedWHMap = WHMaps.FirstOrDefault();
         }
-        
         return _selectedWHMap != null;
     }
 

@@ -142,25 +142,32 @@ public partial class Overview : ComponentBase
         }
     }
 
-    private async Task RemoveAccess(int accessId)
+    private async Task RemoveAccess(int mapId,int accessId)
     {
-        if (Maps == null)
-        {
-            Logger.LogError("Maps is null");
-            Snackbar.Add("Maps is null", Severity.Error);
-            return;
-        }
 
-/*
-        var parameters = new DialogParameters { { "AccessId", accessId } };
+        var parameters = new DialogParameters { {"AccessId", accessId },{ "MapId",mapId } };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
-        var dialog = await DialogService.ShowAsync<Delete>("Delete Access", parameters, options);
+        var dialog = await DialogService.ShowAsync<RemoveAccess>("Remove Access", parameters, options);
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled)
         {
             //notidy access deletion
             await Restore();
-        }*/
+        }
+    }
+
+    private async Task RemoveAllAccesses(int mapId)
+    {
+        var parameters = new DialogParameters { { "MapId", mapId } };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = await DialogService.ShowAsync<RemoveAccess>("Remove All Accesses", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            //notidy access deletion
+            await Restore();
+        }
     }
 }

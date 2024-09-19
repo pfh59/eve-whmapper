@@ -20,6 +20,7 @@ using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Pages.Mapper.Search;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WHMapper.Pages.Mapper.Map;
 
