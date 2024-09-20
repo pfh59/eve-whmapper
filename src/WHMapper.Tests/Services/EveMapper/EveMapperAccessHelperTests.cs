@@ -130,5 +130,34 @@ namespace WHMapper.Tests.Services.EveMapper
             Assert.True(await sut.IsEveMapperUserAccessAuthorized(characterId));
         }
         #endregion
+
+        #region IsEveMapperMapAccessAuthorized()
+        [Theory]
+        [InlineAutoMoqData(1, 1)]
+        [InlineAutoMoqData(10000, 10000)]
+        [InlineAutoMoqData(int.MinValue, int.MinValue)]
+        [InlineAutoMoqData(int.MaxValue, int.MaxValue)]
+        public async Task IfAccessRepositoryIsPopulatedGettingKnownCharacterIdAndMapId_WhenGettingMapAccess_ReturnsExpectedResult(
+            int mapId,
+            int characterId,
+            WHAdmin wHAdmin,
+            [Frozen] Mock<IWHAdminRepository> accessRepository,
+            EveMapperAccessHelper sut
+        )
+        {
+            // Arrange
+            wHAdmin.EveCharacterId = characterId;
+            var accessRepositoryReturn = Task.FromResult(new List<WHAdmin>() { wHAdmin } as IEnumerable<WHAdmin>);
+            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+
+            // Act
+            var result = await sut.IsEveMapperMapAccessAuthorized(mapId, characterId);
+
+            // Assert
+            Assert.True(result);
+        }
+        
+        #endregion
+
     }
 }

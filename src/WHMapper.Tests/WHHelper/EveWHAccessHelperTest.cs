@@ -164,6 +164,48 @@ public class EveWHAccessHelperTest
         await _whAdminRepository.DeleteById(character.Id);
     }
 
+    [Fact, Priority(6)]
+    public async Task Eve_Mapper_Map_Access()
+    {
+        Assert.NotNull(_accessHelper);
+        Assert.NotNull(_whMapRepository);
+        Assert.NotNull(_whAccessRepository);
+
+        
+        var map = await _whMapRepository.Create(new WHMap("MAP"));
+        Assert.NotNull(map);
+        Assert.Equal("MAP", map.Name);
+        Assert.Empty(map.WHAccesses);
+
+        
+        var fullAuthorize = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID,map.Id);
+        Assert.True(fullAuthorize);
+
+        //add access to evemap lock all maps
+        var characterAccess = await _whAccessRepository.Create(new WHAccess(EVE_CHARACTERE_ID, "TOTO",WHAccessEntity.Character));
+        Assert.NotNull(characterAccess);
+        Assert.Equal(EVE_CHARACTERE_ID, characterAccess.EveEntityId);
+
+        var notAuthorize1 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID,map.Id);
+        Assert.False(notAuthorize1);
+
+        var notAuthorize2 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID2,map.Id);
+        Assert.False(notAuthorize2);
+
+        //add access to evemap only for user1
+        map.WHAccesses.Add(characterAccess);
+        await _whMapRepository.Update(map.Id,map);
+
+        var authorize1 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID,map.Id);
+        Assert.True(authorize1);
+
+        var notAuthorize2_2 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID2,map.Id);
+        Assert.False(notAuthorize2_2);
+
+        await _whMapRepository.DeleteById(map.Id);
+    }
+
+
 }
 
 

@@ -129,7 +129,11 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
             _selectedWHMap = WHMaps.FirstOrDefault();
         }
-        return _selectedWHMap != null;
+
+        if(allMaps!=null && allMaps.Any() && _selectedWHMap==null)
+            return true;
+        else
+            return _selectedWHMap != null;
     }
 
     public async ValueTask DisposeAsync()

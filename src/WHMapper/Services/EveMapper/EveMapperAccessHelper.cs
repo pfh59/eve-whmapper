@@ -84,8 +84,9 @@ namespace WHMapper.Services.EveMapper
                     return false;
 
                 var mapAccess = await _mapRepo.GetMapAccesses(mapId);
+                
                 if (mapAccess == null || !mapAccess.Any())
-                    return true;
+                    return false;
                 else
                 {
                     if(mapAccess.FirstOrDefault(x => 
