@@ -7,8 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
+using WHMapper.Models.Db;
+using WHMapper.Models.DTO.EveAPI.Assets;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Models.DTO.RoutePlanner;
+using WHMapper.Repositories.WHMaps;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.SDE;
@@ -28,6 +31,8 @@ public class EveWHMapperRoutePlannerHelperTest
     private const int SOLAR_SYSTEM_WH_ID = 31001123;
 
     private IEveMapperRoutePlannerHelper _eveMapperRoutePlannerHelper = null!;
+    private IWHMapRepository? _whMapRepository = null!;
+    private WHMap? _defaultMAp = null!;
 
     public EveWHMapperRoutePlannerHelperTest()
     {
@@ -68,9 +73,16 @@ public class EveWHMapperRoutePlannerHelperTest
             ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
             
             IFileSystem fileSystem = new FileSystem();
-            HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
+            var baseUrl = configuration.GetValue<string>("SdeDataSupplier:BaseUrl");
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                throw new ArgumentNullException(nameof(baseUrl), "Base URL for SDE Data Supplier cannot be null or empty.");
+            }
+            HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(baseUrl) };
             ISDEDataSupplier dataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
             ISDEService sdeServices = new SDEService(loggerSDE, cacheService);
+
+            _whMapRepository = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
 
             _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
                 whRouteRepository,
@@ -82,7 +94,15 @@ public class EveWHMapperRoutePlannerHelperTest
     [Fact, Priority(1)]
     public async Task Add_Delete_Route()
     {
-        var result = await _eveMapperRoutePlannerHelper.AddRoute(SOLAR_SYSTEM_AHBAZON_ID,true);
+
+        if(_defaultMAp == null)
+        {
+            Assert.NotNull(_whMapRepository);
+            _defaultMAp = await _whMapRepository.Create(new WHMapper.Models.Db.WHMap("Default"));
+            Assert.NotNull(_defaultMAp);
+        }
+
+        var result = await _eveMapperRoutePlannerHelper.AddRoute(_defaultMAp.Id,SOLAR_SYSTEM_AHBAZON_ID,true);
         Assert.NotNull(result);
         Assert.Equal(SOLAR_SYSTEM_AHBAZON_ID,result.SolarSystemId);
         Assert.Null(result.EveEntityId);
@@ -93,8 +113,12 @@ public class EveWHMapperRoutePlannerHelperTest
         var result3 = await _eveMapperRoutePlannerHelper.DeleteRoute(-10);
         Assert.False(result3);
 
-        var myRouteNull = await _eveMapperRoutePlannerHelper.AddRoute(SOLAR_SYSTEM_AHBAZON_ID,false);
+        var myRouteNull = await _eveMapperRoutePlannerHelper.AddRoute(_defaultMAp.Id,SOLAR_SYSTEM_AHBAZON_ID,false);
         Assert.Null(myRouteNull);
+
+        //clean whmap
+        Assert.NotNull(_whMapRepository);
+        await _whMapRepository.DeleteById(_defaultMAp.Id);
 
     }
 
@@ -104,19 +128,26 @@ public class EveWHMapperRoutePlannerHelperTest
     [Fact, Priority(2)]
     public async Task Get_Route()
     {
-        var badRoute = await _eveMapperRoutePlannerHelper.GetMyRoutes(123456789,RouteType.Shortest, null);
+        if(_defaultMAp == null)
+        {
+            Assert.NotNull(_whMapRepository);
+            _defaultMAp = await _whMapRepository.Create(new WHMapper.Models.Db.WHMap("Default"));
+            Assert.NotNull(_defaultMAp);
+        }
+
+        var badRoute = await _eveMapperRoutePlannerHelper.GetMyRoutes(_defaultMAp.Id,123456789,RouteType.Shortest, null);
         Assert.Null(badRoute);
 
-        var myRoutes = await _eveMapperRoutePlannerHelper.GetMyRoutes(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, null);
+        var myRoutes = await _eveMapperRoutePlannerHelper.GetMyRoutes(_defaultMAp.Id,SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, null);
         Assert.Null(myRoutes);
 
-        var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, null);
+        var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_WH_ID,RouteType.Shortest, null);
         Assert.NotNull(routes);
         Assert.Empty(routes);
 
-        var result = await _eveMapperRoutePlannerHelper.AddRoute(SOLAR_SYSTEM_AHBAZON_ID,true);
+        var result = await _eveMapperRoutePlannerHelper.AddRoute(_defaultMAp.Id,SOLAR_SYSTEM_AHBAZON_ID,true);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, null);
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, null);
         Assert.NotNull(routes);
         Assert.NotEmpty(routes);
         var route_JITA_AHBAZON = routes.FirstOrDefault();
@@ -126,7 +157,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotNull(route_JITA_AHBAZON.Route);
         Assert.Equal(5,route_JITA_AHBAZON.RouteLength);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_WH_ID,RouteType.Shortest, new BlockingCollection<RouteConnection> 
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_WH_ID,RouteType.Shortest, new BlockingCollection<RouteConnection> 
         {
             new RouteConnection(SOLAR_SYSTEM_WH_ID,-1.0f,SOLAR_SYSTEM_AHBAZON_ID,0.4f),
             new RouteConnection(SOLAR_SYSTEM_AHBAZON_ID,0.4f,SOLAR_SYSTEM_WH_ID,-1.0f)
@@ -140,7 +171,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotNull(route_WH_AHBAZON.Route);
         Assert.Equal(2,route_WH_AHBAZON.RouteLength);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Shortest,new BlockingCollection<RouteConnection> 
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_JITA_ID,RouteType.Shortest,new BlockingCollection<RouteConnection> 
         {
             new RouteConnection(SOLAR_SYSTEM_WH_ID,-1.0f,SOLAR_SYSTEM_AHBAZON_ID,0.4f),
             new RouteConnection(SOLAR_SYSTEM_AHBAZON_ID,0.4f,SOLAR_SYSTEM_WH_ID,-1.0f),
@@ -159,9 +190,9 @@ public class EveWHMapperRoutePlannerHelperTest
         var result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result!.Id);
         Assert.True(result2);
 
-        result = await _eveMapperRoutePlannerHelper.AddRoute(SOLAR_SYSTEM_AMARR_ID,true);
+        result = await _eveMapperRoutePlannerHelper.AddRoute(_defaultMAp.Id,SOLAR_SYSTEM_AMARR_ID,true);
 
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(SOLAR_SYSTEM_JITA_ID,RouteType.Secure, null);
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_JITA_ID,RouteType.Secure, null);
         Assert.NotNull(routes);
         Assert.NotEmpty(routes);
         var route_JITA_AMARR = routes.FirstOrDefault();
@@ -173,6 +204,10 @@ public class EveWHMapperRoutePlannerHelperTest
 
         result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result!.Id);
         Assert.True(result2);
+
+        //clean whmap
+        Assert.NotNull(_whMapRepository);
+        await _whMapRepository.DeleteById(_defaultMAp.Id);
     }   
 
 }

@@ -142,6 +142,7 @@ public class DbIntegrationTest
         var resultUpdate2 = await repo.Update(resultById2.Id, resultById2);
         Assert.Null(resultUpdate2);
 
+
         //Delete WHMAP
         Assert.NotNull(result1);
         var resultDelete1 = await repo.DeleteById(result1.Id);
@@ -654,6 +655,15 @@ public class DbIntegrationTest
     public async Task CRUD_WHNote()
     {
         Assert.NotNull(_contextFactory);
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+
         //Create AccessRepo
         IWHNoteRepository repo = new WHNoteRepository(new NullLogger<WHNoteRepository>(), _contextFactory);
 
@@ -663,21 +673,22 @@ public class DbIntegrationTest
         Assert.Empty(results);
 
         //ADD Note1
-        var result1 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID,FOOBAR));
+        Assert.NotNull(map);
+        var result1 = await repo.Create(new WHNote(map.Id,FOOBAR_SYSTEM_ID,FOOBAR));
         Assert.NotNull(result1);
         Assert.Equal(FOOBAR_SYSTEM_ID, result1.SoloarSystemId);
         Assert.Equal(FOOBAR, result1.Comment);
         Assert.Equal(WHSystemStatus.Unknown, result1.SystemStatus);
 
         //ADD Note2
-        var result2 = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2,WHSystemStatus.Hostile));
+        var result2 = await repo.Create(new WHNote(map.Id,FOOBAR_SYSTEM_ID2,WHSystemStatus.Hostile));
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SoloarSystemId);
         Assert.Equal(string.Empty, result2.Comment);
         Assert.Equal(WHSystemStatus.Hostile,result2.SystemStatus);
 
         //ADD Access dupkicate
-        var resultDuplicate = await repo.Create(new WHNote(FOOBAR_SYSTEM_ID2, FOOBAR));
+        var resultDuplicate = await repo.Create(new WHNote(map.Id,FOOBAR_SYSTEM_ID2, FOOBAR));
         Assert.Null(resultDuplicate);
 
         //GetALL
@@ -695,15 +706,14 @@ public class DbIntegrationTest
         var resultBadById = await repo.GetById(-10);
         Assert.Null(resultBadById);
 
-        //GetBySolarSystemId
-        var resultBySolarSystemId = await repo.GetBySolarSystemId(FOOBAR_SYSTEM_ID);
+        //Get
+        var resultBySolarSystemId = await repo.Get(map.Id,FOOBAR_SYSTEM_ID);
         Assert.NotNull(resultBySolarSystemId);
         Assert.Equal(FOOBAR_SYSTEM_ID, resultBySolarSystemId.SoloarSystemId);
         Assert.Equal(FOOBAR, resultBySolarSystemId.Comment);
 
-        var resultBadBySolarSystemId = await repo.GetBySolarSystemId(-10);
+        var resultBadBySolarSystemId = await repo.Get(map.Id,-10);
         Assert.Null(resultBadBySolarSystemId);
-
 
         //update
         result1.Comment = FOOBAR_SHORT_UPDATED;
@@ -733,12 +743,25 @@ public class DbIntegrationTest
         //bad id update
         var resultUpdateBadId = await repo.Update(-10, result1);
         Assert.Null(resultUpdateBadId);
+
+        //Delete WHMAP
+        var mapDeleted = await repoMap.DeleteById(map.Id);
+        Assert.True(mapDeleted);
     }
 
     [Fact, Priority(9)]
     public async Task CRUD_WHRoute()
     {
         Assert.NotNull(_contextFactory);
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+
         //Create AccessRepo
         IWHRouteRepository repo = new WHRouteRepository(new NullLogger<WHRouteRepository>(), _contextFactory);
 
@@ -748,20 +771,21 @@ public class DbIntegrationTest
         Assert.Empty(results);
 
         //ADD Route1
-        var result1 = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID));
+        Assert.NotNull(map);
+        var result1 = await repo.Create(new WHRoute(map.Id,FOOBAR_SYSTEM_ID));
         Assert.NotNull(result1);
         Assert.Equal(FOOBAR_SYSTEM_ID, result1.SolarSystemId);
         Assert.Null(result1.EveEntityId);
 
         //ADD Route2
-        var result2 = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
+        var result2 = await repo.Create(new WHRoute(map.Id,FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SolarSystemId);
         Assert.Equal(EVE_CORPO_ID, result2.EveEntityId);
 
     
         //ADD Route dupLicate
-        var resultDuplicate = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
+        var resultDuplicate = await repo.Create(new WHRoute(map.Id,FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
         Assert.Null(resultDuplicate);
 
         //GetALL
@@ -800,13 +824,13 @@ public class DbIntegrationTest
         Assert.False(resultBaddel);
 
         //ADD Route1 with eveentityid
-        var result = await repo.Create(new WHRoute(FOOBAR_SYSTEM_ID, EVE_CHARACTERE_ID));
+        var result = await repo.Create(new WHRoute(map.Id,FOOBAR_SYSTEM_ID, EVE_CHARACTERE_ID));
         Assert.NotNull(result);
         Assert.Equal(FOOBAR_SYSTEM_ID, result1.SolarSystemId);
         Assert.Equal(EVE_CHARACTERE_ID,result1.EveEntityId);
 
         //get by eveentityid
-        var resultByEveEntityId = await repo.GetRoutesByEveEntityId(EVE_CHARACTERE_ID);
+        var resultByEveEntityId = await repo.GetRoutesByEveEntityId(map.Id,EVE_CHARACTERE_ID);
         Assert.NotNull(resultByEveEntityId);
         Assert.NotEmpty(resultByEveEntityId);
 
@@ -821,6 +845,10 @@ public class DbIntegrationTest
         //Delete
         var resultdel = await repo.DeleteById(result.Id);
         Assert.True(resultdel);
+
+        //Delete WHMAP
+        var mapDeleted = await repoMap.DeleteById(map.Id);
+        Assert.True(mapDeleted);
 
     }
 
@@ -918,5 +946,27 @@ public class DbIntegrationTest
         //clean map
         var mapDeleted = await repoMap.DeleteById(map.Id);
     }
+
+    [Fact, Priority(12)]
+    public async Task CRUD_WHJumpMassLog()
+    {
+        Assert.NotNull(_contextFactory);
+
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+    }
+
+   
+
+
+
+
+
         
 }
