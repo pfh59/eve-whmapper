@@ -1052,7 +1052,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 {
                     if(srcNode!=null && targetNode!=null)
                     {
-                        var link = GetLink(srcNode,targetNode);
+                        var link = await GetLink(srcNode,targetNode);
 
                         if(link!=null && !await AddSystemNodeLinkLog(link.Id))
                         {
