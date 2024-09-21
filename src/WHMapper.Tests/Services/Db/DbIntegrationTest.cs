@@ -698,6 +698,10 @@ public class DbIntegrationTest
         var resultDelMapAccesses = await repoMap.DeleteMapAccesses(map.Id);
         Assert.True(resultDelMapAccesses);
 
+        //dfelete bad access from map
+        var resultDelBadMapAccess = await repoMap.DeleteMapAccess(-10, result1.Id);
+        Assert.False(resultDelBadMapAccess);
+
         //Delete WHMAP
         var mapDeleted = await repoMap.DeleteById(map.Id);
         Assert.True(mapDeleted);
