@@ -130,12 +130,25 @@ public class DbIntegrationTest
         resByBadId = await repo.GetById(-10);
         Assert.Null(resByBadId);
 
+        //getByName
+        var resByName = await repo.GetByNameAsync(FOOBAR);
+        Assert.NotNull(resByName);
+        Assert.Equal(FOOBAR, resByName?.Name);
+
+        //bad getByName
+        var resBadName = await repo.GetByNameAsync(FOOBAR_UPDATED);
+        Assert.Null(resBadName);
+        
 
         //update
         resultById1.Name = FOOBAR_UPDATED;
         var resultUpdate1 = await repo.Update(resultById1.Id, resultById1);
         Assert.NotNull(resultUpdate1);
         Assert.Equal(FOOBAR_UPDATED, resultUpdate1.Name);
+
+        //bad update
+        var resultUpdateBad = await repo.Update(-10, resultById1);
+        Assert.Null(resultUpdateBad);
 
         //update dupkicate
         resultById2.Name = FOOBAR_UPDATED;
@@ -148,12 +161,16 @@ public class DbIntegrationTest
         var resultDelete1 = await repo.DeleteById(result1.Id);
         Assert.True(resultDelete1);
 
-        Assert.NotNull(result2);
-        var resultDelete2 = await repo.DeleteById(result2.Id);
-        Assert.True(resultDelete2);
-
         var resBadDelete = await repo.DeleteById(-10);
         Assert.False(resBadDelete);
+
+        //delete all
+        var resultDeleteAll = await repo.DeleteAll();
+        Assert.True(resultDeleteAll);
+
+        //nothing to delete all
+        var resultDeleteAll2 = await repo.DeleteAll();
+        Assert.False(resultDeleteAll2);
     }
 
     [Fact, Priority(3)]
@@ -584,6 +601,17 @@ public class DbIntegrationTest
     public async Task CRUD_WHAccess()
     {
         Assert.NotNull(_contextFactory);
+        //init MAP
+        //Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
+
+        //ADD WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+        Assert.Equal(FOOBAR, map?.Name);
+
+
+
         //Create AccessRepo
         IWHAccessRepository repo = new WHAccessRepository(new NullLogger<WHAccessRepository>(),_contextFactory);
 
@@ -641,14 +669,43 @@ public class DbIntegrationTest
         Assert.Null(resultUpdate2);
 
         //Delete
-        var resultdel1 = await repo.DeleteById(result1.Id);
-        Assert.True(resultdel1);
-
         var resultdel2 = await repo.DeleteById(result2.Id);
         Assert.True(resultdel2);
 
         var resultBaddel = await repo.DeleteById(-10);
         Assert.False(resultBaddel);
+
+        //map access
+        var mapAccess = await repoMap.GetMapAccesses(map.Id);
+        Assert.NotNull(mapAccess);
+        Assert.Empty(mapAccess);
+
+        //add access to map
+        map.WHAccesses.Add(result1);
+        map = await repoMap.Update(map.Id, map);
+        Assert.NotNull(map);
+
+        Assert.NotNull(map);
+        mapAccess = await repoMap.GetMapAccesses(map.Id);
+        Assert.NotNull(mapAccess);
+        Assert.NotEmpty(mapAccess);
+
+        //delete access from map
+        var resultDelMapAccess = await repoMap.DeleteMapAccess(map.Id, result1.Id);
+        Assert.True(resultDelMapAccess);
+
+        //delete all access from map
+        var resultDelMapAccesses = await repoMap.DeleteMapAccesses(map.Id);
+        Assert.True(resultDelMapAccesses);
+
+        //Delete WHMAP
+        var mapDeleted = await repoMap.DeleteById(map.Id);
+        Assert.True(mapDeleted);
+
+        //Delete Access
+        var resultdel1 = await repo.DeleteById(result1.Id);
+        Assert.True(resultdel1);
+        
     }
 
     [Fact, Priority(8)]
