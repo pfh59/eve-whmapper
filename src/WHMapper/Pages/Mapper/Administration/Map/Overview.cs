@@ -6,6 +6,7 @@ using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.DTO.MapAdmin;
 using System.Linq;
 using WHMapper.Repositories.WHAccesses;
+using WHMapper.Services.EveMapper;
 
 namespace WHMapper.Pages.Mapper.Administration.Map;
 
@@ -26,13 +27,26 @@ public partial class Overview : ComponentBase
     [Inject]
     private IWHAccessRepository DbWHAccess { get; set; } = null!;
 
+    [Inject]
+    private IEveMapperRealTimeService EveMapperRealTimeService { get; set; } = null!;
+
     private IList<MapAdmin>? Maps { get; set; } = null;
     private MapAdmin _selectedMap = null!;
     private WHAccess _selectedWHAccess = null!;
 
     private IEnumerable<WHAccess>? WHAccesses { get; set; } = null;
 
-   
+ 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if(EveMapperRealTimeService!=null)
+        {
+            await EveMapperRealTimeService.Start();
+        }
+    }
+
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -80,7 +94,20 @@ public partial class Overview : ComponentBase
 
         if (result != null && !result.Canceled)
         {
-            await Restore();
+            var newMap = result.Data as WHMap;
+            if (newMap == null)
+            {
+                Logger.LogError("newMap is null");
+                Snackbar.Add("newMap is null", Severity.Error);
+                return;
+            }
+            if(Maps == null)
+            {
+                Maps=new List<MapAdmin>();
+            }
+            
+            Maps.Add(new MapAdmin(newMap));
+            EveMapperRealTimeService?.NotifyMapAdded(newMap.Id);
         }
     }
 
@@ -99,7 +126,8 @@ public partial class Overview : ComponentBase
 
         if (result != null && !result.Canceled)
         {
-            await Restore();
+            Maps.Clear();
+            EveMapperRealTimeService?.NotifyAllMapsRemoved();
         }
     }
 
@@ -118,8 +146,8 @@ public partial class Overview : ComponentBase
 
         if (result != null && !result.Canceled)
         {
-            //notidy map deletion
-            await Restore();
+            ((List<MapAdmin>)Maps).RemoveAll(x => x.Id == mapId);
+            EveMapperRealTimeService?.NotifyMapRemoved(mapId);
         }
     }
 
@@ -138,7 +166,37 @@ public partial class Overview : ComponentBase
 
         if (result != null && !result.Canceled)
         {
-            await Restore();
+            List<WHAccess> accesses = result.Data as List<WHAccess> ?? new List<WHAccess>();
+            
+            if (accesses == null)
+            {
+                Logger.LogError("accesses is null");
+                Snackbar.Add("accesses is null", Severity.Error);
+                return;
+            }
+
+            MapAdmin? map = Maps.FirstOrDefault(x => x.Id == mapId);
+            if (map == null)
+            {
+                Logger.LogError("map is null");
+                Snackbar.Add("map is null", Severity.Error);
+                return;
+            }
+
+            foreach (var access in accesses)
+            {
+                if (map.WHMapAccesses is HashSet<WHAccess> accessList)
+                {
+                    accessList.Add(access);
+                }
+                else
+                {
+                    Logger.LogError("WHMapAccesses is not a List<WHAccess>");
+                    Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
+                }
+            }
+
+            EveMapperRealTimeService?.NotifyMapAccessesAdded(mapId, accesses.Select(x => x.Id).ToList());
         }
     }
 
@@ -152,8 +210,25 @@ public partial class Overview : ComponentBase
 
         if (result != null && !result.Canceled)
         {
-            //notidy access deletion
-            await Restore();
+            MapAdmin map = Maps.FirstOrDefault(x => x.Id == mapId);
+            if (map == null)
+            {
+                Logger.LogError("map is null");
+                Snackbar.Add("map is null", Severity.Error);
+                return;
+            }
+
+            if (map.WHMapAccesses is HashSet<WHAccess> accessList)
+            {
+                accessList.RemoveWhere(x => x.Id == accessId);
+            }
+            else
+            {
+                Logger.LogError("WHMapAccesses is not a List<WHAccess>");
+                Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
+            }
+
+            EveMapperRealTimeService?.NotifyMapAccessRemoved(mapId, accessId);
         }
     }
 
@@ -166,8 +241,23 @@ public partial class Overview : ComponentBase
 
         if (result != null && !result.Canceled)
         {
-            //notidy access deletion
-            await Restore();
+            MapAdmin? map = Maps.FirstOrDefault(x => x.Id == mapId);
+            if (map == null)
+            {
+                Logger.LogError("map is null");
+                Snackbar.Add("map is null", Severity.Error);
+                return;
+            }
+            if (map.WHMapAccesses is HashSet<WHAccess> accessList)
+            {
+                accessList.Clear();
+            }
+            else
+            {
+                Logger.LogError("WHMapAccesses is not a List<WHAccess>");
+                Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
+            }
+            EveMapperRealTimeService?.NotifyMapAllAccessesRemoved(mapId);
         }
     }
 }

@@ -610,8 +610,6 @@ public class DbIntegrationTest
         Assert.NotNull(map);
         Assert.Equal(FOOBAR, map?.Name);
 
-
-
         //Create AccessRepo
         IWHAccessRepository repo = new WHAccessRepository(new NullLogger<WHAccessRepository>(),_contextFactory);
 
@@ -681,9 +679,9 @@ public class DbIntegrationTest
         Assert.Empty(mapAccess);
 
         //add access to map
-        map.WHAccesses.Add(result1);
-        map = await repoMap.Update(map.Id, map);
-        Assert.NotNull(map);
+        var resultAddMapAccess = await repoMap.AddMapAccess(map.Id, result1.Id);
+        Assert.True(resultAddMapAccess);
+
 
         Assert.NotNull(map);
         mapAccess = await repoMap.GetMapAccesses(map.Id);

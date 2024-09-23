@@ -25,6 +25,13 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<string, int, int, Task>? WormholeSignaturesChanged;
     public event Func<string, int, int, bool, Task>? WormholeLockChanged;
     public event Func<string, int, int, WHSystemStatus, Task>? WormholeSystemStatusChanged;
+    public event Func<string, int, Task>? MapAdded;
+    public event Func<string, int, Task>? MapRemoved;
+    public event Func<string, int, string, Task>? MapNameChanged;
+    public event Func<string, Task>? AllMapsRemoved;
+    public event Func<string, int, IEnumerable<int>, Task>? MapAccessesAdded;
+    public event Func<string, int, int, Task>? MapAccessRemoved;
+    public event Func<string, int, Task>? MapAllAccessesRemoved;
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
@@ -136,6 +143,59 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                 await WormholeSystemStatusChanged.Invoke(user, mapId, wormholeId, systemStatus);
             }
         });
+        _hubConnection.On<string, int>("NotifyMapAdded", async (user, mapId) => 
+        {
+            if (MapAdded != null)
+            {
+                await MapAdded.Invoke(user, mapId);
+            }
+        });
+        _hubConnection.On<string, int>("NotifyMapRemoved", async (user, mapId) => 
+        {
+            if (MapRemoved != null)
+            {
+                await MapRemoved.Invoke(user, mapId);
+            }
+        });
+        _hubConnection.On<string, int, string>("NotifyMapNameChanged", async (user, mapId, newName) => 
+        {
+            if (MapNameChanged != null)
+            {
+                await MapNameChanged.Invoke(user, mapId, newName);
+            }
+        });
+        _hubConnection.On<string>("NotifyAllMapsRemoved", async (user) => 
+        {
+            if (AllMapsRemoved != null)
+            {
+                await AllMapsRemoved.Invoke(user);
+            }
+        });
+        _hubConnection.On<string, int, IEnumerable<int>>("NotifyMapAccessesAdded", async (user, mapId, accessId) => 
+        {
+            if (MapAccessesAdded != null)
+            {
+                await MapAccessesAdded.Invoke(user, mapId, accessId);
+            }
+        });
+
+        _hubConnection.On<string, int, int>("NotifyMapAccessRemoved", async (user, mapId, accessId) => 
+        {
+            if (MapAccessRemoved != null)
+            {
+                await MapAccessRemoved.Invoke(user, mapId, accessId);
+            }
+        });
+
+        _hubConnection.On<string, int>("NotifyMapAllAccessesRemoved", async (user, mapId) => 
+        {
+            if (MapAllAccessesRemoved != null)
+            {
+                await MapAllAccessesRemoved.Invoke(user, mapId);
+            }
+        });
+
+
     }
 
     public async Task<bool> Start()
@@ -262,6 +322,62 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
 
         return new Dictionary<string, string>();
+    }
+
+    public async Task NotifyMapAdded(int mapId)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMapAdded", mapId);
+        }
+    }
+
+    public async Task NotifyMapRemoved(int mapId)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMapRemoved", mapId);
+        }
+    }
+
+    public async Task NotifyMapNameChanged(int mapId, string newName)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMapNameChanged", mapId, newName);
+        }
+    }
+
+    public async Task NotifyAllMapsRemoved()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendAllMapsRemoved");
+        }
+    }
+
+    public async Task NotifyMapAccessesAdded(int mapId, IEnumerable<int> accessId)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMapAccessesAdded", mapId, accessId);
+        }
+    }
+
+    public async Task NotifyMapAccessRemoved(int mapId, int accessId)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMapAccessRemoved", mapId, accessId);
+        }
+    }
+
+    public async Task NotifyMapAllAccessesRemoved(int mapId)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMapAllAccessesRemoved", mapId);
+        }
     }
 
     public async ValueTask DisposeAsync()

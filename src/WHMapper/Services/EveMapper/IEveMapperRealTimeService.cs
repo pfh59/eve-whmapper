@@ -121,6 +121,51 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="systemStatus">The new system status of the wormhole.</param>
     event Func<string, int, int, WHSystemStatus, Task> WormholeSystemStatusChanged;
 
+    /// <summary>
+    /// Triggered when a map is added.
+    /// </summary>
+    /// <param name="user">The username of the user who added the map.</param>
+    /// <param name="mapId">The ID of the added map.</param>
+    event Func<string, int, Task> MapAdded;
+
+    /// <summary>
+    /// Triggered when a map is removed.
+    /// </summary>
+    /// <param name="user">The username of the user who removed the map.</param>
+    /// <param name="mapId">The ID of the removed map.</param>
+    event Func<string, int, Task> MapRemoved;
+
+    /// <summary>
+    /// Triggered when a map name is changed.
+    /// </summary>
+    /// <param name="user">The username of the user who changed the map name.</param>
+    /// <param name="mapId">The ID of the map with the changed name.</param>
+    event Func<string, int, string, Task> MapNameChanged;
+
+
+    /// <summary>
+    /// Triggered when all maps are removed.
+    /// </summary>
+    /// <param name="user">The username of the user who removed all maps.</param>
+    event Func<string, Task> AllMapsRemoved;
+
+    /// <summary>
+    /// Triggered when accesses are added to a map.
+    /// </summary>
+    event Func<string, int, IEnumerable<int>, Task> MapAccessesAdded;
+
+    /// <summary>
+    /// Triggered when an access is removed from a map.
+    /// </summary>
+    /// <param name="user">The username of the user who removed the access.</param>
+    event Func<string, int, int, Task> MapAccessRemoved;
+
+    /// <summary>
+    /// Triggered when all accesses are removed from a map.
+    /// </summary>
+    /// <param name="user">The username of the user who removed all accesses.</param>
+    event Func<string, int, Task> MapAllAccessesRemoved;
+
 
     /// <summary>
     /// Gets a value indicating whether the real-time service is connected.
@@ -239,4 +284,56 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// </summary>
     /// <returns></returns>
     Task<IDictionary<string, string>> GetConnectedUsersPosition();
+
+
+    /// <summary>
+    /// Notifies the server that a map has been added.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <returns></returns>
+    Task NotifyMapAdded(int mapId);
+
+    /// <summary>
+    /// Notifies the server that a map has been removed.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <returns></returns>
+    Task NotifyMapRemoved(int mapId);
+
+    /// <summary>
+    /// Notifies the server that a map name has been changed.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <param name="newName"></param>
+    /// <returns></returns>
+    Task NotifyMapNameChanged(int mapId, string newName);
+
+    /// <summary>
+    /// Notifies the server that all maps have been removed.
+    /// </summary>
+    /// <returns></returns>
+    Task NotifyAllMapsRemoved(); 
+
+    /// <summary>
+    /// Notifies the server that accesses have been added to a map.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <param name="accessIds"></param>
+    /// <returns></returns>
+    Task NotifyMapAccessesAdded(int mapId, IEnumerable<int> accessIds);
+
+    /// <summary>
+    /// Notifies the server that an access has been removed from a map.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <param name="accessId"></param>
+    /// <returns></returns>
+    Task NotifyMapAccessRemoved(int mapId, int accessId);
+
+    /// <summary>
+    /// Notifies the server that all accesses have been removed from a map.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <returns></returns>
+    Task NotifyMapAllAccessesRemoved(int mapId);
 }

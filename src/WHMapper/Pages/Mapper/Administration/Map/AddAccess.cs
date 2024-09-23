@@ -104,21 +104,13 @@ public partial class AddAccess : ComponentBase
 
             foreach(var access in _selectedAccesses)
             {
-                _map.WHAccesses.Add(access);
+                await DbWHMaps.AddMapAccess(_map.Id,access.Id);
             }
 
-            if(await DbWHMaps.Update(_map.Id,_map)!=null)
-            {
-                _success = true;
-                Snackbar.Add("Access added", Severity.Success);
-                MudDialog.Close(DialogResult.Ok(true));
-            }
-            else
-            {
-                Logger.LogError("Failed to add access");
-                Snackbar.Add("Failed to add access", Severity.Error);
-                MudDialog.Close(DialogResult.Cancel);
-            }
+
+            Snackbar.Add("Access added", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(_selectedAccesses.ToList()));
+
         }
         else
         {

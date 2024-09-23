@@ -177,6 +177,25 @@ namespace WHMapper.Repositories.WHMaps
             }
         }
 
+        public async Task<bool> AddMapAccess(int mapId, int accessId)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
+                if (map == null)
+                    return false;
+
+                var access = await context.DbWHAccesses.SingleOrDefaultAsync(x => x.Id == accessId);
+                if (access == null)
+                    return false;
+
+                map.WHAccesses.Add(access);
+                await context.SaveChangesAsync();
+                return true;
+            }
+        }
+
+
         
     }
 }

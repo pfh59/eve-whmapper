@@ -1,33 +1,13 @@
 
 
 using Microsoft.AspNetCore.Components;
-using WHMapper.Models.Custom.Node;
-using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Services.EveAPI;
 using Microsoft.AspNetCore.Components.Authorization;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHSystems;
 using MudBlazor;
-using WHMapper.Models.Db.Enums;
-using WHMapper.Repositories.WHSystemLinks;
-using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.Authorization;
-using WHMapper.Models.DTO;
-using WHMapper.Services.EveOnlineUserInfosProvider;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
-using System.Data;
-using Microsoft.AspNetCore.Components.Web;
-using WHMapper.Services.WHSignature;
 using WHMapper.Services.EveMapper;
-using Blazor.Diagrams.Core.Behaviors;
-using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Repositories.WHJumpLogs;
-using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
-using BlazorContextMenu;
-using WHMapper.Repositories.WHNotes;
-using WHMapper.Services.WHColor;
-using WHMapper.Models.DTO.EveMapper.EveEntity;
 
 namespace WHMapper.Pages.Mapper;
 
@@ -165,6 +145,13 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
             RealTimeService.UserConnected += OnUserConnected;
             RealTimeService.UserDisconnected+=OnUserDisconnected;
+            RealTimeService.MapAdded += OnMapAdded;
+            RealTimeService.MapRemoved += OnMapRemoved;
+            RealTimeService.MapNameChanged += OnMapNameChanged;
+            RealTimeService.AllMapsRemoved += OnAllMapsRemoved;
+            RealTimeService.MapAccessesAdded+=OnMapAccessesAdded;
+            RealTimeService.MapAccessRemoved+=OnMapAccessRemoved;
+            RealTimeService.MapAllAccessesRemoved+=OnMapAllAccessesRemoved;
 
             return await RealTimeService.Start();
         }
@@ -178,33 +165,218 @@ public partial class Overview : ComponentBase, IAsyncDisposable
     #region RealTimeService User Events
     
 
-    private async Task OnUserConnected(string user)
+    private Task OnUserConnected(string user)
+    {
+        Snackbar?.Add($"{user} are connected", Severity.Info);
+        return Task.CompletedTask;
+    }
+
+    private  Task OnUserDisconnected(string user)
+    {
+        Snackbar?.Add($"{user} are disconnected", Severity.Info);
+        return Task.CompletedTask;
+    }
+    private async Task OnMapAdded(string user, int mapId)
     {
         try
         {
-            Snackbar?.Add($"{user} are connected", Severity.Info);
+            var map = await DbWHMaps.GetById(mapId);
+            if (map != null)
+            {
+                var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+                var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
+                if (authorizationResult.Succeeded)
+                {
+                    WHMaps.Add(map);
+                    Snackbar?.Add($"Map {map.Name} added", Severity.Info);
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "On NotifyUserConnected error");
+            Logger.LogError(ex, "On NotifyMapAdded error");
+        }
+    }     
+    private async Task OnMapRemoved(string user, int mapId)
+    {
+        try
+        {
+            var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
+            if (map != null)
+            {
+                WHMaps.Remove(map);
+                Snackbar?.Add($"Map {map.Name} deleted", Severity.Info);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On NotifyMapDeleted error");
         }
     }
 
-    private async Task OnUserDisconnected(string user)
+    private async Task OnMapNameChanged(string user, int mapId, string newName)
     {
-        
         try
         {
-            Snackbar?.Add($"{user} are disconnected", Severity.Info);
+            var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
+            if (map != null)
+            {
+                map.Name = newName;
+                Snackbar?.Add($"Map {map.Name} renamed to {newName}", Severity.Info);
+                await InvokeAsync(StateHasChanged);
+            }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "On NotifyUserDisconnected error");
+            Logger.LogError(ex, "On NotifyMapNameChanged error");
+        }
+    }
+
+    private async Task OnAllMapsRemoved(string user)
+    {
+        try
+        {
+            WHMaps.Clear();
+            Snackbar?.Add($"All maps deleted", Severity.Info);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On NotifyAllMapsRemoved error");
+        }
+    }
+
+    private async Task OnMapAccessesAdded(string user, int mapId, IEnumerable<int> accessId)
+    {
+        try
+        {          
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+
+            var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
+
+            var mapWithAccessUpdated = await DbWHMaps.GetById(mapId);
+            if(mapWithAccessUpdated==null)
+            {
+                Logger.LogError("Map not found on NotifyMapAccessesAdded");
+                Snackbar?.Add("Map not found on NotifyMapAccessesAdded", Severity.Error);
+                return;
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, mapWithAccessUpdated.Id, "Map");
+            
+
+            if(map!=null)
+            {
+                if (authorizationResult.Succeeded)
+                {
+                    foreach (var accessIdToAdd in accessId)
+                    {
+                        var accessToAdd = mapWithAccessUpdated.WHAccesses.FirstOrDefault(a => a.Id == accessIdToAdd);
+                        if (accessToAdd != null)
+                        {
+                            if(map.WHAccesses.Any(a => a.Id == accessIdToAdd))
+                            {
+                                continue;
+                            }
+                            map.WHAccesses.Add(accessToAdd);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (authorizationResult.Succeeded)
+                {
+                    WHMaps.Add(mapWithAccessUpdated);
+                    Snackbar?.Add($"Map {mapWithAccessUpdated.Name} added", Severity.Info);
+                    await InvokeAsync(StateHasChanged);
+                }
+            }            
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On NotifyMapAccessesAdded error");
+        }
+    }
+
+    private async Task OnMapAccessRemoved(string user, int mapId, int accessId)
+    {
+        try
+        {
+            var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
+            if (map != null)
+            {
+                var accessToRemove = map.WHAccesses.FirstOrDefault(a => a.Id == accessId);
+                if (accessToRemove != null)
+                {
+                    map.WHAccesses.Remove(accessToRemove);
+
+                    var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+    
+                    var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
+                    if (!authorizationResult.Succeeded)
+                    {
+                        WHMaps.Remove(map);
+                        Snackbar?.Add($"Access has been removed from map {map.Name}", Severity.Info);
+                        await InvokeAsync(StateHasChanged);
+                    }
+
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On NotifyMapAccessRemoved error");
+        }
+    }
+
+    private async Task OnMapAllAccessesRemoved(string user, int mapId)
+    {
+        try
+        {
+            var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
+            if (map != null)
+            {
+                
+                map.WHAccesses.Clear();
+                var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+    
+                var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
+                if (!authorizationResult.Succeeded)
+                {
+                    WHMaps.Remove(map);
+                    Snackbar?.Add($"All accesses removed from map {map.Name}", Severity.Info);
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On NotifyMapAllAccessesRemoved error");
         }
     }
 
     #endregion
 
+    #region Map Tab Events
+        private Task CloseMapTab(MudTabPanel panel)
+        {
+            if(panel!=null)
+            {
+                int mapId = (int)panel.ID;
+                var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
+                if(map!=null)
+                {
+                    WHMaps.Remove(map);
+                    Logger.LogInformation($"Map {map.Name} closed");
+                    StateHasChanged();
+                }
+                
+            }
+            return Task.CompletedTask;
+        }
+     #endregion
 
     /*
     private async Task OnPasted(string? data)

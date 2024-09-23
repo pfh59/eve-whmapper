@@ -9,8 +9,8 @@ namespace WHMapper.Pages.Mapper.Administration.Map;
 [Authorize(Policy = "Access")]
 public partial class RemoveAccess : ComponentBase
 {
-    private const string MSG_DELETE_MAP = "Do you really want to delete this map?";
-    private const string MSG_DELETE_MAPS = "Do you really want to delete all maps?";
+    private const string MSG_DELETE_ACCESS = "Do you really want to delete this access?";
+    private const string MSG_DELETE_ACCESSES = "Do you really want to delete all accesses?";
 
     [Inject]
     private ILogger<Delete> Logger { get; set; } = null!;
@@ -66,7 +66,7 @@ public partial class RemoveAccess : ComponentBase
             {
                 LogSuccess("Map access removed");
                 Snackbar.Add("Map access removed", Severity.Success);
-                MudDialog?.Close(DialogResult.Ok(true));
+                MudDialog?.Close(DialogResult.Ok(AccessId.Value));
             }
             else
             {

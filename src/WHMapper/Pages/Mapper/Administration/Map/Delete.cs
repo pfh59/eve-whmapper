@@ -86,12 +86,14 @@ public partial class Delete : ComponentBase
         if (result)
         {
             LogSuccess("All Maps are successfully deleted");
+             MudDialog.Close(DialogResult.Ok(true));
         }
         else
         {
             LogError("No Map deleted");
+             MudDialog.Close(DialogResult.Ok(false));
         }
-        MudDialog.Close(DialogResult.Ok(result));
+       
     }
 
     private void Cancel()
