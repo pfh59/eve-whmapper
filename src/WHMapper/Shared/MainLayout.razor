@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using WHMapper.Services.WHSignature
+@inherits LayoutComponentBase
+
+
 
 <MudThemeProvider Theme="_currentTheme" DefaultScrollbar="false" IsDarkMode="true"/>
 <MudPopoverProvider/>
@@ -58,6 +61,9 @@
 
     [Inject]
     private IPasteServices PasteServices {get;set;} =null!;
+
+    [Inject]
+    private IWHSignatureHelper SignatureService {get;set;} =null!;
 
     [Inject]
     private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
@@ -163,7 +169,13 @@
 
     private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)
     {
-        await PasteServices.Paste(eventArgs.PastedData);
+        if(!String.IsNullOrEmpty(eventArgs.PastedData) && !String.IsNullOrWhiteSpace(eventArgs.PastedData))
+        { 
+            if(await SignatureService.ValidateScanResult(eventArgs.PastedData))
+            { 
+                await PasteServices.Paste(eventArgs.PastedData);
+            }
+        }
     }
 
 }

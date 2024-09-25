@@ -6,7 +6,7 @@ namespace WHMapper.Hubs
     {
         Task NotifyUserConnected(string userName);
         Task NotifyUserDisconnected(string userName);
-        Task NotifyUserPosition(string userName,string systemName);
+        Task NotifyUserPosition(string userName,int mapId,int wormholeId);
         Task NotifyWormoleAdded(string userName, int mapId,int wormholeId);
         Task NotifyWormholeRemoved(string userName, int mapId,int wormholeId);
         Task NotifyLinkAdded(string userName, int mapId, int linkId);
@@ -23,8 +23,9 @@ namespace WHMapper.Hubs
         Task NotifyAllMapsRemoved(string userName);
         Task NotifyMapAccessesAdded(string userName, int mapId, IEnumerable<int> accessId);
         Task NotifyMapAccessRemoved(string userName, int mapId, int accessId);
-        Task NotifyMapAllAccessesRemoved(string userName, int mapId);  
-
+        Task NotifyMapAllAccessesRemoved(string userName, int mapId); 
+        Task NotifyUserOnMapConnected(string userName, int mapId); 
+        Task NotifyUserOnMapDisconnected(string userName, int mapId); 
     }
 }
 

@@ -1,25 +1,15 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.JSInterop;
 using MudBlazor;
-using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Repositories.WHSignatures;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
-using static MudBlazor.CategoryTypes;
-using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
+
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -50,6 +40,12 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Inject]
         private IEveMapperRealTimeService EveMapperRealTimeService { get; set; } = null!;
 
+        [Inject]
+        private IWHSignatureHelper SignatureHelper { get; set; } = null!;
+
+        [Inject]
+        private IPasteServices PasteServices { get; set; } = null!;
+
         private IEnumerable<WHSignature> Signatures { get; set; } = null!;
 
         [Parameter]
@@ -77,6 +73,8 @@ namespace WHMapper.Pages.Mapper.Signatures
             _currentUser = await UserInfos.GetUserName();
             EveMapperRealTimeService.WormholeSignaturesChanged += OnWormholeSignaturesChanged;
             await base.OnInitializedAsync();
+            if(PasteServices!=null)
+                PasteServices.Pasted += OnPaste;
         }
 
         protected override Task OnParametersSetAsync()
@@ -316,6 +314,31 @@ namespace WHMapper.Pages.Mapper.Signatures
             }
         }
 
+        #endregion
+
+        #region Paste events
+        private async Task OnPaste(string? text)
+        {
+            if(CurrentSystemNodeId.HasValue && CurrentMapId.HasValue && !String.IsNullOrWhiteSpace(text))
+            {
+                try
+                {
+                    if (_currentUser != null && await SignatureHelper.ImportScanResult(_currentUser, CurrentSystemNodeId.Value, text, false))
+                    {
+                        await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                        await Restore();
+                        Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
+                    }
+                    else
+                        Snackbar?.Add("No signatures added/updated", Severity.Error);
+                }
+                catch(Exception ex)
+                {
+                    Logger.LogError(ex, "Handle Custom Paste error");
+                    Snackbar?.Add(ex.Message, Severity.Error);
+                }
+            }
+        }
         #endregion
 
 

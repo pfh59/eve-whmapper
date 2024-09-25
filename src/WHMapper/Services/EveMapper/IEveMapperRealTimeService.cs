@@ -23,8 +23,9 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// Triggered when a user updates their position.
     /// </summary>
     /// <param name="user">The username of the user.</param>
-    /// <param name="systemName">The name of the system where the user is located.</param>
-    event Func<string, string, Task> UserPosition;
+    /// <param name="mapId">The ID of the map where the user is located.</param>
+    /// <param name="wormholeId">The ID of the wormhole where the user is located.</param>
+    event Func<string, int,int, Task> UserPosition;
 
 /*
     /// <summary>
@@ -166,6 +167,19 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="user">The username of the user who removed all accesses.</param>
     event Func<string, int, Task> MapAllAccessesRemoved;
 
+    /// <summary>
+    /// Triggered when a user connects to a map.
+    /// </summary>
+    /// <param name="user">The username of the user who connected to the map.</param>
+    /// <param name="mapId">The ID of the map where the user connected.</param>
+    event Func<string, int, Task> UserOnMapConnected;
+
+    /// <summary>
+    /// Triggered when a user disconnects from a map.
+    /// </summary>
+    /// <param name="user">The username of the user who disconnected from the map.</param>
+    /// <param name="mapId">The ID of the map where the user disconnected.</param>
+    event Func<string, int, Task> UserOnMapDisconnected;
 
     /// <summary>
     /// Gets a value indicating whether the real-time service is connected.
@@ -187,9 +201,10 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <summary>
     /// Notifies the server of the user's position.
     /// </summary>
-    /// <param name="systemName">The name of the system where the user is located.</param>
+    /// <param name="mapId">The ID of the map where the user is located.</param>
+    /// <param name="wormholeId">The ID of the wormhole where the user is located.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task NotifyUserPosition(string systemName);
+    Task NotifyUserPosition(int mapId,int wormholeId);
 
     /// <summary>
     /// Notifies the server that a wormhole has been added.
@@ -283,7 +298,7 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// Gets the position of connected users.
     /// </summary>
     /// <returns></returns>
-    Task<IDictionary<string, string>> GetConnectedUsersPosition();
+    Task<IDictionary<string, KeyValuePair<int,int>?>> GetConnectedUsersPosition();
 
 
     /// <summary>
@@ -336,4 +351,19 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="mapId"></param>
     /// <returns></returns>
     Task NotifyMapAllAccessesRemoved(int mapId);
+
+    /// <summary>
+    /// Notifies the server that a user has connected to a map.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <returns></returns>
+    Task NotifyUserOnMapConnected(int mapId);
+
+    
+    /// <summary>
+    /// Notifies the server that a user has disconnected from a map.
+    /// </summary>
+    /// <param name="mapId"></param>
+    /// <returns></returns>
+    Task NotifyUserOnMapDisconnected(int mapId);
 }

@@ -1,7 +1,7 @@
 ﻿<MudDialog>
     <DialogContent>
         <MudForm @bind-IsValid="@_success" @ref="@_form">
-            <MudTextField @bind-Value="@_mapName" Label="Map Name" Required="true" />
+            <MudTextField @bind-Value="@_mapName" Label="Map Name" Required="true" Immediate="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>

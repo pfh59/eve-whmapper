@@ -15,8 +15,7 @@
         @if (WHMaps.Count() > 1)
         {
             <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="SelectedWHMapIndex" Rounded="true" Border="true" 
-                            Class="d-flex align-stretch flex-grow-1" PanelClass="d-flex align-stretch flex-grow-1" CloseTab="@CloseMapTab">
-                <Header/>
+                            Class="d-flex align-stretch flex-grow-1" PanelClass="d-flex align-stretch flex-grow-1" CloseTab="@CloseMapTab" AddIconClass="d-none">
                 <ChildContent>
                     @foreach (var item in WHMaps)
                     {
@@ -25,6 +24,8 @@
                         </MudTabPanel>
                     }
                 </ChildContent>
+                <Header>
+                </Header>
             </MudDynamicTabs>
         }
         else

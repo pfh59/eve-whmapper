@@ -133,12 +133,17 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if(MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value!=MapId.Value))
         {
+            await EveMapperRealTime.NotifyUserOnMapConnected(MapId.Value);
             if(await Restore(MapId.Value))
             {   
                 TrackerServices.SystemChanged += OnSystemChanged;
                 TrackerServices.ShipChanged += OnShipChanged;
 
+
                 EveMapperRealTime.UserDisconnected += OnUserDisconnected;
+                EveMapperRealTime.UserOnMapConnected += OnUserOnMapConnected;
+                EveMapperRealTime.UserOnMapDisconnected += OnUserOnMapDisconnected;
+
                 EveMapperRealTime.UserPosition += OnUserPositionChanged;
 
                 EveMapperRealTime.WormholeAdded += OnWormholeAdded;
@@ -152,14 +157,16 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 EveMapperRealTime.LinkRemoved += OnLinkRemoved;
                 EveMapperRealTime.LinkChanged += OnLinkChanged;
 
-                IDictionary<string,string> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition();
+            
+                IDictionary<string,KeyValuePair<int,int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition();
                 try
                 {
                     await Parallel.ForEachAsync(usersPosition, async (item, cancellationToken) =>
                     {
-                        if (!string.IsNullOrEmpty(item.Value))
+                        if (item.Value.HasValue && item.Value.Value.Key == MapId.Value)
                         {
-                            EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).Title == item.Value);
+                            EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == item.Value.Value.Value);
+                           
                             if (systemToAddUser != null)
                             {
                                 await systemToAddUser.AddConnectedUser(item.Key);
@@ -172,6 +179,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 {
                     Logger.LogError(ex, "On NotifyUserPosition error");
                 }
+                
                 
                 await TrackerServices.StartTracking();
                 await InitBlazorDiagramEvents();
@@ -195,6 +203,29 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
         }
 
+        if(EveMapperRealTime!=null)
+        {
+            EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
+            EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
+            EveMapperRealTime.UserOnMapDisconnected -= OnUserOnMapDisconnected;
+            
+            EveMapperRealTime.UserPosition -= OnUserPositionChanged;
+            EveMapperRealTime.WormholeAdded -= OnWormholeAdded;
+            EveMapperRealTime.WormholeRemoved -= OnWormholeRemoved;
+            EveMapperRealTime.WormholeMoved -= OnWormholeMoved;
+            EveMapperRealTime.WormholeLockChanged -= OnWormholeLockChanged;
+            EveMapperRealTime.WormholeSystemStatusChanged -= OnWormholeSystemStatusChanged;
+            EveMapperRealTime.WormholeNameExtensionChanged -= OnWormholeNameExtensionChanged;
+            EveMapperRealTime.LinkAdded -= OnLinkAdded;
+            EveMapperRealTime.LinkRemoved -= OnLinkRemoved;
+            EveMapperRealTime.LinkChanged -= OnLinkChanged;
+
+            if (MapId.HasValue && EveMapperRealTime.IsConnected)
+            {
+
+                await EveMapperRealTime.NotifyUserOnMapDisconnected(MapId.Value);
+            }
+        }
         await ClearDiagram();
         GC.SuppressFinalize(this);
     }
@@ -1029,7 +1060,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         }
                     }
 
-                    await EveMapperRealTime.NotifyUserPosition(targetSoloarSystem.Name);
+                    if(MapId.HasValue && targetNode!=null)
+                        await EveMapperRealTime.NotifyUserPosition(this.MapId.Value, targetNode.IdWH);
                 }
                 else
                 {
@@ -1065,7 +1097,9 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
                 srcNode?.RemoveConnectedUser(_userName);
                 targetNode?.AddConnectedUser(_userName);
-                await EveMapperRealTime.NotifyUserPosition(targetSoloarSystem.Name);
+                if(this.MapId.HasValue && targetNode!=null)
+                    await EveMapperRealTime.NotifyUserPosition(this.MapId.Value, targetNode.IdWH);
+            
             }
 
             _currentSolarSystem = targetSoloarSystem;
@@ -1365,6 +1399,25 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         #endregion
 
     #region RealTime Events
+
+    private Task OnUserOnMapConnected(string user, int mapId)
+    {
+        if (MapId.HasValue && MapId.Value == mapId)
+        {
+            Snackbar?.Add($"{user} are connected", Severity.Info); 
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task OnUserOnMapDisconnected(string user, int mapId)
+    {
+        if (MapId.HasValue && MapId.Value == mapId)
+        {
+            Snackbar?.Add($"{user} are disconnected", Severity.Info);
+            await OnUserDisconnected(user);
+        }
+    }
+
     private async Task OnUserDisconnected(string user)
     {   
         try
@@ -1381,26 +1434,30 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             Logger.LogError(ex, "On NotifyUserDisconnected error");
         }
     }
-    private async Task OnUserPositionChanged(string user, string systemName)
+
+    private async Task OnUserPositionChanged(string user, int mapId, int wormholeId)
     {
         try
-        {
-            EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user));
-            if (userSystem != null)
+        {   
+            if(this.MapId.HasValue && this.MapId.Value == mapId)
             {
-                await userSystem.RemoveConnectedUser(user);
-                userSystem.Refresh();
-            }
+                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user));
+                if (userSystem != null)
+                {
+                    await userSystem.RemoveConnectedUser(user);
+                    userSystem.Refresh();
+                }
 
-            EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.Title == systemName);
-            if (systemToAddUser != null)
-            {
-                await systemToAddUser.AddConnectedUser(user);
-                systemToAddUser.Refresh();
-            }
-            else
-            {
-                Logger.LogWarning("On NotifyUserPosition, unable to find system to add user");
+                EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.IdWH == wormholeId);
+                if (systemToAddUser != null)
+                {
+                    await systemToAddUser.AddConnectedUser(user);
+                    systemToAddUser.Refresh();
+                }
+                else
+                {
+                    Logger.LogWarning("On NotifyUserPosition, unable to find system to add user");
+                }
             }
         }
         catch (Exception ex)

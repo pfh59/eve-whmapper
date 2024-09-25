@@ -11,7 +11,7 @@ using WHMapper.Services.EveMapper;
 namespace WHMapper.Pages.Mapper.Administration.Map;
 
 [Authorize(Policy = "Admin")]
-public partial class Overview : ComponentBase
+public partial class Overview : ComponentBase, IAsyncDisposable
 {
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
@@ -45,6 +45,8 @@ public partial class Overview : ComponentBase
             await EveMapperRealTimeService.Start();
         }
     }
+
+    
 
 
 
@@ -168,13 +170,6 @@ public partial class Overview : ComponentBase
         {
             List<WHAccess> accesses = result.Data as List<WHAccess> ?? new List<WHAccess>();
             
-            if (accesses == null)
-            {
-                Logger.LogError("accesses is null");
-                Snackbar.Add("accesses is null", Severity.Error);
-                return;
-            }
-
             MapAdmin? map = Maps.FirstOrDefault(x => x.Id == mapId);
             if (map == null)
             {
@@ -258,6 +253,15 @@ public partial class Overview : ComponentBase
                 Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
             }
             EveMapperRealTimeService?.NotifyMapAllAccessesRemoved(mapId);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (EveMapperRealTimeService != null)
+        {
+            await EveMapperRealTimeService.Stop();
+            await EveMapperRealTimeService.DisposeAsync();
         }
     }
 }

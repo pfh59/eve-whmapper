@@ -14,7 +14,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public event Func<string, Task>? UserConnected;
     public event Func<string, Task>? UserDisconnected;
-    public event Func<string, string, Task>? UserPosition;
+    public event Func<string, int,int, Task>? UserPosition;
     public event Func<string, int, int, Task>? WormholeAdded;
     public event Func<string, int, int, Task>? WormholeRemoved;
     public event Func<string, int, int, Task>? LinkAdded;
@@ -32,6 +32,8 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<string, int, IEnumerable<int>, Task>? MapAccessesAdded;
     public event Func<string, int, int, Task>? MapAccessRemoved;
     public event Func<string, int, Task>? MapAllAccessesRemoved;
+    public event Func<string, int, Task>? UserOnMapConnected;
+    public event Func<string, int, Task>? UserOnMapDisconnected;
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
@@ -66,11 +68,11 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                 await UserDisconnected.Invoke(user);
             }
         });
-        _hubConnection.On<string, string>("NotifyUserPosition", async (user, systemName) => 
+        _hubConnection.On<string, int,int>("NotifyUserPosition", async (user, mapId,wormholeId) => 
         {
             if (UserPosition != null)
             {
-                await UserPosition.Invoke(user, systemName);
+                await UserPosition.Invoke(user, mapId,wormholeId);
             }
         });
         _hubConnection.On<string, int, int>("NotifyWormoleAdded", async (user, mapId, wormholeId) => 
@@ -194,8 +196,20 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                 await MapAllAccessesRemoved.Invoke(user, mapId);
             }
         });
-
-
+        _hubConnection.On<string, int>("NotifyUserOnMapConnected", async (user, mapId) => 
+        {
+            if (UserOnMapConnected != null)
+            {
+                await UserOnMapConnected.Invoke(user, mapId);
+            }
+        });
+        _hubConnection.On<string, int>("NotifyUserOnMapDisconnected", async (user, mapId) => 
+        {
+            if (UserOnMapDisconnected != null)
+            {
+                await UserOnMapDisconnected.Invoke(user, mapId);
+            }
+        });
     }
 
     public async Task<bool> Start()
@@ -226,11 +240,11 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    public async Task NotifyUserPosition(string systemName)
+    public async Task NotifyUserPosition(int mapId,int wormholeId)
     {
         if (_hubConnection is not null)
         {
-            await _hubConnection.SendAsync("SendUserPosition", systemName);
+            await _hubConnection.SendAsync("SendUserPosition", mapId, wormholeId);
         }
     }
 
@@ -314,14 +328,14 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    public async Task<IDictionary<string, string>> GetConnectedUsersPosition()
+    public async Task<IDictionary<string, KeyValuePair<int,int>?>> GetConnectedUsersPosition()
     {
         if (_hubConnection is not null)
         {
-            return await _hubConnection.InvokeAsync<IDictionary<string, string>>("GetConnectedUsersPosition");
+            return await _hubConnection.InvokeAsync<IDictionary<string, KeyValuePair<int,int>?>>("GetConnectedUsersPosition");
         }
 
-        return new Dictionary<string, string>();
+        return new Dictionary<string, KeyValuePair<int,int>?>();
     }
 
     public async Task NotifyMapAdded(int mapId)
@@ -377,6 +391,22 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         if (_hubConnection is not null)
         {
             await _hubConnection.SendAsync("SendMapAllAccessesRemoved", mapId);
+        }
+    }
+
+    public async Task NotifyUserOnMapConnected(int mapId)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendUserOnMapConnected", mapId);
+        }
+    }
+
+    public async Task NotifyUserOnMapDisconnected(int mapId)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendUserOnMapDisconnected", mapId);
         }
     }
 

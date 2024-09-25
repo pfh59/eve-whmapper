@@ -76,12 +76,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         await base.OnInitializedAsync();
     }
 
-
-    private void InitPasteServices()
-    {
-        //PasteServices.Pasted += OnPasted;
-    }
-
     private async Task<bool> RestoreMaps()
     {
         var allMaps = await DbWHMaps.GetAll();
@@ -129,8 +123,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             await RealTimeService.Stop();
             await RealTimeService.DisposeAsync();
         }
-
-        GC.SuppressFinalize(this);
     }
 
     private async Task<bool> InitRealTimeService()
@@ -143,8 +135,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 return false;
             }
 
-            RealTimeService.UserConnected += OnUserConnected;
-            RealTimeService.UserDisconnected+=OnUserDisconnected;
             RealTimeService.MapAdded += OnMapAdded;
             RealTimeService.MapRemoved += OnMapRemoved;
             RealTimeService.MapNameChanged += OnMapNameChanged;
@@ -164,18 +154,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     #region RealTimeService User Events
     
-
-    private Task OnUserConnected(string user)
-    {
-        Snackbar?.Add($"{user} are connected", Severity.Info);
-        return Task.CompletedTask;
-    }
-
-    private  Task OnUserDisconnected(string user)
-    {
-        Snackbar?.Add($"{user} are disconnected", Severity.Info);
-        return Task.CompletedTask;
-    }
     private async Task OnMapAdded(string user, int mapId)
     {
         try
@@ -377,30 +355,5 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             return Task.CompletedTask;
         }
      #endregion
-
-    /*
-    private async Task OnPasted(string? data)
-    {
-        if((_selectedWHMap!=null) && (_selectedSystemNode!=null))
-        {
-            try
-            {
-                string scanUser = await UserInfos.GetUserName();
-                if (await SignatureHelper.ImportScanResult(scanUser, _selectedSystemNode.IdWH, data,false))
-                {
-                    await WHSignaturesView.Restore();
-                    Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
-                    await NotifyWormholeSignaturesChanged(_selectedWHMap.Id, _selectedSystemNode.IdWH);
-                }
-                else
-                    Snackbar?.Add("No signatures added/updated", Severity.Error);
-            }
-            catch(Exception ex)
-            {
-                Logger.LogError(ex, "Handle Custom Paste error");
-                Snackbar?.Add(ex.Message, Severity.Error);
-            }
-        }
-    }*/
 
 }

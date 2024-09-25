@@ -10,7 +10,7 @@ namespace WHMapper.Hubs;
 public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
 {
     private readonly static ConnectionMapping<string> _connections = new ConnectionMapping<string>();
-    private readonly static ConcurrentDictionary<string, string> _connectedUserPosition = new ConcurrentDictionary<string, string>();
+    private readonly static ConcurrentDictionary<string, KeyValuePair<int,int>?> _connectedUserPosition = new ConcurrentDictionary<string, KeyValuePair<int,int>?>();
 
 
     private string CurrentUser()
@@ -26,12 +26,13 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
 
     public override async Task OnConnectedAsync()
     {
+        
         string userName = CurrentUser();
         _connections.Add(userName, Context.ConnectionId);
         
         if(!_connectedUserPosition.ContainsKey(userName))
         {
-            while (!_connectedUserPosition.TryAdd(userName, string.Empty))
+            while (!_connectedUserPosition.TryAdd(userName, null))
                     await Task.Delay(1);
         }
         await base.OnConnectedAsync();
@@ -40,33 +41,36 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        string userName = CurrentUser();
-            _connections.Remove(userName, Context.ConnectionId);
         
-        if (_connectedUserPosition.ContainsKey(userName))
+        string userName = CurrentUser();
+        _connections.Remove(userName, Context.ConnectionId);
+        
+        if (_connectedUserPosition.ContainsKey(userName) && _connections.GetConnections(userName).Count() == 0)
         {
             while (!_connectedUserPosition.TryRemove(userName, out _))
                 await Task.Delay(1);
+
+            await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(userName);
         }
 
-        await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(userName);
+
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendUserPosition(string systemName)
+    public async Task SendUserPosition(int mapId,int wormholeId)
     {
         string userName = CurrentUser();
         if (_connectedUserPosition.ContainsKey(userName))
         {
-            string? res = string.Empty;
+            KeyValuePair<int,int>? res = null;
             while (!_connectedUserPosition.TryGetValue(userName, out res))
                 await Task.Delay(1);
 
-            while (!_connectedUserPosition.TryUpdate(userName, systemName, res))
+            while (!_connectedUserPosition.TryUpdate(userName, new KeyValuePair<int,int>(mapId,wormholeId), res))
                 await Task.Delay(1);
         }
 
-        await Clients.AllExcept(Context.ConnectionId).NotifyUserPosition(userName, systemName);
+        await Clients.AllExcept(Context.ConnectionId).NotifyUserPosition(userName, mapId, wormholeId);
     }
 
     public async Task SendWormholeAdded(int mapId, int wowrmholeId)
@@ -162,9 +166,9 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         }
     }
 
-    public Task<IDictionary<string,string>> GetConnectedUsersPosition()
+    public Task<IDictionary<string,KeyValuePair<int,int>?>> GetConnectedUsersPosition()
     {
-        return Task.FromResult<IDictionary<string,string>>(_connectedUserPosition);
+        return Task.FromResult<IDictionary<string,KeyValuePair<int,int>?>>(_connectedUserPosition);
     }
 
     public async Task SendMapAdded(int mapId)
@@ -229,6 +233,26 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
             await Clients.All.NotifyMapAllAccessesRemoved(userName, mapId);
         }
     }
+
+    public async Task SendUserOnMapConnected(int mapId)
+    {
+        string userName = CurrentUser();
+        if (!string.IsNullOrEmpty(userName))
+        {
+            await Clients.AllExcept(Context.ConnectionId).NotifyUserOnMapConnected(userName, mapId);
+        }
+    }
+
+    public async Task SendUserOnMapDisconnected(int mapId)
+    {
+        string userName = CurrentUser();
+        if (!string.IsNullOrEmpty(userName))
+        {
+            await Clients.AllExcept(Context.ConnectionId).NotifyUserOnMapDisconnected(userName, mapId);
+        }
+    }
+
+ 
 
 }
 
