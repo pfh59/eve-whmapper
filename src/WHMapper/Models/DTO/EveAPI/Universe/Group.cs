@@ -1,9 +1,8 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace WHMapper.Models.DTO.EveAPI.Universe
 {
-	public class Group
+    public class Group
 	{
 
         [JsonPropertyName("group_id")]

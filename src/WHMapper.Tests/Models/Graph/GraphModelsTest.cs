@@ -1,5 +1,4 @@
-﻿using Blazor.Diagrams.Core.Models;
-using WHMapper.Models.Custom.Node;
+﻿using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper;
@@ -53,7 +52,7 @@ namespace WHMapper.Tests.Models.Graph
         [Fact]
         public async Task Eve_System_Node_Model()
         {
-            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, SOLAR_SYSTEM_JITA_SECURITY), new WHNote(SOLAR_SYSTEM_JITA_ID,WHSystemStatus.Friendly,SOLAR_SYSTEM_JITA_NAME), REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
+            var node = new EveSystemNodeModel(new WHSystem(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_JITA_NAME, SOLAR_SYSTEM_EXTENSION_NAME, SOLAR_SYSTEM_JITA_SECURITY), new WHNote(DEFAULT_MAP_ID,SOLAR_SYSTEM_JITA_ID,WHSystemStatus.Friendly,SOLAR_SYSTEM_JITA_NAME), REGION_JITA_NAME, CONSTELLATION_JITA_NAME);
             Assert.NotNull(node);
             Assert.Equal(0, node.IdWH);
             Assert.Equal(DEFAULT_MAP_ID, node.IdWHMap);

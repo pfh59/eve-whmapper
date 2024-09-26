@@ -1,25 +1,15 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.JSInterop;
 using MudBlazor;
-using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
-using WHMapper.Models.DTO.EveAPI.Universe;
 using WHMapper.Repositories.WHSignatures;
-using WHMapper.Repositories.WHSystems;
-using WHMapper.Services.Anoik;
-using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
-using static MudBlazor.CategoryTypes;
-using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
+
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -47,30 +37,45 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Inject]
         protected IWHColorHelper WHColorHelper { get; set; } = null!;
 
+        [Inject]
+        private IEveMapperRealTimeService EveMapperRealTimeService { get; set; } = null!;
+
+        [Inject]
+        private IWHSignatureHelper SignatureHelper { get; set; } = null!;
+
+        [Inject]
+        private IPasteServices PasteServices { get; set; } = null!;
+
         private IEnumerable<WHSignature> Signatures { get; set; } = null!;
 
-
         [Parameter]
-        public int? CurrentMapId {  get; set; } = null!;
+        public int? CurrentMapId {get;set;}=null!;
+
         [Parameter]
         public int? CurrentSystemNodeId {  get; set; } = null!;
-        [Parameter]
-        public HubConnection NotificationHub { private get; set; } = null!;
 
-
-        protected WHSignature? _selectedSignature;
+        private WHSignature? _selectedSignature;
         private WHSignature _signatureBeforeEdit = null!;
 
-        protected bool _isEditingSignature = false;
+        private bool _isEditingSignature = false;
 
         private PeriodicTimer? _timer;
         private CancellationTokenSource? _cts;
-        protected DateTime _currentDateTime;
+        private DateTime _currentDateTime;
 
         private MudTable<WHSignature> _signatureTable { get; set; } =null!;
 
         private string? _currentUser;
 
+
+        protected override async  Task OnInitializedAsync()
+        {
+            _currentUser = await UserInfos.GetUserName();
+            EveMapperRealTimeService.WormholeSignaturesChanged += OnWormholeSignaturesChanged;
+            await base.OnInitializedAsync();
+            if(PasteServices!=null)
+                PasteServices.Pasted += OnPaste;
+        }
 
         protected override Task OnParametersSetAsync()
         {
@@ -100,6 +105,10 @@ namespace WHMapper.Pages.Mapper.Signatures
                 catch (OperationCanceledException oce)
                 {
                     Logger.LogInformation(oce,"Operation canceled");
+                }
+                catch (ObjectDisposedException odex)
+                {
+                    Logger.LogInformation(odex, "Object disposed");
                 }
                 catch (Exception ex)
                 {
@@ -174,7 +183,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             if (result!=null && !result.Canceled && CurrentMapId.HasValue && CurrentSystemNodeId.HasValue)
             {
-                await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
             }
             
@@ -182,12 +191,8 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         public async Task Restore()
         {
-            if(String.IsNullOrEmpty(_currentUser))
-                _currentUser = await UserInfos.GetUserName();
-
             if(_signatureTable is not null)
                 _signatureTable.SetEditingItem(null);
-
 
             if (DbWHSignatures!=null && CurrentSystemNodeId != null && CurrentSystemNodeId > 0)
             {
@@ -217,7 +222,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
                 if (result != null && !result.Canceled && CurrentMapId!=null)
                 {
-                    await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                    await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                     await Restore();
                 }
             }
@@ -247,7 +252,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             if (result!=null && !result.Canceled && CurrentMapId != null && CurrentSystemNodeId != null)
             {
-                await NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
             }
         }
@@ -296,13 +301,51 @@ namespace WHMapper.Pages.Mapper.Signatures
                 Snackbar.Add("No signature updated", Severity.Error);
         }
 
-        private async Task NotifyWormholeSignaturesChanged(int mapId, int wormholeId)
+        #region Realtime events
+
+        private async Task OnWormholeSignaturesChanged(string usere,int mapId, int systemNodeId)
         {
-            if (NotificationHub is not null)
+            try
             {
-                await NotificationHub.SendAsync("SendWormholeSignaturesChanged", mapId, wormholeId);
+                if (CurrentMapId == mapId && CurrentSystemNodeId == systemNodeId)
+                {
+                    await Restore();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error in OnWormholeSignaturesChanged");
             }
         }
+
+        #endregion
+
+        #region Paste events
+        private async Task OnPaste(string? text)
+        {
+            if(CurrentSystemNodeId.HasValue && CurrentMapId.HasValue && !String.IsNullOrWhiteSpace(text))
+            {
+                try
+                {
+                    if (_currentUser != null && await SignatureHelper.ImportScanResult(_currentUser, CurrentSystemNodeId.Value, text, false))
+                    {
+                        await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                        await Restore();
+                        Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
+                    }
+                    else
+                        Snackbar?.Add("No signatures added/updated", Severity.Error);
+                }
+                catch(Exception ex)
+                {
+                    Logger.LogError(ex, "Handle Custom Paste error");
+                    Snackbar?.Add(ex.Message, Severity.Error);
+                }
+            }
+        }
+        #endregion
+
+
 
         public void Dispose()
         {

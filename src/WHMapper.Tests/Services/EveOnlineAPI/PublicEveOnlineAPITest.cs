@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Services.EveAPI.Alliances;
 using WHMapper.Services.EveAPI.Characters;

@@ -1,20 +1,21 @@
-﻿
-using System.Collections.Concurrent;
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using Blazor.Diagrams.Core.Layers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
+using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Models.DTO.RoutePlanner;
-using WHMapper.Services.EveAPI;
+using WHMapper.Pages.Mapper.Search;
 
 namespace WHMapper.Pages.Mapper.RoutePlanner
 {
     [Authorize(Policy = "Access")]
     public partial class Overview : ComponentBase
     {
+        private const string MSG_ADD_ROUTE_DB_ERROR = "Add route db error";
+
         private bool _loading =true;
         private IEnumerable<EveRoute>? _myRoutes = null;
         private IEnumerable<EveRoute>? _globalRoutes = null;
@@ -53,20 +54,24 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
         private ILogger<Overview> _logger {get;set;} = null!;
 
         [Parameter]
-        public EveSystemNodeModel CurrentSystemNode {get;set;} = null!;
+        public int? CurrentMapId {  get; set; } = null!;
 
+        [Parameter]
+        public EveSystemNodeModel CurrentSystemNode {get;set;} = null!;
+    
 
         [Parameter]
         public LinkLayer CurrentLinks { get; set; } = null!;
 
         protected override Task OnParametersSetAsync()
         {
-            Task.Run(() => Restore());
 
+            if(CurrentMapId.HasValue)
+            {
+                Task.Run(() => Restore());
+            }
             return base.OnParametersSetAsync();
         }
-
-
 
         private async Task Restore()
         {
@@ -74,7 +79,7 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             {
                 var currentSystem = CurrentSystemNode;
                 var currentLinks = CurrentLinks;
-                if (currentSystem != null && currentLinks!=null)
+                if (currentSystem != null && currentLinks!=null && CurrentMapId.HasValue)
                 {
                     _loading=true;
                     await InvokeAsync(() => {
@@ -99,8 +104,8 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
 
 
                     _logger.LogInformation("Restore routes from {0}", currentSystem.Name);
-                    var globalRouteTmp= await EveMapperRoutePlannerHelper.GetRoutesForAll(currentSystem.SolarSystemId,RType,mapConnections);
-                    var myRoutesTmp= await EveMapperRoutePlannerHelper.GetMyRoutes(currentSystem.SolarSystemId,RType,mapConnections);
+                    var globalRouteTmp= await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentMapId.Value,currentSystem.SolarSystemId,RType,mapConnections);
+                    var myRoutesTmp= await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentMapId.Value,currentSystem.SolarSystemId,RType,mapConnections);
 
                     if(_showedRoute!=null)
                     {
@@ -144,8 +149,15 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             }
         }
 
-        private async Task AddRoute()
+        private async Task AddRoute(bool global)
         {
+            if(!CurrentMapId.HasValue)
+            {
+                _logger.LogError("No map selected");
+                Snackbar.Add("No map selected", Severity.Error);
+                return;
+            }
+
             DialogOptions disableBackdropClick = new DialogOptions()
             {
                 BackdropClick=false,
@@ -155,14 +167,34 @@ namespace WHMapper.Pages.Mapper.RoutePlanner
             };
             var parameters = new DialogParameters();
 
-            var dialog = await DialogService.ShowAsync<Add>("Add Route", parameters, disableBackdropClick);
+            var dialog = await DialogService.ShowAsync<SearchSystem>("Search and Add Route Dialog", parameters, disableBackdropClick);
             DialogResult? result = await dialog.Result;
 
-            if (result != null && !result.Canceled)
+            if (result != null && !result.Canceled && result.Data != null)
             {
-                await Restore();
+                if (CurrentMapId.HasValue  && result.Data!=null)
+                {
+                    SystemEntity solarSystem = (SystemEntity)result.Data;
+                    var route = await EveMapperRoutePlannerHelper.AddRoute(CurrentMapId.Value,solarSystem.Id, global);
+
+                    if (route == null)
+                    {
+                        _logger.LogError(MSG_ADD_ROUTE_DB_ERROR);
+                        Snackbar?.Add(MSG_ADD_ROUTE_DB_ERROR, Severity.Error);
+                        return;
+                    }
+                    else
+                    {
+                        Snackbar?.Add(String.Format("{0} route successfully added",solarSystem.Name), Severity.Success);
+                        await Restore();
+                    }
+                }
+                else
+                {
+                    _logger.LogError("OpenSearchAndAddDialog, unable to find selected map to notify wormhole added");
+                    Snackbar?.Add("Unable to find selected map to notify wormhole added", Severity.Warning);
+                }
             }
-            StateHasChanged();
         }
 
         private async Task DelRoute(EveRoute route)

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSignatures;
-using WHMapper.Repositories.WHSystems;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {

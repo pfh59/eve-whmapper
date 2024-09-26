@@ -1,0 +1,86 @@
+﻿@page "/whmappermapadmin"
+@using WHMapper.Models.Db;
+@using WHMapper.Models.DTO.MapAdmin;
+
+
+<MudPaper Class="pa-4">
+    <MudCard Elevation="0">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudStack Row="true">
+                    <MudText Typo="Typo.h6">Map Admin: </MudText>
+                    <MudIconButton Color="Color.Info" Icon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="@((e) => OpenAddMap())" />
+                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteAllMaps())"></MudIconButton>
+                </MudStack>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent Class="pa-0">
+            <MudTable T="MapAdmin"Items="@Maps" SelectedItem="@_selectedMap" Virtualize="true" Bordered=true Striped=false Hover=true FixedHeader=true>
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Access</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">@context.Name</MudTd>
+                    <MudTd>
+                        @if(WHAccesses!=null && WHAccesses.Any())
+                        {
+                            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowMapAccess(context.Id))">@((context.ShowAccessDetails == true)? "Hide" : "Show") Access</MudButton>
+                        }
+                        else
+                        {
+                            <MudText Color="Color.Success">Full Access</MudText>
+                        }
+                    </MudTd>
+                    <MudTd>
+                        <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => DeleteMap(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+                <ChildRowContent>
+                    @if(context.ShowAccessDetails)
+                    {
+                    <MudTr>
+                        <td colspan="4">
+                            <MudCard Elevation="0">
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudStack Row="true">
+                                            <MudText Typo="Typo.body1">Map Access Details for <strong>@context.Name</strong></MudText>
+                                            <MudIconButton Color="Color.Info" Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Small" OnClick="@((e) => OpenAddAccess(context.Id))"/>
+                                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@((e) => RemoveAllAccesses(context.Id))"/>
+                                        </MudStack>
+                                    </CardHeaderContent>
+                                </MudCardHeader>
+                            <MudCardContent Class="pa-0">
+                                <MudTable T="WHAccess" Items="@context.WHMapAccesses" Dense=true Hover=false Bordered=true Striped=false SortLabel="Sort By" Virtualize="true" Height="100%" Loading="@(context.WHMapAccesses==null)" LoadingProgressColor="Color.Info"
+                                        CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" IsEditRowSwitchingBlocked="false" SelectedItem="@_selectedWHAccess"
+                                        FixedHeader="true">
+                                    <ColGroup>
+                                        <col />
+                                        <col />
+                                        <col />
+                                    </ColGroup>
+                                    <HeaderContent>
+                                        <MudTh>Eve Character Id</MudTh>
+                                        <MudTh>Eve Character Name</MudTh>
+                                        <MudTh/>
+                                    </HeaderContent>
+                                    <RowTemplate Context="accessContext">
+                                        <MudTd DataLabel="Id">@accessContext.EveEntity.ToString()</MudTd>
+                                        <MudTd DataLabel="EveEntityName">@accessContext.EveEntityName</MudTd>
+                                        <MudTd Style="text-align:center">
+                                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.PersonRemove" Size="Size.Small" OnClick="@((e) => RemoveAccess(context.Id,accessContext.Id))"/>
+                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>     
+                            </MudCardContent>
+                        </MudCard>
+                    </td>
+                </MudTr>
+                    }
+                </ChildRowContent>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudPaper>

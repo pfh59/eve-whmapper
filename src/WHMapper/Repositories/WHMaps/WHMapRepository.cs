@@ -1,11 +1,6 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using static MudBlazor.CategoryTypes;
 
 namespace WHMapper.Repositories.WHMaps
 {
@@ -16,6 +11,41 @@ namespace WHMapper.Repositories.WHMaps
             : base(logger,context)
         {
         }
+
+        
+
+        public async Task<bool> DeleteAll()
+        {
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                var deleteRow = await context.DbWHMaps.ExecuteDeleteAsync();
+                if (deleteRow > 0)
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+
+        public async Task<WHMap?> GetByNameAsync(string mapName)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                try
+                {
+                    return await context.DbWHMaps.SingleOrDefaultAsync(x => x.Name == mapName);
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Impossible to get WHMap by name : {Name}", mapName);
+                    return null;
+                }
+            }
+           
+          
+        }
+
 
         protected override async Task<WHMap?> ACreate(WHMap item)
         {
@@ -56,11 +86,13 @@ namespace WHMapper.Repositories.WHMaps
                 if (!await context.DbWHMaps.AnyAsync())
                     return await context.DbWHMaps.OrderBy(x => x.Name).ToListAsync();
                 else
-                    return await context.DbWHMaps
-                            .Include(x => x.WHSystems)
-                            .Include(x => x.WHSystemLinks)
-                            .ThenInclude(x => x.JumpHistory)
-                            .OrderBy(x => x.Name).ToListAsync();
+                    return await context.DbWHMaps.AsNoTracking()
+                            .Include(x => x.WHAccesses)
+                            //.Include(x => x.WHSystems)
+                            //.Include(x => x.WHSystemLinks)
+                            //    .ThenInclude(x => x.JumpHistory)
+                            .OrderBy(x => x.Name)
+                            .ToListAsync();
             }
         }
 
@@ -68,11 +100,12 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHMaps
+                return await context.DbWHMaps.AsNoTracking()
+                            .Include(x => x.WHAccesses)
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)
                             .ThenInclude(x => x.JumpHistory)
-                            .SingleOrDefaultAsync(x => x.Id == id);;
+                            .SingleOrDefaultAsync(x => x.Id == id);
             }
         }
 
@@ -96,6 +129,74 @@ namespace WHMapper.Repositories.WHMaps
                 }
             }
         }
+
+        public async Task<IEnumerable<WHAccess>?> GetMapAccesses(int id)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map =  await context.DbWHMaps.AsNoTracking()
+                            .Include(x => x.WHAccesses)
+                            .SingleOrDefaultAsync(x => x.Id == id);
+
+                if (map == null)
+                    return null;
+                else
+                    return map.WHAccesses;
+            }
+        }
+
+        public async Task<bool> DeleteMapAccess(int mapId, int accessId)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
+                if (map == null)
+                    return false;
+
+                var access = map.WHAccesses.SingleOrDefault(x => x.Id == accessId);
+                if (access == null)
+                    return false;
+
+                map.WHAccesses.Remove(access);
+                await context.SaveChangesAsync();
+                return true;
+            }
+        }
+
+        public async Task<bool> DeleteMapAccesses(int mapId)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
+                if (map == null)
+                    return false;
+
+                map.WHAccesses.Clear();
+                await context.SaveChangesAsync();
+                return true;
+            }
+        }
+
+        public async Task<bool> AddMapAccess(int mapId, int accessId)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
+                if (map == null)
+                    return false;
+
+                var access = await context.DbWHAccesses.SingleOrDefaultAsync(x => x.Id == accessId);
+                if (access == null)
+                    return false;
+
+                map.WHAccesses.Add(access);
+                await context.SaveChangesAsync();
+                return true;
+            }
+        }
+
+
+        
     }
 }
 

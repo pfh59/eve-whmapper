@@ -160,6 +160,9 @@ namespace WHMapper
 
                 options.AddPolicy("Admin", policy =>
                     policy.Requirements.Add(new EveMapperAdminRequirement()));
+
+                options.AddPolicy("Map", policy =>
+                    policy.Requirements.Add(new EveMapperMapRequirement()));
             });
 
             builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
@@ -220,12 +223,14 @@ namespace WHMapper
             builder.Services.AddScoped<IEveMapperRoutePlannerHelper, EveMapperRoutePlannerHelper>();
             builder.Services.AddScoped<IWHSignatureHelper, WHSignatureHelper>();
             builder.Services.AddScoped<IWHColorHelper, WHColorHelper>();
+            builder.Services.AddScoped<IEveMapperRealTimeService,EveMapperRealTimeService>();
             #endregion
 
             builder.Services.AddScoped<IPasteServices,PasteServices>();
 
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperAccessHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperAdminHandler>();
+            builder.Services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
 
 
 

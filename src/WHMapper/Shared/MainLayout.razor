@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using WHMapper.Services.WHSignature
+@inherits LayoutComponentBase
+
+
 
 <MudThemeProvider Theme="_currentTheme" DefaultScrollbar="false" IsDarkMode="true"/>
 <MudPopoverProvider/>
@@ -23,7 +26,7 @@
                 </MudCardContent>
             </MudCard>
         </MudPaper>
-}
+    }
     else
     {
         <MudLayout @oncustompaste="HandleCustomPaste" class="overflow-x-hidden">
@@ -34,6 +37,11 @@
             </MudAppBar>
             <MudMainContent>
                 <AuthorizeView>
+                    <Authorizing>
+                        <MudText class="py-1" Typo="Typo.body2">"Authorization in progress,please wait ...")
+                            <MudProgressCircular Color="Color.Secondary" Size="MudBlazor.Size.Small" />
+                        </MudText>
+                    </Authorizing>
                     <Authorized>
                         @Body
                     </Authorized>
@@ -53,6 +61,9 @@
 
     [Inject]
     private IPasteServices PasteServices {get;set;} =null!;
+
+    [Inject]
+    private IWHSignatureHelper SignatureService {get;set;} =null!;
 
     [Inject]
     private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
@@ -158,7 +169,13 @@
 
     private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)
     {
-        await PasteServices.Paste(eventArgs.PastedData);
+        if(!String.IsNullOrEmpty(eventArgs.PastedData) && !String.IsNullOrWhiteSpace(eventArgs.PastedData))
+        { 
+            if(await SignatureService.ValidateScanResult(eventArgs.PastedData))
+            { 
+                await PasteServices.Paste(eventArgs.PastedData);
+            }
+        }
     }
 
 }

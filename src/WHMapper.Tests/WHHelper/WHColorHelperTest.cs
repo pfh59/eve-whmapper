@@ -1,7 +1,5 @@
-﻿using System;
-using WHMapper.Models.Db.Enums;
+﻿using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.WHColor;
 using Xunit.Priority;
 

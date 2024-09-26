@@ -1,9 +1,8 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace WHMapper.Models.DTO.EveAPI.Universe
 {
-	public class Constellation
+    public class Constellation
 	{
         [JsonPropertyName("constellation_id")]
         public required int ConstellationId { get; set; }

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
@@ -40,6 +39,9 @@ namespace WHMapper.Pages.Mapper.Notes
         private IWHNoteRepository DbWHNotes { get; set; } = null!;
 
         [Parameter]
+        public int? CurrentMapId { get; set; } = -1;
+
+        [Parameter]
         public EveSystemNodeModel CurrentSystemNode { get; set; } = null!;
 
         protected async override Task OnParametersSetAsync()
@@ -49,9 +51,11 @@ namespace WHMapper.Pages.Mapper.Notes
                 _solarSystemComment = string.Empty;
                 _previousValue=string.Empty;
                 //load system saved notes
-                if (DbWHNotes != null)
+
+                
+                if (DbWHNotes != null && CurrentMapId.HasValue)
                 {
-                    _note = await DbWHNotes.GetBySolarSystemId(CurrentSystemNode.SolarSystemId);
+                    _note = await DbWHNotes.Get(CurrentMapId.Value,CurrentSystemNode.SolarSystemId);
                     if (_note == null)
                         _solarSystemComment = string.Empty;
                     else
@@ -75,7 +79,6 @@ namespace WHMapper.Pages.Mapper.Notes
 
         private async Task HandleTimerAsync()
         {
-
             if (_timer != null)
             {
                 _previousValue = _solarSystemComment;
@@ -113,16 +116,25 @@ namespace WHMapper.Pages.Mapper.Notes
                         }
                         else
                         {
+                                                         
+
                             if(_previousValue==_solarSystemComment)
                             {
-                                
-                                var note = await DbWHNotes.GetBySolarSystemId(CurrentSystemNode.SolarSystemId);
+                                if(!CurrentMapId.HasValue) 
+                                {
+                                    Logger.LogError("CurrentMapId is null");
+                                    throw new NullReferenceException("CurrentMapId is null");
+                                } 
+
+
+
+                                var note = await DbWHNotes.Get(CurrentMapId.Value,CurrentSystemNode.SolarSystemId);
 
                                 if (note == null)
                                 {
                                     try
                                     {
-                                        _note = await DbWHNotes.Create(new WHNote(CurrentSystemNode.SolarSystemId, _solarSystemComment));
+                                        _note = await DbWHNotes.Create(new WHNote(CurrentMapId.Value,CurrentSystemNode.SolarSystemId, _solarSystemComment));
                                         if (_note != null)
                                             Snackbar.Add(MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_SUCCESS, Severity.Success);
                                         else
@@ -201,6 +213,8 @@ namespace WHMapper.Pages.Mapper.Notes
         {
             this._timer?.Dispose();
             this._cts?.Dispose();
+            this._timer = null;
+            this._cts = null;
         }
     }
 }

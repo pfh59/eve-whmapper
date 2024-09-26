@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Pipelines.Sockets.Unofficial.Arenas;
-using WHMapper.Models.DTO.EveAPI.Alliance;
+﻿using WHMapper.Models.DTO.EveAPI.Alliance;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveAPI.Corporation;
 using WHMapper.Models.DTO.EveMapper.Enums;
@@ -9,7 +7,7 @@ using Xunit.Priority;
 
 namespace WHMapper.Tests.Models.Graph
 {
-    
+
     [TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
 
     public class EveEntityModelTest

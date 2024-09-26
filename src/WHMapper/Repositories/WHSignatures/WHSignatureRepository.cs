@@ -1,10 +1,6 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHAccesses;
-using static MudBlazor.CategoryTypes;
 
 
 namespace WHMapper.Repositories.WHSignatures

@@ -1,11 +1,7 @@
-﻿using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.Intrinsics.X86;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
-using WHMapper.Models.Db;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.WHColor;
@@ -48,8 +44,12 @@ namespace WHMapper.Pages.Mapper.SystemInfos
 
 
         [Parameter]
-        public EveSystemNodeModel CurrentSystemNode { get; set; } = null!;
+        public int? CurrentMapId { get; set; } = null!;
 
+        [Parameter]
+        public EveSystemNodeModel? CurrentSystemNode { get; set; } = null!;
+
+    
 
         protected override Task OnParametersSetAsync()
         {

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
-using WHMapper.Repositories.WHSystems;
 
 namespace WHMapper.Repositories.WHNotes
 {
-	public class WHNoteRepository : ADefaultRepository<WHMapperContext, WHNote, int>, IWHNoteRepository
+    public class WHNoteRepository : ADefaultRepository<WHMapperContext, WHNote, int>, IWHNoteRepository
     {
         public WHNoteRepository(ILogger<WHNoteRepository> logger, IDbContextFactory<WHMapperContext> context)
             : base(logger, context)
@@ -93,11 +90,11 @@ namespace WHMapper.Repositories.WHNotes
             }
         }
 
-        public async Task<WHNote?> GetBySolarSystemId(int solardSystemId)
+        public async Task<WHNote?> Get(int mapid,int solardSystemId)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHNotes.SingleOrDefaultAsync(x => x.SoloarSystemId == solardSystemId);
+                return await context.DbWHNotes.SingleOrDefaultAsync(x => x.SoloarSystemId == solardSystemId && x.MapId == mapid);
             }
         }
     }

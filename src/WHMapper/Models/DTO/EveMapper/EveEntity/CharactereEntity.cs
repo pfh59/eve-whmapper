@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using WHMapper.Models.DTO.EveAPI.Alliance;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveMapper.Enums;
 

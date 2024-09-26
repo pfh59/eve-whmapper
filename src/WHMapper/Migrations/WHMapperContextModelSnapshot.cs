@@ -17,10 +17,25 @@ namespace WHMapper.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.3")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("WHAccessWHMap", b =>
+                {
+                    b.Property<int>("WHAccessesId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WHMapId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("WHAccessesId", "WHMapId");
+
+                    b.HasIndex("WHMapId");
+
+                    b.ToTable("WHAccessWHMap");
+                });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHAccess", b =>
                 {
@@ -141,6 +156,9 @@ namespace WHMapper.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<int>("MapId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SoloarSystemId")
                         .HasColumnType("integer");
 
@@ -149,7 +167,7 @@ namespace WHMapper.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SoloarSystemId")
+                    b.HasIndex("MapId", "SoloarSystemId")
                         .IsUnique();
 
                     b.ToTable("Notes", (string)null);
@@ -235,13 +253,11 @@ namespace WHMapper.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("WHMapId", "Name")
                         .IsUnique();
 
-                    b.HasIndex("SoloarSystemId")
+                    b.HasIndex("WHMapId", "SoloarSystemId")
                         .IsUnique();
-
-                    b.HasIndex("WHMapId");
 
                     b.ToTable("Systems", (string)null);
                 });
@@ -274,11 +290,11 @@ namespace WHMapper.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IdWHSystemFrom");
+
                     b.HasIndex("IdWHSystemTo");
 
-                    b.HasIndex("WHMapId");
-
-                    b.HasIndex("IdWHSystemFrom", "IdWHSystemTo")
+                    b.HasIndex("WHMapId", "IdWHSystemFrom", "IdWHSystemTo")
                         .IsUnique();
 
                     b.ToTable("SystemLinks", (string)null);
@@ -295,15 +311,33 @@ namespace WHMapper.Migrations
                     b.Property<int?>("EveEntityId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("MapId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SolarSystemId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SolarSystemId", "EveEntityId")
+                    b.HasIndex("MapId", "SolarSystemId", "EveEntityId")
                         .IsUnique();
 
                     b.ToTable("Routes", (string)null);
+                });
+
+            modelBuilder.Entity("WHAccessWHMap", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHAccess", null)
+                        .WithMany()
+                        .HasForeignKey("WHAccessesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WHMapper.Models.Db.WHMap", null)
+                        .WithMany()
+                        .HasForeignKey("WHMapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHJumpLog", b =>
@@ -311,6 +345,15 @@ namespace WHMapper.Migrations
                     b.HasOne("WHMapper.Models.Db.WHSystemLink", null)
                         .WithMany("JumpHistory")
                         .HasForeignKey("WHSystemLinkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WHMapper.Models.Db.WHNote", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHMap", null)
+                        .WithMany()
+                        .HasForeignKey("MapId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -350,6 +393,15 @@ namespace WHMapper.Migrations
                     b.HasOne("WHMapper.Models.Db.WHMap", null)
                         .WithMany("WHSystemLinks")
                         .HasForeignKey("WHMapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WHMapper.WHRoute", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHMap", null)
+                        .WithMany()
+                        .HasForeignKey("MapId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

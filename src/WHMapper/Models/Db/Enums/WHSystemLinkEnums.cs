@@ -1,5 +1,4 @@
-﻿using System;
-namespace WHMapper.Models.Db.Enums
+﻿namespace WHMapper.Models.Db.Enums
 {
     public enum SystemLinkSize : int
     {

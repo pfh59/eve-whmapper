@@ -23,7 +23,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         _sdeServices = sdeServices;
     }
 
-    public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
+    public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
     {
         if (_eveUserInfosServices == null)
         {
@@ -31,10 +31,10 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             return null;
         }
 
-        return await GetRoutes(fromSolarSystemId, routeType, extraConnections, false);
+        return await GetRoutes(mapId,fromSolarSystemId, routeType, extraConnections, false);
     }
 
-    public async Task<IEnumerable<EveRoute>?> GetRoutesForAll(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
+    public async Task<IEnumerable<EveRoute>?> GetRoutesForAll(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
     {
         if (_routeRepository == null)
         {
@@ -42,22 +42,22 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             return null;
         }
 
-        return await GetRoutes(fromSolarSystemId, routeType, extraConnections, true);
+        return await GetRoutes(mapId,fromSolarSystemId, routeType, extraConnections, true);
     }
 
-    private async Task<IEnumerable<EveRoute>?> GetRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections, bool global)
+    private async Task<IEnumerable<EveRoute>?> GetRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections, bool global)
     {
         IList<EveRoute> routes = new List<EveRoute>();
         IEnumerable<WHRoute> whRoutes;
 
         if (global)
         {
-            whRoutes = await _routeRepository.GetRoutesForAll();
+            whRoutes = await _routeRepository.GetRoutesForAll(mapId);
         }
         else
         {
             var characterId = await _eveUserInfosServices.GetCharactedID();
-            whRoutes = await _routeRepository.GetRoutesByEveEntityId(characterId);
+            whRoutes = await _routeRepository.GetRoutesByEveEntityId(mapId,characterId);
         }
 
         foreach (var whRoute in whRoutes)
@@ -228,13 +228,13 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         }
     }
 
-    public async Task<WHRoute?> AddRoute(int soloarSystemId, bool global)
+    public async Task<WHRoute?> AddRoute(int mapId,int soloarSystemId, bool global)
     {
         WHRoute? route = null;
 
         if (global)
         {
-            route = await _routeRepository.Create(new WHRoute(soloarSystemId));
+            route = await _routeRepository.Create(new WHRoute(mapId,soloarSystemId));
         }
         else
         {
@@ -244,7 +244,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
                 return null;
             }
             var characterId = await _eveUserInfosServices.GetCharactedID();
-            route = await _routeRepository.Create(new WHRoute(soloarSystemId, characterId));
+            route = await _routeRepository.Create(new WHRoute(mapId,soloarSystemId, characterId));
         }
 
         if (route == null)

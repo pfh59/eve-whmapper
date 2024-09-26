@@ -74,6 +74,7 @@ namespace WHMapper.Migrations
                     b.ToTable("Admins", (string)null);
                 });
 
+            
             modelBuilder.Entity("WHMapper.Models.Db.WHJumpLog", b =>
                 {
                     b.Property<int>("Id")
@@ -89,17 +90,20 @@ namespace WHMapper.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long?>("ShipItemId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .IsRequired(false);
                         
-
                     b.Property<float?>("ShipMass")
-                        .HasColumnType("real");
-
+                        .HasColumnType("real")
+                        .IsRequired(false);
+                    
                     b.Property<int?>("ShipTypeId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .IsRequired(false); // Set the column to be nullable
 
                     b.Property<int>("WHSystemLinkId")
                         .HasColumnType("integer");
+                        
 
                     b.HasKey("Id");
 
@@ -250,6 +254,7 @@ namespace WHMapper.Migrations
                     b.ToTable("Systems", (string)null);
                 });
 
+            
             modelBuilder.Entity("WHMapper.Models.Db.WHSystemLink", b =>
                 {
                     b.Property<int>("Id")

@@ -1,13 +1,4 @@
-﻿using System;
-using System.Reflection.Emit;
-using System.Xml.Linq;
-using Blazor.Diagrams;
-using Blazor.Diagrams.Core.Geometry;
-using Blazor.Diagrams.Core.Models;
-using Blazor.Diagrams.Core.Models.Base;
-using Blazor.Diagrams.Extensions;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+﻿using Microsoft.AspNetCore.Components;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Services.WHColor;
 

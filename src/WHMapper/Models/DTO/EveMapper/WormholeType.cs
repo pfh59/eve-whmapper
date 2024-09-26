@@ -1,10 +1,9 @@
-﻿using System;
-using WHMapper.Models.DTO.EveMapper.Enums;
+﻿using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 
 namespace WHMapper.Models.DTO.EveMapper
 {
-	public class WormholeType
+    public class WormholeType
 	{
         public string Name { private set; get; }
         public EveSystemType Destination { private set; get; }

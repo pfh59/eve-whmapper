@@ -1,0 +1,11 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudForm @bind-IsValid="@_success" @ref="@_form">
+            <MudTextField @bind-Value="@_mapName" Label="Map Name" Required="true" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" OnClick="Submit" Disabled="@(_success==false)">Add Map</MudButton>
+    </DialogActions>
+</MudDialog>
