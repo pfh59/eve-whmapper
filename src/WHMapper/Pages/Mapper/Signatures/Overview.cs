@@ -106,6 +106,10 @@ namespace WHMapper.Pages.Mapper.Signatures
                 {
                     Logger.LogInformation(oce,"Operation canceled");
                 }
+                catch (ObjectDisposedException odex)
+                {
+                    Logger.LogInformation(odex, "Object disposed");
+                }
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error in timer");

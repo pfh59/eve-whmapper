@@ -112,16 +112,11 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        
         if (TrackerServices != null)
         {
             await TrackerServices.StopTracking();
 
-        }
-
-        if(RealTimeService!=null)
-        {
-            await RealTimeService.Stop();
-            await RealTimeService.DisposeAsync();
         }
     }
 
