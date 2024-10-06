@@ -41,6 +41,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Instrumentation.Runtime;
+using OpenTelemetry.Instrumentation.Process;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Exporter;
 
@@ -241,11 +242,11 @@ namespace WHMapper
 
             //configure openTelemetry
             builder.Services.AddOpenTelemetry().WithMetrics(opts => opts
-            //.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("BookStore.WebApi"))
-            //.AddMeter(builder.Configuration.GetValue<string>("BookStoreMeterName"))
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("WHMapper.WebApi"))
+            .AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName"))
             .AddAspNetCoreInstrumentation()
             .AddRuntimeInstrumentation()
-            //.AddProcessInstrumentation() 
+            .AddProcessInstrumentation()
             .AddOtlpExporter(options =>
             {
                 options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"] 
