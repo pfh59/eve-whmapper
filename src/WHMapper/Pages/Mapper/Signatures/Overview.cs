@@ -63,7 +63,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         private CancellationTokenSource? _cts;
         private DateTime _currentDateTime;
 
-        private MudTable<WHSignature> _signatureTable { get; set; } =null!;
+        private MudTable<WHSignature?> _signatureTable { get; set; } =null!;
 
         private string? _currentUser;
 

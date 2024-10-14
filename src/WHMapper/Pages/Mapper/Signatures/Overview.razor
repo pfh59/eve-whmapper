@@ -1,8 +1,8 @@
 @using WHMapper.Models.DTO.EveMapper;
 @using WHMapper.Models.DTO.EveMapper.Enums
 
-<MudPaper hidden="@(CurrentSystemNodeId == null)" Outlined="true" class="d-flex">
-<MudTable @ref="_signatureTable" Height="calc(100%)" Outlined="true" Items="@Signatures" Breakpoint="Breakpoint.Xs"
+<MudPaper hidden="@(CurrentSystemNodeId == null)" Outlined="true" Class="d-flex align-stretch">
+<MudTable @ref="_signatureTable" Outlined="true" Items="@Signatures" Breakpoint="Breakpoint.Xs" Height="325px"
         Dense=true Hover=false Bordered=true Striped=true AllowUnsorted=false SortLabel="Sort By"  Virtualize="true" 
         Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
         CommitEditTooltip="Commit" ApplyButtonPosition="TableApplyButtonPosition.End" CanCancelEdit="true" IsEditRowSwitchingBlocked="false" SelectedItem="_selectedSignature"
