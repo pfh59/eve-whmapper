@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Services.EveJwkExtensions;
+using WHMapper.Services.Metrics;
 
 namespace WHMapper.Hubs;
 
 [Authorize(AuthenticationSchemes = EveOnlineJwkDefaults.AuthenticationScheme)]
-public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
+public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMapperNotificationHub>
 {
     private readonly static ConnectionMapping<string> _connections = new ConnectionMapping<string>();
     private readonly static ConcurrentDictionary<string, KeyValuePair<int,int>?> _connectedUserPosition = new ConcurrentDictionary<string, KeyValuePair<int,int>?>();
@@ -34,6 +35,9 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         {
             while (!_connectedUserPosition.TryAdd(userName, null))
                     await Task.Delay(1);
+
+            meters.ConnectUser();
+            meters.IncreaseTotalUsers();
         }
         await base.OnConnectedAsync();
         await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(userName);
@@ -49,6 +53,10 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         {
             while (!_connectedUserPosition.TryRemove(userName, out _))
                 await Task.Delay(1);
+
+           
+            meters.DisconnectUser();
+            meters.DecreaseTotalUsers();
 
             await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(userName);
         }

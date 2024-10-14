@@ -44,6 +44,8 @@ using OpenTelemetry.Instrumentation.Runtime;
 using OpenTelemetry.Instrumentation.Process;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Exporter;
+using WHMapper.Migrations;
+using WHMapper.Services.Metrics;
 
 namespace WHMapper
 {
@@ -155,7 +157,7 @@ namespace WHMapper
 
 
                 options.SaveTokens = true;
-                options.UsePkce = true;
+                options.UsePkce = true;               
             })
             .AddEveOnlineJwtBearer();//validate hub tokken
 
@@ -240,18 +242,27 @@ namespace WHMapper
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperAdminHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
 
+
+            builder.Services.AddSingleton<WHMapperStoreMetrics>();
+
+
             //configure openTelemetry
             builder.Services.AddOpenTelemetry().WithMetrics(opts => opts
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("WHMapper.WebApi"))
-            .AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName"))
-            .AddAspNetCoreInstrumentation()
-            .AddRuntimeInstrumentation()
-            .AddProcessInstrumentation()
-            .AddOtlpExporter(options =>
-            {
-                options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"] 
-                                   ?? throw new InvalidOperationException());
-            }));   
+                // Configure OpenTelemetry Resources with the application name
+                .ConfigureResource(resource => resource
+                    .AddService(serviceName: builder.Environment.ApplicationName)
+                )
+                .AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName"))
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddProcessInstrumentation()
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"] 
+                                    ?? throw new InvalidOperationException());
+                })
+            );   
 
 
 

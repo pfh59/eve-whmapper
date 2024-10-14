@@ -1,15 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Services.Metrics;
 
 namespace WHMapper.Repositories.WHMaps
 {
     public class WHMapRepository : ADefaultRepository<WHMapperContext, WHMap, int>, IWHMapRepository
     {
+        private readonly WHMapperStoreMetrics _meters;
 
-        public WHMapRepository(ILogger<WHMapRepository> logger, IDbContextFactory<WHMapperContext> context)
+        
+
+        public WHMapRepository(ILogger<WHMapRepository> logger, IDbContextFactory<WHMapperContext> context,WHMapperStoreMetrics meters)
             : base(logger,context)
         {
+            _meters = meters;
         }
 
         
@@ -20,7 +25,11 @@ namespace WHMapper.Repositories.WHMaps
             {
                 var deleteRow = await context.DbWHMaps.ExecuteDeleteAsync();
                 if (deleteRow > 0)
+                {
+                    _meters.DeleteMaps(deleteRow);
+                    _meters.DecreaseTotalMaps(deleteRow);
                     return true;
+                }
                 else
                     return false;
             }
@@ -55,7 +64,8 @@ namespace WHMapper.Repositories.WHMaps
                 {
                     await context.DbWHMaps.AddAsync(item);
                     await context.SaveChangesAsync();
-
+                    _meters.AddMap();
+                    _meters.IncreaseTotalMaps();
                     return item;
                 }
                 catch (Exception ex)
@@ -73,7 +83,11 @@ namespace WHMapper.Repositories.WHMaps
             {
                 var deleteRow = await context.DbWHMaps.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
+                {
+                    _meters.DeleteMap();
+                    _meters.DecreaseTotalMaps();
                     return true;
+                }
                 else
                     return false;
             }
@@ -120,6 +134,7 @@ namespace WHMapper.Repositories.WHMaps
 
                     context.DbWHMaps.Update(item);
                     await context.SaveChangesAsync();
+                    _meters.UpdateMap();
                     return item;
                 }
                 catch (Exception ex)

@@ -1,14 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WHMapper.Data;
 using WHMapper.Models.Db;
+using WHMapper.Services.Metrics;
 
 namespace WHMapper.Repositories.WHSystems
 {
     public class WHSystemRepository : ADefaultRepository<WHMapperContext, WHSystem, int>, IWHSystemRepository
     {
-        public WHSystemRepository(ILogger<WHSystemRepository> logger,IDbContextFactory<WHMapperContext> context)
+        private readonly WHMapperStoreMetrics _meters;
+
+        public WHSystemRepository(ILogger<WHSystemRepository> logger,IDbContextFactory<WHMapperContext> context,WHMapperStoreMetrics meters)
             : base(logger,context)
         {
+            _meters = meters;
         }
 
         protected override async Task<WHSystem?> ACreate(WHSystem item)
@@ -20,7 +24,8 @@ namespace WHMapper.Repositories.WHSystems
                 {
                     await context.DbWHSystems.AddAsync(item);
                     await context.SaveChangesAsync();
-
+                    _meters.AddSystem();
+                    _meters.IncreaseTotalSystems();
                     return item;
                 }
                 catch (Exception ex)
@@ -37,7 +42,11 @@ namespace WHMapper.Repositories.WHSystems
             {
                 int deleteRow = await context.DbWHSystems.Where(x => x.Id == id).ExecuteDeleteAsync();
                 if (deleteRow > 0)
+                {
+                    _meters.DeleteSystem();
+                    _meters.DecreaseTotalSystems();
                     return true;
+                }
                 else
                     return false;
             }
@@ -78,6 +87,7 @@ namespace WHMapper.Repositories.WHSystems
 
                     context.DbWHSystems.Update(item);
                     await context.SaveChangesAsync();
+                    _meters.UpdateSystem();
                     return item;
                 }
                 catch (Exception ex)
