@@ -50,11 +50,6 @@ jobs:
 
   prepare_release_docker_image_docker_io:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      packages: write
-      contents: read
-      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -94,8 +89,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          labels: |
-            org.opencontainers.image.authors=${{ github.actor }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -114,14 +107,6 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
-
-      - name: Attest
-        uses: actions/attest-build-provenance@v1
-        id: attest
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
 
       - name: Export digest
         run: |
