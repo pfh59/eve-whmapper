@@ -145,9 +145,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_test_package]
     permissions:
-      contents: read
+      id-token: write
       packages: write
-      pull-requests: write
+      contents: read
+      attestations: write
     
 
     steps:
@@ -169,13 +170,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
           labels: |
-            org.opencontainers.image.revision=${{ env.SHA }}
-            org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.authors=${{ github.actor }}
-            org.opencontainers.image.description=${{ github.repository }} image
-            orf.opencontainers.image.licenses="MIT"
-
-
           tags: |
             type=edge,branch=$repo.default_branch
             type=semver,pattern=v{{version}}
@@ -205,6 +200,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      - name: Attest
+        uses: actions/attest-build-provenance@v1
+        id: attest
+        with:
+          subject-name: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
               
       - name: Docker Scout
         id: docker-scout
@@ -223,6 +226,11 @@ jobs:
   prepare_docker_image_docker_io:
     if: github.event_name != 'pull_request' #PUSH only on merging
     needs: [build_test_package,build_test_docker_image]
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+      attestations: write
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -264,10 +272,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
-            org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.authors=${{ github.actor }}
-            org.opencontainers.image.description=${{ github.repository }} image
-            orf.opencontainers.image.licenses="MIT"
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -286,7 +291,16 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+      
+      - name: Attest
+        uses: actions/attest-build-provenance@v1
+        id: attest
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
 
+            
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -323,10 +337,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
-            org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.authors=${{ github.actor }}
-            org.opencontainers.image.description=${{ github.repository }} image
-            orf.opencontainers.image.licenses="MIT"
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -382,10 +393,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
           labels: |
-            org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.authors=${{ github.actor }}
-            org.opencontainers.image.description=${{ github.repository }} image
-            orf.opencontainers.image.licenses="MIT"
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -403,3 +411,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
+      
+      - name: Attest
+        uses: actions/attest-build-provenance@v1
+        id: attest
+        with:
+          subject-name: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
