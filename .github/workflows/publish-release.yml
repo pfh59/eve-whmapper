@@ -50,6 +50,11 @@ jobs:
 
   prepare_release_docker_image_docker_io:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:
@@ -89,6 +94,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.authors=${{ github.actor }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
