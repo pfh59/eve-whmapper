@@ -50,6 +50,11 @@ jobs:
 
   prepare_release_docker_image_docker_io:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -115,7 +120,7 @@ jobs:
         id: attest
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
+          subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
       - name: Export digest

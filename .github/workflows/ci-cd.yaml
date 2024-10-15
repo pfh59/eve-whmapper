@@ -182,8 +182,6 @@ jobs:
           registry: ${{ env.REGISTRY_DOCKERHUB }}
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
-
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -200,15 +198,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
+      # Attest SBOM
       - name: Attest
         uses: actions/attest-build-provenance@v1
-        id: attest
+        id: attest-sbom
         with:
           subject-name: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
+          subject-digest: ${{ steps.build-and-push.outputs.digest }}
           push-to-registry: true
-              
+      
       - name: Docker Scout
         id: docker-scout
         if: ${{ github.event_name == 'pull_request' }}
@@ -291,16 +290,15 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
-      
+            
       - name: Attest
         uses: actions/attest-build-provenance@v1
-        id: attest
+        id: attest-sbom
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
+          subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
-            
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -368,6 +366,11 @@ jobs:
   release_docker_image_docker_hub:
     if: github.event_name != 'pull_request' #PUSH only on merging
     needs: [build_test_package,build_test_docker_image]
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+      attestations: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -411,11 +414,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-      
+
       - name: Attest
         uses: actions/attest-build-provenance@v1
-        id: attest
+        id: attest-sbom
         with:
           subject-name: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+      
+      
