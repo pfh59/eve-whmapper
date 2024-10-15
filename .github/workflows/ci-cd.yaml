@@ -145,11 +145,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_test_package]
     permissions:
-      id-token: write
       packages: write
       contents: read
-      attestations: write
-    
+      pull-requests: write
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
