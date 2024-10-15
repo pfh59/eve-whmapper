@@ -148,7 +148,7 @@ jobs:
       packages: write
       contents: read
       pull-requests: write
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -218,7 +218,7 @@ jobs:
       id-token: write
       packages: write
       contents: read
-      attestations: write
+
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -280,14 +280,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
             
-      - name: Attest
-        uses: actions/attest-build-provenance@v1
-        id: attest-sbom
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
-
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -359,7 +351,7 @@ jobs:
       id-token: write
       packages: write
       contents: read
-      attestations: write
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -403,13 +395,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-
-      - name: Attest
-        uses: actions/attest-build-provenance@v1
-        id: attest-sbom
-        with:
-          subject-name: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
       
       
