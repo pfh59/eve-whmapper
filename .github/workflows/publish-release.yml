@@ -89,6 +89,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.description=${{ github.repository }} image
+            orf.opencontainers.image.licenses="MIT"
           tags: |
             type=ref,event=branch
             type=ref,event=pr

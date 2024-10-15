@@ -170,6 +170,12 @@ jobs:
           images: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
           labels: |
             org.opencontainers.image.revision=${{ env.SHA }}
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.description=${{ github.repository }} image
+            orf.opencontainers.image.licenses="MIT"
+
+
           tags: |
             type=edge,branch=$repo.default_branch
             type=semver,pattern=v{{version}}
@@ -257,6 +263,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.description=${{ github.repository }} image
+            orf.opencontainers.image.licenses="MIT"
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -311,6 +322,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.description=${{ github.repository }} image
+            orf.opencontainers.image.licenses="MIT"
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -365,6 +381,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.description=${{ github.repository }} image
+            orf.opencontainers.image.licenses="MIT"
           tags: |
             type=ref,event=branch
             type=ref,event=pr
