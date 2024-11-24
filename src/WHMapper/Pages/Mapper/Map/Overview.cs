@@ -285,7 +285,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 _blazorDiagram = new BlazorDiagram();
                 _blazorDiagram.UnregisterBehavior<DragMovablesBehavior>();
                 _blazorDiagram.RegisterBehavior(new CustomDragMovablesBehavior(_blazorDiagram));
-
                 _blazorDiagram.Options.Zoom.Enabled = true;
                 _blazorDiagram.Options.Zoom.Inverse = false;
                 _blazorDiagram.Options.Links.EnableSnapping = false;
@@ -328,13 +327,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if (selectedWHMap != null && selectedWHMap.WHSystems != null)
         {
-            foreach (var dbWHSys in selectedWHMap.WHSystems)
+
+            var tasks = selectedWHMap.WHSystems.Select(async item =>
             {
-                EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
+                EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
                 whSysNode.OnLocked += OnWHSystemNodeLocked;
                 whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
                 _blazorDiagram.Nodes.Add(whSysNode);
-            }
+            });
+            await Task.WhenAll(tasks);
         }
     }
 
@@ -345,21 +346,22 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return;
         }
 
-        foreach (var dbWHSysLink in selectedWHMap.WHSystemLinks)
+        var tasks = selectedWHMap.WHSystemLinks.Select(async item =>
         {
-            var srcNode = await GetSystemNode(dbWHSysLink.IdWHSystemFrom);
-            var targetNode = await GetSystemNode(dbWHSysLink.IdWHSystemTo);
+            var srcNode = await GetSystemNode(item.IdWHSystemFrom);
+            var targetNode = await GetSystemNode(item.IdWHSystemTo);
 
             if (srcNode != null && targetNode != null)
             {
-                _blazorDiagram.Links.Add(new EveSystemLinkModel(dbWHSysLink, srcNode, targetNode));
+                _blazorDiagram.Links.Add(new EveSystemLinkModel(item, srcNode, targetNode));
             }
             else
             {
                 Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
-                await DbWHSystemLinks.DeleteById(dbWHSysLink.Id);
-        }
-        }
+                await DbWHSystemLinks.DeleteById(item.Id);
+            }
+        });
+        await Task.WhenAll(tasks);
     }
 
     #region Diagram Events
