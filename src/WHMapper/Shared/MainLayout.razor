@@ -31,7 +31,8 @@
     {
         <MudLayout @oncustompaste="HandleCustomPaste" class="overflow-x-hidden">
             <MudAppBar Elevation="1" Dense=true>
-                <MudText Typo="Typo.h5" Class="ml-3">Wormhole Mapper</MudText>
+                <MudText Typo="Typo.h5" Class="ml-5">Wormhole Mapper</MudText>
+                <MudChip T="string" Class="ml-5" Disabled="true" Variant="Variant.Outlined" >@String.Format("v{0}", Version)</MudChip>
                 <MudSpacer />
                 <AccessControl />
             </MudAppBar>
@@ -55,6 +56,7 @@
     private MudTheme _currentTheme = null!;
     private bool _loading = true;
     private string _init_process_msg = string.Empty;
+    private string Version { get; set; } = string.Empty;
 
     [Inject]
     private ISnackbar Snackbar {get;set;} =null!;
@@ -90,9 +92,11 @@
                 Primary = "#ffffff",
                 PrimaryDarken = "#ffffff",
                 PrimaryLighten = "#ffffff"
-
             }
         };
+
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        Version = version != null ? version.ToString(3) : "Unknown";
 
         if(SDEServices.IsExtractionSuccesful())
         {
