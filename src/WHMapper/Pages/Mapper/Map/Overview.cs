@@ -249,8 +249,9 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             if(selectedWHMap != null)
             {
                 await ClearDiagram();
-                await InitializeSystemNodes(selectedWHMap);
-                await InitializeSystemLinks(selectedWHMap);
+                await LoadingMap(selectedWHMap);
+                //await InitializeSystemNodes(selectedWHMap);
+                //await InitializeSystemLinks(selectedWHMap);
             }
 
             Logger.LogInformation("Restore Mapper Success");
@@ -328,13 +329,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if (selectedWHMap != null && selectedWHMap.WHSystems != null)
         {
-            foreach (var dbWHSys in selectedWHMap.WHSystems)
+
+            var tasks = selectedWHMap.WHSystems.Select(async item =>
             {
-                EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(dbWHSys);
+                EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
                 whSysNode.OnLocked += OnWHSystemNodeLocked;
                 whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
                 _blazorDiagram.Nodes.Add(whSysNode);
-            }
+            });
+            await Task.WhenAll(tasks);
         }
     }
 
@@ -345,21 +348,34 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return;
         }
 
-        foreach (var dbWHSysLink in selectedWHMap.WHSystemLinks)
+        var tasks = selectedWHMap.WHSystemLinks.Select(async item =>
         {
-            var srcNode = await GetSystemNode(dbWHSysLink.IdWHSystemFrom);
-            var targetNode = await GetSystemNode(dbWHSysLink.IdWHSystemTo);
+            var srcNode = await GetSystemNode(item.IdWHSystemFrom);
+            var targetNode = await GetSystemNode(item.IdWHSystemTo);
 
             if (srcNode != null && targetNode != null)
             {
-                _blazorDiagram.Links.Add(new EveSystemLinkModel(dbWHSysLink, srcNode, targetNode));
+                _blazorDiagram.Links.Add(new EveSystemLinkModel(item, srcNode, targetNode));
             }
             else
             {
                 Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
-                await DbWHSystemLinks.DeleteById(dbWHSysLink.Id);
+                await DbWHSystemLinks.DeleteById(item.Id);
+            }
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task LoadingMap(WHMap? selectedWHMap)
+    {
+        if (selectedWHMap == null)
+        {
+            Logger.LogError("Loading Map, selectedWHMap is null");
+            throw new NullReferenceException("Selected WH Map is null");
         }
-        }
+
+        await InitializeSystemNodes(selectedWHMap);
+        await InitializeSystemLinks(selectedWHMap);
     }
 
     #region Diagram Events
