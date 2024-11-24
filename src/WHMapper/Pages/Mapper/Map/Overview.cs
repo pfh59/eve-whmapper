@@ -386,7 +386,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 {
                     SelectedSystemNode = null;
                     SelectedSystemLink = null;
-                    return;
                 }
                 else
                 {               
