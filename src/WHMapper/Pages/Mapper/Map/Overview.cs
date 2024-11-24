@@ -523,13 +523,13 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 return false;
             }
 
-            if (SelectedSystemNode != null && _selectedSystemNodes != null && _selectedSystemNodes.Count > 0)
+            if (_selectedSystemNodes != null && _selectedSystemNodes.Any())
             {
                 await HandleNodeDeletion();
                 return true;
             }
 
-            if (SelectedSystemLink != null && _selectedSystemLinks != null && _selectedSystemLinks.Count > 0)
+            if (_selectedSystemLinks != null && _selectedSystemLinks.Any())
             {
                 await HandleLinkDeletion();
                 return true;
