@@ -381,13 +381,23 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 _selectedSystemNodes = selectedModels.OfType<EveSystemNodeModel>().ToList();
                 _selectedSystemLinks = selectedModels.OfType<EveSystemLinkModel>().ToList();
 
-                if (item is EveSystemNodeModel node)
+
+                if(_selectedSystemNodes.Count>1 || _selectedSystemLinks.Count>1)
                 {
-                    HandleNodeSelection(node);
+                    SelectedSystemNode = null;
+                    SelectedSystemLink = null;
+                    return;
                 }
-                else if (item is EveSystemLinkModel link)
-                {
-                    HandleLinkSelection(link);
+                else
+                {               
+                    if (item is EveSystemNodeModel node)
+                    {
+                        HandleNodeSelection(node);
+                    }
+                    else if (item is EveSystemLinkModel link)
+                    {
+                        HandleLinkSelection(link);
+                    }
                 }
             });
         }
