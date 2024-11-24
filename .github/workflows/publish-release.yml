@@ -31,24 +31,16 @@ jobs:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
 
-      - name: Install GitVersion
-        run: dotnet tool install --global GitVersion.Tool
-
-      - name: Generate version
-        run: gitversion /output json /showvariable FullSemVer
-        id: gitversion
-
-      - name: Update .csproj version
-        run: |
-          VERSION=${{ steps.gitversion.outputs.FullSemVer }}
-          sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/" src/WHMapper/WHMapper.csproj
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: 📦 Generate Package (linux x64/arm, Windows x64)
         run: |
             dotnet restore src
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64 /p:Version=${{ env.VERSION }}
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm /p:Version=${{ env.VERSION }}
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64 /p:Version=${{ env.VERSION }}
 
             zip -r WHMapper.linux-x64.zip ./release/linux-x64 -j
             zip -r WHMapper.linux-arm.zip ./release/linux-arm -j

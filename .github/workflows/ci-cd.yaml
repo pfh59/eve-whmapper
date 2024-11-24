@@ -186,7 +186,7 @@ jobs:
             org.opencontainers.image.authors=${{ github.actor }}
           tags: |
             type=edge,branch=$repo.default_branch
-            type=semver,pattern=v{{version}}
+            type=semver,pattern={{version}}
             type=sha,prefix=,suffix=,format=short
 
       - name: Authenticate to registry ${{ env.REGISTRY_DOCKERHUB }}
