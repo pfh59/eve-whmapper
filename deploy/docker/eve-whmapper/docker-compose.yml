@@ -21,7 +21,7 @@ services:
      - net
 
   whmapper:
-    image: ghcr.io/pfh59/eve-whmapper:latest
+    image: ghcr.io/pfh59/eve-whmapper:1.1
     restart: unless-stopped
     environment:
      - EveSSO__ClientId=xxxxxxxxx
