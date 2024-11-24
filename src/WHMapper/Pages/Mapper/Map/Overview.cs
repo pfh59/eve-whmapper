@@ -249,9 +249,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             if(selectedWHMap != null)
             {
                 await ClearDiagram();
-                await LoadingMap(selectedWHMap);
-                //await InitializeSystemNodes(selectedWHMap);
-                //await InitializeSystemLinks(selectedWHMap);
+                await InitializeSystemNodes(selectedWHMap);
+                await InitializeSystemLinks(selectedWHMap);
             }
 
             Logger.LogInformation("Restore Mapper Success");
@@ -286,7 +285,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 _blazorDiagram = new BlazorDiagram();
                 _blazorDiagram.UnregisterBehavior<DragMovablesBehavior>();
                 _blazorDiagram.RegisterBehavior(new CustomDragMovablesBehavior(_blazorDiagram));
-
                 _blazorDiagram.Options.Zoom.Enabled = true;
                 _blazorDiagram.Options.Zoom.Inverse = false;
                 _blazorDiagram.Options.Links.EnableSnapping = false;
@@ -364,18 +362,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             }
         });
         await Task.WhenAll(tasks);
-    }
-
-    private async Task LoadingMap(WHMap? selectedWHMap)
-    {
-        if (selectedWHMap == null)
-        {
-            Logger.LogError("Loading Map, selectedWHMap is null");
-            throw new NullReferenceException("Selected WH Map is null");
-        }
-
-        await InitializeSystemNodes(selectedWHMap);
-        await InitializeSystemLinks(selectedWHMap);
     }
 
     #region Diagram Events
