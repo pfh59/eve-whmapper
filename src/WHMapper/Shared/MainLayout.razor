@@ -56,7 +56,7 @@
     private MudTheme _currentTheme = null!;
     private bool _loading = true;
     private string _init_process_msg = string.Empty;
-    private string Version { get; set; }
+    private string Version { get; set; } = string.Empty;
 
     [Inject]
     private ISnackbar Snackbar {get;set;} =null!;
@@ -95,7 +95,8 @@
             }
         };
 
-        Version = GetVersion();
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        Version = version != null ? version.ToString(3) : "Unknown";
 
         if(SDEServices.IsExtractionSuccesful())
         {
@@ -107,11 +108,6 @@
         }   
 
         return base.OnInitializedAsync();
-    }
-    private string GetVersion()
-    {
-        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-        return version != null ? version.ToString(3) : "Unknown";
     }
 
     private async Task SetProcessMessage(string message)
