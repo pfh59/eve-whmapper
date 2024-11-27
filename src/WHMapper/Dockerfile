@@ -19,7 +19,7 @@ RUN dotnet build "WHMapper.csproj" -c Release -o /app/build
 # Publish the application
 FROM build AS publish
 ARG VERSION=0.0.0
-RUN dotnet publish "WHMapper.csproj" -c Release -o /app/publish /p:Version=$VERSION
+RUN dotnet publish "WHMapper.csproj" -c Release -o /app/publish /p:Version="$VERSION"
 
 # Final stage: use the runtime image to run the application
 FROM base AS final
