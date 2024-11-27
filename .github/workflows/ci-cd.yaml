@@ -84,11 +84,21 @@ jobs:
           ConnectionStrings__RedisConnection: "localhost:6379"
         run: dotnet test src/WHMapper.Tests -c Release
            
+      - name: Cache SonarCloud data
+        if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-sonar-
+      
       - name: Install SonarCloud scanners
         if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
+
       - name: SonarCloud Build and Analyze 🚀 🧪
         if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
         env:
@@ -267,7 +277,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
           flavor: |
             latest=false
 
@@ -323,7 +334,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
           flavor: |
             latest=false
       
@@ -384,7 +396,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
           flavor: |
             latest=false
 
