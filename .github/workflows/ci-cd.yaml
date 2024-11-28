@@ -117,12 +117,14 @@ jobs:
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Generate Artifact
+        if: github.event_name != 'pull_request'
         run: | 
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64
           
       - name: Attest
+        if: github.event_name != 'pull_request'
         uses: actions/attest@v1
         with:
           subject-path: |
@@ -386,12 +388,12 @@ jobs:
 
 
   release_docker_image_docker_hub:
+    if: github.event_name != 'pull_request' #PUSH only on merging
     needs: [build_test_package,build_test_docker_image]
     permissions:
       id-token: write
       packages: write
       contents: read
-      attestations: write
 
     runs-on: ubuntu-latest
     steps:
@@ -438,15 +440,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-
-      - name: Attest
-        uses: actions/attest@v1
-        id: attest
-        with:
-          subject-name: ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          predicate-type: 'https://in-toto.io/attestation/release/v1.1.0'
-          predicate: '{"purl":"pkg:oci/..."}'
-          push-to-registry: true
       
       
