@@ -243,6 +243,7 @@ jobs:
       id-token: write
       packages: write
       contents: read
+      attestations: write
 
     runs-on: ubuntu-latest
     strategy:
@@ -438,6 +439,7 @@ jobs:
         id: push
         with:
           context: ./src/WHMapper/
+          sbom: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
