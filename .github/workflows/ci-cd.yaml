@@ -117,7 +117,6 @@ jobs:
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Generate Artifact
-        if: github.event_name != 'pull_request'
         run: | 
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
