@@ -26,6 +26,10 @@ env:
 jobs:
   build_test_package:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
 
 # Service containers to run with `runner-job`
     services:
