@@ -123,7 +123,7 @@ jobs:
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
           dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64
           
-      - name: Attest
+      - name: Attest Artifact
         if: github.event_name != 'pull_request'
         uses: actions/attest@v1
         with:
