@@ -372,7 +372,7 @@ jobs:
           push-to-registry: true
 
   release_docker_image_docker_hub:
-    if: github.event_name != 'pull_request' #PUSH only on merging
+    
     needs: [build_test_package,build_test_docker_image]
     permissions:
       id-token: write
