@@ -42,6 +42,29 @@ jobs:
             dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm /p:Version=${{ env.VERSION }}
             dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64 /p:Version=${{ env.VERSION }}
 
+      - name: Attest Linux x64 Package
+        uses: actions/attest@v1
+        with:
+          subject-path: ./release/linux-x64
+          predicate-type: 'https://example.com/predicate/v1.1.0'
+          predicate: '{}'
+        
+      - name: Attest Linux arm Package
+        uses: actions/attest@v1
+        with:
+          subject-path: ./release/linux-arm
+          predicate-type: 'https://example.com/predicate/v1.1.0'
+          predicate: '{}'
+        
+      - name: Attest Windows x64 Package
+        uses: actions/attest@v1
+        with:
+          subject-path: ./release/win-x64
+          predicate-type: 'https://example.com/predicate/v1.1.0'
+          predicate: '{}'
+      
+      - name: Compress and upload
+        run: |
             zip -r WHMapper.linux-x64.zip ./release/linux-x64 -j
             zip -r WHMapper.linux-arm.zip ./release/linux-arm -j
             zip -r WHMapper.win-x64.zip ./release/win-x64 -j
@@ -135,6 +158,15 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Attest the image
+        uses: actions/attest@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          predicate-type: 'https://ghcr.io/attestation/release/v0.1'
+          predicate: '{"purl":"pkg:oci/..."}'
+          push-to-registry: true
+
   merge_release_docker_image_docker_io:
     needs: [prepare_release_docker_image_docker_io]
     runs-on: ubuntu-latest
@@ -179,6 +211,3 @@ jobs:
         name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}          
-      
-      
-
