@@ -423,7 +423,6 @@ jobs:
           labels: |
             org.opencontainers.image.authors=${{ github.actor }}
           tags: |
-            sbom=true
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
