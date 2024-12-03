@@ -9,9 +9,11 @@ namespace WHMapper.Services.EveMapper
         public const int MIN_SEARCH_ENTITY_CHARACTERS = 5;
 
         Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value, CancellationToken cancellationToken);
+
         Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value, CancellationToken cancellationToken);
-        Task<IEnumerable<CorporationEntity>?> SearchCorporation(string value, CancellationToken cancellationToken);
-        Task<IEnumerable<AllianceEntity>?> SearchAlliance(string value, CancellationToken cancellationToken);
+        Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value,bool strict, CancellationToken cancellationToken);
+        Task<IEnumerable<CorporationEntity>?> SearchCorporation(string value,bool strict, CancellationToken cancellationToken);
+        Task<IEnumerable<AllianceEntity>?> SearchAlliance(string value,bool strict, CancellationToken cancellationToken);
         Task<IEnumerable<AEveEntity>?> SearchEveEntities(string value, CancellationToken cancellationToken);
         IEnumerable<string> ValidateSearchType(string value);
     }
