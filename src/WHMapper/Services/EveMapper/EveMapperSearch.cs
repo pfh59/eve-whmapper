@@ -111,7 +111,7 @@ namespace WHMapper.Services.EveMapper
                 }
                 else
                 {
-                    _logger.LogError($"Search {value} Unknow value");
+                    _logger.LogError("Search {Value} Unknow value", value);
                     return null;
                 }
 
@@ -119,18 +119,18 @@ namespace WHMapper.Services.EveMapper
                     return results;
                 else
                 {
-                    _logger.LogDebug($"Search {value} not found");
+                    _logger.LogDebug("Search {Value} not found", value);
                     return null;
                 }
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"Search {value} cancelled");
+                _logger.LogInformation("Search {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Search {value}");
+                _logger.LogError(ex, "Search {Value}", value);
                 return null;
             }
         }
@@ -142,12 +142,12 @@ namespace WHMapper.Services.EveMapper
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"SearchSystem {value} cancelled");
+                _logger.LogInformation("SearchSystem {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchSystem {value}");
+                _logger.LogError(ex, "SearchSystem {Value}", value);
                 return null;
             }
         }
@@ -157,7 +157,6 @@ namespace WHMapper.Services.EveMapper
             try
             {
                 IEnumerable<CharactereEntity>? results = new BlockingCollection<CharactereEntity>();
-                IEnumerable<CharactereEntity>? results2 = new BlockingCollection<CharactereEntity>();
                 IEnumerable<CharactereEntity>? strictCharacterEntities = await SearchCharactere(value,true, cancellationToken);
                 IEnumerable<CharactereEntity>? characterEntities = await SearchCharactere(value,false, cancellationToken);
 
@@ -175,12 +174,12 @@ namespace WHMapper.Services.EveMapper
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"SearchCharactere {value} cancelled");
+                _logger.LogInformation("SearchCharactere {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchCharactere {value}");
+                _logger.LogError(ex, "SearchCharactere {Value}", value);
                 return null;
             }
 
@@ -195,12 +194,12 @@ namespace WHMapper.Services.EveMapper
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"SearchCharactere {value} cancelled");
+                _logger.LogInformation("SearchCharactere {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchCharactere {value}");
+                _logger.LogError(ex, "SearchCharactere {Value}", value);
                 return null;
             }
         }
@@ -212,12 +211,12 @@ namespace WHMapper.Services.EveMapper
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"SearchCoorporation {value} cancelled");
+                _logger.LogInformation("SearchCoorporation {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchCoorporation {value}");
+                _logger.LogError(ex, "SearchCoorporation {Value}", value);
                 return null;
             }
         }
@@ -229,12 +228,12 @@ namespace WHMapper.Services.EveMapper
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"SearchAlliance {value} cancelled");
+                _logger.LogInformation("SearchAlliance {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchAlliance {value}");
+                _logger.LogError(ex, "SearchAlliance {Value}", value);
                 return null;
             }
         }
