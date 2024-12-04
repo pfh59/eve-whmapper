@@ -140,9 +140,9 @@ namespace WHMapper.Services.EveMapper
             {
                 return await Search<SDESolarSystem>(value,true, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation("SearchSystem {Value} cancelled", value);
+                _logger.LogInformation(oce,"SearchSystem {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
@@ -157,8 +157,8 @@ namespace WHMapper.Services.EveMapper
             try
             {
                 IEnumerable<CharactereEntity>? results = new BlockingCollection<CharactereEntity>();
-                IEnumerable<CharactereEntity>? strictCharacterEntities = await SearchCharactere(value,true, cancellationToken);
-                IEnumerable<CharactereEntity>? characterEntities = await SearchCharactere(value,false, cancellationToken);
+                IEnumerable<CharactereEntity>? strictCharacterEntities = await Search<CharactereEntity>(value, true, cancellationToken);
+                IEnumerable<CharactereEntity>? characterEntities = await Search<CharactereEntity>(value, false, cancellationToken);
 
                 if (strictCharacterEntities != null)
                 {
@@ -172,9 +172,9 @@ namespace WHMapper.Services.EveMapper
 
                 return results;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation("SearchCharactere {Value} cancelled", value);
+                _logger.LogInformation(oce,"SearchCharactere {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
@@ -192,9 +192,9 @@ namespace WHMapper.Services.EveMapper
             {
                 return await Search<CharactereEntity>(value,strict, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation("SearchCharactere {Value} cancelled", value);
+                _logger.LogInformation(oce,"SearchCharactere {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
@@ -209,9 +209,9 @@ namespace WHMapper.Services.EveMapper
             {
                 return await Search<CorporationEntity>(value,strict, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation("SearchCoorporation {Value} cancelled", value);
+                _logger.LogInformation(oce,"SearchCoorporation {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
@@ -226,9 +226,9 @@ namespace WHMapper.Services.EveMapper
             {
                 return await Search<AllianceEntity>(value,strict, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation("SearchAlliance {Value} cancelled", value);
+                _logger.LogInformation(oce,"SearchAlliance {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
