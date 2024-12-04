@@ -27,7 +27,7 @@ namespace WHMapper.Services.EveMapper
             _eveAPIServices = eveAPIServices;
         }
 
-        private async Task<IEnumerable<T>?> Search<T>(string value, CancellationToken cancellationToken)
+        private async Task<IEnumerable<T>?> Search<T>(string value,bool strict, CancellationToken cancellationToken)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace WHMapper.Services.EveMapper
                     if (typeof(T) == typeof(CharactereEntity))
                     {
                         BlockingCollection<CharactereEntity> eveEntityResults = new BlockingCollection<CharactereEntity>();
-                        SearchCharacterResults? characterResults = await _eveAPIServices.SearchServices.SearchCharacter(value);
+                        SearchCharacterResults? characterResults = await _eveAPIServices.SearchServices.SearchCharacter(value,strict);
                         if (characterResults != null && characterResults.Characters != null)
                         {
                             await Parallel.ForEachAsync(characterResults.Characters, options, async (characterId, token) =>
@@ -75,7 +75,7 @@ namespace WHMapper.Services.EveMapper
                     else if (typeof(T) == typeof(CorporationEntity))
                     {
                         BlockingCollection<CorporationEntity> eveEntityResults = new BlockingCollection<CorporationEntity>();
-                        SearchCoporationResults? coporationResults = await _eveAPIServices.SearchServices.SearchCorporation(value);
+                        SearchCoporationResults? coporationResults = await _eveAPIServices.SearchServices.SearchCorporation(value,strict);
                         if (coporationResults != null && coporationResults.Corporations != null)
                         {
                             await Parallel.ForEachAsync(coporationResults.Corporations, options, async (corpoId, token) =>
@@ -93,7 +93,7 @@ namespace WHMapper.Services.EveMapper
                     else if (typeof(T) == typeof(AllianceEntity))
                     {
                         BlockingCollection<AllianceEntity> eveEntityResults = new BlockingCollection<AllianceEntity>();
-                        SearchAllianceResults? allianceResults = await _eveAPIServices.SearchServices.SearchAlliance(value);
+                        SearchAllianceResults? allianceResults = await _eveAPIServices.SearchServices.SearchAlliance(value,strict);
                         if (allianceResults != null && allianceResults.Alliances != null)
                         {
                             await Parallel.ForEachAsync(allianceResults.Alliances, options, async (allianceId, token) =>
@@ -111,7 +111,7 @@ namespace WHMapper.Services.EveMapper
                 }
                 else
                 {
-                    _logger.LogError($"Search {value} Unknow value");
+                    _logger.LogError("Search {Value} Unknow value", value);
                     return null;
                 }
 
@@ -119,18 +119,18 @@ namespace WHMapper.Services.EveMapper
                     return results;
                 else
                 {
-                    _logger.LogDebug($"Search {value} not found");
+                    _logger.LogDebug("Search {Value} not found", value);
                     return null;
                 }
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"Search {value} cancelled");
+                _logger.LogInformation("Search {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Search {value}");
+                _logger.LogError(ex, "Search {Value}", value);
                 return null;
             }
         }
@@ -138,93 +138,157 @@ namespace WHMapper.Services.EveMapper
         {
             try
             {
-                return await Search<SDESolarSystem>(value, cancellationToken);
+                return await Search<SDESolarSystem>(value,true, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation($"SearchSystem {value} cancelled");
+                _logger.LogInformation(oce,"SearchSystem {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchSystem {value}");
+                _logger.LogError(ex, "SearchSystem {Value}", value);
                 return null;
             }
         }
+
         public async Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value, CancellationToken cancellationToken)
         {
             try
             {
-                return await Search<CharactereEntity>(value, cancellationToken);
+                IEnumerable<CharactereEntity>? results = new BlockingCollection<CharactereEntity>();
+                IEnumerable<CharactereEntity>? strictCharacterEntities = await Search<CharactereEntity>(value, true, cancellationToken);
+                IEnumerable<CharactereEntity>? characterEntities = await Search<CharactereEntity>(value, false, cancellationToken);
+
+                if (strictCharacterEntities != null)
+                {
+                    results = results.Union(strictCharacterEntities.OrderBy(x => x.Name));
+                }
+
+                if (characterEntities != null)
+                {
+                    results = results.UnionBy(characterEntities.OrderBy(x => x.Name), x => x.Id);
+                }
+
+                return results;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation($"SearchCharactere {value} cancelled");
+                _logger.LogInformation(oce,"SearchCharactere {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchCharactere {value}");
+                _logger.LogError(ex, "SearchCharactere {Value}", value);
                 return null;
             }
-        }
-        public async Task<IEnumerable<CorporationEntity>?> SearchCorporation(string value, CancellationToken cancellationToken)
+
+
+        } 
+
+        public async Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value,bool strict, CancellationToken cancellationToken)
         {
             try
             {
-                return await Search<CorporationEntity>(value, cancellationToken);
+                return await Search<CharactereEntity>(value,strict, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation($"SearchCoorporation {value} cancelled");
+                _logger.LogInformation(oce,"SearchCharactere {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchCoorporation {value}");
+                _logger.LogError(ex, "SearchCharactere {Value}", value);
                 return null;
             }
         }
-        public async Task<IEnumerable<AllianceEntity>?> SearchAlliance(string value, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CorporationEntity>?> SearchCorporation(string value,bool strict,  CancellationToken cancellationToken)
         {
             try
             {
-                return await Search<AllianceEntity>(value, cancellationToken);
+                return await Search<CorporationEntity>(value,strict, cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException oce)
             {
-                _logger.LogInformation($"SearchAlliance {value} cancelled");
+                _logger.LogInformation(oce,"SearchCoorporation {Value} cancelled", value);
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SearchAlliance {value}");
+                _logger.LogError(ex, "SearchCoorporation {Value}", value);
+                return null;
+            }
+        }
+        public async Task<IEnumerable<AllianceEntity>?> SearchAlliance(string value,bool strict,  CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await Search<AllianceEntity>(value,strict, cancellationToken);
+            }
+            catch (OperationCanceledException oce)
+            {
+                _logger.LogInformation(oce,"SearchAlliance {Value} cancelled", value);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SearchAlliance {Value}", value);
                 return null;
             }
         }
         public async Task<IEnumerable<AEveEntity>?> SearchEveEntities(string value, CancellationToken cancellationToken)
         {
             IEnumerable<AEveEntity>? results = new BlockingCollection<AEveEntity>();
-            IEnumerable<AllianceEntity>? allianceEntities = await SearchAlliance(value, cancellationToken);
-            IEnumerable<CorporationEntity>? coorporationEntities = await SearchCorporation(value, cancellationToken);
-            IEnumerable<CharactereEntity>? characterEntities = await SearchCharactere(value, cancellationToken);
+            IEnumerable<AEveEntity>? results2 = new BlockingCollection<AEveEntity>();
+            IEnumerable<AllianceEntity>? strictAllianceEntities = await SearchAlliance(value,true, cancellationToken);
+            IEnumerable<CorporationEntity>? strictCoorporationEntities = await SearchCorporation(value,true, cancellationToken);
+            IEnumerable<CharactereEntity>? strictCharacterEntities = await SearchCharactere(value,true, cancellationToken);
+
+
+            if (strictAllianceEntities != null)
+            {
+                results = results.Union(strictAllianceEntities as IEnumerable<AEveEntity>);
+            }
+
+            if (strictCoorporationEntities != null)
+            {
+                results = results.Union(strictCoorporationEntities as IEnumerable<AEveEntity>);
+            }
+
+            if (strictCharacterEntities != null)
+            {
+                results = results.Union(strictCharacterEntities as IEnumerable<AEveEntity>);
+            }
+
+            results = results.OrderByDescending(x => x.EntityType).ThenBy(x => x.Name);
+
+
+
+           IEnumerable<AllianceEntity>? allianceEntities = await SearchAlliance(value,false, cancellationToken);
+           IEnumerable<CorporationEntity>? coorporationEntities = await SearchCorporation(value,false, cancellationToken);
+           IEnumerable<CharactereEntity>? characterEntities = await SearchCharactere(value,false, cancellationToken);
 
             if (allianceEntities != null)
             {
-                results = results.Union(allianceEntities as IEnumerable<AEveEntity>);
+                results2 = results2.Union(allianceEntities as IEnumerable<AEveEntity>);
             }
 
             if (coorporationEntities != null)
             {
-                results = results.Union(coorporationEntities as IEnumerable<AEveEntity>);
+                results2 = results2.Union(coorporationEntities as IEnumerable<AEveEntity>);
             }
 
             if (characterEntities != null)
             {
-                results = results.Union(characterEntities as IEnumerable<AEveEntity>);
+                results2 = results2.Union(characterEntities as IEnumerable<AEveEntity>);
             }
 
-            return results.OrderByDescending(x => x.Name).ThenBy(x => x.EntityType);
+            results2 = results2.OrderByDescending(x => x.EntityType).ThenBy(x => x.Name);
+
+
+
+            return results.UnionBy(results2, x => x.Id);
         }
 
 
