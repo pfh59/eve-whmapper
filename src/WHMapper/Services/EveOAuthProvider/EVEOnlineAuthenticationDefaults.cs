@@ -31,13 +31,12 @@
         /// Default value for <see cref="OAuthOptions.TokenEndpoint"/>.
         /// </summary>
         public static readonly string TokenEndpoint = "https://login.eveonline.com/v2/oauth/token";
-
-        /// <summary>
-        /// Default value for <see cref="OAuthOptions.UserInformationEndpoint"/>.
-        /// </summary>
-        //[Obsolete("This endpoint is no longer used by the EVEOnline provider.")]
-        //public static readonly string UserInformationEndpoint = "https://login.eveonline.com/oauth/verify";
+        public static readonly string JWKEndpoint = "https://login.eveonline.com/oauth/jwks";
+        public static readonly string RevokeTokenEndpoint = "https://login.eveonline.com/v2/oauth/revoke";
 
         public const string Scopes = "urn:eveonline:scopes";
+
+        public static readonly string ValideIssuer = "https://login.eveonline.com";
+        public static readonly string ValideAudience = "EVE Online";
     }
 }

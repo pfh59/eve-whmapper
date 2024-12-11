@@ -5,10 +5,8 @@ namespace WHMapper.Services.EveOAuthProvider
 {
     public class EVEOnlineAuthenticationOptions : OAuthOptions
     {
-        /// <summary>
-        /// Gets or sets the optional <see cref="JsonWebTokenHandler"/> to use.
-        /// </summary>
-        public JsonWebTokenHandler SecurityTokenHandler { get; set; } = default!;
+        public string RevokeTokenEndpoint { get; private set; } = default!;
+        public string JWKEndpoint { get; private set; } = default!;
 
         public EVEOnlineAuthenticationOptions()
         {
@@ -17,6 +15,8 @@ namespace WHMapper.Services.EveOAuthProvider
 
             AuthorizationEndpoint = EVEOnlineAuthenticationDefaults.AuthorizationEndpoint;
             TokenEndpoint = EVEOnlineAuthenticationDefaults.TokenEndpoint;
+            RevokeTokenEndpoint = EVEOnlineAuthenticationDefaults.RevokeTokenEndpoint;
+            JWKEndpoint = EVEOnlineAuthenticationDefaults.JWKEndpoint;            
         }
     }
 }

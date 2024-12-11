@@ -36,6 +36,7 @@ using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
 using System.IO.Abstractions;
+using WHMapper.Services.EveOAuthProvider.Validators;
 
 namespace WHMapper
 {
@@ -141,18 +142,18 @@ namespace WHMapper
                 options.ClientSecret = evessoConf["Secret"];
                 options.CallbackPath = new PathString("/sso/callback");
                 options.Scope.Clear();
-
                 foreach (string scope in evessoConfScopes.Get<string[]>())
                     options.Scope.Add(scope);
 
 
                 options.SaveTokens = true;
                 options.UsePkce = true;
+                //options.OAuthEvents.OnFailedRenewAccessToken
             })
+           
             .AddEveOnlineJwtBearer();//validate hub tokken
 
-
-
+           
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("Access", policy =>
@@ -173,7 +174,7 @@ namespace WHMapper
 
             builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStateProvider>();
             
-
+             builder.Services.AddScoped<IEveOnlineAccessTokenValidator, EveOnlineAccessTokenValidator>();
 
             builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
             builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();

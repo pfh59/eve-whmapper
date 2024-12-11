@@ -1,40 +1,59 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.JsonWebTokens;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using WHMapper.Services.EveOAuthProvider.Validators;
 
 namespace WHMapper.Services.EveOAuthProvider
 {
 
     public partial class EVEOnlineAuthenticationHandler : OAuthHandler<EVEOnlineAuthenticationOptions>
     {
+        private readonly IEveOnlineAccessTokenValidator _accessTokenValidator;
         public EVEOnlineAuthenticationHandler(
-            [NotNull] IOptionsMonitor<EVEOnlineAuthenticationOptions> options,
-            [NotNull] ILoggerFactory logger,
-            [NotNull] UrlEncoder encoder)
+            IOptionsMonitor<EVEOnlineAuthenticationOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder,
+            IEveOnlineAccessTokenValidator accessTokenValidator)
             : base(options, logger, encoder)
         {
-
+                _accessTokenValidator = accessTokenValidator;
         }
 
-        protected override Task<OAuthTokenResponse> ExchangeCodeAsync(OAuthCodeExchangeContext context)
-        {
-            return base.ExchangeCodeAsync(context);
-        }
 
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
             string? accessToken = tokens.AccessToken;
-
-            if (string.IsNullOrWhiteSpace(accessToken))
+           
+            if(!await _accessTokenValidator.ValidateAsync(tokens.AccessToken!))
             {
-                throw new InvalidOperationException("No access token was returned in the OAuth token.");
+                throw new SecurityTokenException("Access token is invalid");  
             }
 
+            var jwtSecurityToken = new JwtSecurityTokenHandler().ReadJwtToken(tokens.AccessToken);
+            identity.AddClaims(jwtSecurityToken.Claims);
+
+            var authTokens = properties.GetTokens().ToList();
+
+            var issuedAt = UnixTimeStampToDateTime(
+                jwtSecurityToken.Claims.First(x => x.Type.Equals("iss", StringComparison.OrdinalIgnoreCase)
+                ).Value);
+            
+            authTokens.Add(new AuthenticationToken
+            {
+                Name = "issued_at",
+                Value = issuedAt
+            });
+
+            properties.StoreTokens(authTokens);
+          
+            return await base.CreateTicketAsync(identity, properties, tokens);
+
+            /*
             var tokenClaims = ExtractClaimsFromToken(accessToken);
 
             foreach (var claim in tokenClaims)
@@ -47,9 +66,10 @@ namespace WHMapper.Services.EveOAuthProvider
             context.RunClaimActions();
 
             await Events.CreatingTicket(context);
-            return new AuthenticationTicket(context.Principal!, context.Properties, Scheme.Name);
+            return new AuthenticationTicket(context.Principal!, context.Properties, Scheme.Name);*/
         }
 
+/*
         protected virtual IEnumerable<Claim> ExtractClaimsFromToken([NotNull] string token)
         {
             try
@@ -121,9 +141,9 @@ namespace WHMapper.Services.EveOAuthProvider
             }
 
             return extractedClaim;
-        }
+        }*/
 
-        public static string UnixTimeStampToDateTime(string unixTimeStamp)
+        private string UnixTimeStampToDateTime(string unixTimeStamp)
         {
             if (!long.TryParse(unixTimeStamp, NumberStyles.Integer, CultureInfo.InvariantCulture, out long unixTime))
             {
