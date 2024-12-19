@@ -6,5 +6,5 @@ namespace WHMapper.Services.EveOAuthProvider.Services;
 
 public interface IClaimServices
 {
-    IEnumerable<Claim> ExtractClaimsFromEVEToken([NotNull] string token);
+    Task<IEnumerable<Claim>> ExtractClaimsFromEVEToken([NotNull] string token);
 }

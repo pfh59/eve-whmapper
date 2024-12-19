@@ -57,12 +57,14 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
                 }
             }
 
-            var claims = EVEOnlineAuthenticationHandler.ExtractClaimsFromEVEToken(_tokenInfo.AccessToken);
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
+            //var claims = EVEOnlineAuthenticationHandler.ExtractClaimsFromEVEToken(_tokenInfo.AccessToken);
+           // return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
+           return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
 
         private Task<bool> IsTokenExpired()
         {
+            /*
             JsonWebTokenHandler SecurityTokenHandle = new JsonWebTokenHandler();
             var securityToken = SecurityTokenHandle.ReadJsonWebToken(_tokenInfo.AccessToken);
             var expiry = EVEOnlineAuthenticationHandler.ExtractClaim(securityToken, "exp");
@@ -76,7 +78,7 @@ namespace WHMapper.Services.EveJwtAuthenticationStateProvider
             if (datetime.UtcDateTime <= DateTime.UtcNow)
             {
                 return Task.FromResult(true);
-            }
+            }*/
 
             return Task.FromResult(false);
         }

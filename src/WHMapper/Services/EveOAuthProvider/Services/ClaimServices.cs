@@ -28,8 +28,23 @@ public class ClaimServices : IClaimServices
             var expClaim = ExtractClaim(securityToken, "exp");
 
 
+            var claims = new List<Claim>(securityToken.Claims);
 
-            return jsonToken.Claims;
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, securityToken.Subject.Replace("CHARACTER:EVE:", string.Empty, StringComparison.OrdinalIgnoreCase), ClaimValueTypes.String, EVEOnlineAuthenticationDefaults.Issuer));
+            claims.Add(new Claim(ClaimTypes.Name, nameClaim.Value, ClaimValueTypes.String, EVEOnlineAuthenticationDefaults.Issuer));
+            //claims.Add(new Claim(ClaimTypes.Expiration, UnixTimeStampToDateTime(expClaim.Value), ClaimValueTypes.DateTime, EVEOnlineAuthenticationDefaults.Issuer));
+
+            var scopes = claims.Where(x => string.Equals(x.Type, "scp", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (scopes.Count > 0)
+            {
+                claims.Add(new Claim(EVEOnlineAuthenticationDefaults.Scopes, string.Join(' ', scopes.Select(x => x.Value)), ClaimValueTypes.String, EVEOnlineAuthenticationDefaults.Issuer));
+            }
+
+            return claims;
+
+
+            
         }
         catch (Exception ex)
         {
@@ -37,17 +52,19 @@ public class ClaimServices : IClaimServices
         }
     }
 
-        public static Claim ExtractClaim([NotNull] JwtSecurityToken token, [NotNull] string claim)
+    public static Claim ExtractClaim([NotNull] JwtSecurityToken token, [NotNull] string claim)
+    {
+        var extractedClaim = token.Claims.FirstOrDefault(x => string.Equals(x.Type, claim, StringComparison.OrdinalIgnoreCase));
+
+        if (extractedClaim == null)
         {
-            var extractedClaim = token.Claims.FirstOrDefault(x => string.Equals(x.Type, claim, StringComparison.OrdinalIgnoreCase));
-
-            if (extractedClaim == null)
-            {
-                throw new InvalidOperationException($"The claim '{claim}' is missing from the EVEOnline JWT.");
-            }
-
-            return extractedClaim;
+            throw new InvalidOperationException($"The claim '{claim}' is missing from the EVEOnline JWT.");
         }
+
+        return extractedClaim;
+    }
+
+}
 
 
 
@@ -124,3 +141,4 @@ public class ClaimServices : IClaimServices
 
             return
 }
+*/

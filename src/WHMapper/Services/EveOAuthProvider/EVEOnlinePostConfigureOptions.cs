@@ -7,10 +7,7 @@ namespace WHMapper.Services.EveOAuthProvider
     {
         public void PostConfigure(string? name, EVEOnlineAuthenticationOptions options)
         {
-            if (options.SecurityTokenHandler == null)
-            {
-                options.SecurityTokenHandler = new JsonWebTokenHandler();
-            }
+
         }
     }
 }

@@ -37,6 +37,7 @@ using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
 using System.IO.Abstractions;
 using WHMapper.Services.EveOAuthProvider.Validators;
+using WHMapper.Services.EveOAuthProvider.Middleware;
 
 namespace WHMapper
 {
@@ -327,6 +328,7 @@ namespace WHMapper
             app.UseCookiePolicy();
 
             app.UseAuthentication();
+            app.UseMiddleware<EveTokenRefreshMiddleware>();
             app.UseAuthorization();
 
             app.MapBlazorHub();
