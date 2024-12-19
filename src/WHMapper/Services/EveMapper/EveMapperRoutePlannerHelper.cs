@@ -196,7 +196,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
             routePath.Add(tmpSystem);
             if (!previousSystems.ContainsKey(tmpSystem))
             {
-                _logger.LogError("Error calculating route");
                 return null;
             }
 
