@@ -30,7 +30,7 @@ public partial class Overview : ComponentBase
         private string FirstJumpLogCharacterName { get; set; } = string.Empty;
         private string FirstJumpLogShipName { get; set; } = string.Empty;
         private DateTime? FirstJumpLogDate { get; set; } = null;
-
+        
         private string LastJumpLogCharacterName{ get; set; } = string.Empty;
         private string LastJumpLogShipName { get; set; } = string.Empty;
         private DateTime? LastJumpLogDate { get; set; } = null;
@@ -62,7 +62,9 @@ public partial class Overview : ComponentBase
                                 SystemLink = await DbSystemLink.GetById(CurrentSystemLink.Id);
                                 if (SystemLink != null)
                                 {
-                                        var firstJump = SystemLink.JumpHistory.FirstOrDefault();
+                                        var JumpHistory = SystemLink.JumpHistory.OrderBy(x => x.JumpDate).ToList();
+
+                                        var firstJump = JumpHistory.FirstOrDefault();
                                         if(firstJump!=null)
                                         {
                                                 _showing=true;
@@ -71,7 +73,7 @@ public partial class Overview : ComponentBase
                                                 FirstJumpLogShipName = await GetJumpLogShipName(firstJump);
                                         }
 
-                                        var lastJump = SystemLink.JumpHistory.LastOrDefault();
+                                        var lastJump = JumpHistory.LastOrDefault();
                                         if(lastJump!=null)
                                         {      
                                                 _showing=true;

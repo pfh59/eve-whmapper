@@ -74,7 +74,7 @@
                 </MudStack>
             </MudStack>
         </MudStack>
-        <MudTable Items="@SystemLink?.JumpHistory" Height="calc(100%)" Outlined="true" Dense="true" Hover="false" Bordered=true Striped=true 
+        <MudTable Items="@SystemLink?.JumpHistory.OrderBy(x=>x.JumpDate)" Height="325px" Outlined="true" Dense="true" Hover="false" Bordered=true Striped=true 
             AllowUnsorted=false SortLabel="Sort By"
             Virtualize="true" Loading=@_isLoading LoadingProgressColor="Color.Info">
             <HeaderContent>
