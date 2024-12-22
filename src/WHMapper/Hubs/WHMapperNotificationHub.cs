@@ -6,7 +6,7 @@ using WHMapper.Services.EveJwkExtensions;
 
 namespace WHMapper.Hubs;
 
-[Authorize(AuthenticationSchemes = EveOnlineJwkDefaults.AuthenticationScheme)]
+//[Authorize(AuthenticationSchemes = EveOnlineJwkDefaults.AuthenticationScheme)]
 public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
 {
     private readonly static ConnectionMapping<string> _connections = new ConnectionMapping<string>();

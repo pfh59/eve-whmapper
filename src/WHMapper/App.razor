@@ -1,7 +1,4 @@
-﻿@using Models.DTO;
-@inject TokenProvider TokenProvider
-
-<CascadingAuthenticationState>
+﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -20,17 +17,3 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
-
-@code
-{
-    [Parameter]
-    public InitialApplicationState? InitialState { get; set; } = null!;
-
-    protected override Task OnInitializedAsync()
-    {
-        TokenProvider.AccessToken = InitialState?.AccessToken;
-        TokenProvider.RefreshToken = InitialState?.RefreshToken;
-
-        return base.OnInitializedAsync();
-    }
-}

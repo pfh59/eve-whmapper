@@ -15,7 +15,7 @@ using WHMapper.Services.Anoik;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Services.SDE;
 using Xunit.Priority;
 
@@ -129,7 +129,7 @@ public class EveWHMapperHelperTest
             IEveMapperCacheService eveMapperCacheService = new EveMapperCacheService(loggereveMapperCacheService, cacheService);
 
             var userInfoService = new EveUserInfosServices(null!);
-            var apiServices = new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService);
+            var apiServices = new EveAPIServices(loggerAPI, httpclientfactory, userInfoService);
             var mapperEntity = new EveMapperService(loggerEveMapperEntity, eveMapperCacheService, apiServices);
 
             IFileSystem fileSystem = new FileSystem();

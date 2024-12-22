@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -27,16 +28,19 @@ public class EveOnlineAccessTokenValidator : IEveOnlineAccessTokenValidator
             TokenValidationParameters tokenValidationParams = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
-
                 ValidAudience = EVEOnlineAuthenticationDefaults.ValideAudience,
+
+                ValidateIssuer = true,
                 ValidIssuer = EVEOnlineAuthenticationDefaults.ValideIssuer,
+
+                ValidateIssuerSigningKey = true,
                 IssuerSigningKey = jwk,
+
                 ClockSkew = TimeSpan.FromSeconds(2), // CCP's servers seem slightly ahead (~1s)
             };
 
-            var validationResult = await new JwtSecurityTokenHandler().ValidateTokenAsync(accessToken, tokenValidationParams);
+
+            var validationResult = await new JsonWebTokenHandler().ValidateTokenAsync(accessToken, tokenValidationParams);
 
 
             if(!validationResult.IsValid)

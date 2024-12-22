@@ -2,7 +2,7 @@
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Models.DTO.RoutePlanner;
 using WHMapper.Models.DTO.SDE;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Services.SDE;
 
 namespace WHMapper;

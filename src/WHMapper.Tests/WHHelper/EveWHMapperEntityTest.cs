@@ -9,7 +9,7 @@ using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.Cache;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.WHHelper;
@@ -89,7 +89,7 @@ public class EveWHMapperEntityTest
 
                 var cacheService = new CacheService(loggerCacheService, _distriCache);
                 _eveMapperCacheService = new EveMapperCacheService(loggereveMapperCacheService, cacheService);
-                var eveApiservice = new EveAPIServices(loggerAPI, httpclientfactory, new TokenProvider(), userInfoService);
+                var eveApiservice = new EveAPIServices(loggerAPI, httpclientfactory,userInfoService);
 
                 _eveMapperService = new EveMapperService(logger, _eveMapperCacheService, eveApiservice);
             }

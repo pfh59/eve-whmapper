@@ -25,26 +25,39 @@ public class EveTokenRefreshMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        if(context.User.Identity.IsAuthenticated)
+        if(context.User.Identity != null && context.User.Identity.IsAuthenticated)
         {
             var tokenExpiration = await context.GetTokenAsync("expires_at");
             if(tokenExpiration != null)
             {
                 var expirationDate = DateTime.Parse(tokenExpiration, null, DateTimeStyles.RoundtripKind);
-                if (expirationDate < DateTime.UtcNow.AddMinutes(-5)) // Rafraîchir avant expiration
+                if (expirationDate < DateTime.UtcNow.AddMinutes(-5)) //refresh token 5 minutes before expiration
+                {
+                    var refreshToken = await context.GetTokenAsync("refresh_token");
+                    if (refreshToken != null)
                     {
-                        var refreshToken = await context.GetTokenAsync("refresh_token");
-                        if (refreshToken != null)
+                        var newToken = await RefreshAccessToken(refreshToken);
+                        if (newToken != null)
                         {
-                            // Appelez votre fournisseur d'identité pour obtenir un nouveau token
-                            var newToken = await RefreshAccessToken(refreshToken);
-                           // context.Response.Cookies.Append("access_token", newToken.AccessToken);
-                            // Mettre à jour le cookie d'authentification
+                            context.Response.Cookies.Append("access_token", newToken.AccessToken, new CookieOptions
+                            {
+                                HttpOnly = true,
+                                Secure = true,
+                                SameSite = SameSiteMode.Strict,
+                                Expires = DateTime.UtcNow.AddSeconds(newToken.ExpiresIn)
+                            });
+                            context.Response.Cookies.Append("refresh_token", newToken.RefreshToken, new CookieOptions
+                            {
+                                HttpOnly = true,
+                                Secure = true,
+                                SameSite = SameSiteMode.Strict,
+                                Expires = DateTime.UtcNow.AddSeconds(newToken.ExpiresIn)
+                            });
                         }
+
+                    }
                 }
             }
-            
-
         }
         await _next(context);
     }
@@ -59,47 +72,15 @@ public class EveTokenRefreshMiddleware
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", clientKey);
         client.DefaultRequestHeaders.Host = "login.eveonline.com";
         
-        var response = await client.PostAsync(EVEOnlineAuthenticationDefaults.TokenEndpoint, new FormUrlEncodedContent(new[]
-        {
-            new KeyValuePair<string?, string?>("grant_type", "refresh_token"),
-            new KeyValuePair<string?, string?>("refresh_token", Uri.EscapeDataString(refreshToken))
-        }));
+
+        var body = $"grant_type=refresh_token&refresh_token={Uri.EscapeDataString(refreshToken)}";
+        HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
+
+        var response = await client.PostAsync(EVEOnlineAuthenticationDefaults.TokenEndpoint, postBody);
+        
 
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<EveToken>(result);
-
-
-
-
-        //var body = $"grant_type=refresh_token&refresh_token={Uri.EscapeDataString(_tokenInfo.RefreshToken)}";
-        //HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-
-        //var response = await _httpClient.PostAsync(EVEOnlineAuthenticationDefaults.TokenEndpoint, postBody);
-
-
     }
-
-        private Task<bool> IsTokenExpired()
-        {
-            /*
-            JsonWebTokenHandler SecurityTokenHandle = new JsonWebTokenHandler();
-            var securityToken = SecurityTokenHandle.ReadJsonWebToken(_tokenInfo.AccessToken);
-            var expiry = EVEOnlineAuthenticationHandler.ExtractClaim(securityToken, "exp");
-
-            if (expiry == null)
-            {
-                return Task.FromResult(true);
-            }
-
-            var datetime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiry.Value));
-            if (datetime.UtcDateTime <= DateTime.UtcNow)
-            {
-                return Task.FromResult(true);
-            }*/
-
-            return Task.FromResult(false);
-        }
-
-
 }

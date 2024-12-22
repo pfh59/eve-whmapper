@@ -9,7 +9,8 @@ using WHMapper.Services.EveAPI.Routes;
 using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
+
 
 namespace WHMapper.Services.EveAPI
 {
@@ -17,7 +18,6 @@ namespace WHMapper.Services.EveAPI
     public class EveAPIServices : IEveAPIServices
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly TokenProvider _tokenProvider;
         private readonly ILogger _logger;
 
         public ILocationServices LocationServices { get; private set; }
@@ -33,31 +33,29 @@ namespace WHMapper.Services.EveAPI
 
         public EveAPIServices(ILogger<EveAPIServices> logger, 
             IHttpClientFactory httpClientFactory, 
-            TokenProvider tokenProvider, 
             IEveUserInfosServices userService)
         {
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(httpClientFactory);
-            ArgumentNullException.ThrowIfNull(tokenProvider);
             ArgumentNullException.ThrowIfNull(userService);
 
             _httpClientFactory = httpClientFactory;
-            _tokenProvider = tokenProvider;
             _logger = logger;
 
             _logger.LogInformation("Init EveAPIServices");
-            var eveAPIClient = _httpClientFactory.CreateClient();
 
-            LocationServices = new LocationServices(eveAPIClient, _tokenProvider, userService);
+            var eveAPIClient = _httpClientFactory.CreateClient("ESIAPI");
+
+            LocationServices = new LocationServices(eveAPIClient, userService);
             UniverseServices = new UniverseServices(eveAPIClient);
-            UserInterfaceServices = new UserInterfaceServices(eveAPIClient, _tokenProvider);
+            UserInterfaceServices = new UserInterfaceServices(eveAPIClient);
             AllianceServices = new AllianceServices(eveAPIClient);
             CorporationServices = new CorporationServices(eveAPIClient);
             CharacterServices = new CharacterServices(eveAPIClient);
-            SearchServices = new SearchServices(eveAPIClient, _tokenProvider, userService);
+            SearchServices = new SearchServices(eveAPIClient, userService);
             DogmaServices = new DogmaServices(eveAPIClient);
             RouteServices = new RouteServices(eveAPIClient);
-            AssetsServices = new AssetsServices(eveAPIClient, _tokenProvider, userService);
+            AssetsServices = new AssetsServices(eveAPIClient, userService);
         }
     }
 }

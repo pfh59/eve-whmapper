@@ -1,6 +1,7 @@
 ﻿using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Search;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
+
 
 namespace WHMapper.Services.EveAPI.Search
 {
@@ -8,7 +9,7 @@ namespace WHMapper.Services.EveAPI.Search
     {
         private readonly IEveUserInfosServices? _userService = null!;
 
-        public SearchServices(HttpClient httpClient, TokenProvider _tokenProvider, IEveUserInfosServices userService) : base(httpClient, _tokenProvider)
+        public SearchServices(HttpClient httpClient,  IEveUserInfosServices userService) : base(httpClient)
         {
             _userService = userService;
         }

@@ -3,39 +3,24 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using WHMapper.Models.DTO;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveAPI
 {
     public abstract class EveApiServiceBase
-    {
+    {        
         private readonly HttpClient _httpClient;
-        private readonly TokenProvider? _tokenProvider = null!;
 
-        public EveApiServiceBase(HttpClient httpClient, TokenProvider? tokenProvider)
+        public EveApiServiceBase(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-
-            _tokenProvider = tokenProvider;
         }
-
-        public EveApiServiceBase(HttpClient httpClient) : this(httpClient, null)
-        {
-        }
-
+        
         public async Task<T?> Execute<T>(RequestSecurity security, RequestMethod method, string uri, object? body = null)
         {
-            _httpClient.DefaultRequestHeaders.Clear();
-            //Add bearer token
-            if (security == RequestSecurity.Authenticated)
-            {
-                if (_tokenProvider == null || string.IsNullOrEmpty(_tokenProvider.AccessToken))
-                    throw new ArgumentException("SSO authentication requested");
-
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-            }
-
+            if (security != RequestSecurity.Authenticated)
+                _httpClient.DefaultRequestHeaders.Clear();
+            
             //Serialize post body data
             HttpContent? postBody = null;
 

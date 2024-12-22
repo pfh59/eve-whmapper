@@ -11,13 +11,14 @@
 @{
     Layout = "_Layout";
 
-
+/*
     var tokens = new InitialApplicationState
     {
         AccessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token"),
         RefreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token"),
-    };
+    };*/
 }
 
-<component type="typeof(App)" render-mode="Server" param-InitialState="tokens" />
+<!-- <component type="typeof(App)" render-mode="Server" param-InitialState="tokens" />-->
 
+<component type="typeof(App)" render-mode="Server"/>

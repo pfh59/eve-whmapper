@@ -1,6 +1,6 @@
 ﻿using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveAPI.Locations
 {
@@ -8,7 +8,7 @@ namespace WHMapper.Services.EveAPI.Locations
     {
         private readonly IEveUserInfosServices? _userService = null!;
 
-        public LocationServices(HttpClient httpClient, TokenProvider _tokenProvider, IEveUserInfosServices userService) : base(httpClient, _tokenProvider)
+        public LocationServices(HttpClient httpClient, IEveUserInfosServices userService) : base(httpClient)
         {
             _userService = userService;
         }

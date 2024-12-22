@@ -11,7 +11,6 @@ using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveOAuthProvider;
 using Microsoft.AspNetCore.Components.Authorization;
-using WHMapper.Services.EveJwtAuthenticationStateProvider;
 using WHMapper.Services.WHColor;
 using WHMapper.Repositories.WHSystemLinks;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -20,7 +19,6 @@ using WHMapper.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using WHMapper.Services.EveJwkExtensions;
 using System.Net;
-using WHMapper.Services.EveOnlineUserInfosProvider;
 using MudBlazor;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
@@ -38,6 +36,7 @@ using WHMapper.Repositories.WHJumpLogs;
 using System.IO.Abstractions;
 using WHMapper.Services.EveOAuthProvider.Validators;
 using WHMapper.Services.EveOAuthProvider.Middleware;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper
 {
@@ -149,10 +148,9 @@ namespace WHMapper
 
                 options.SaveTokens = true;
                 options.UsePkce = true;
-                //options.OAuthEvents.OnFailedRenewAccessToken
-            })
+            });
            
-            .AddEveOnlineJwtBearer();//validate hub tokken
+           // .AddEveOnlineJwtBearer();//validate hub tokken
 
            
             builder.Services.AddAuthorization(options =>
@@ -167,15 +165,31 @@ namespace WHMapper
                     policy.Requirements.Add(new EveMapperMapRequirement()));
             });
 
-            builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
-            builder.Services.AddHttpClient();
 
-            builder.Services.AddScoped<TokenProvider>();
+            builder.Services.AddScoped<IEveOnlineAccessTokenValidator, EveOnlineAccessTokenValidator>();
+            builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            builder.Services.AddTransient<EveOnlineAccessTokenHandler>();
+            builder.Services.AddScoped<IClaimServices, ClaimServices>();
+            builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
+
+
+            builder.Services.AddHttpClient("ESIAPI", client =>
+            {
+                client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+            }).AddHttpMessageHandler(sp =>
+            {
+                var handler = sp.GetRequiredService<EveOnlineAccessTokenHandler>();
+                return handler;
+            });
+            //builder.Services.AddScoped<TokenProvider>();
+            
+         
             builder.Services.AddScoped<ICacheService, CacheService>();
 
-            builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStateProvider>();
+            //builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStateProvider>();
             
-             builder.Services.AddScoped<IEveOnlineAccessTokenValidator, EveOnlineAccessTokenValidator>();
+             
 
             builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
             builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();

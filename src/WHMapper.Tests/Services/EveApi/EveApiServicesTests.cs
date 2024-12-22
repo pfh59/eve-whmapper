@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Tests.Services.EveApi
 {
@@ -10,21 +10,19 @@ namespace WHMapper.Tests.Services.EveApi
         [Theory, AutoDomainData]
         public void WhenLoggerIsNull_Constructing_ThrowsException(
                 IHttpClientFactory httpClientFactory,
-                TokenProvider tokenProvider,
                 IEveUserInfosServices userService
             )
         {
-            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(null!, httpClientFactory, tokenProvider, userService));
+            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(null!, httpClientFactory, userService));
         }       
         
         [Theory, AutoDomainData]
         public void WhenClientFactoryIsNull_Constructing_ThrowsException(
                 ILogger<EveAPIServices> logger,
-                TokenProvider tokenProvider,
                 IEveUserInfosServices userService
             )
         {
-            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, null!, tokenProvider, userService));
+            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, null!, userService));
         }        
 
         [Theory, AutoDomainData]
@@ -34,17 +32,16 @@ namespace WHMapper.Tests.Services.EveApi
                 IEveUserInfosServices userService
             )
         {
-            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, httpClientFactory, null!, userService));
+            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, httpClientFactory, userService));
         }       
         
         [Theory, AutoDomainData]
         public void WhenUserServiceIsNull_Constructing_ThrowsException(
                 IHttpClientFactory httpClientFactory,
-                TokenProvider tokenProvider,
                 ILogger<EveAPIServices> logger
             )
         {
-            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, httpClientFactory, tokenProvider, null!));
+            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, httpClientFactory, null!));
         }
 
 
