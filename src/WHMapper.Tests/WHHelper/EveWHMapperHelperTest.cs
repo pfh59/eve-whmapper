@@ -95,7 +95,10 @@ public class EveWHMapperHelperTest
             .Build();
 
         var services = new ServiceCollection();
-        services.AddHttpClient();
+        services.AddHttpClient("ESIAPI", client =>
+        {
+            client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+        });
 
         services.AddDbContextFactory<WHMapperContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection"))

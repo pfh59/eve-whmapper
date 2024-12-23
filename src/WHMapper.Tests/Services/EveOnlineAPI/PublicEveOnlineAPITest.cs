@@ -1,11 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
+using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Alliances;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveAPI.Corporations;
 using WHMapper.Services.EveAPI.Dogma;
 using WHMapper.Services.EveAPI.Routes;
 using WHMapper.Services.EveAPI.Universe;
+using WHMapper.Services.EveOAuthProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
 using Xunit.Priority;
 
 namespace WHMapper.Tests.Services;
@@ -84,18 +88,23 @@ public class PublicEveOnlineAPITest
     public PublicEveOnlineAPITest()
     {
         var services = new ServiceCollection();
-        services.AddHttpClient();
+        services.AddHttpClient("ESIAPI", client =>
+        {
+            client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+        });
         var provider = services.BuildServiceProvider();
         var httpclientfactory = provider.GetService<IHttpClientFactory>();
 
         if (httpclientfactory != null)
         {
-            _eveUniverseApi = new UniverseServices(httpclientfactory.CreateClient());
-            _eveDogmaApi = new DogmaServices(httpclientfactory.CreateClient());
-            _eveAllianceApi = new AllianceServices(httpclientfactory.CreateClient());
-            _eveCorpoApi = new CorporationServices(httpclientfactory.CreateClient());
-            _eveCharacterApi = new CharacterServices(httpclientfactory.CreateClient());
-            _routeServices = new RouteServices(httpclientfactory.CreateClient());
+            var ESIAPIClient = httpclientfactory.CreateClient("ESIAPI");
+
+            _eveUniverseApi = new UniverseServices(ESIAPIClient);
+            _eveDogmaApi = new DogmaServices(ESIAPIClient);
+            _eveAllianceApi = new AllianceServices(ESIAPIClient);
+            _eveCorpoApi = new CorporationServices(ESIAPIClient);
+            _eveCharacterApi = new CharacterServices(ESIAPIClient);
+            _routeServices = new RouteServices(ESIAPIClient);
         }
     }
 

@@ -65,7 +65,10 @@ public class EveWHMapperEntityTest
             .Build();
 
         var services = new ServiceCollection();
-        services.AddHttpClient();
+        services.AddHttpClient("ESIAPI", client =>
+        {
+            client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+        });
 
         services.AddStackExchangeRedisCache(option =>
         {
@@ -76,6 +79,8 @@ public class EveWHMapperEntityTest
         var provider = services.BuildServiceProvider();
         if (provider != null)
         {
+
+
             var httpclientfactory = provider.GetService<IHttpClientFactory>();
             IDistributedCache? _distriCache = provider.GetService<IDistributedCache>();
 

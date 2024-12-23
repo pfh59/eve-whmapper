@@ -24,16 +24,7 @@ namespace WHMapper.Tests.Services.EveApi
         {
             Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, null!, userService));
         }        
-
-        [Theory, AutoDomainData]
-        public void WhenTokenProviderIsNull_Constructing_ThrowsException(
-                ILogger<EveAPIServices> logger,
-                IHttpClientFactory httpClientFactory,
-                IEveUserInfosServices userService
-            )
-        {
-            Assert.ThrowsAny<ArgumentException>(() => new EveAPIServices(logger, httpClientFactory, userService));
-        }       
+   
         
         [Theory, AutoDomainData]
         public void WhenUserServiceIsNull_Constructing_ThrowsException(
