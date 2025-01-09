@@ -3,11 +3,11 @@ using MudBlazor;
 using WHMapper.Models.Db;
 using FluentValidation;
 using Severity = MudBlazor.Severity;
-using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Services.WHSignature;
 using Microsoft.AspNetCore.Authorization;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.WHColor;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Pages.Mapper.Signatures
 {
@@ -16,7 +16,7 @@ namespace WHMapper.Pages.Mapper.Signatures
     {
 
         [Inject]
-        private IEveUserInfosServices UserService { get; set; } = null!;
+        private IEveUserInfosServices  UserService { get; set; } = null!;
 
         [Inject]
         private ISnackbar Snackbar { get; set; } = null!;

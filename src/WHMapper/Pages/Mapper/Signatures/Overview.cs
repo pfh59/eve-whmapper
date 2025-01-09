@@ -6,7 +6,7 @@ using MudBlazor;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
 
@@ -20,7 +20,7 @@ namespace WHMapper.Pages.Mapper.Signatures
         public ILogger<Overview> Logger { get; set; } = null!;
 
         [Inject]
-        private IEveUserInfosServices UserInfos { get; set; } = null!;
+        private IEveUserInfosServices  UserInfos { get; set; } = null!;
 
         [Inject]
         private IWHSignatureRepository DbWHSignatures { get; set; } = null!;

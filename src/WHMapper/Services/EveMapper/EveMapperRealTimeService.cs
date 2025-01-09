@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using WHMapper.Models.Db.Enums;
@@ -9,7 +10,6 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 {
     private readonly HubConnection _hubConnection;
     private readonly ILogger<EveMapperRealTimeService> _logger;
-    private readonly TokenProvider _tokenProvider;
     private readonly NavigationManager _navigation;
 
     public event Func<string, Task>? UserConnected;
@@ -37,17 +37,18 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
-    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, TokenProvider tokenProvider)
+    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation,IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
-        _tokenProvider = tokenProvider;
         _navigation = navigation;
 
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(_navigation.ToAbsoluteUri("/whmappernotificationhub"), options =>
             {
-                options.AccessTokenProvider = () => Task.FromResult<string?>(_tokenProvider.AccessToken);
-            }).Build();
+                options.AccessTokenProvider = async () => await httpContextAccessor.HttpContext.GetTokenAsync("access_token");
+            })
+            .WithAutomaticReconnect()
+            .Build();
 
         RegisterHubEvents();
     }

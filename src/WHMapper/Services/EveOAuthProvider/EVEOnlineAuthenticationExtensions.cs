@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
+using WHMapper.Services.EveOAuthProvider.Services;
+using WHMapper.Services.EveOAuthProvider.Validators;
 
 namespace WHMapper.Services.EveOAuthProvider
 {
@@ -34,6 +36,9 @@ namespace WHMapper.Services.EveOAuthProvider
             [NotNull] Action<EVEOnlineAuthenticationOptions> configuration)
         {
             builder.Services.TryAddSingleton<IPostConfigureOptions<EVEOnlineAuthenticationOptions>, EVEOnlinePostConfigureOptions>();
+            builder.Services.AddScoped<IEveOnlineAccessTokenValidator, EveOnlineAccessTokenValidator>();
+            builder.Services.AddScoped<IClaimServices, ClaimServices>();
+            builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
 
             return builder.AddOAuth<EVEOnlineAuthenticationOptions, EVEOnlineAuthenticationHandler>(scheme, caption, configuration);
         }

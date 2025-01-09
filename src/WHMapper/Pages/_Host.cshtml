@@ -1,23 +1,17 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authentication
+@using System.Globalization
+@using Microsoft.AspNetCore.Authentication.Cookies
 @using WHMapper.Models.DTO;
 @using System.Security.Claims
 @using Microsoft.Net.Http.Headers;
-@using WHMapper.Services.EveOAuthProvider;
-@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+
+
 
 @namespace WHMapper.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = "_Layout";
-
-
-    var tokens = new InitialApplicationState
-    {
-        AccessToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "access_token"),
-        RefreshToken = await HttpContext.GetTokenAsync(EVEOnlineAuthenticationDefaults.AuthenticationScheme, "refresh_token"),
-    };
 }
 
-<component type="typeof(App)" render-mode="Server" param-InitialState="tokens" />
-
+<component type="typeof(App)" render-mode="Server"/>

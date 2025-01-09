@@ -4,8 +4,8 @@ namespace WHMapper.Services.EveAPI.UserInterface
 {
     public class UserInterfaceServices : EveApiServiceBase, IUserInterfaceServices
     {
-        public UserInterfaceServices(HttpClient httpClient, TokenProvider _tokenProvider)
-            : base(httpClient, _tokenProvider)
+        public UserInterfaceServices(HttpClient httpClient)
+            : base(httpClient)
         {
         }
 

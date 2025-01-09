@@ -1,5 +1,5 @@
-﻿@using Models.DTO;
-@inject TokenProvider TokenProvider
+﻿@using WHMapper.Models.DTO
+@using WHMapper.Services.EveOAuthProvider.Services
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
@@ -22,15 +22,11 @@
 </CascadingAuthenticationState>
 
 @code
-{
-    [Parameter]
-    public InitialApplicationState? InitialState { get; set; } = null!;
+{    
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        TokenProvider.AccessToken = InitialState?.AccessToken;
-        TokenProvider.RefreshToken = InitialState?.RefreshToken;
-
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();        
     }
-}
+}  
+    

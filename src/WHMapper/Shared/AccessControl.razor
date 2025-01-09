@@ -1,5 +1,5 @@
-﻿@using WHMapper.Services.EveOnlineUserInfosProvider
-@using Microsoft.AspNetCore.Components.Authorization
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using WHMapper.Services.EveOAuthProvider.Services
 
 <AuthorizeView>
     <Authorized>
@@ -50,7 +50,7 @@
     private string _username = "Anonymous";
 
     [Inject]
-    private IEveUserInfosServices UserService { get; set; } = null!;
+    private IEveUserInfosServices  UserService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
