@@ -14,6 +14,8 @@ namespace WHMapper.Data
         public DbSet<WHNote> DbWHNotes { get; set; } = null!;
         public DbSet<WHRoute> DbWHRoutes { get; set; } = null!;
         public DbSet<WHJumpLog> DbWHJumpLogs { get; set; } = null!;
+        public DbSet<WHMainAccount> DbWHMainAccounts { get; set; } = null!;
+        public DbSet<WHAdditionnalAccount> DbWHAdditionnalAccounts { get; set; } = null!;
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
@@ -22,6 +24,12 @@ namespace WHMapper.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            modelBuilder.Entity<WHMainAccount>().ToTable("MainAccounts");
+            modelBuilder.Entity<WHMainAccount>().HasIndex(x => new { x.CharacterId }).IsUnique(true);
+            modelBuilder.Entity<WHMainAccount>().HasMany(x => x.AdditionnalAccounts).WithOne(x => x.MainAccount).HasForeignKey("MainAccountId").IsRequired().OnDelete(DeleteBehavior.Cascade);
+
+
             modelBuilder.Entity<WHMap>().ToTable("Maps");
             modelBuilder.Entity<WHMap>().HasIndex(x => new { x.Name }).IsUnique(true);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystems).WithOne().HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);

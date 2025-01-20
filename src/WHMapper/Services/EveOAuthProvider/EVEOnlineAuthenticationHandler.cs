@@ -34,13 +34,10 @@ namespace WHMapper.Services.EveOAuthProvider
         {
             string? accessToken = tokens.AccessToken;
            
-           
             if(!await _accessTokenValidator.ValidateAsync(tokens.AccessToken!))
             {
                 throw new SecurityTokenException("Access token is invalid");  
             }
-
-
 
            var tokenClaims = await _claimServices.ExtractClaimsFromEVEToken(accessToken!);
 
@@ -48,13 +45,6 @@ namespace WHMapper.Services.EveOAuthProvider
             {
                 identity.AddClaim(claim);
             }
-
-
-            var authTokens = properties.GetTokens().ToList();
-
-
-
-            properties.StoreTokens(authTokens);
           
             return await base.CreateTicketAsync(identity, properties, tokens);
         }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using WHMapper.Services.EveOAuthProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
+using YamlDotNet.Core.Tokens;
 
 namespace WHMapper.Pages
 {
@@ -37,7 +39,6 @@ namespace WHMapper.Pages
             if (EveUser != null && EveUser.IsAuthenticated)
             {
                 _logger.LogInformation("User authenticated");
-
 
             }
             return LocalRedirect("/");

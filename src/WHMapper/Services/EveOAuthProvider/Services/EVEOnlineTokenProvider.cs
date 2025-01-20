@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using System;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.SSO;
 using WHMapper.Services.EveOAuthProvider;
 
@@ -11,27 +15,25 @@ namespace WHMapper.Services.EveOAuthProvider.Services;
 
 public class EVEOnlineTokenProvider
 {
-    private readonly IConfiguration _configurationManager;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<EVEOnlineTokenProvider> _logger;
+    private readonly EVEOnlineAuthenticationOptions _options;
+    private readonly HttpContext? context;
 
-    public string? AccessToken { get; set; }
-    public string? RefreshToken { get; set; }
-    public DateTimeOffset? TokenExpiration { get; set; }
+    public string? AccessToken {get;  set;}
+    public string? RefreshToken {get;  set;}
+    public DateTimeOffset? TokenExpiration {get;  set;}
 
-    public EVEOnlineTokenProvider(IConfiguration configurationManager,IHttpClientFactory httpClientFactory,IHttpContextAccessor httpContextAccessor)
+    public EVEOnlineTokenProvider(ILogger<EVEOnlineTokenProvider> logger, IOptionsMonitor<EVEOnlineAuthenticationOptions> options, IHttpContextAccessor? context = null)
     {
-        _configurationManager = configurationManager;
-        _httpClientFactory = httpClientFactory;
-        _httpContextAccessor = httpContextAccessor;
-        
-        InitializeTokens().GetAwaiter().GetResult();        
+        _logger = logger;
+        _options =  options.Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        this.context = context?.HttpContext;
+
+        InitializeTokens().GetAwaiter().GetResult();  
     }
-    private async Task InitializeTokens()
-    {
-        // Assuming tokens are passed as headers or cookies
-        var context = _httpContextAccessor.HttpContext;
 
+     private async Task InitializeTokens()
+    {
         if (context != null)
         {
             AccessToken = await context.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme,"access_token");
@@ -46,6 +48,7 @@ public class EVEOnlineTokenProvider
 
     public Task<bool> IsTokenExpire()
     {
+        
         if (TokenExpiration == null)
             throw new NullReferenceException("Token expiration is null");
      
@@ -58,19 +61,11 @@ public class EVEOnlineTokenProvider
             throw new NullReferenceException("Refresh token is null or empty");
         
 
-        var evessoConf = _configurationManager.GetSection("EveSSO");
-        var clientKey = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{evessoConf["ClientId"]}:{evessoConf["Secret"]}"));
-        
-        var client = _httpClientFactory.CreateClient();
-        client.BaseAddress = new Uri("https://login.eveonline.com");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", clientKey);
-        client.DefaultRequestHeaders.Host = "login.eveonline.com";
-        
+        var refreshToken = Uri.EscapeDataString(RefreshToken);
+        var content = new StringContent($"grant_type=refresh_token&refresh_token={RefreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
 
-        var body = $"grant_type=refresh_token&refresh_token={Uri.EscapeDataString(RefreshToken)}";
-        HttpContent postBody = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-
-        var response = await client.PostAsync(EVEOnlineAuthenticationDefaults.TokenEndpoint, postBody);
+        _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+        var response = await _options.Backchannel.PostAsync(_options.TokenEndpoint, content);
         
 
         response.EnsureSuccessStatusCode();
@@ -79,11 +74,24 @@ public class EVEOnlineTokenProvider
 
         if(newToken == null)
             throw new NullReferenceException("New token is null");
-        
+
 
         AccessToken = newToken.AccessToken;
         RefreshToken = newToken.RefreshToken;
         TokenExpiration = DateTimeOffset.UtcNow.AddSeconds(newToken.ExpiresIn);
     }
 
+    public async Task RevokeToken()
+    {
+        if(string.IsNullOrEmpty(RefreshToken))
+            throw new NullReferenceException("Refresh token is null or empty");
+
+        var refreshToken = Uri.EscapeDataString(RefreshToken);
+        var content = new StringContent($"token_type_hint=refresh_token&token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
+
+        _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+        var response = await _options.Backchannel.PostAsync(_options.RevokeTokenEndpoint, content);
+
+        response.EnsureSuccessStatusCode();
+    }
 }

@@ -172,10 +172,8 @@ namespace WHMapper
 
     
             
-            builder.Services.AddScoped<EVEOnlineTokenProvider>();
             builder.Services.AddTransient<EveOnlineAccessTokenHandler>();
            
-            
             builder.Services.AddHttpClient<IEveAPIServices, EveAPIServices>(client =>
             {
                 client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
