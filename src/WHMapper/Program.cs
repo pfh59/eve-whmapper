@@ -34,9 +34,6 @@ using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
 using System.IO.Abstractions;
 using WHMapper.Services.EveCookieExtensions;
-using Microsoft.AspNetCore.Components.Authorization;
-using WHMapper.Services.EveAuthStateProvider;
-using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper
 {
@@ -169,10 +166,8 @@ namespace WHMapper
 
             builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
             builder.Services.AddHttpContextAccessor();
-
-    
-            
-            builder.Services.AddTransient<EveOnlineAccessTokenHandler>();
+      
+            builder.Services.AddScoped<EveOnlineAccessTokenHandler>();
            
             builder.Services.AddHttpClient<IEveAPIServices, EveAPIServices>(client =>
             {

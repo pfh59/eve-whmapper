@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WHMapper.Models.Db;
 
-public class WHMainAccount
+public class WHAccount
 {
     [Key]
     public int Id { get; set; }
@@ -11,13 +11,13 @@ public class WHMainAccount
     [Required]
     public int CharacterId { get; set; }
 
-    public virtual ICollection<WHAdditionnalAccount> AdditionnalAccounts { get; } = new HashSet<WHAdditionnalAccount>();
+    public virtual ICollection<WHAccount> AdditionnalAccounts { get; } = new HashSet<WHAccount>();
 
 
     [Obsolete("EF Requires it")]
-    protected WHMainAccount() { }
+    protected WHAccount() { }
 
-    public WHMainAccount(int characterId)
+    public WHAccount(int characterId)
     {
         CharacterId = characterId;
     }

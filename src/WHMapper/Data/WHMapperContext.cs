@@ -14,8 +14,6 @@ namespace WHMapper.Data
         public DbSet<WHNote> DbWHNotes { get; set; } = null!;
         public DbSet<WHRoute> DbWHRoutes { get; set; } = null!;
         public DbSet<WHJumpLog> DbWHJumpLogs { get; set; } = null!;
-        public DbSet<WHMainAccount> DbWHMainAccounts { get; set; } = null!;
-        public DbSet<WHAdditionnalAccount> DbWHAdditionnalAccounts { get; set; } = null!;
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
@@ -24,18 +22,11 @@ namespace WHMapper.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
-            modelBuilder.Entity<WHMainAccount>().ToTable("MainAccounts");
-            modelBuilder.Entity<WHMainAccount>().HasIndex(x => new { x.CharacterId }).IsUnique(true);
-            modelBuilder.Entity<WHMainAccount>().HasMany(x => x.AdditionnalAccounts).WithOne(x => x.MainAccount).HasForeignKey("MainAccountId").IsRequired().OnDelete(DeleteBehavior.Cascade);
-
-
             modelBuilder.Entity<WHMap>().ToTable("Maps");
             modelBuilder.Entity<WHMap>().HasIndex(x => new { x.Name }).IsUnique(true);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystems).WithOne().HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystemLinks).WithOne().HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHAccesses).WithMany();
-
 
             modelBuilder.Entity<WHSystem>().ToTable("Systems");
             modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.WHMapId,x.SoloarSystemId }).IsUnique(true);
@@ -49,7 +40,6 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHSystemLink>().HasOne<WHMap>().WithMany(x => x.WHSystemLinks).HasForeignKey(x =>x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<WHSystemLink>().HasMany<WHJumpLog>(x=>x.JumpHistory).WithOne().HasForeignKey(x => x.WHSystemLinkId).IsRequired().OnDelete(DeleteBehavior.Cascade);
       
-
             modelBuilder.Entity<WHSignature>().ToTable("Signatures");
             modelBuilder.Entity<WHSignature>().HasIndex(x => new { x.WHId,x.Name }).IsUnique(true);
             modelBuilder.Entity<WHSignature>().HasOne<WHSystem>().WithMany(x => x.WHSignatures).HasForeignKey(x=>x.WHId).IsRequired().OnDelete(DeleteBehavior.Cascade);

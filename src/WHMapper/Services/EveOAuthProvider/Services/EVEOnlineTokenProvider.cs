@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -13,74 +14,85 @@ using WHMapper.Services.EveOAuthProvider;
 
 namespace WHMapper.Services.EveOAuthProvider.Services;
 
-public class EVEOnlineTokenProvider
+public class EveOnlineTokenProvider : IEveOnlineTokenProvider
 {
-    private readonly ILogger<EVEOnlineTokenProvider> _logger;
     private readonly EVEOnlineAuthenticationOptions _options;
-    private readonly HttpContext? context;
+    private readonly ConcurrentDictionary<string, UserToken> _tokens = new();
 
-    public string? AccessToken {get;  set;}
-    public string? RefreshToken {get;  set;}
-    public DateTimeOffset? TokenExpiration {get;  set;}
 
-    public EVEOnlineTokenProvider(ILogger<EVEOnlineTokenProvider> logger, IOptionsMonitor<EVEOnlineAuthenticationOptions> options, IHttpContextAccessor? context = null)
+    public EveOnlineTokenProvider(IOptionsMonitor<EVEOnlineAuthenticationOptions> options, IHttpContextAccessor? context = null)
     {
-        _logger = logger;
-        _options =  options.Get(CookieAuthenticationDefaults.AuthenticationScheme);
-        this.context = context?.HttpContext;
-
-        InitializeTokens().GetAwaiter().GetResult();  
+        _options =  options.Get(EVEOnlineAuthenticationDefaults.AuthenticationScheme);
     }
 
-     private async Task InitializeTokens()
+    public Task SaveToken(UserToken token)
     {
-        if (context != null)
+        if (token.AccountId != null)
         {
-            AccessToken = await context.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme,"access_token");
-            RefreshToken = await context.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme,"refresh_token");
-            var exp_at = await context.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme,"expires_at");
-            if(DateTimeOffset.TryParse(exp_at, out var exp))
+            if(_tokens.ContainsKey(token.AccountId))
             {
-                TokenExpiration = exp;
+                _tokens[token.AccountId] = token;
+            }
+            else
+            {
+                _tokens.TryAdd(token.AccountId, token);
             }
         }
+        else
+        {
+            throw new ArgumentNullException(nameof(token.AccountId), "AccountId cannot be null");
+        }
+        return Task.CompletedTask;
     }
 
-    public Task<bool> IsTokenExpire()
+    public Task<UserToken?> GetToken(string accountId)
     {
-        
-        if (TokenExpiration == null)
-            throw new NullReferenceException("Token expiration is null");
-     
-        return Task.FromResult(DateTimeOffset.UtcNow > TokenExpiration.Value.AddMinutes(-5));
+        return Task.FromResult(_tokens.TryGetValue(accountId, out var token) ? token : null);
     }
 
-    public async Task RefreshAccessToken()
+    public Task ClearToken(string accountId)
     {
-        if(string.IsNullOrEmpty(RefreshToken))
-            throw new NullReferenceException("Refresh token is null or empty");
-        
+        _tokens.TryRemove(accountId, out _);
+        return Task.CompletedTask;
+    }
 
-        var refreshToken = Uri.EscapeDataString(RefreshToken);
-        var content = new StringContent($"grant_type=refresh_token&refresh_token={RefreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
+    public async Task<bool> IsTokenExpire(string accountId)
+    {
+        var token = await GetToken(accountId);
+        if(token == null)
+            throw new NullReferenceException("Token is null");
+    
+        return DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-18);
+    }
+
+    public async Task RefreshAccessToken(string accountId)
+    {
+        var token = await GetToken(accountId);
+        if(token == null)
+            throw new NullReferenceException("Token is null");
+
+        var refreshToken = Uri.EscapeDataString(token.RefreshToken);
+        var content = new StringContent($"grant_type=refresh_token&refresh_token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
 
         _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
         var response = await _options.Backchannel.PostAsync(_options.TokenEndpoint, content);
-        
 
         response.EnsureSuccessStatusCode();
+
         var result = await response.Content.ReadAsStringAsync();
         EveToken? newToken = JsonSerializer.Deserialize<EveToken>(result);
 
         if(newToken == null)
             throw new NullReferenceException("New token is null");
 
+        token.AccessToken = newToken.AccessToken;
+        token.RefreshToken = newToken.RefreshToken;
+        token.Expiry = DateTimeOffset.UtcNow.AddSeconds(newToken.ExpiresIn).UtcDateTime;
 
-        AccessToken = newToken.AccessToken;
-        RefreshToken = newToken.RefreshToken;
-        TokenExpiration = DateTimeOffset.UtcNow.AddSeconds(newToken.ExpiresIn);
+        await SaveToken(token);
     }
 
+    /*
     public async Task RevokeToken()
     {
         if(string.IsNullOrEmpty(RefreshToken))
@@ -93,5 +105,5 @@ public class EVEOnlineTokenProvider
         var response = await _options.Backchannel.PostAsync(_options.RevokeTokenEndpoint, content);
 
         response.EnsureSuccessStatusCode();
-    }
+    }*/
 }

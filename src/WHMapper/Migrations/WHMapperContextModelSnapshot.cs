@@ -63,7 +63,7 @@ namespace WHMapper.Migrations
                     b.ToTable("Accesses", (string)null);
                 });
 
-            modelBuilder.Entity("WHMapper.Models.Db.WHAdditionnalAccount", b =>
+            modelBuilder.Entity("WHMapper.Models.Db.WHAccount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -74,14 +74,17 @@ namespace WHMapper.Migrations
                     b.Property<int>("CharacterId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MainAccountId")
+                    b.Property<int?>("WHAccountId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MainAccountId");
+                    b.HasIndex("CharacterId")
+                        .IsUnique();
 
-                    b.ToTable("WHAdditionnalAccount");
+                    b.HasIndex("WHAccountId");
+
+                    b.ToTable("MainAccounts", (string)null);
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHAdmin", b =>
@@ -141,25 +144,6 @@ namespace WHMapper.Migrations
                         .IsUnique();
 
                     b.ToTable("JumpLogs", (string)null);
-                });
-
-            modelBuilder.Entity("WHMapper.Models.Db.WHMainAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CharacterId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CharacterId")
-                        .IsUnique();
-
-                    b.ToTable("MainAccounts", (string)null);
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHMap", b =>
@@ -380,15 +364,12 @@ namespace WHMapper.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("WHMapper.Models.Db.WHAdditionnalAccount", b =>
+            modelBuilder.Entity("WHMapper.Models.Db.WHAccount", b =>
                 {
-                    b.HasOne("WHMapper.Models.Db.WHMainAccount", "MainAccount")
+                    b.HasOne("WHMapper.Models.Db.WHAccount", null)
                         .WithMany("AdditionnalAccounts")
-                        .HasForeignKey("MainAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MainAccount");
+                        .HasForeignKey("WHAccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHJumpLog", b =>
@@ -457,7 +438,7 @@ namespace WHMapper.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("WHMapper.Models.Db.WHMainAccount", b =>
+            modelBuilder.Entity("WHMapper.Models.Db.WHAccount", b =>
                 {
                     b.Navigation("AdditionnalAccounts");
                 });

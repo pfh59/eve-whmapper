@@ -8,6 +8,7 @@ using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
 using WHMapper.Repositories.WHMaps;
+using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 using Xunit.Priority;
@@ -58,7 +59,11 @@ public class EveWHAccessHelperTest
                 _whAccessRepository = new WHAccessRepository(new NullLogger<WHAccessRepository>(), _contextFactory);
                 _whAdminRepository = new WHAdminRepository(new NullLogger<WHAdminRepository>(), _contextFactory);
                 _whMapRepository = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
-                _accessHelper = new EveMapperAccessHelper(_whAccessRepository, _whAdminRepository,_whMapRepository, new CharacterServices(httpclientfactory.CreateClient()));
+
+                var httpClient = httpclientfactory.CreateClient();
+                httpClient.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+
+                _accessHelper = new EveMapperAccessHelper(_whAccessRepository, _whAdminRepository,_whMapRepository, new CharacterServices(httpClient));
             }
         }
 

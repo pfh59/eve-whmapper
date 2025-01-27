@@ -10,7 +10,8 @@ internal static partial class EveCookieServiceCollectionExtensions
     public static IServiceCollection ConfigureEveCookieRefresh(this IServiceCollection services, string eveCookieScheme, string eveScheme)
     {
         services.AddSingleton<CookieEveRefresher>();
-        services.AddOptions<CookieAuthenticationOptions>(eveCookieScheme).Configure<CookieEveRefresher>((eveCookieOptions, refresher) =>
+        services.AddOptions<CookieAuthenticationOptions>(eveCookieScheme)
+        .Configure<CookieEveRefresher>((eveCookieOptions, refresher) =>
         {
             eveCookieOptions.Events.OnValidatePrincipal = context => refresher.ValidateOrRefreshCookieAsync(context, eveScheme);
         });

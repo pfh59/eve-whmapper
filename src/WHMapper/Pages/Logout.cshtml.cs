@@ -15,9 +15,9 @@ namespace WHMapper.Pages
     public class LogoutModel : PageModel
     {
         private readonly ILogger<LogoutModel> _logger;
-        private readonly EVEOnlineTokenProvider _tokenProvider;
+        private readonly IEveOnlineTokenProvider _tokenProvider;
 
-        public LogoutModel(ILogger<LogoutModel> logger, EVEOnlineTokenProvider tokenProvider)
+        public LogoutModel(ILogger<LogoutModel> logger, IEveOnlineTokenProvider tokenProvider)
         {
             _logger = logger;
             _tokenProvider = tokenProvider;
@@ -27,7 +27,7 @@ namespace WHMapper.Pages
         { 
             try
             {
-                await _tokenProvider.RevokeToken();
+                await _tokenProvider.ClearToken(User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 _logger.LogInformation("User logged out.");
             }

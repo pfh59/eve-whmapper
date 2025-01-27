@@ -36,10 +36,10 @@ namespace WHMapper.Services.EveOAuthProvider
             [NotNull] Action<EVEOnlineAuthenticationOptions> configuration)
         {
             builder.Services.TryAddSingleton<IPostConfigureOptions<EVEOnlineAuthenticationOptions>, EVEOnlinePostConfigureOptions>();
+            builder.Services.TryAddSingleton<IEveOnlineTokenProvider, EveOnlineTokenProvider>();
             builder.Services.AddScoped<IEveOnlineAccessTokenValidator, EveOnlineAccessTokenValidator>();
             builder.Services.AddScoped<IClaimServices, ClaimServices>();
             builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
-            builder.Services.AddScoped<EVEOnlineTokenProvider>();
 
             return builder.AddOAuth<EVEOnlineAuthenticationOptions, EVEOnlineAuthenticationHandler>(scheme, caption, configuration);
         }

@@ -17,8 +17,7 @@ namespace WHMapper.Models.Db
         [Required]
         public WHAccessEntity EveEntity { get; set; }
 
-        [Obsolete("EF Requires it")]
-        protected WHAccess() { }
+        public WHAccess() { }
         public WHAccess(int eveEntityId,string eveEntityName) : this(eveEntityId, eveEntityName, WHAccessEntity.Character)
         {
             

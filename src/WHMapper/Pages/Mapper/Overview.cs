@@ -8,7 +8,6 @@ using MudBlazor;
 using Microsoft.AspNetCore.Authorization;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveAuthStateProvider;
 
 namespace WHMapper.Pages.Mapper;
 
