@@ -29,6 +29,18 @@ namespace WHMapper.Services.EveOAuthProvider
                 _claimServices = claimServices;
         }
 
+        protected override Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
+        {
+            try
+            {
+                return base.HandleRemoteAuthenticateAsync();
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Task.FromResult(HandleRequestResult.Fail(ex));
+            }
+        }
+
 
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {

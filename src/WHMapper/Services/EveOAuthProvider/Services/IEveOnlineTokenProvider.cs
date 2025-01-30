@@ -10,5 +10,6 @@ public interface IEveOnlineTokenProvider
     Task ClearToken(string accountId);
     Task<bool> IsTokenExpire(string accountId);
     Task RefreshAccessToken(string accountId);
+    Task RevokeToken(string accountId);
 
 }

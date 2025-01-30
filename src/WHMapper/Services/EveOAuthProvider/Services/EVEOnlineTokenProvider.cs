@@ -1,109 +1,120 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.SSO;
-using WHMapper.Services.EveOAuthProvider;
 
-namespace WHMapper.Services.EveOAuthProvider.Services;
-
-public class EveOnlineTokenProvider : IEveOnlineTokenProvider
+namespace WHMapper.Services.EveOAuthProvider.Services
 {
-    private readonly EVEOnlineAuthenticationOptions _options;
-    private readonly ConcurrentDictionary<string, UserToken> _tokens = new();
-
-
-    public EveOnlineTokenProvider(IOptionsMonitor<EVEOnlineAuthenticationOptions> options, IHttpContextAccessor? context = null)
+    public class EveOnlineTokenProvider : IEveOnlineTokenProvider
     {
-        _options =  options.Get(EVEOnlineAuthenticationDefaults.AuthenticationScheme);
-    }
+        private readonly EVEOnlineAuthenticationOptions _options;
+        private readonly ConcurrentDictionary<string, UserToken> _tokens = new();
 
-    public Task SaveToken(UserToken token)
-    {
-        if (token.AccountId != null)
+        public EveOnlineTokenProvider(IOptionsMonitor<EVEOnlineAuthenticationOptions> options)
         {
-            if(_tokens.ContainsKey(token.AccountId))
-            {
-                _tokens[token.AccountId] = token;
-            }
-            else
-            {
-                _tokens.TryAdd(token.AccountId, token);
-            }
+            _options = options.Get(EVEOnlineAuthenticationDefaults.AuthenticationScheme);
         }
-        else
+
+        public Task SaveToken(UserToken token)
         {
-            throw new ArgumentNullException(nameof(token.AccountId), "AccountId cannot be null");
+            if (token.AccountId == null)
+            {
+                throw new ArgumentNullException(nameof(token.AccountId), "AccountId cannot be null");
+            }
+
+            _tokens[token.AccountId] = token;
+            return Task.CompletedTask;
         }
-        return Task.CompletedTask;
+
+        public Task<UserToken?> GetToken(string accountId)
+        {
+            _tokens.TryGetValue(accountId, out var token);
+            return Task.FromResult(token);
+        }
+
+        public Task ClearToken(string accountId)
+        {
+            _tokens.TryRemove(accountId, out _);
+            return Task.CompletedTask;
+        }
+
+        public async Task<bool> IsTokenExpire(string accountId)
+        {
+            var token = await GetToken(accountId);
+            if (token == null)
+            {
+                throw new NullReferenceException("Token is null");
+            }
+
+            return DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-18);
+        }
+
+        public async Task RefreshAccessToken(string accountId)
+        {
+            var token = await GetToken(accountId);
+            if (token == null)
+            {
+                throw new NullReferenceException("Token is null");
+            }
+
+            var refreshToken = Uri.EscapeDataString(token.RefreshToken);
+            var content = new StringContent($"grant_type=refresh_token&refresh_token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
+
+            _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+            var response = await _options.Backchannel.PostAsync(_options.TokenEndpoint, content);
+
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadAsStringAsync();
+            var newToken = JsonSerializer.Deserialize<EveToken>(result);
+
+            if (newToken == null)
+            {
+                throw new NullReferenceException("New token is null");
+            }
+
+            token.AccessToken = newToken.AccessToken;
+            token.RefreshToken = newToken.RefreshToken;
+            token.Expiry = DateTimeOffset.UtcNow.AddSeconds(newToken.ExpiresIn).UtcDateTime;
+
+            await SaveToken(token);
+
+            _options.Backchannel.DefaultRequestHeaders.Authorization=null;
+        }
+
+        public async Task RevokeToken(string accountId)
+        {
+            var token = await GetToken(accountId);
+            if (token == null)
+            {
+                throw new NullReferenceException("Token is null");
+            }
+
+            var refreshToken = Uri.EscapeDataString(token.RefreshToken);
+            var content = new StringContent($"token_type_hint=refresh_token&token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
+
+            _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+            var response = await _options.Backchannel.PostAsync(_options.RevokeTokenEndpoint, content);
+
+            _options.Backchannel.DefaultRequestHeaders.Authorization=null;
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = JsonSerializer.Deserialize<ErrorResponse>(await response.Content.ReadAsStringAsync());
+                throw new ArgumentException(error?.ErrorDescription);
+            }
+
+
+        }
+
+        private class ErrorResponse
+        {
+            public string ErrorDescription { get; set; }
+        }
     }
-
-    public Task<UserToken?> GetToken(string accountId)
-    {
-        return Task.FromResult(_tokens.TryGetValue(accountId, out var token) ? token : null);
-    }
-
-    public Task ClearToken(string accountId)
-    {
-        _tokens.TryRemove(accountId, out _);
-        return Task.CompletedTask;
-    }
-
-    public async Task<bool> IsTokenExpire(string accountId)
-    {
-        var token = await GetToken(accountId);
-        if(token == null)
-            throw new NullReferenceException("Token is null");
-    
-        return DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-18);
-    }
-
-    public async Task RefreshAccessToken(string accountId)
-    {
-        var token = await GetToken(accountId);
-        if(token == null)
-            throw new NullReferenceException("Token is null");
-
-        var refreshToken = Uri.EscapeDataString(token.RefreshToken);
-        var content = new StringContent($"grant_type=refresh_token&refresh_token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
-
-        _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
-        var response = await _options.Backchannel.PostAsync(_options.TokenEndpoint, content);
-
-        response.EnsureSuccessStatusCode();
-
-        var result = await response.Content.ReadAsStringAsync();
-        EveToken? newToken = JsonSerializer.Deserialize<EveToken>(result);
-
-        if(newToken == null)
-            throw new NullReferenceException("New token is null");
-
-        token.AccessToken = newToken.AccessToken;
-        token.RefreshToken = newToken.RefreshToken;
-        token.Expiry = DateTimeOffset.UtcNow.AddSeconds(newToken.ExpiresIn).UtcDateTime;
-
-        await SaveToken(token);
-    }
-
-    /*
-    public async Task RevokeToken()
-    {
-        if(string.IsNullOrEmpty(RefreshToken))
-            throw new NullReferenceException("Refresh token is null or empty");
-
-        var refreshToken = Uri.EscapeDataString(RefreshToken);
-        var content = new StringContent($"token_type_hint=refresh_token&token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
-
-        _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
-        var response = await _options.Backchannel.PostAsync(_options.RevokeTokenEndpoint, content);
-
-        response.EnsureSuccessStatusCode();
-    }*/
 }
