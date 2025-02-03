@@ -22,7 +22,7 @@ namespace WHMapper.Services.EveAPI
             var user = _contextAccessor?.HttpContext?.User as ClaimsPrincipal;
 
  
-            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 throw new UnauthorizedAccessException("User ID is not found.");

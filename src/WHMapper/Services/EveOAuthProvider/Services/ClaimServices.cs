@@ -58,16 +58,4 @@ public class ClaimServices : IClaimServices
 
         return Task.FromResult(extractedClaim);
     }
-
-    private string UnixTimeStampToDateTime(string unixTimeStamp)
-    {
-        if (!long.TryParse(unixTimeStamp, NumberStyles.Integer, CultureInfo.InvariantCulture, out long unixTime))
-        {
-            throw new InvalidOperationException($"The value {unixTimeStamp} of the 'exp' claim is not a valid 64-bit integer.");
-        }
-
-        DateTimeOffset offset = DateTimeOffset.FromUnixTimeSeconds(unixTime);
-        return offset.ToString("o", CultureInfo.InvariantCulture);
-    }
-
 }

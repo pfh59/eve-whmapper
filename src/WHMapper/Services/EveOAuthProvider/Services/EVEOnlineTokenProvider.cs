@@ -109,7 +109,7 @@ namespace WHMapper.Services.EveOAuthProvider.Services
                 throw new ArgumentException(error?.ErrorDescription);
             }
 
-
+            await ClearToken(accountId);
         }
 
         private class ErrorResponse

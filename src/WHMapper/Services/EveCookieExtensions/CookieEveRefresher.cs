@@ -19,16 +19,29 @@ internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
 {        
     public async Task ValidateOrRefreshCookieAsync(CookieValidatePrincipalContext validateContext, string scheme)
     {
+        if(validateContext == null)
+        {
+            return;
+        }
+
         var accountId = validateContext?.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var access_token = validateContext.Properties.GetTokenValue("access_token");
-        var refresh_token  = validateContext.Properties.GetTokenValue("refresh_token");
-        var accessTokenExpirationText = validateContext.Properties.GetTokenValue("expires_at");
+
+        if(string.IsNullOrEmpty(accountId))
+        {
+            validateContext?.RejectPrincipal();
+            return;
+        }
+
+        var access_token = validateContext?.Properties.GetTokenValue("access_token");
+        var refresh_token  = validateContext?.Properties.GetTokenValue("refresh_token");
+        var accessTokenExpirationText = validateContext?.Properties.GetTokenValue("expires_at");
         if (!DateTimeOffset.TryParse(accessTokenExpirationText, out var accessTokenExpiration))
         {
             return;
         }
 
-        if(await tokenProvider.GetToken(accountId) == null)
+
+        if (await tokenProvider.GetToken(accountId) == null)
         {
             //add token to cache
             await tokenProvider.SaveToken(new UserToken
@@ -45,32 +58,43 @@ internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
             return;
         }
   
-
         try
         {
             await tokenProvider.RefreshAccessToken(accountId);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await tokenProvider.ClearToken(accountId);
-            validateContext.RejectPrincipal();
+            validateContext?.RejectPrincipal();
             return;
         }
         var token = await tokenProvider.GetToken(accountId);
         if (token == null)
         {
             await tokenProvider.ClearToken(accountId);
-            validateContext.RejectPrincipal();
+            validateContext?.RejectPrincipal();
             return;
         }
 
 
-        validateContext.ShouldRenew = true;
-        validateContext.Properties.StoreTokens([
-            new() { Name = "access_token", Value = token.AccessToken },
-            new() { Name = "refresh_token", Value = token.RefreshToken },
-            new() { Name = "expires_at", Value = token.Expiry.ToString("o", CultureInfo.InvariantCulture) }
-        ]);
+
+        if (validateContext != null)
+        {
+            validateContext.ShouldRenew = true;
+        }
+        
+        if (token.AccessToken == null || token.RefreshToken == null)
+        {
+            validateContext?.RejectPrincipal();
+            return;
+        }
+
+        validateContext?.Properties.StoreTokens(new[]
+        {
+            new AuthenticationToken { Name = "access_token", Value = token.AccessToken },
+            new AuthenticationToken { Name = "refresh_token", Value = token.RefreshToken },
+            new AuthenticationToken { Name = "expires_at", Value = token.Expiry.ToString("o", CultureInfo.InvariantCulture) }
+        });
 
         await tokenProvider.SaveToken(token);
     }
