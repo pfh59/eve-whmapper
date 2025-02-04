@@ -4,7 +4,7 @@ using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveAPI.Locations
 {
-    internal class LocationServices : EveApiServiceBase, ILocationServices
+    public class LocationServices : EveApiServiceBase, ILocationServices
     {
         private readonly IEveUserInfosServices?  _userService = null;
 
