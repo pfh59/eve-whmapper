@@ -1020,12 +1020,4 @@ public class DbIntegrationTest
         Assert.NotNull(map);
         Assert.Equal(FOOBAR, map?.Name);
     }
-
-   
-
-
-
-
-
-        
 }

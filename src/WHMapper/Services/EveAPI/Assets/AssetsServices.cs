@@ -1,6 +1,7 @@
 ﻿using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Assets;
-using WHMapper.Services.EveOnlineUserInfosProvider;
+using WHMapper.Services.EveOAuthProvider.Services;
+
 
 namespace WHMapper.Services.EveAPI.Assets
 {
@@ -8,7 +9,7 @@ namespace WHMapper.Services.EveAPI.Assets
     {
         private readonly IEveUserInfosServices? _userService = null!;
 
-        public AssetsServices(HttpClient httpClient, TokenProvider _tokenProvider, IEveUserInfosServices userService) : base(httpClient, _tokenProvider)
+        public AssetsServices(HttpClient httpClient, IEveUserInfosServices userService) : base(httpClient)
         {
             _userService = userService;
         }

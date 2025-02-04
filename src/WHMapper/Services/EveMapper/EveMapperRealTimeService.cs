@@ -1,15 +1,18 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
+using System.Security.Claims;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveMapper;
 
 public class EveMapperRealTimeService : IEveMapperRealTimeService
 {
-    private readonly HubConnection _hubConnection;
+    private HubConnection? _hubConnection;
     private readonly ILogger<EveMapperRealTimeService> _logger;
-    private readonly TokenProvider _tokenProvider;
     private readonly NavigationManager _navigation;
 
     public event Func<string, Task>? UserConnected;
@@ -37,19 +40,33 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
-    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, TokenProvider tokenProvider)
+    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation,IEveOnlineTokenProvider tokenProvider,AuthenticationStateProvider stateProvider)
     {
         _logger = logger;
-        _tokenProvider = tokenProvider;
         _navigation = navigation;
 
-        _hubConnection = new HubConnectionBuilder()
-            .WithUrl(_navigation.ToAbsoluteUri("/whmappernotificationhub"), options =>
-            {
-                options.AccessTokenProvider = () => Task.FromResult<string?>(_tokenProvider.AccessToken);
-            }).Build();
+        stateProvider.GetAuthenticationStateAsync().ContinueWith(async task =>
+        {
+            var authState = task.Result;
+            var user = authState.User;
 
-        RegisterHubEvents();
+            if (user.Identity?.IsAuthenticated ?? false)
+            {
+                var token = await tokenProvider.GetToken(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                if (token is not null)
+                {
+                    _hubConnection = new HubConnectionBuilder()
+                        .WithUrl(_navigation.ToAbsoluteUri("/whmappernotificationhub"), options =>
+                        {
+                            options.AccessTokenProvider = async () => token.AccessToken;
+                        })
+                        .WithAutomaticReconnect()
+                        .Build();
+
+                    RegisterHubEvents();
+                }
+            }
+        });
     }
 
     private void RegisterHubEvents()

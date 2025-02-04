@@ -17,7 +17,7 @@ namespace WHMapper.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -61,6 +61,30 @@ namespace WHMapper.Migrations
                         .IsUnique();
 
                     b.ToTable("Accesses", (string)null);
+                });
+
+            modelBuilder.Entity("WHMapper.Models.Db.WHAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("WHAccountId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId")
+                        .IsUnique();
+
+                    b.HasIndex("WHAccountId");
+
+                    b.ToTable("MainAccounts", (string)null);
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHAdmin", b =>
@@ -340,6 +364,14 @@ namespace WHMapper.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WHMapper.Models.Db.WHAccount", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHAccount", null)
+                        .WithMany("AdditionnalAccounts")
+                        .HasForeignKey("WHAccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("WHMapper.Models.Db.WHJumpLog", b =>
                 {
                     b.HasOne("WHMapper.Models.Db.WHSystemLink", null)
@@ -404,6 +436,11 @@ namespace WHMapper.Migrations
                         .HasForeignKey("MapId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WHMapper.Models.Db.WHAccount", b =>
+                {
+                    b.Navigation("AdditionnalAccounts");
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHMap", b =>

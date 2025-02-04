@@ -3,15 +3,13 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using WHMapper.Data;
-using WHMapper.Models.DTO;
+
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveOAuthProvider;
-using Microsoft.AspNetCore.Components.Authorization;
-using WHMapper.Services.EveJwtAuthenticationStateProvider;
 using WHMapper.Services.WHColor;
 using WHMapper.Repositories.WHSystemLinks;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -20,7 +18,6 @@ using WHMapper.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using WHMapper.Services.EveJwkExtensions;
 using System.Net;
-using WHMapper.Services.EveOnlineUserInfosProvider;
 using MudBlazor;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
@@ -36,6 +33,7 @@ using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
 using System.IO.Abstractions;
+using WHMapper.Services.EveCookieExtensions;
 
 namespace WHMapper
 {
@@ -131,12 +129,15 @@ namespace WHMapper
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
                 options.Cookie.HttpOnly = true;
+                options.Cookie.Name = "WHMapper";
+                options.Cookie.MaxAge = TimeSpan.FromDays(30);
+                options.ExpireTimeSpan = TimeSpan.FromHours(24);
                 options.SlidingExpiration = true;
-                options.ExpireTimeSpan = TimeSpan.FromHours(12);
                 options.AccessDeniedPath = "/Forbidden/";
             })
             .AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, options =>
             {
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.ClientId = evessoConf["ClientId"];
                 options.ClientSecret = evessoConf["Secret"];
                 options.CallbackPath = new PathString("/sso/callback");
@@ -144,13 +145,14 @@ namespace WHMapper
 
                 foreach (string scope in evessoConfScopes.Get<string[]>())
                     options.Scope.Add(scope);
-
-
+                
                 options.SaveTokens = true;
                 options.UsePkce = true;
             })
             .AddEveOnlineJwtBearer();//validate hub tokken
 
+
+            builder.Services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.AuthenticationScheme, EVEOnlineAuthenticationDefaults.AuthenticationScheme);
 
 
             builder.Services.AddAuthorization(options =>
@@ -165,19 +167,26 @@ namespace WHMapper
                     policy.Requirements.Add(new EveMapperMapRequirement()));
             });
 
-            builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
-            builder.Services.AddHttpClient();
+            builder.Services.AddCascadingAuthenticationState();
 
-            builder.Services.AddScoped<TokenProvider>();
             builder.Services.AddScoped<ICacheService, CacheService>();
-
-            builder.Services.AddScoped<AuthenticationStateProvider, EveAuthenticationStateProvider>();
             
 
+            builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
+            builder.Services.AddHttpContextAccessor();
+      
+            builder.Services.AddScoped<EveOnlineAccessTokenHandler>();
+           
+            builder.Services.AddHttpClient<IEveAPIServices, EveAPIServices>(client =>
+            {
+                client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+            }).AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
 
-            builder.Services.AddScoped<IEveUserInfosServices, EveUserInfosServices>();
-            builder.Services.AddScoped<IEveAPIServices, EveAPIServices>();
-            builder.Services.AddScoped<ICharacterServices, CharacterServices>();
+            builder.Services.AddHttpClient<ICharacterServices, CharacterServices>(client =>
+            {
+                client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+            }).AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
+
 
             builder.Services.AddScoped<IAnoikDataSupplier>(sp =>
             {
@@ -204,8 +213,6 @@ namespace WHMapper
             builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
             builder.Services.AddScoped<IWHNoteRepository, WHNoteRepository>();
             builder.Services.AddScoped<IWHRouteRepository, WHRouteRepository>();
-            builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
-
             builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
             #endregion
 
@@ -321,13 +328,14 @@ namespace WHMapper
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
+            app.UseAntiforgery();
 
             app.UseRouting();
             app.UseCookiePolicy();
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+        
             app.MapBlazorHub();
             app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR
             app.MapFallbackToPage("/_Host");

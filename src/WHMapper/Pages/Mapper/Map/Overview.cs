@@ -18,9 +18,9 @@ using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOnlineUserInfosProvider;
 using WHMapper.Pages.Mapper.Search;
 using Microsoft.AspNetCore.Authorization;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Pages.Mapper.Map;
 

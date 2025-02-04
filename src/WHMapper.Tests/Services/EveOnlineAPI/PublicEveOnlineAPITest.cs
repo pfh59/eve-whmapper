@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
+using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Alliances;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveAPI.Corporations;
@@ -90,12 +91,15 @@ public class PublicEveOnlineAPITest
 
         if (httpclientfactory != null)
         {
-            _eveUniverseApi = new UniverseServices(httpclientfactory.CreateClient());
-            _eveDogmaApi = new DogmaServices(httpclientfactory.CreateClient());
-            _eveAllianceApi = new AllianceServices(httpclientfactory.CreateClient());
-            _eveCorpoApi = new CorporationServices(httpclientfactory.CreateClient());
-            _eveCharacterApi = new CharacterServices(httpclientfactory.CreateClient());
-            _routeServices = new RouteServices(httpclientfactory.CreateClient());
+            var httpClient = httpclientfactory.CreateClient();
+            httpClient.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
+
+            _eveUniverseApi = new UniverseServices(httpClient);
+            _eveDogmaApi = new DogmaServices(httpClient);
+            _eveAllianceApi = new AllianceServices(httpClient);
+            _eveCorpoApi = new CorporationServices(httpClient);
+            _eveCharacterApi = new CharacterServices(httpClient);
+            _routeServices = new RouteServices(httpClient);
         }
     }
 

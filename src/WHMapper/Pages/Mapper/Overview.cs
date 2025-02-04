@@ -59,7 +59,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     private WHMap? _selectedWHMap = null!;
 
-
     protected override async Task OnInitializedAsync()
     {
         if (!await RestoreMaps())
