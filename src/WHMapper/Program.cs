@@ -62,6 +62,7 @@ namespace WHMapper
 
             builder.Services.AddSignalR();
 
+            builder.Services.AddControllers();
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor(options =>
             {
@@ -312,6 +313,7 @@ namespace WHMapper
             {
                 app.Use((context, next) =>
                 {
+                    context.Response.Headers.Append("Content-Security-Policy", "frame-ancestors 'self' https://login.eveonline.com https://localhost:5001");
                     context.Request.Scheme = "https";
                     return next(context);
                 });
@@ -325,6 +327,7 @@ namespace WHMapper
                 app.UseHsts();
             }
 
+
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
@@ -336,6 +339,7 @@ namespace WHMapper
             app.UseAuthentication();
             app.UseAuthorization();
         
+            app.MapControllers();
             app.MapBlazorHub();
             app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR
             app.MapFallbackToPage("/_Host");

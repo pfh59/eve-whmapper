@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using WHMapper.Services.EveOAuthProvider.Services
+@using static System.Net.WebRequestMethods
 
 <AuthorizeView>
     <Authorized>
@@ -32,6 +33,8 @@
 
     </Authorized>
     <NotAuthorized>
+       
+        <button @onclick="GetOAuthToken">Get OAuth Token</button>
         <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
             <ActivatorContent>
                 <MudChip T="string" Icon="@Icons.Material.Filled.Person">Account</MudChip>
@@ -52,9 +55,30 @@
     [Inject]
     private IEveUserInfosServices  UserService { get; set; } = null!;
 
+    [Inject]
+    private IJSRuntime JS { get; set; } = null!;
+
+    @inject HttpClient Http
+
     protected override async Task OnInitializedAsync()
     {
         _username = await UserService.GetUserName();
         StateHasChanged();
+    }
+
+    private async Task GetOAuthToken()
+    {
+        var request = new { Code = "your-authorization-code" };
+        var response = await Http.PostAsJsonAsync("/api/oauth/token", request);
+        
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"OAuth Token: {token}");
+        }
+        else
+        {
+            Console.WriteLine("Error retrieving token");
+        }
     }
 }
