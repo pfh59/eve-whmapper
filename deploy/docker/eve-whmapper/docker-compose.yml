@@ -4,7 +4,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-1}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
       POSTGRES_DB: whmapper
       PGDATA: /data/postgres
     volumes:
@@ -22,9 +22,9 @@ services:
     image: ghcr.io/pfh59/eve-whmapper:1.1
     restart: unless-stopped
     environment:
-     - EveSSO__ClientId=987
-     - EveSSO__Secret=p
-     - ConnectionStrings__DatabaseConnection=server=db;port=5432;database=whmapper;User Id=postgres;Password=1
+     - EveSSO__ClientId=xxxxxxxxx
+     - EveSSO__Secret=xxxxxxxxx
+     - ConnectionStrings__DatabaseConnection=server=db;port=5432;database=whmapper;User Id=postgres;Password=secret
      - ConnectionStrings__RedisConnection=redis:6379
      - Logging__LogLevel__Default=Warning
      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
