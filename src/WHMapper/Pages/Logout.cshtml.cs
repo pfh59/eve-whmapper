@@ -30,7 +30,7 @@ namespace WHMapper.Pages
                 var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
                 await _tokenProvider.RevokeToken(userId);
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignOutAsync();
                 await _tokenProvider.ClearToken(userId);
                 
                 _logger.LogInformation("User logged out.");
