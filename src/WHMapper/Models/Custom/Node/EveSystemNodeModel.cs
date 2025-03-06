@@ -111,7 +111,6 @@ namespace WHMapper.Models.Custom.Node
         public IList<EveSystemEffect>? EffectDetails { get; private set; } = null!;
         public IList<WormholeType>? Statics { get; private set; } = null!;
         public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
-
         public bool IsRouteWaypoint{get;set;} = false;
 
 

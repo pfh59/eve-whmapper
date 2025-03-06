@@ -15,6 +15,8 @@ namespace WHMapper.Services.EveAPI
 {
     public class EveAPIServices : IEveAPIServices
     {
+        private readonly HttpClient _httpClient;
+
         public ILocationServices LocationServices { get; private set; }
         public IUniverseServices UniverseServices { get; private set; }
         public IUserInterfaceServices UserInterfaceServices { get; private set; }
@@ -26,21 +28,35 @@ namespace WHMapper.Services.EveAPI
         public IAssetsServices AssetsServices { get; private set; }
         public IRouteServices RouteServices { get; private set; }
 
-        public EveAPIServices(HttpClient httpClient, IEveUserInfosServices userService)
+        public EveAPIServices(HttpClient httpClient)
         {
             ArgumentNullException.ThrowIfNull(httpClient);
-            ArgumentNullException.ThrowIfNull(userService);
 
-            LocationServices = new LocationServices(httpClient, userService);
+            _httpClient = httpClient;
+
+
+            LocationServices = new LocationServices(httpClient);
             UniverseServices = new UniverseServices(httpClient);
             UserInterfaceServices = new UserInterfaceServices(httpClient);
             AllianceServices = new AllianceServices(httpClient);
             CorporationServices = new CorporationServices(httpClient);
             CharacterServices = new CharacterServices(httpClient);
-            SearchServices = new SearchServices(httpClient, userService);
+            SearchServices = new SearchServices(httpClient);
             DogmaServices = new DogmaServices(httpClient);
             RouteServices = new RouteServices(httpClient);
-            AssetsServices = new AssetsServices(httpClient, userService);
+            AssetsServices = new AssetsServices(httpClient);
+        }
+
+        public Task SetEveCharacterAuthenticatication(UserToken userToken)
+        {
+            ArgumentNullException.ThrowIfNull(userToken);
+
+            LocationServices = new LocationServices(_httpClient, userToken);
+            SearchServices = new SearchServices(_httpClient, userToken);
+            DogmaServices = new DogmaServices(_httpClient, userToken);
+            AssetsServices = new AssetsServices(_httpClient, userToken);
+
+            return Task.CompletedTask;
         }
     }
 }

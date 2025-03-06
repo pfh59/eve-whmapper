@@ -1,4 +1,5 @@
-﻿using WHMapper.Services.EveAPI.Alliances;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Services.EveAPI.Alliances;
 using WHMapper.Services.EveAPI.Assets;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveAPI.Corporations;
@@ -23,5 +24,7 @@ namespace WHMapper.Services.EveAPI
         IDogmaServices DogmaServices { get; }
         IRouteServices RouteServices { get; }
         IAssetsServices AssetsServices { get; }
+
+        Task SetEveCharacterAuthenticatication(UserToken userToken);
     }
 }

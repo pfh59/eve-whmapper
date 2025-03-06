@@ -6,19 +6,16 @@ namespace WHMapper.Services.EveAPI.Locations
 {
     public class LocationServices : EveApiServiceBase, ILocationServices
     {
-        private readonly IEveUserInfosServices?  _userService = null;
-
-        public LocationServices(HttpClient httpClient, IEveUserInfosServices userService) : base(httpClient)
+        public LocationServices(HttpClient httpClient,UserToken? userToken=null) : base(httpClient,userToken)
         {
-            _userService = userService;
+
         }
 
         public async Task<EveLocation?> GetLocation()
         {
-            if (_userService != null)
+            if (this.UserToken != null)
             {
-                int characterId = await _userService.GetCharactedID();
-                return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", characterId));
+                return await base.Execute<EveLocation>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/location/?datasource=tranquility", UserToken.AccountId));
 
             }
             return null;
@@ -26,10 +23,9 @@ namespace WHMapper.Services.EveAPI.Locations
 
         public async Task<Ship?> GetCurrentShip()
         {
-            if (_userService != null)
+            if (this.UserToken != null)
             {
-                int characterId = await _userService.GetCharactedID();
-                return await base.Execute<Ship>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/ship/?datasource=tranquility", characterId));
+                return await base.Execute<Ship>(RequestSecurity.Authenticated, RequestMethod.Get, string.Format("/v2/characters/{0}/ship/?datasource=tranquility", UserToken.AccountId));
             }
             return null;
         }

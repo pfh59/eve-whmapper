@@ -8,6 +8,10 @@ using MudBlazor;
 using Microsoft.AspNetCore.Authorization;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using WHMapper.Services.EveMapper;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using System.Collections.Concurrent;
+using WHMapper.Services.LocalStorage;
+using WHMapper.Models.DTO.EveMapper;
 
 namespace WHMapper.Pages.Mapper;
 
@@ -45,6 +49,15 @@ public partial class Overview : ComponentBase, IAsyncDisposable
     private IAuthorizationService _authorizationService { get; set; } = null!;
 
     [Inject]
+    private ILocalStorageHelper LocalStorageHelper { get; set; } = null!;
+
+   // [Inject]
+   // private IEveMapperUserManagementService? EveMapperUserManagementService {get; set;} = null!;
+
+
+   // public IEnumerable<WHMapperUser> Accounts { get; private set; } = new List<WHMapperUser>();
+
+    [Inject]
     IEveMapperRealTimeService? RealTimeService {get;set;} = null!;
 
     [Inject]
@@ -56,7 +69,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
     [Inject]
     private IPasteServices PasteServices { get; set; } = null!;
 
-
     private WHMap? _selectedWHMap = null!;
 
     protected override async Task OnInitializedAsync()
@@ -65,6 +77,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         {
             Snackbar?.Add("Mapper Initialization error", Severity.Error);
         }
+        
         if(!await InitRealTimeService())
         {
             Snackbar?.Add("RealTimeService Initialization error", Severity.Error);
@@ -89,15 +102,15 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         else
         {
             WHMaps.Clear();
-            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            //var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
     
             foreach (var map in allMaps)
             {
-                var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
-                if (authorizationResult.Succeeded)
-                {
+                //var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
+                //if (authorizationResult.Succeeded)
+               // {
                     WHMaps.Add(map);
-                }
+                //}
             }
 
             _selectedWHMap = WHMaps.FirstOrDefault();
@@ -114,7 +127,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         
         if (TrackerServices != null)
         {
-            await TrackerServices.StopTracking();
+            await TrackerServices.DisposeAsync();
 
         }
     }
@@ -128,7 +141,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 Logger.LogError("RealTimeService is null");
                 return false;
             }
-
+            
             RealTimeService.MapAdded += OnMapAdded;
             RealTimeService.MapRemoved += OnMapRemoved;
             RealTimeService.MapNameChanged += OnMapNameChanged;
@@ -137,7 +150,13 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             RealTimeService.MapAccessRemoved+=OnMapAccessRemoved;
             RealTimeService.MapAllAccessesRemoved+=OnMapAllAccessesRemoved;
 
-            return await RealTimeService.Start();
+            /*
+            foreach(var account in Accounts)
+            {
+                await RealTimeService.Start(account.Id);
+            }*/
+
+            return true;
         }
         catch (Exception ex)
         {

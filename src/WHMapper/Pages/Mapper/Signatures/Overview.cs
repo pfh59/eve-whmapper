@@ -183,7 +183,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             if (result!=null && !result.Canceled && CurrentMapId.HasValue && CurrentSystemNodeId.HasValue)
             {
-                await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
             }
             
@@ -222,7 +222,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
                 if (result != null && !result.Canceled && CurrentMapId!=null)
                 {
-                    await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                    //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                     await Restore();
                 }
             }
@@ -252,7 +252,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
             if (result!=null && !result.Canceled && CurrentMapId != null && CurrentSystemNodeId != null)
             {
-                await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
             }
         }
@@ -329,7 +329,7 @@ namespace WHMapper.Pages.Mapper.Signatures
                 {
                     if (_currentUser != null && await SignatureHelper.ImportScanResult(_currentUser, CurrentSystemNodeId.Value, text, false))
                     {
-                        await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                        //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
                         await Restore();
                         Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
                     }

@@ -34,6 +34,11 @@ using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
 using System.IO.Abstractions;
 using WHMapper.Services.EveCookieExtensions;
+using WHMapper.Services.LocalStorage;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
+using WHMapper.Models.DTO;
+
 
 namespace WHMapper
 {
@@ -42,6 +47,7 @@ namespace WHMapper
         private static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
 
             // Add services to the container.
             builder.Services.AddDbContextFactory<WHMapperContext>(options =>
@@ -153,7 +159,7 @@ namespace WHMapper
             .AddEveOnlineJwtBearer();//validate hub tokken
 
 
-            builder.Services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.AuthenticationScheme, EVEOnlineAuthenticationDefaults.AuthenticationScheme);
+            //builder.Services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.AuthenticationScheme, EVEOnlineAuthenticationDefaults.AuthenticationScheme);
 
 
             builder.Services.AddAuthorization(options =>
@@ -176,17 +182,17 @@ namespace WHMapper
             builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
             builder.Services.AddHttpContextAccessor();
       
-            builder.Services.AddScoped<EveOnlineAccessTokenHandler>();
+            //builder.Services.AddScoped<EveOnlineAccessTokenHandler>();
            
             builder.Services.AddHttpClient<IEveAPIServices, EveAPIServices>(client =>
             {
                 client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-            }).AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
+            });//.AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
 
             builder.Services.AddHttpClient<ICharacterServices, CharacterServices>(client =>
             {
                 client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-            }).AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
+            });//.AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
 
 
             builder.Services.AddScoped<IAnoikDataSupplier>(sp =>
@@ -205,6 +211,9 @@ namespace WHMapper
                 client.BaseAddress = new Uri(builder.Configuration["SdeDataSupplier:BaseUrl"]);
             }); 
 
+
+
+
             #region DB Acess Repo
             builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
             builder.Services.AddScoped<IWHAccessRepository, WHAccessRepository>();
@@ -222,6 +231,10 @@ namespace WHMapper
             #endregion
 
             #region WH HELPER
+            builder.Services.AddScoped<ILocalStorageHelper, LocalStorageHelper>();
+            builder.Services.AddScoped<ClientUID>();
+            builder.Services.AddSingleton<IEveMapperUserManagementService,EveMapperUserManagementService>();
+            
             builder.Services.AddScoped<IEveMapperService, EveMapperService>();
             builder.Services.AddScoped<IEveMapperCacheService, EveMapperCacheService>();
             builder.Services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
@@ -239,7 +252,6 @@ namespace WHMapper
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperAccessHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperAdminHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
-
 
 
             if (!builder.Environment.IsDevelopment())
@@ -313,7 +325,6 @@ namespace WHMapper
             {
                 app.Use((context, next) =>
                 {
-                    context.Response.Headers.Append("Content-Security-Policy", "frame-ancestors 'self' https://login.eveonline.com https://localhost:5001");
                     context.Request.Scheme = "https";
                     return next(context);
                 });
@@ -338,12 +349,12 @@ namespace WHMapper
 
             app.UseAuthentication();
             app.UseAuthorization();
-        
-            app.MapControllers();
-            app.MapBlazorHub();
-            app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR
-            app.MapFallbackToPage("/_Host");
 
+
+            app.MapBlazorHub();
+            app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR                
+            app.MapFallbackToPage("/_Host");
+                
             app.Run();
         }
     }

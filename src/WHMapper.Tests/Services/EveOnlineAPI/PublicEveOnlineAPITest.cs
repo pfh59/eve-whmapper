@@ -274,6 +274,18 @@ public class PublicEveOnlineAPITest
     }
 
     [Fact]
+    public async Task Get_Charchter_Portrait()
+    {
+        Assert.NotNull(_eveCharacterApi);
+        var portrait = await _eveCharacterApi.GetCharacterPortrait(CHARACTER_GOONS_ID);
+        Assert.NotNull(portrait);
+        Assert.NotNull(portrait.Picture512x512);
+        Assert.NotNull(portrait.Picture256x256);
+        Assert.NotNull(portrait.Picture128x128);
+        Assert.NotNull(portrait.Picture64x64);
+    }
+
+    [Fact]
     public async Task Get_Route()
     {
         //simple route in HS to HS via shortest path

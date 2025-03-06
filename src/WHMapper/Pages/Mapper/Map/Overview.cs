@@ -21,6 +21,12 @@ using WHMapper.Services.EveMapper;
 using WHMapper.Pages.Mapper.Search;
 using Microsoft.AspNetCore.Authorization;
 using WHMapper.Services.EveOAuthProvider.Services;
+using WHMapper.Services.EveOAuthProvider.Validators;
+using WHMapper.Services.LocalStorage;
+using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Mvc;
+using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.DTO;
 
 namespace WHMapper.Pages.Mapper.Map;
 
@@ -62,12 +68,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     private ICollection<EveSystemLinkModel>? _selectedSystemLinks = null;
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
-    private SystemEntity? _currentSolarSystem = null!;
-    private Ship? _currentShip = null!;
-    private ShipEntity? _currentShipInfos = null!;
+    private ConcurrentDictionary<int, Ship> _currentShips= new ConcurrentDictionary<int, Ship>();
 
-    private string _userName = string.Empty;
-    private int _characterId = 0;
 
     [Inject]
     private ILogger<Overview> Logger { get; set; } = null!;
@@ -113,12 +115,24 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     
     [Parameter]
     public int? MapId {  get; set; } = null!;
+
+    [Inject]
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
+
+
+    [Inject]
+    private IEveMapperService eveMapperService { get; set; } = null!;
+
+    public WHMapperUser? PrimaryAccount { get; private set; } = null!;
+
     
+    private string _clientId = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        _userName = await UserInfos.GetUserName();
-        _characterId = await UserInfos.GetCharactedID();
 
         if(!await InitDiagram())
         {
@@ -131,11 +145,17 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
     protected override async Task OnParametersSetAsync()
     {
+        if(UID==null || String.IsNullOrEmpty(UID.ClientId))
+        {
+            Logger.LogError("UID is null");
+            throw new NullReferenceException("UID is null");
+        }
+
         if(MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value!=MapId.Value))
         {
-            await EveMapperRealTime.NotifyUserOnMapConnected(MapId.Value);
             if(await Restore(MapId.Value))
             {   
+                await TrackerServices.StopAllTracking();
                 TrackerServices.SystemChanged += OnSystemChanged;
                 TrackerServices.ShipChanged += OnShipChanged;
 
@@ -157,32 +177,46 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 EveMapperRealTime.LinkRemoved += OnLinkRemoved;
                 EveMapperRealTime.LinkChanged += OnLinkChanged;
 
-            
-                IDictionary<string,KeyValuePair<int,int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition();
-                try
+   
+                //get all user account authorized on map
+                var accounts = await UserManagement.GetAccountsAsync(UID.ClientId);
+                if(accounts!=null)
                 {
-                    await Parallel.ForEachAsync(usersPosition, async (item, cancellationToken) =>
+                    foreach(var account in accounts)
                     {
-                        if (item.Value.HasValue && item.Value.Value.Key == MapId.Value)
+                        IDictionary<string,KeyValuePair<int,int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition(account.Id);
+                        try
                         {
-                            EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == item.Value.Value.Value);
-                           
-                            if (systemToAddUser != null)
+                            await Parallel.ForEachAsync(usersPosition, async (item, cancellationToken) =>
                             {
-                                await systemToAddUser.AddConnectedUser(item.Key);
-                                systemToAddUser.Refresh();
-                            }
+                                if (item.Value.HasValue && item.Value.Value.Key == MapId.Value)
+                                {
+                                    EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == item.Value.Value.Value);
+                                
+                                    if (systemToAddUser != null)
+                                    {
+                                        await systemToAddUser.AddConnectedUser(item.Key);
+                                        systemToAddUser.Refresh();
+                                    }
+                                }
+                            });
                         }
-                    });
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "On NotifyUserPosition error");
+                        }
+
+                        await EveMapperRealTime.NotifyUserOnMapConnected(account.Id,MapId.Value);
+                        await TrackerServices.StartTracking(account.Id);
+                    }
+               
+                    await InitBlazorDiagramEvents();
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logger.LogError(ex, "On NotifyUserPosition error");
+                    Logger.LogError("Accounts is null");
+                    throw new NullReferenceException("Accounts is null");
                 }
-                
-                
-                await TrackerServices.StartTracking();
-                await InitBlazorDiagramEvents();
             }
             else
             {
@@ -197,10 +231,9 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if(TrackerServices!=null)
         {
-            await TrackerServices.StopTracking();
             TrackerServices.SystemChanged-=OnSystemChanged;
             TrackerServices.ShipChanged-=OnShipChanged;
-
+            await TrackerServices.DisposeAsync();
         }
 
         if(EveMapperRealTime!=null)
@@ -220,12 +253,17 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             EveMapperRealTime.LinkRemoved -= OnLinkRemoved;
             EveMapperRealTime.LinkChanged -= OnLinkChanged;
 
-            if (MapId.HasValue && EveMapperRealTime.IsConnected)
-            {
 
-                await EveMapperRealTime.NotifyUserOnMapDisconnected(MapId.Value);
-            }
+
+            //if (MapId.HasValue && EveMapperRealTime.IsConnected
+            //{
+
+                //await EveMapperRealTime.NotifyUserOnMapDisconnected(MapId.Value);
+            //}
         }
+
+        _currentShips.Clear();
+        
         await ClearDiagram();
         GC.SuppressFinalize(this);
     }
@@ -477,13 +515,13 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 return false;
             }
             else
-            {
+            {/*
                 if (!await AddSystemNodeLink(MapId.Value, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1), true))
                 {
                     Logger.LogError("Add Wormhole Link db error");
                     Snackbar.Add("Add Wormhole Link db error", Severity.Error);
                     return false;
-                }
+                }*/
                 return true;
             }
         }
@@ -545,8 +583,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return;
         }
 
-        await TrackerServices.StopTracking();
-        _currentSolarSystem = null;
+       // await TrackerServices.StopTracking();
         foreach (var node in _selectedSystemNodes)
         {
             if (node.Locked)
@@ -560,7 +597,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             }
         }
         SelectedSystemNode = null;
-        await TrackerServices.StartTracking();
+        //await TrackerServices.StartTracking();
     }
 
     private async Task HandleLinkDeletion()
@@ -568,14 +605,14 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         if(_selectedSystemLinks==null || !_selectedSystemLinks.Any() || !MapId.HasValue)
             return;
 
-        await TrackerServices.StopTracking();
+        //await TrackerServices.StopTracking();
         foreach (var link in _selectedSystemLinks)
         {
             if (!await DeletedLinkOnMap(MapId.Value, link))
                 Snackbar?.Add("Remove wormhole link db error", Severity.Error);
         }
         _selectedSystemLink = null;
-        await TrackerServices.StartTracking();
+        //await TrackerServices.StartTracking();
     }
     #endregion
 
@@ -630,7 +667,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 Snackbar?.Add("Update wormhole node position db error", Severity.Error);
             }
 
-            await EveMapperRealTime.NotifyWormholeMoved(mapId.Value, wh.Id, wh.PosX, wh.PosY);
+            await EveMapperRealTime.NotifyWormholeMoved(PrimaryAccount.Id,mapId.Value, wh.Id, wh.PosX, wh.PosY);
         }
     }
     #endregion
@@ -642,7 +679,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if (whNodeModel != null)
         {
-            Task.Run(async () => await EveMapperRealTime.NotifyWormholeLockChanged(whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked));
+            Task.Run(async () => await EveMapperRealTime.NotifyWormholeLockChanged(PrimaryAccount.Id,whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked));
         }
     }
 
@@ -650,7 +687,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if (whNodeModel != null)
         {
-            Task.Run(async ()=>await EveMapperRealTime.NotifyWormholeSystemStatusChanged(whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus));
+            Task.Run(async ()=>await EveMapperRealTime.NotifyWormholeSystemStatusChanged(PrimaryAccount.Id,whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus));
         }
     }
     #endregion
@@ -729,19 +766,68 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
     }
 
-    private async Task<bool> AddSystemNode(int? mapId,SystemEntity node,double nodePositionX=0,double nodePositionY=0)
+    private async Task<bool> AddSystemNode(int? mapId,EveLocation location,int accountID,double nodePositionX=0,double nodePositionY=0)
     {
-        return await AddSystemNode(mapId, null, node,nodePositionX,nodePositionY,true);
+        if(!mapId.HasValue)
+        {
+            Logger.LogError("AddSystemNode mapId is null");
+            throw new NullReferenceException("mapId is null");
+        }
+/*
+        if(this._selectedWHMapId!=mapId)
+        {
+            Logger.LogError("AddSystemNode mapId is different from selected map");
+            throw new ArgumentException("mapId is different from selected map");
+        }*/
+
+        if(await GetNodeBySolarSystemId(location.SolarSystemId)==null)//location not exist on map
+        {
+            var locationEntity = await eveMapperService.GetSystem(location.SolarSystemId);
+            if(locationEntity==null)
+            {
+                Logger.LogError("AddSystemNode locationEntity is null");
+                throw new NullReferenceException("locationEntity is null");
+            }   
+            EveSystemType whClass = await MapperServices.GetWHClass(locationEntity);
+
+            var newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value,locationEntity.Id,locationEntity.Name, locationEntity.SecurityStatus, nodePositionX, nodePositionY));
+
+            
+            if (newWHSystem!=null)
+            {
+                var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
+                newSystemNode.OnLocked += OnWHSystemNodeLocked;
+                newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChange;
+                
+                _blazorDiagram?.Nodes?.Add(newSystemNode);
+                await EveMapperRealTime.NotifyWormoleAdded(accountID,mapId.Value, newWHSystem.Id);
+                
+                //_blazorDiagram?.SelectModel(newSystemNode, true);
+                return true;
+            }
+            else
+            {
+                Logger.LogError("AddSystemNode db error");
+                throw new Exception("AddSystemNode db error");
+            }
+
+        }
+        return false;
     }
 
-    private async Task<bool> AddSystemNode(int? mapId,SystemEntity? src,SystemEntity target,double nodePositionX=0,double nodePositionY=0,bool isManual=false)
+    /*
+    private async Task<bool> AddSystemNode(int? mapId,EveLocation? src,EveLocation target,double nodePositionX=0,double nodePositionY=0,bool isManual=false)
     {
         EveSystemNodeModel? previousSystemNode = null;
+        EveSystemNodeModel? targetSystemNode = null;
         WHSystem? newWHSystem= null;
         double defaultNewSystemPosX = nodePositionX;
         double defaultNewSystemPosY = nodePositionY;
         char extension;
         int nbSameWHClassLink =0;
+
+        SystemEntity? srcEntity = null;
+        SystemEntity? targetEntity = null;
         
         try
         {
@@ -752,11 +838,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             }
 
             //determine position on map. depends of previous system , todo refactor
-            if (src != null)
+            if(src!=null)
             {
-                previousSystemNode = await GetNodeBySolarSystemId(src.Id);
-                        
-                if(previousSystemNode!=null)
+                previousSystemNode = await GetNodeBySolarSystemId(src.SolarSystemId);
+                 if(previousSystemNode!=null)
                 {
                     defaultNewSystemPosX  = previousSystemNode.Position!.X + previousSystemNode.Size!.Width + 10;
                     defaultNewSystemPosY = previousSystemNode.Position!.Y + previousSystemNode!.Size!.Height + 10;
@@ -766,15 +851,27 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                     defaultNewSystemPosX=10;
                     defaultNewSystemPosY=10;
                 }
+                srcEntity = await eveMapperService.GetSystem(src.SolarSystemId);
+            }
+            
+            targetSystemNode = await GetNodeBySolarSystemId(target.SolarSystemId);
+            targetEntity = await eveMapperService.GetSystem(target.SolarSystemId);
+
+            if(targetEntity==null)
+            {
+                Logger.LogError("AddSystemNode targetEntity is null");
+                return false;
             }
 
+
+
             //determine if source have same system link and get next unique ident
-            if(src != null && await MapperServices.IsRouteViaWH(src, target)) //check if HS/LS/NS to HS/LS/NS via WH not gate
+            if(srcEntity != null && await MapperServices.IsRouteViaWH(srcEntity, targetEntity)) //check if HS/LS/NS to HS/LS/NS via WH not gate
             {
 
                 //get whClass an determine if another connection to another wh with same class exist from previous system. Increment extension value in that case
-                EveSystemType whClass = await MapperServices.GetWHClass(target);
-                var sameWHClassWHList = _blazorDiagram?.Links?.Where(x =>  ((EveSystemNodeModel)(x.Target!.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId == src.Id);
+                EveSystemType whClass = await MapperServices.GetWHClass(targetEntity);
+                var sameWHClassWHList = _blazorDiagram?.Links?.Where(x =>  ((EveSystemNodeModel)(x.Target!.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId == srcEntity.Id);
                 
                 if(sameWHClassWHList!=null)
                     nbSameWHClassLink = sameWHClassWHList.Count();
@@ -784,14 +881,14 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 if (nbSameWHClassLink > 0)
                 {
                     extension = (Char)(Convert.ToUInt16('A') + nbSameWHClassLink);
-                    newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value, target.Id, target.Name, extension, target.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                    newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value, targetEntity.Id, targetEntity.Name, extension, targetEntity.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
                 }
                 else
-                    newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value, target.Id, target.Name, target.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                    newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value, targetEntity.Id, targetEntity.Name, targetEntity.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
             
             }
             else
-                newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value,target.Id,target.Name, target.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
+                newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value,targetEntity.Id,targetEntity.Name, targetEntity.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
 
             if (newWHSystem!=null)
             {
@@ -831,30 +928,30 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             Logger.LogError(ex, "AddSystemNode error");
             return false;
         }
-    }
-    private async Task<bool> AddSystemNodeLink(int? mapId, SystemEntity src, SystemEntity target)
+    }*/
+    private async Task<bool> AddSystemNodeLink(int? mapId, SystemEntity src, SystemEntity target,int accountID)
     {
-        if (_blazorDiagram == null  || !mapId.HasValue || src == null || target == null)
+        if(!mapId.HasValue)
         {
-            Logger.LogError("CreateLink map or src or target is null");
-            return false;
+            Logger.LogError("AddSystemNodeLink mapId is null");
+            throw new NullReferenceException("mapId is null");
         }
 
         EveSystemNodeModel? srcNode = await GetNodeBySolarSystemId(src.Id);
         EveSystemNodeModel? targetNode = await GetNodeBySolarSystemId(target.Id);
 
-        return await AddSystemNodeLink(mapId.Value,srcNode,targetNode);
+        if (srcNode == null || targetNode == null)
+        {
+            Logger.LogError("CreateLink src or target node is null");
+            throw new NullReferenceException("src or target node is null");
+        }
+
+        return await AddSystemNodeLink(mapId.Value,srcNode,targetNode,accountID);
     }
-    private async Task<bool> AddSystemNodeLink(int mapId, EveSystemNodeModel? srcNode, EveSystemNodeModel? targetNode,bool isManual=false)
+    private async Task<bool> AddSystemNodeLink(int mapId, EveSystemNodeModel srcNode, EveSystemNodeModel targetNode,int accountID,bool isManual=false)
     {
         try
         {
-            if(srcNode==null || targetNode ==null)
-            {
-                Logger.LogError("CreateLink src or target node is null");
-                return false;
-            }
-
             if(srcNode.SolarSystemId==targetNode.SolarSystemId)
             {
                 Logger.LogError("CreateLink src and target node are the same");
@@ -865,10 +962,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
             if (newLink != null)
             {
-                await AddSystemNodeLinkLog(newLink,isManual);
+                await AddSystemNodeLinkLog(newLink,accountID,isManual);
 
                 _blazorDiagram?.Links?.Add(new EveSystemLinkModel(newLink, srcNode, targetNode));
-                await EveMapperRealTime.NotifyLinkAdded(mapId, newLink.Id);
+                await EveMapperRealTime.NotifyLinkAdded(accountID,mapId, newLink.Id);
                 return true;
             }
             return false;
@@ -879,19 +976,30 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return false;
         }
     }
-    private async Task<bool> AddSystemNodeLinkLog(int whSystemLinkID,bool isManual=false)
+    private async Task<bool> AddSystemNodeLinkLog(int whSystemLinkID,int accountID,bool isManual=false)
     {
-        if(_currentShip==null || _currentShipInfos==null)
+        Ship? currentShip = null;
+        ShipEntity? currentShipInfos = null;
+
+        if(_currentShips.ContainsKey(accountID))
         {
-            Logger.LogError("AddSystemNodeLinkLog currentShip or currentShipInfos is null");
+            _currentShips.TryGetValue(accountID,out currentShip);
+        }
+        
+        if(currentShip==null)
+        {
+            Logger.LogError("AddSystemNodeLinkLog currentShip is null");
             return false;
         }
+
+        currentShipInfos = await eveMapperService.GetShip(currentShip.ShipTypeId);
+
         WHJumpLog? jumpLog = null;
 
         if(isManual)
-            jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,_characterId));
+            jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,accountID));
         else
-            jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,_characterId,_currentShip.ShipTypeId,_currentShip.ShipItemId,_currentShipInfos.Mass));
+            jumpLog = await DbWHJumpLogs.Create(new WHJumpLog(whSystemLinkID,accountID,currentShip.ShipTypeId,currentShip.ShipItemId,currentShipInfos?.Mass));
         
         if(jumpLog==null)
         {
@@ -902,15 +1010,9 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         return true;
 
     }
-    private async Task<bool> AddSystemNodeLinkLog(WHSystemLink? link,bool isManual=false)
+    private async Task<bool> AddSystemNodeLinkLog(WHSystemLink link,int accoutID,bool isManual=false)
     {
-        if(link==null)
-        {
-            Logger.LogError("AddSystemNodeLinkLog link is null");
-            return false;
-        }
-
-        return await AddSystemNodeLinkLog(link.Id,isManual);
+        return await AddSystemNodeLinkLog(link.Id,accoutID,isManual);
     }
     private async Task<bool> DeletedNodeOnMap(int? mapId, EveSystemNodeModel node)
     {
@@ -924,7 +1026,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
             if (await DbWHSystems.DeleteById(node.IdWH))//db link will be automatically delete via db foreignkey cascade
             {                
-                await EveMapperRealTime.NotifyWormholeRemoved(mapId.Value, node.IdWH);
+                await EveMapperRealTime.NotifyWormholeRemoved(PrimaryAccount.Id,mapId.Value, node.IdWH);
                 return true;
             }
 
@@ -948,7 +1050,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
             if(await DbWHSystemLinks.DeleteById(link.Id))
             {
-                await EveMapperRealTime.NotifyLinkRemoved(mapId.Value, link.Id);
+                await EveMapperRealTime.NotifyLinkRemoved(PrimaryAccount.Id,mapId.Value, link.Id);
                 return true;
             }
 
@@ -989,7 +1091,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
                 if (wh != null)
                 {
-                    await EveMapperRealTime.NotifyWormholeNameExtensionChanged(mapId.Value, wh.Id, increment);
+                    await EveMapperRealTime.NotifyWormholeNameExtensionChanged(PrimaryAccount.Id,mapId.Value, wh.Id, increment);
                     return true;
                 }
             }
@@ -1007,115 +1109,85 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     #endregion
 
     #region Tracker Events
-    private Task OnShipChanged(Ship ship,ShipEntity shipInfos)
+    private Task OnShipChanged(int accountID,Ship? oldShip,Ship newShip)
     {
-        _currentShip=ship;
-        _currentShipInfos=shipInfos;
+        if(_currentShips.ContainsKey(accountID))
+        {
+            _currentShips.TryUpdate(accountID,newShip,oldShip);
+        }
+        else
+        {
+            _currentShips.TryAdd(accountID,newShip);
+        }
 
         return Task.CompletedTask;
     }
-    private async Task OnSystemChanged(SystemEntity? targetSoloarSystem)
+
+    
+    private async Task OnSystemChanged(int accountID,  EveLocation? oldLocation, EveLocation newLocation)
     {
         EveSystemNodeModel? srcNode  = null;
         EveSystemNodeModel? targetNode = null;
 
-        if(_blazorDiagram==null)
-        {
-            Logger.LogError("Error OnSystemChanged, blazorDiagram is nullable");
-            throw new NullReferenceException("Blazor Diagram is null");
-        }
-
-        if(MapId.HasValue==false)
-        {
-            Logger.LogError("Error OnSystemChanged, selectedWHMap is nullable");
-            throw new NullReferenceException("Selected WH Map is null");
-        }
-
-        if(targetSoloarSystem==null)
-        {
-            Logger.LogError("Error OnSystemChanged, targetSoloarSystem is nullable");
-            throw new NullReferenceException("Target Solar System is null");
-        }
-
-        if(_currentSolarSystem!=null && _currentSolarSystem.Id==targetSoloarSystem.Id)
-        {
-            Logger.LogWarning("On System Changed, target system is the same as current system");
-            return;
-        }
-
         await _semaphoreSlim.WaitAsync();
         try
         {
-            
-            if(_currentSolarSystem!=null)
-            {
-                srcNode=await GetNodeBySolarSystemId(_currentSolarSystem.Id);
-            }
-            targetNode = await GetNodeBySolarSystemId(targetSoloarSystem.Id);
-           
+            if(oldLocation!=null)
+                srcNode=await GetNodeBySolarSystemId(oldLocation.SolarSystemId);
 
-            if (targetNode== null)//System is not added
+            if(await AddSystemNode(MapId.Value,newLocation,accountID))//add system node if system is not already added
             {
-                if(await AddSystemNode(MapId.Value,_currentSolarSystem,targetSoloarSystem))//add system node if system is not added
-                {
-                    if (_currentSolarSystem != null)
-                    {
-                        if(!await AddSystemNodeLink(MapId.Value, _currentSolarSystem, targetSoloarSystem))//create if new target system added from src
-                        {
-                            Logger.LogError("Add Wormhole Link error");
-                            Snackbar?.Add("Add Wormhole Link error", Severity.Error);
-                        }
-                        else
-                        {
-                            targetNode = await GetNodeBySolarSystemId(targetSoloarSystem.Id);
-                        }
-                    }
+                targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
 
-                    if(MapId.HasValue && targetNode!=null)
-                        await EveMapperRealTime.NotifyUserPosition(this.MapId.Value, targetNode.IdWH);
-                }
-                else
+
+                if(srcNode!=null && targetNode!=null && !await IsLinkExist(srcNode,targetNode))
                 {
-                    Logger.LogError("Add System Node error");
-                    Snackbar?.Add("Add System Node error", Severity.Error);
-                }
-            }
-            else// tartget system already added
-            {
-                //check if link already exist, if not create if
-                if(srcNode!=null && !await IsLinkExist(srcNode,targetNode))
-                {
-                    if((_currentSolarSystem==null) || (!await AddSystemNodeLink(MapId.Value, _currentSolarSystem, targetSoloarSystem)))//create if new target system added from src
+                    if(!await AddSystemNodeLink(MapId.Value,srcNode,targetNode,accountID))//create if new target system added from src
                     {
                         Logger.LogError("Add Wormhole Link error");
                         Snackbar?.Add("Add Wormhole Link error", Severity.Error);
                     }
                 }
-                else//log jump
+            }
+            else// tartget system already added
+            {
+                targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
+                //check if link already exist, if not create if
+                if(srcNode!=null && targetNode!=null && !await IsLinkExist(srcNode,targetNode))
+                {
+                    if(!await AddSystemNodeLink(MapId.Value,srcNode,targetNode,accountID))//create if new target system added from src
+                    {
+                        Logger.LogError("Add Wormhole Link error");
+                        Snackbar?.Add("Add Wormhole Link error", Severity.Error);
+                    }
+                }
+                else//link already exist, just log jump infos
                 {
                     if(srcNode!=null && targetNode!=null)
                     {
                         var link = await GetLink(srcNode,targetNode);
 
-                        if(link!=null && !await AddSystemNodeLinkLog(link.Id))
+                        if(link!=null && !await AddSystemNodeLinkLog(link.Id,accountID))
                         {
                             Logger.LogError("Add Wormhole Link Log error");
                             Snackbar?.Add("Add Wormhole Link Log error", Severity.Error);
                         }
                     }
                 }
-
-
-                srcNode?.RemoveConnectedUser(_userName);
-                targetNode?.AddConnectedUser(_userName);
-                if(this.MapId.HasValue && targetNode!=null)
-                    await EveMapperRealTime.NotifyUserPosition(this.MapId.Value, targetNode.IdWH);
-            
             }
 
-            _currentSolarSystem = targetSoloarSystem;
-            if(targetNode!=null)
+            //update user position
+            var characterEntity = await eveMapperService.GetCharacter(accountID);
+            if(characterEntity!=null)
+            {
+                srcNode?.RemoveConnectedUser(characterEntity.Name);
+                targetNode?.AddConnectedUser(characterEntity.Name);
+            }
+            if(this.MapId.HasValue && targetNode!=null)
+            {
+                await EveMapperRealTime.NotifyUserPosition(accountID,this.MapId.Value, targetNode.IdWH);
                 _blazorDiagram?.SelectModel(targetNode, true);
+            }
         }
         catch (Exception ex)
         {
@@ -1264,7 +1336,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         {
                             SelectedSystemLink.IsEoL = link.IsEndOfLifeConnection;
                             SelectedSystemLink.Refresh();
-                            await EveMapperRealTime.NotifyLinkChanged(MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size,link.MassStatus);
+                            await EveMapperRealTime.NotifyLinkChanged(PrimaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size,link.MassStatus);
                             return true;
                         }
                         else
@@ -1305,7 +1377,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         {
                             SelectedSystemLink.MassStatus = link.MassStatus;
                             SelectedSystemLink.Refresh();
-                            await EveMapperRealTime.NotifyLinkChanged(MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
+                            await EveMapperRealTime.NotifyLinkChanged(PrimaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
                             return true;
                         }
                         else
@@ -1347,7 +1419,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                                 //update link size on diagram (refresh link
                             SelectedSystemLink.Size = link.Size;
                             SelectedSystemLink.Refresh();
-                            await EveMapperRealTime.NotifyLinkChanged(MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
+                            await EveMapperRealTime.NotifyLinkChanged(PrimaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
 
                             return true;
                         }
@@ -1388,14 +1460,14 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 if (MapId.HasValue  && result.Data!=null)
                 {
                     SystemEntity solarSystem = (SystemEntity)result.Data;
-                    if(await AddSystemNode(MapId.Value,solarSystem,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
+                    /*if(await AddSystemNode(MapId.Value,solarSystem,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
                     {
                         Snackbar?.Add(String.Format("{0} solar system successfully added",solarSystem.Name), Severity.Success);
                     }
                     else
                     {
                         Snackbar?.Add("Add solar system error", Severity.Error);
-                    }
+                    }*/
                 }
                 else
                 {

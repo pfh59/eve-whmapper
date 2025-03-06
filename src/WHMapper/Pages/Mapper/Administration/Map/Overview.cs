@@ -42,7 +42,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         await base.OnInitializedAsync();
         if(EveMapperRealTimeService!=null)
         {
-            await EveMapperRealTimeService.Start();
+            //await EveMapperRealTimeService.Start();
         }
     }
 
@@ -109,7 +109,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             }
             
             Maps.Add(new MapAdmin(newMap));
-            EveMapperRealTimeService?.NotifyMapAdded(newMap.Id);
+           // EveMapperRealTimeService?.NotifyMapAdded(newMap.Id);
         }
     }
 
@@ -129,7 +129,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         if (result != null && !result.Canceled)
         {
             Maps.Clear();
-            EveMapperRealTimeService?.NotifyAllMapsRemoved();
+            //EveMapperRealTimeService?.NotifyAllMapsRemoved();
         }
     }
 
@@ -149,7 +149,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         if (result != null && !result.Canceled)
         {
             ((List<MapAdmin>)Maps).RemoveAll(x => x.Id == mapId);
-            EveMapperRealTimeService?.NotifyMapRemoved(mapId);
+            //EveMapperRealTimeService?.NotifyMapRemoved(mapId);
         }
     }
 
@@ -191,7 +191,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 }
             }
 
-            EveMapperRealTimeService?.NotifyMapAccessesAdded(mapId, accesses.Select(x => x.Id).ToList());
+           // EveMapperRealTimeService?.NotifyMapAccessesAdded(mapId, accesses.Select(x => x.Id).ToList());
         }
     }
 
@@ -223,7 +223,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
             }
 
-            EveMapperRealTimeService?.NotifyMapAccessRemoved(mapId, accessId);
+            //EveMapperRealTimeService?.NotifyMapAccessRemoved(mapId, accessId);
         }
     }
 
@@ -252,7 +252,8 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 Logger.LogError("WHMapAccesses is not a List<WHAccess>");
                 Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
             }
-            EveMapperRealTimeService?.NotifyMapAllAccessesRemoved(mapId);
+            
+           // EveMapperRealTimeService?.NotifyMapAllAccessesRemoved(mapId);
         }
     }
 
@@ -260,7 +261,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
     {
         if (EveMapperRealTimeService != null)
         {
-            await EveMapperRealTimeService.Stop();
+            //await EveMapperRealTimeService.Stop();
             await EveMapperRealTimeService.DisposeAsync();
         }
     }

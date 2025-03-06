@@ -1,4 +1,6 @@
-﻿@using WHMapper.Services.WHSignature
+﻿@using WHMapper.Models.DTO
+@using WHMapper.Services.LocalStorage
+@using WHMapper.Services.WHSignature
 @inherits LayoutComponentBase
 
 
@@ -8,48 +10,54 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-    @if(_loading)
-    {
-        <MudPaper Class="d-flex align-center justify-center" Height="100vh" Width="100%">
-            <MudCard Outlined="true">
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Initialization</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Align="Align.Center">EVE Wormhole mapper is downloading a new SDE package.</MudText>
-                    <MudText class="py-1" Typo="Typo.body2">@String.Format("{0}, please wait ...",_init_process_msg)
-                        <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Small" />
-                    </MudText>
-                  
-                </MudCardContent>
-            </MudCard>
-        </MudPaper>
-    }
-    else
-    {
-        <MudLayout @oncustompaste="HandleCustomPaste" class="overflow-x-hidden">
-            <MudAppBar Elevation="1" Dense=true>
-                <MudText Typo="Typo.h5" Class="ml-5">Wormhole Mapper</MudText>
-                <MudChip T="string" Class="ml-5" Disabled="true" Variant="Variant.Outlined" >@String.Format("v{0}", Version)</MudChip>
-                <MudSpacer />
-                <AccessControl />
-            </MudAppBar>
-            <MudMainContent>
-                <AuthorizeView>
-                    <Authorizing>
-                        <MudText class="py-1" Typo="Typo.body2">"Authorization in progress,please wait ...")
-                            <MudProgressCircular Color="Color.Secondary" Size="MudBlazor.Size.Small" />
-                        </MudText>
-                    </Authorizing>
-                    <Authorized>
-                        @Body
-                    </Authorized>
-                </AuthorizeView>
-            </MudMainContent>
-        </MudLayout>
-    }
+
+<MudLayout @oncustompaste="HandleCustomPaste" class="overflow-x-hidden">
+    <MudAppBar Elevation="1" Dense=true>
+        <MudText Typo="Typo.h5" Class="ml-5">Wormhole Mapper</MudText>
+        <MudChip T="string" Class="ml-5" Disabled="true" Variant="Variant.Outlined" >@String.Format("v{0}", Version)</MudChip>        
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <WHMapper.Pages.Mapper.Users.Overview/>
+            </Authorized>
+        </AuthorizeView>
+        <AccessControl />
+    </MudAppBar>
+    <MudMainContent>
+        <AuthorizeView>
+            <Authorizing>
+                <MudText class="py-1" Typo="Typo.body2">"Authorization in progress,please wait ...")
+                    <MudProgressCircular Color="Color.Secondary" Size="MudBlazor.Size.Small" />
+                </MudText>
+            </Authorizing>
+            <Authorized>
+                @Body
+            </Authorized>
+            <NotAuthorized>
+                @if(_loading)
+                {
+                    <MudPaper Class="d-flex align-center justify-center" Height="100vh" Width="100%">
+                        <MudCard Outlined="true">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">Initialization</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudText Align="Align.Center">EVE Wormhole mapper is downloading a new SDE package.</MudText>
+                                <MudText class="py-1" Typo="Typo.body2">@String.Format("{0}, please wait ...",_init_process_msg)
+                                    <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Small" />
+                                </MudText>
+                            
+                            </MudCardContent>
+                        </MudCard>
+                    </MudPaper>
+                }
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudMainContent>
+</MudLayout>
+    
 @code
 {
     private MudTheme _currentTheme = null!;
@@ -68,8 +76,24 @@
 
     [Inject]
     private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
-    protected override Task OnInitializedAsync()
+
+     [Inject]
+    private ILocalStorageHelper LocalStorageHelper { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID {get; set;} = null!;
+
+    protected override async Task OnInitializedAsync()
     {
+        var clientId = await LocalStorageHelper.GetOrCreateClientIdAsync();
+        if(String.IsNullOrEmpty(clientId))
+        {
+            throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
+        }
+
+        UID.ClientId = clientId;
+
+
         _currentTheme = new MudTheme()
         {
             PaletteDark = new PaletteDark()
@@ -105,8 +129,6 @@
         {
             Task.Run(() => DownloadExtractImportSDE());
         }   
-
-        return base.OnInitializedAsync();
     }
 
     private async Task SetProcessMessage(string message)
