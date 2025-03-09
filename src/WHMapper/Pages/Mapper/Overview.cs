@@ -150,11 +150,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             RealTimeService.MapAccessRemoved+=OnMapAccessRemoved;
             RealTimeService.MapAllAccessesRemoved+=OnMapAllAccessesRemoved;
 
-            /*
-            foreach(var account in Accounts)
-            {
-                await RealTimeService.Start(account.Id);
-            }*/
 
             return true;
         }

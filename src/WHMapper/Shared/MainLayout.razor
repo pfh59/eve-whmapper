@@ -129,6 +129,8 @@
         {
             Task.Run(() => DownloadExtractImportSDE());
         }   
+
+        await base.OnInitializedAsync();
     }
 
     private async Task SetProcessMessage(string message)

@@ -61,6 +61,8 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         });     
 
         await _tokenProvider.SaveToken(token);
+
+        await SetPrimaryAccountAsync(clientId,accountId);
     }
 
     public async Task RemoveAuthenticateWHMapperUser(string clientId,string accountId)
@@ -88,6 +90,23 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         }
 
         await _tokenProvider.ClearToken(accountId);
+    }
+
+    public async Task RemoveAuthenticateWHMapperUser(string clientId)
+    {
+        if(String.IsNullOrEmpty(clientId))
+        {
+            throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
+        }
+
+        if (_whMapperUsers.TryGetValue(clientId, out WHMapperUser[]? users))
+        {
+            _whMapperUsers.TryRemove(clientId, out _);
+            foreach (var user in users)
+            {
+                await _tokenProvider.ClearToken(user.Id.ToString());
+            }
+        }
     }
 
     public Task<WHMapperUser[]> GetAccountsAsync(string clientId)
@@ -138,6 +157,10 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         {
             throw new ArgumentNullException(nameof(accountId), "Account not found");
         }
+
+        //set all accouts IsPrimary to false
+        accounts.ToList().ForEach(account => account.IsPrimary = false);
+        
 
         int id = int.Parse(accountId);
         var account = accounts.FirstOrDefault(account => account.Id == id) ?? throw new ArgumentNullException(nameof(accountId), "Account not found");

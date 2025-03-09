@@ -187,19 +187,19 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         IDictionary<string,KeyValuePair<int,int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition(account.Id);
                         try
                         {
-                            await Parallel.ForEachAsync(usersPosition, async (item, cancellationToken) =>
-                            {
-                                if (item.Value.HasValue && item.Value.Value.Key == MapId.Value)
+                            var tasks = usersPosition
+                                .Where(item => item.Value.HasValue && item.Value.Value.Key == MapId.Value)
+                                .Select(async item =>
                                 {
-                                    EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == item.Value.Value.Value);
-                                
+                                    var systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == (item.Value?.Value ?? 0));
                                     if (systemToAddUser != null)
                                     {
                                         await systemToAddUser.AddConnectedUser(item.Key);
                                         systemToAddUser.Refresh();
                                     }
-                                }
-                            });
+                                });
+
+                            await Task.WhenAll(tasks);
                         }
                         catch (Exception ex)
                         {
@@ -207,7 +207,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         }
 
                         await EveMapperRealTime.NotifyUserOnMapConnected(account.Id,MapId.Value);
-                        await TrackerServices.StartTracking(account.Id);
+                        if(account.Tracking)
+                            await TrackerServices.StartTracking(account.Id);
                     }
                
                     await InitBlazorDiagramEvents();
@@ -363,28 +364,30 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
     private async Task InitializeSystemNodes(WHMap? selectedWHMap)
     {
-        if (selectedWHMap != null && selectedWHMap.WHSystems != null)
-        {
-
-            var tasks = selectedWHMap.WHSystems.Select(async item =>
-            {
-                EveSystemNodeModel whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
-                whSysNode.OnLocked += OnWHSystemNodeLocked;
-                whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
-                _blazorDiagram.Nodes.Add(whSysNode);
-            });
-            await Task.WhenAll(tasks);
-        }
-    }
-
-    private async Task InitializeSystemLinks(WHMap? selectedWHMap)
-    {
-        if (selectedWHMap?.WHSystemLinks == null || selectedWHMap.WHSystemLinks.Count == 0)
+        if (selectedWHMap?.WHSystems == null || !selectedWHMap.WHSystems.Any())
         {
             return;
         }
 
-        var tasks = selectedWHMap.WHSystemLinks.Select(async item =>
+        var tasks = selectedWHMap.WHSystems.Select(item => Task.Run(async () =>
+        {
+            var whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
+            whSysNode.OnLocked += OnWHSystemNodeLocked;
+            whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
+            _blazorDiagram.Nodes.Add(whSysNode);
+        }));
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task InitializeSystemLinks(WHMap? selectedWHMap)
+    {
+        if (selectedWHMap?.WHSystemLinks == null || !selectedWHMap.WHSystemLinks.Any())
+        {
+            return;
+        }
+
+        var tasks = selectedWHMap.WHSystemLinks.Select(item => Task.Run(async () =>
         {
             var srcNode = await GetSystemNode(item.IdWHSystemFrom);
             var targetNode = await GetSystemNode(item.IdWHSystemTo);
@@ -398,7 +401,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
                 await DbWHSystemLinks.DeleteById(item.Id);
             }
-        });
+        }));
+
         await Task.WhenAll(tasks);
     }
 
@@ -515,7 +519,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 return false;
             }
             else
-            {/*
+            {
+                /*
                 if (!await AddSystemNodeLink(MapId.Value, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1), true))
                 {
                     Logger.LogError("Add Wormhole Link db error");

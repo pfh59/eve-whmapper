@@ -25,7 +25,12 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        if(EveMapperUserManagementService != null && UID !=null && String.IsNullOrEmpty(UID.ClientId))
+        await base.OnInitializedAsync();
+    }
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(EveMapperUserManagementService != null && UID !=null && !String.IsNullOrEmpty(UID.ClientId))
         {
             Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
             foreach (var account in Accounts)
@@ -34,13 +39,23 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 await TrackerServices.StartTracking(account.Id);
             }
         }
+
+        StateHasChanged();
+
+        await  base.OnAfterRenderAsync(firstRender);
     }
 
 
-    private Task ToggleTracking(WHMapperUser account)
+    private Task ToggleTracking(int accountId)
     {
-        account.Tracking = !account.Tracking;
+        var account = Accounts.FirstOrDefault(a => a.Id == accountId);
+        if (account == null)
+        {
+            return Task.CompletedTask;
+        }
 
+        account.Tracking = !account.Tracking;
+        StateHasChanged();
         return Task.CompletedTask;
     }
 

@@ -1,11 +1,12 @@
-﻿
-@foreach(var account in Accounts)
+﻿@foreach(var account in Accounts)
 {
+    var tooltipText = account.Tracking ? "Disable Tracking" : "Enable Tracking";
+    var badgeColor = account.Tracking ? Color.Success : Color.Error;
 
-    <MudTooltip Text="@(account.Tracking ? "Disable Tracking" : "Enable Tracking")">
-        <MudBadge Color="@(account.Tracking ? Color.Success : Color.Error)" Overlap="true" Bordered="true" Dot="true">
-            <MudAvatar>
-                <MudImage Src="@account.PortraitUrl" />
+    <MudTooltip Text="@tooltipText">
+        <MudBadge Color="@badgeColor" Overlap="true" Bordered="true" Dot="true">
+            <MudAvatar Style="@(account.IsPrimary ? "border-color: white;border-width: 1px;border-style: solid;" : null)">
+                <MudImage Src="@account.PortraitUrl"/>
             </MudAvatar>
         </MudBadge>
     </MudTooltip>

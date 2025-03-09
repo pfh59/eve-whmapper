@@ -30,12 +30,10 @@ namespace WHMapper.Pages
         public async Task<IActionResult> OnGetAsync(string? clientId=null)
         { 
             try
-            {
-                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-  
-                if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(userId))
+            {  
+                if (!string.IsNullOrEmpty(clientId))
                 {
-                    await _userManagementService.RemoveAuthenticateWHMapperUser(clientId, userId);
+                    await _userManagementService.RemoveAuthenticateWHMapperUser(clientId);
                 }
   
                 await HttpContext.SignOutAsync();            

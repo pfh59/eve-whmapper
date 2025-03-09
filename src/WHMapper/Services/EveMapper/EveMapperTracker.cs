@@ -129,8 +129,13 @@ public class EveMapperTracker : IEveMapperTracker
         if (ship == null  || oldShip?.ShipItemId == ship.ShipItemId) return;
 
         _logger.LogInformation("Ship Changed");
-        //var shipInfos = await _eveMapperEntity.GetShip(ship.ShipTypeId);
-        _currentShips[accountID] = ship;
+        if(oldShip==null)
+            while(!_currentShips.TryAdd(accountID, ship))
+                await Task.Delay(1);
+        else
+           while(! _currentShips.TryUpdate(accountID, ship, oldShip))
+                await Task.Delay(1);
+
 
         if (ship != null)
         {
@@ -166,7 +171,12 @@ public class EveMapperTracker : IEveMapperTracker
 
         _logger.LogInformation("System Changed");
         //var solarSystem = await _eveMapperEntity.GetSystem(newLocation.SolarSystemId);
-        _currentLocations[accountID] = newLocation;
+        if(oldLocation==null)
+            while(!_currentLocations.TryAdd(accountID, newLocation))
+                await Task.Delay(1);
+        else
+            while(!_currentLocations.TryUpdate(accountID, newLocation, oldLocation))
+                await Task.Delay(1);
 
         if (newLocation != null)
         {
