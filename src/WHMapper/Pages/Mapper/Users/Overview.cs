@@ -30,18 +30,20 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(EveMapperUserManagementService != null && UID !=null && !String.IsNullOrEmpty(UID.ClientId))
+        if(firstRender)
         {
-            Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
-            foreach (var account in Accounts)
+            if(EveMapperUserManagementService != null && UID !=null && !String.IsNullOrEmpty(UID.ClientId))
             {
-                await EveMapperRealTime.Start(account.Id);
-                await TrackerServices.StartTracking(account.Id);
+                Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
+                foreach (var account in Accounts)
+                {
+                    await EveMapperRealTime.Start(account.Id);
+                    await TrackerServices.StartTracking(account.Id);
+                }
             }
+
+            StateHasChanged();
         }
-
-        StateHasChanged();
-
         await  base.OnAfterRenderAsync(firstRender);
     }
 

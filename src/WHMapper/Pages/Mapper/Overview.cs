@@ -49,15 +49,6 @@ public partial class Overview : ComponentBase, IAsyncDisposable
     private IAuthorizationService _authorizationService { get; set; } = null!;
 
     [Inject]
-    private ILocalStorageHelper LocalStorageHelper { get; set; } = null!;
-
-   // [Inject]
-   // private IEveMapperUserManagementService? EveMapperUserManagementService {get; set;} = null!;
-
-
-   // public IEnumerable<WHMapperUser> Accounts { get; private set; } = new List<WHMapperUser>();
-
-    [Inject]
     IEveMapperRealTimeService? RealTimeService {get;set;} = null!;
 
     [Inject]

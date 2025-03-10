@@ -92,8 +92,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     [Inject]
     private IEveMapperRealTimeService EveMapperRealTime { get; set; } = null!;    
     
-    [Inject]
-    IEveUserInfosServices UserInfos { get; set; } = null!;
 
     #region Repositories
     [Inject]
@@ -210,6 +208,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         if(account.Tracking)
                             await TrackerServices.StartTracking(account.Id);
                     }
+
+                    PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
                
                     await InitBlazorDiagramEvents();
                 }
@@ -255,12 +255,12 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             EveMapperRealTime.LinkChanged -= OnLinkChanged;
 
 
+/*
+            if (MapId.HasValue && EveMapperRealTime.IsConnected()
+            {
 
-            //if (MapId.HasValue && EveMapperRealTime.IsConnected
-            //{
-
-                //await EveMapperRealTime.NotifyUserOnMapDisconnected(MapId.Value);
-            //}
+                await EveMapperRealTime.NotifyUserOnMapDisconnected(MapId.Value);
+            }*/
         }
 
         _currentShips.Clear();
@@ -480,8 +480,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             SelectedSystemLink = null;
         }
-
-       // StateHasChanged();
     }
     #endregion
         
@@ -520,13 +518,13 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             }
             else
             {
-                /*
-                if (!await AddSystemNodeLink(MapId.Value, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1), true))
+
+                if (_selectedSystemNodes != null && _selectedSystemNodes.Count >= 2 && PrimaryAccount != null && !await AddSystemNodeLink(MapId.Value, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1), PrimaryAccount.Id, true))
                 {
                     Logger.LogError("Add Wormhole Link db error");
                     Snackbar.Add("Add Wormhole Link db error", Severity.Error);
                     return false;
-                }*/
+                }
                 return true;
             }
         }
@@ -589,6 +587,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         }
 
        // await TrackerServices.StopTracking();
+        await TrackerServices.StopAllTracking();
         foreach (var node in _selectedSystemNodes)
         {
             if (node.Locked)
@@ -672,7 +671,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 Snackbar?.Add("Update wormhole node position db error", Severity.Error);
             }
 
-            await EveMapperRealTime.NotifyWormholeMoved(PrimaryAccount.Id,mapId.Value, wh.Id, wh.PosX, wh.PosY);
+            if (PrimaryAccount != null)
+            {
+                await EveMapperRealTime.NotifyWormholeMoved(PrimaryAccount.Id, mapId.Value, wh.Id, wh.PosX, wh.PosY);
+            }
         }
     }
     #endregion
@@ -684,7 +686,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if (whNodeModel != null)
         {
-            Task.Run(async () => await EveMapperRealTime.NotifyWormholeLockChanged(PrimaryAccount.Id,whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked));
+            if (PrimaryAccount != null)
+            {
+                Task.Run(async () => await EveMapperRealTime.NotifyWormholeLockChanged(PrimaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked));
+            }
         }
     }
 
@@ -692,7 +697,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if (whNodeModel != null)
         {
-            Task.Run(async ()=>await EveMapperRealTime.NotifyWormholeSystemStatusChanged(PrimaryAccount.Id,whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus));
+            if (PrimaryAccount != null)
+            {
+                Task.Run(async () => await EveMapperRealTime.NotifyWormholeSystemStatusChanged(PrimaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus));
+            }
         }
     }
     #endregion
@@ -934,6 +942,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return false;
         }
     }*/
+    
     private async Task<bool> AddSystemNodeLink(int? mapId, SystemEntity src, SystemEntity target,int accountID)
     {
         if(!mapId.HasValue)
@@ -1031,7 +1040,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
             if (await DbWHSystems.DeleteById(node.IdWH))//db link will be automatically delete via db foreignkey cascade
             {                
-                await EveMapperRealTime.NotifyWormholeRemoved(PrimaryAccount.Id,mapId.Value, node.IdWH);
+                if (PrimaryAccount != null)
+                {
+                    await EveMapperRealTime.NotifyWormholeRemoved(PrimaryAccount.Id, mapId.Value, node.IdWH);
+                }
                 return true;
             }
 
@@ -1055,7 +1067,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
             if(await DbWHSystemLinks.DeleteById(link.Id))
             {
-                await EveMapperRealTime.NotifyLinkRemoved(PrimaryAccount.Id,mapId.Value, link.Id);
+                if (PrimaryAccount != null)
+                {
+                    await EveMapperRealTime.NotifyLinkRemoved(PrimaryAccount.Id, mapId.Value, link.Id);
+                }
                 return true;
             }
 
@@ -1096,7 +1111,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
                 if (wh != null)
                 {
-                    await EveMapperRealTime.NotifyWormholeNameExtensionChanged(PrimaryAccount.Id,mapId.Value, wh.Id, increment);
+                    if (PrimaryAccount != null)
+                    {
+                        await EveMapperRealTime.NotifyWormholeNameExtensionChanged(PrimaryAccount.Id, mapId.Value, wh.Id, increment);
+                    }
                     return true;
                 }
             }
@@ -1114,18 +1132,25 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     #endregion
 
     #region Tracker Events
-    private Task OnShipChanged(int accountID,Ship? oldShip,Ship newShip)
+    private async Task OnShipChanged(int accountID,Ship? oldShip,Ship newShip)
     {
         if(_currentShips.ContainsKey(accountID))
         {
-            _currentShips.TryUpdate(accountID,newShip,oldShip);
+            if (oldShip != null)
+            {
+                while(!_currentShips.TryUpdate(accountID, newShip, oldShip))
+                    await Task.Delay(1);
+            }
+            else
+            {
+                while(!_currentShips.TryAdd(accountID, newShip))
+                    await Task.Delay(1);
+            }
         }
         else
         {
             _currentShips.TryAdd(accountID,newShip);
         }
-
-        return Task.CompletedTask;
     }
 
     
@@ -1465,7 +1490,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 if (MapId.HasValue  && result.Data!=null)
                 {
                     SystemEntity solarSystem = (SystemEntity)result.Data;
-                    /*if(await AddSystemNode(MapId.Value,solarSystem,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
+                    /*
+                    if(await AddSystemNode(MapId.Value,solarSystem,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
                     {
                         Snackbar?.Add(String.Format("{0} solar system successfully added",solarSystem.Name), Severity.Success);
                     }

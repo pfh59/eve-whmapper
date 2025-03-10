@@ -21,16 +21,21 @@ public class EveMapperTracker : IEveMapperTracker
     public event Func<int,EveLocation?,EveLocation, Task>? SystemChanged;
     public event Func<int,Ship?, Ship,Task>? ShipChanged;
 
-    private readonly ConcurrentDictionary<int, EveLocation> _currentLocations = new();
-    private readonly ConcurrentDictionary<int, Ship> _currentShips = new();
-    private readonly ConcurrentDictionary<int, Timer> _timers = new();
-    private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
+    private readonly ConcurrentDictionary<int, EveLocation> _currentLocations;
+    private readonly ConcurrentDictionary<int, Ship> _currentShips;
+    private readonly ConcurrentDictionary<int, Timer> _timers ;
+    private readonly SemaphoreSlim _semaphoreSlim ;
 
     public EveMapperTracker(ILogger<EveMapperTracker> logger, IEveAPIServices eveAPI, IEveOnlineTokenProvider tokenProvider)
     {
         _logger = logger;
         _eveAPIServices = eveAPI;
         _tokenProvider = tokenProvider;
+
+        _currentLocations = new ConcurrentDictionary<int, EveLocation>();
+        _currentShips = new ConcurrentDictionary<int, Ship>();
+        _timers = new ConcurrentDictionary<int, Timer>();
+        _semaphoreSlim = new SemaphoreSlim(1,1);
     }
 
     public async ValueTask DisposeAsync()
@@ -184,7 +189,7 @@ public class EveMapperTracker : IEveMapperTracker
             {
                 await SystemChanged.Invoke(accountID,oldLocation, newLocation);
             }
-        }
+        } 
     }
 
     public Task StopAllTracking()

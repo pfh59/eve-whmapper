@@ -54,6 +54,9 @@ namespace WHMapper.Pages.Mapper.Signatures
         [Parameter]
         public int? CurrentSystemNodeId {  get; set; } = null!;
 
+        [Parameter]
+        public int? CurrentPrimaryUserId { get; set; } = null!;
+
         private WHSignature? _selectedSignature;
         private WHSignature _signatureBeforeEdit = null!;
 
@@ -181,9 +184,9 @@ namespace WHMapper.Pages.Mapper.Signatures
             var dialog = await DialogService.ShowAsync<Import>("Import Scan Dialog", parameters, disableBackdropClick);
             DialogResult? result = await dialog.Result;
 
-            if (result!=null && !result.Canceled && CurrentMapId.HasValue && CurrentSystemNodeId.HasValue)
+            if (result!=null && !result.Canceled && CurrentMapId.HasValue && CurrentSystemNodeId.HasValue && CurrentPrimaryUserId.HasValue)
             {
-                //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentPrimaryUserId.Value,CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
             }
             
@@ -220,9 +223,9 @@ namespace WHMapper.Pages.Mapper.Signatures
                 var dialog = await DialogService.ShowAsync<Delete>("Delete", parameters, options);
                 DialogResult? result = await dialog.Result;
 
-                if (result != null && !result.Canceled && CurrentMapId!=null)
+                if (result != null && !result.Canceled && CurrentMapId.HasValue && CurrentSystemNodeId.HasValue && CurrentPrimaryUserId.HasValue)
                 {
-                    //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                    await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentPrimaryUserId.Value,CurrentMapId.Value, CurrentSystemNodeId.Value);
                     await Restore();
                 }
             }
@@ -250,9 +253,9 @@ namespace WHMapper.Pages.Mapper.Signatures
             var dialog = await DialogService.ShowAsync<Delete>("Delete", parameters, options);
             DialogResult? result = await dialog.Result;
 
-            if (result!=null && !result.Canceled && CurrentMapId != null && CurrentSystemNodeId != null)
+            if (result!=null && !result.Canceled && CurrentMapId.HasValue && CurrentSystemNodeId.HasValue && CurrentPrimaryUserId.HasValue)
             {
-                //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentPrimaryUserId.Value,CurrentMapId.Value, CurrentSystemNodeId.Value);
                 await Restore();
             }
         }
@@ -323,13 +326,13 @@ namespace WHMapper.Pages.Mapper.Signatures
         #region Paste events
         private async Task OnPaste(string? text)
         {
-            if(CurrentSystemNodeId.HasValue && CurrentMapId.HasValue && !String.IsNullOrWhiteSpace(text))
+            if(CurrentPrimaryUserId.HasValue && CurrentSystemNodeId.HasValue && CurrentMapId.HasValue && !String.IsNullOrWhiteSpace(text))
             {
                 try
                 {
                     if (_currentUser != null && await SignatureHelper.ImportScanResult(_currentUser, CurrentSystemNodeId.Value, text, false))
                     {
-                        //await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentMapId.Value, CurrentSystemNodeId.Value);
+                        await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentPrimaryUserId.Value,CurrentMapId.Value, CurrentSystemNodeId.Value);
                         await Restore();
                         Snackbar?.Add("Signatures successfully added/updated", Severity.Success);
                     }

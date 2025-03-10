@@ -137,9 +137,8 @@ namespace WHMapper
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.Name = "WHMapper";
-                options.Cookie.MaxAge = TimeSpan.FromDays(30);
-                options.ExpireTimeSpan = TimeSpan.FromHours(24);
-                options.SlidingExpiration = true;
+                options.ExpireTimeSpan = TimeSpan.FromSeconds(30);
+                options.SlidingExpiration = false;
                 options.AccessDeniedPath = "/Forbidden/";
             })
             .AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, options =>
