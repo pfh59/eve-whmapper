@@ -23,8 +23,10 @@ public class EveMapperTracker : IEveMapperTracker
 
     private readonly ConcurrentDictionary<int, EveLocation> _currentLocations;
     private readonly ConcurrentDictionary<int, Ship> _currentShips;
-    private readonly ConcurrentDictionary<int, Timer> _timers ;
+    private readonly ConcurrentDictionary<int, PeriodicTimer> _timers ;
+    private readonly ConcurrentDictionary<int, CancellationTokenSource> _cts ;
     private readonly SemaphoreSlim _semaphoreSlim ;
+
 
     public EveMapperTracker(ILogger<EveMapperTracker> logger, IEveAPIServices eveAPI, IEveOnlineTokenProvider tokenProvider)
     {
@@ -34,18 +36,24 @@ public class EveMapperTracker : IEveMapperTracker
 
         _currentLocations = new ConcurrentDictionary<int, EveLocation>();
         _currentShips = new ConcurrentDictionary<int, Ship>();
-        _timers = new ConcurrentDictionary<int, Timer>();
+        _timers = new ConcurrentDictionary<int, PeriodicTimer>();
+        _cts = new ConcurrentDictionary<int, CancellationTokenSource>();
         _semaphoreSlim = new SemaphoreSlim(1,1);
     }
 
     public async ValueTask DisposeAsync()
     {
+        foreach (var cts in _cts.Values)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+  
+
         foreach (var timer in _timers.Values)
         {
-            timer?.Change(Timeout.Infinite, Timeout.Infinite);
-            timer?.Dispose();
+            timer.Dispose();
         }
-
         _currentLocations.Clear();
         _currentShips.Clear();
         await Task.CompletedTask;
@@ -55,25 +63,26 @@ public class EveMapperTracker : IEveMapperTracker
     {
         _logger.LogInformation("Starting tracking for account {accountID}", accountID);
         await ClearTracking(accountID);
-
-        if (_timers.TryGetValue(accountID, out var timer))
-        {
-            timer.Change(0, TRACK_HIT_IN_MS);
-        }
-        else
-        {
-            timer = new Timer(TrackPosition, accountID, 0, TRACK_HIT_IN_MS);
-            _timers.TryAdd(accountID, timer);
-        }
+        _ = Task.Run(() => HandlerackPositionAsync(accountID));
     }
 
     public Task StopTracking(int accountID)
     {
         _logger.LogInformation("Stopping tracking for account {accountID}", accountID);
-        if (_timers.TryGetValue(accountID, out var timer))
+
+        if (_cts.TryGetValue(accountID, out var cts))
         {
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            cts.Cancel();
+            cts.Dispose();
         }
+
+        if(_timers.TryGetValue(accountID, out var timer))
+        {
+            timer.Dispose();
+        }
+        _cts.TryRemove(accountID, out _);
+        _timers.TryRemove(accountID, out _);
+
         return Task.CompletedTask;
     }
 
@@ -84,32 +93,50 @@ public class EveMapperTracker : IEveMapperTracker
         return Task.CompletedTask;
     }
 
-    private async void TrackPosition(object? state)
-    {
-        if (state is not int accountID) return;
 
-        if (_timers.TryGetValue(accountID, out var timer))
+    private async Task HandlerackPositionAsync(int accountID)
+    {
+        if(_timers.ContainsKey(accountID)) 
+            return;
+
+        
+        var cts = new CancellationTokenSource();
+        while(!_cts.TryAdd(accountID, cts))
+            await Task.Delay(1);
+
+        var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_HIT_IN_MS));
+        while(!_timers.TryAdd(accountID, timer))
+            await Task.Delay(1);
+
+        try
         {
-            try
+            while (await timer.WaitForNextTickAsync(cts.Token))
             {
-                timer.Change(Timeout.Infinite, Timeout.Infinite);
                 await UpdateCurrentShip(accountID);
                 await UpdateCurrentLocation(accountID);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Track error");
-            }
-            finally
-            {
-                timer.Change(TRACK_HIT_IN_MS, TRACK_HIT_IN_MS);
-            }
         }
-        else
+        catch (OperationCanceledException oce)
         {
-            _logger.LogWarning("Timer not found for account {accountID}", accountID);
+            _logger.LogInformation(oce, "Operation canceled");
+        }
+        catch (ObjectDisposedException odex)
+        {
+            _logger.LogInformation(odex, "Object disposed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in timer");
+        }
+        finally
+        {
+            cts.Dispose();
+            timer.Dispose();
+            _cts.TryRemove(accountID, out _);
+            _timers.TryRemove(accountID, out _);
         }
     }
+    
 
     private async Task UpdateCurrentShip(int accountID)
     {    
@@ -146,7 +173,7 @@ public class EveMapperTracker : IEveMapperTracker
         {
             if (ShipChanged != null)
             {
-                await ShipChanged.Invoke(accountID, oldShip,ship);
+                _= ShipChanged.Invoke(accountID, oldShip,ship);
             }
         }
 
@@ -175,7 +202,6 @@ public class EveMapperTracker : IEveMapperTracker
         if (newLocation == null || oldLocation?.SolarSystemId == newLocation.SolarSystemId) return;
 
         _logger.LogInformation("System Changed");
-        //var solarSystem = await _eveMapperEntity.GetSystem(newLocation.SolarSystemId);
         if(oldLocation==null)
             while(!_currentLocations.TryAdd(accountID, newLocation))
                 await Task.Delay(1);
@@ -187,18 +213,20 @@ public class EveMapperTracker : IEveMapperTracker
         {
             if (SystemChanged != null)
             {
-                await SystemChanged.Invoke(accountID,oldLocation, newLocation);
+                _= SystemChanged.Invoke(accountID,oldLocation, newLocation);
             }
         } 
     }
 
-    public Task StopAllTracking()
+/*
+    public Task RefreshAll()
     {
-        foreach (var timer in _timers.Values)
+        //Clear all tracking
+        foreach (var accountID in _timers.Keys)
         {
-            timer?.Change(Timeout.Infinite, Timeout.Infinite);
+            ClearTracking(accountID);
         }
-
         return Task.CompletedTask;
-    }
+    }*/
+
 }

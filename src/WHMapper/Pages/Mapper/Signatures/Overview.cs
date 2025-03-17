@@ -306,7 +306,7 @@ namespace WHMapper.Pages.Mapper.Signatures
 
         #region Realtime events
 
-        private async Task OnWormholeSignaturesChanged(string usere,int mapId, int systemNodeId)
+        private async Task OnWormholeSignaturesChanged(int accountID,int mapId, int systemNodeId)
         {
             try
             {

@@ -104,12 +104,6 @@ namespace WHMapper
                 });
             });
 
-            //signalR  compression
-            builder.Services.AddResponseCompression(opts =>
-            {
-                opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-                    new[] { "application/octet-stream" });
-            });
 
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -255,6 +249,14 @@ namespace WHMapper
 
             if (!builder.Environment.IsDevelopment())
             {
+
+                //signalR  compression
+                builder.Services.AddResponseCompression(opts =>
+                {
+                    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                        new[] { "application/octet-stream" });
+                });
+
                 builder.Services.AddHttpsRedirection(options =>
                 {
                     options.RedirectStatusCode = (int)HttpStatusCode.PermanentRedirect;

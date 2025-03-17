@@ -9,6 +9,5 @@ public interface IEveMapperTracker : IAsyncDisposable
     event Func<int,Ship?, Ship,Task>? ShipChanged;
     Task StartTracking(int accountID);
     Task StopTracking(int accountID);
-    Task StopAllTracking();
-    
+   // Task RefreshAll();    
 }

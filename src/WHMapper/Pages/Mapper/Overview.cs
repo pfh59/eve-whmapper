@@ -1,5 +1,3 @@
-
-
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using WHMapper.Repositories.WHMaps;
@@ -8,10 +6,6 @@ using MudBlazor;
 using Microsoft.AspNetCore.Authorization;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using WHMapper.Services.EveMapper;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using System.Collections.Concurrent;
-using WHMapper.Services.LocalStorage;
-using WHMapper.Models.DTO.EveMapper;
 
 namespace WHMapper.Pages.Mapper;
 
@@ -153,7 +147,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     #region RealTimeService User Events
     
-    private async Task OnMapAdded(string user, int mapId)
+    private async Task OnMapAdded(int accountID, int mapId)
     {
         try
         {
@@ -175,7 +169,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             Logger.LogError(ex, "On NotifyMapAdded error");
         }
     }     
-    private async Task OnMapRemoved(string user, int mapId)
+    private async Task OnMapRemoved(int accountID, int mapId)
     {
         try
         {
@@ -193,7 +187,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         }
     }
 
-    private async Task OnMapNameChanged(string user, int mapId, string newName)
+    private async Task OnMapNameChanged(int accountID, int mapId, string newName)
     {
         try
         {
@@ -211,7 +205,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         }
     }
 
-    private async Task OnAllMapsRemoved(string user)
+    private async Task OnAllMapsRemoved(int accountID)
     {
         try
         {
@@ -225,7 +219,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         }
     }
 
-    private async Task OnMapAccessesAdded(string user, int mapId, IEnumerable<int> accessId)
+    private async Task OnMapAccessesAdded(int accountID, int mapId, IEnumerable<int> accessId)
     {
         try
         {          
@@ -277,7 +271,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         }
     }
 
-    private async Task OnMapAccessRemoved(string user, int mapId, int accessId)
+    private async Task OnMapAccessRemoved(int accountID, int mapId, int accessId)
     {
         try
         {
@@ -308,7 +302,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         }
     }
 
-    private async Task OnMapAllAccessesRemoved(string user, int mapId)
+    private async Task OnMapAllAccessesRemoved(int accountID, int mapId)
     {
         try
         {

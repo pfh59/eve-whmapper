@@ -18,28 +18,28 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     private readonly NavigationManager _navigation;
     private readonly IEveOnlineTokenProvider _tokenProvider;
 
-    public event Func<string, Task>? UserConnected;
-    public event Func<string, Task>? UserDisconnected;
-    public event Func<string, int,int, Task>? UserPosition;
-    public event Func<string, int, int, Task>? WormholeAdded;
-    public event Func<string, int, int, Task>? WormholeRemoved;
-    public event Func<string, int, int, Task>? LinkAdded;
-    public event Func<string, int, int, Task>? LinkRemoved;
-    public event Func<string, int, int, double, double, Task>? WormholeMoved;
-    public event Func<string, int, int, bool, SystemLinkSize, SystemLinkMassStatus, Task>? LinkChanged;
-    public event Func<string, int, int, bool, Task>? WormholeNameExtensionChanged;
-    public event Func<string, int, int, Task>? WormholeSignaturesChanged;
-    public event Func<string, int, int, bool, Task>? WormholeLockChanged;
-    public event Func<string, int, int, WHSystemStatus, Task>? WormholeSystemStatusChanged;
-    public event Func<string, int, Task>? MapAdded;
-    public event Func<string, int, Task>? MapRemoved;
-    public event Func<string, int, string, Task>? MapNameChanged;
-    public event Func<string, Task>? AllMapsRemoved;
-    public event Func<string, int, IEnumerable<int>, Task>? MapAccessesAdded;
-    public event Func<string, int, int, Task>? MapAccessRemoved;
-    public event Func<string, int, Task>? MapAllAccessesRemoved;
-    public event Func<string, int, Task>? UserOnMapConnected;
-    public event Func<string, int, Task>? UserOnMapDisconnected;
+    public event Func<int, Task>? UserConnected;
+    public event Func<int, Task>? UserDisconnected;
+    public event Func<int, int,int, Task>? UserPosition;
+    public event Func<int, int, int, Task>? WormholeAdded;
+    public event Func<int, int, int, Task>? WormholeRemoved;
+    public event Func<int, int, int, Task>? LinkAdded;
+    public event Func<int, int, int, Task>? LinkRemoved;
+    public event Func<int, int, int, double, double, Task>? WormholeMoved;
+    public event Func<int, int, int, bool, SystemLinkSize, SystemLinkMassStatus, Task>? LinkChanged;
+    public event Func<int, int, int, bool, Task>? WormholeNameExtensionChanged;
+    public event Func<int, int, int, Task>? WormholeSignaturesChanged;
+    public event Func<int, int, int, bool, Task>? WormholeLockChanged;
+    public event Func<int, int, int, WHSystemStatus, Task>? WormholeSystemStatusChanged;
+    public event Func<int, int, Task>? MapAdded;
+    public event Func<int, int, Task>? MapRemoved;
+    public event Func<int, int, string, Task>? MapNameChanged;
+    public event Func<int, Task>? AllMapsRemoved;
+    public event Func<int, int, IEnumerable<int>, Task>? MapAccessesAdded;
+    public event Func<int, int, int, Task>? MapAccessRemoved;
+    public event Func<int, int, Task>? MapAllAccessesRemoved;
+    public event Func<int, int, Task>? UserOnMapConnected;
+    public event Func<int, int, Task>? UserOnMapDisconnected;
 
     public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation,IEveOnlineTokenProvider tokenProvider)
     {
@@ -68,160 +68,160 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                     .Build();
     
         
-                hubConnection.On<string>("NotifyUserConnected", async (user) => 
+                hubConnection.On<int>("NotifyUserConnected", async (accountID) => 
                 {
                     if (UserConnected != null)
                     {
-                        await UserConnected.Invoke(user);
+                        await UserConnected.Invoke(accountID);
                     }
                 });
-                hubConnection.On<string>("NotifyUserDisconnected", async (user) => 
+                hubConnection.On<int>("NotifyUserDisconnected", async (accountID) => 
                 {
                     if (UserDisconnected != null)
                     {
-                        await UserDisconnected.Invoke(user);
+                        await UserDisconnected.Invoke(accountID);
                     }
                 });
-                hubConnection.On<string, int,int>("NotifyUserPosition", async (user, mapId,wormholeId) => 
+                hubConnection.On<int, int,int>("NotifyUserPosition", async (accountID, mapId,wormholeId) => 
                 {
                     if (UserPosition != null)
                     {
-                        await UserPosition.Invoke(user, mapId,wormholeId);
+                        await UserPosition.Invoke(accountID, mapId,wormholeId);
                     }
                 });
-                hubConnection.On<string, int, int>("NotifyWormoleAdded", async (user, mapId, wormholeId) => 
+                hubConnection.On<int, int, int>("NotifyWormoleAdded", async (accountID, mapId, wormholeId) => 
                 {
                     if (WormholeAdded != null)
                     {
-                        await WormholeAdded.Invoke(user, mapId, wormholeId);
+                        await WormholeAdded.Invoke(accountID, mapId, wormholeId);
                     }
                 });
-                hubConnection.On<string, int, int>("NotifyWormholeRemoved", async (user, mapId, wormholeId) => 
+                hubConnection.On<int, int, int>("NotifyWormholeRemoved", async (accountID, mapId, wormholeId) => 
                 {
                     if (WormholeRemoved != null)
                     {
-                        await WormholeRemoved.Invoke(user, mapId, wormholeId);
+                        await WormholeRemoved.Invoke(accountID, mapId, wormholeId);
                     }
                 });
-                hubConnection.On<string, int, int>("NotifyLinkAdded", async (user, mapId, linkId) => 
+                hubConnection.On<int, int, int>("NotifyLinkAdded", async (accountID, mapId, linkId) => 
                 {
                     if (LinkAdded != null)
                     {
-                        await LinkAdded.Invoke(user, mapId, linkId);
+                        await LinkAdded.Invoke(accountID, mapId, linkId);
                     }
                 });
-                hubConnection.On<string, int, int>("NotifyLinkRemoved", async (user, mapId, linkId) => 
+                hubConnection.On<int, int, int>("NotifyLinkRemoved", async (accountID, mapId, linkId) => 
                 {
                     if (LinkRemoved != null)
                     {
-                        await LinkRemoved.Invoke(user, mapId, linkId);
+                        await LinkRemoved.Invoke(accountID, mapId, linkId);
                     }
                 });
-                hubConnection.On<string, int, int, double, double>("NotifyWormoleMoved", async (user, mapId, wormholeId, posX, posY) => 
+                hubConnection.On<int, int, int, double, double>("NotifyWormoleMoved", async (accountID, mapId, wormholeId, posX, posY) => 
                 {
                     if (WormholeMoved != null)
                     {
-                        await WormholeMoved.Invoke(user, mapId, wormholeId, posX, posY);
+                        await WormholeMoved.Invoke(accountID, mapId, wormholeId, posX, posY);
                     }
                 });
-                hubConnection.On<string, int, int, bool, SystemLinkSize, SystemLinkMassStatus>("NotifyLinkChanged", async (user, mapId, linkId, eol, size, mass) => 
+                hubConnection.On<int, int, int, bool, SystemLinkSize, SystemLinkMassStatus>("NotifyLinkChanged", async (accountID, mapId, linkId, eol, size, mass) => 
                 {
                     if (LinkChanged != null)
                     {
-                        await LinkChanged.Invoke(user, mapId, linkId, eol, size, mass);
+                        await LinkChanged.Invoke(accountID, mapId, linkId, eol, size, mass);
                     }
                 });
-                hubConnection.On<string, int, int, bool>("NotifyWormholeNameExtensionChanged", async (user, mapId, wormholeId, increment) => 
+                hubConnection.On<int, int, int, bool>("NotifyWormholeNameExtensionChanged", async (accountID, mapId, wormholeId, increment) => 
                 {
                     if (WormholeNameExtensionChanged != null)
                     {
-                        await WormholeNameExtensionChanged.Invoke(user, mapId, wormholeId, increment);
+                        await WormholeNameExtensionChanged.Invoke(accountID, mapId, wormholeId, increment);
                     }
                 });
-                hubConnection.On<string, int, int>("NotifyWormholeSignaturesChanged", async (user, mapId, wormholeId) => 
+                hubConnection.On<int, int, int>("NotifyWormholeSignaturesChanged", async (accountID, mapId, wormholeId) => 
                 {
                     if (WormholeSignaturesChanged != null)
                     {
-                        await WormholeSignaturesChanged.Invoke(user, mapId, wormholeId);
+                        await WormholeSignaturesChanged.Invoke(accountID, mapId, wormholeId);
                     }
                 });
-                hubConnection.On<string, int, int, bool>("NotifyWormholeLockChanged", async (user, mapId, wormholeId, locked) => 
+                hubConnection.On<int, int, int, bool>("NotifyWormholeLockChanged", async (accountID, mapId, wormholeId, locked) => 
                 {
                     if (WormholeLockChanged != null)
                     {
-                        await WormholeLockChanged.Invoke(user, mapId, wormholeId, locked);
+                        await WormholeLockChanged.Invoke(accountID, mapId, wormholeId, locked);
                     }
                 });
-                hubConnection.On<string, int, int, WHSystemStatus>("NotifyWormholeSystemStatusChanged", async (user, mapId, wormholeId, systemStatus) => 
+                hubConnection.On<int, int, int, WHSystemStatus>("NotifyWormholeSystemStatusChanged", async (accountID, mapId, wormholeId, systemStatus) => 
                 {
                     if (WormholeSystemStatusChanged != null)
                     {
-                        await WormholeSystemStatusChanged.Invoke(user, mapId, wormholeId, systemStatus);
+                        await WormholeSystemStatusChanged.Invoke(accountID, mapId, wormholeId, systemStatus);
                     }
                 });
-                hubConnection.On<string, int>("NotifyMapAdded", async (user, mapId) => 
+                hubConnection.On<int, int>("NotifyMapAdded", async (accountID, mapId) => 
                 {
                     if (MapAdded != null)
                     {
-                        await MapAdded.Invoke(user, mapId);
+                        await MapAdded.Invoke(accountID, mapId);
                     }
                 });
-                hubConnection.On<string, int>("NotifyMapRemoved", async (user, mapId) => 
+                hubConnection.On<int, int>("NotifyMapRemoved", async (accountID, mapId) => 
                 {
                     if (MapRemoved != null)
                     {
-                        await MapRemoved.Invoke(user, mapId);
+                        await MapRemoved.Invoke(accountID, mapId);
                     }
                 });
-                hubConnection.On<string, int, string>("NotifyMapNameChanged", async (user, mapId, newName) => 
+                hubConnection.On<int, int, string>("NotifyMapNameChanged", async (accountID, mapId, newName) => 
                 {
                     if (MapNameChanged != null)
                     {
-                        await MapNameChanged.Invoke(user, mapId, newName);
+                        await MapNameChanged.Invoke(accountID, mapId, newName);
                     }
                 });
-                hubConnection.On<string>("NotifyAllMapsRemoved", async (user) => 
+                hubConnection.On<int>("NotifyAllMapsRemoved", async (accountID) => 
                 {
                     if (AllMapsRemoved != null)
                     {
-                        await AllMapsRemoved.Invoke(user);
+                        await AllMapsRemoved.Invoke(accountID);
                     }
                 });
-                hubConnection.On<string, int, IEnumerable<int>>("NotifyMapAccessesAdded", async (user, mapId, accessId) => 
+                hubConnection.On<int, int, IEnumerable<int>>("NotifyMapAccessesAdded", async (accountID, mapId, accessId) => 
                 {
                     if (MapAccessesAdded != null)
                     {
-                        await MapAccessesAdded.Invoke(user, mapId, accessId);
+                        await MapAccessesAdded.Invoke(accountID, mapId, accessId);
                     }
                 });
 
-                hubConnection.On<string, int, int>("NotifyMapAccessRemoved", async (user, mapId, accessId) => 
+                hubConnection.On<int, int, int>("NotifyMapAccessRemoved", async (accountID, mapId, accessId) => 
                 {
                     if (MapAccessRemoved != null)
                     {
-                        await MapAccessRemoved.Invoke(user, mapId, accessId);
+                        await MapAccessRemoved.Invoke(accountID, mapId, accessId);
                     }
                 });
 
-                hubConnection.On<string, int>("NotifyMapAllAccessesRemoved", async (user, mapId) => 
+                hubConnection.On<int, int>("NotifyMapAllAccessesRemoved", async (accountID, mapId) => 
                 {
                     if (MapAllAccessesRemoved != null)
                     {
-                        await MapAllAccessesRemoved.Invoke(user, mapId);
+                        await MapAllAccessesRemoved.Invoke(accountID, mapId);
                     }
                 });
-                hubConnection.On<string, int>("NotifyUserOnMapConnected", async (user, mapId) => 
+                hubConnection.On<int, int>("NotifyUserOnMapConnected", async (accountID, mapId) => 
                 {
                     if (UserOnMapConnected != null)
                     {
-                        await UserOnMapConnected.Invoke(user, mapId);
+                        await UserOnMapConnected.Invoke(accountID, mapId);
                     }
                 });
-                hubConnection.On<string, int>("NotifyUserOnMapDisconnected", async (user, mapId) => 
+                hubConnection.On<int, int>("NotifyUserOnMapDisconnected", async (accountID, mapId) => 
                 {
                     if (UserOnMapDisconnected != null)
                     {
-                        await UserOnMapDisconnected.Invoke(user, mapId);
+                        await UserOnMapDisconnected.Invoke(accountID, mapId);
                     }
                 });
             
@@ -377,15 +377,15 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    public async Task<IDictionary<string, KeyValuePair<int,int>?>> GetConnectedUsersPosition(int accountID)
+    public async Task<IDictionary<int, KeyValuePair<int,int>?>> GetConnectedUsersPosition(int accountID)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
         if (hubConnection is not null)
         {
-            return await hubConnection.InvokeAsync<IDictionary<string, KeyValuePair<int,int>?>>("GetConnectedUsersPosition");
+            return await hubConnection.InvokeAsync<IDictionary<int, KeyValuePair<int,int>?>>("GetConnectedUsersPosition");
         }
 
-        return new Dictionary<string, KeyValuePair<int,int>?>();
+        return new Dictionary<int, KeyValuePair<int,int>?>();
     }
 
     public async Task NotifyMapAdded(int accountID,int mapId)
