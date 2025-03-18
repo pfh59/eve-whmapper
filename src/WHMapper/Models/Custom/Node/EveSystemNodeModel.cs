@@ -110,7 +110,7 @@ namespace WHMapper.Models.Custom.Node
         public WHEffect Effect { get; private set; } = WHEffect.None;
         public IList<EveSystemEffect>? EffectDetails { get; private set; } = null!;
         public IList<WormholeType>? Statics { get; private set; } = null!;
-        public BlockingCollection<int> ConnectedUsers { get; private set; } = new BlockingCollection<int>();
+        public BlockingCollection<string> ConnectedUsers { get; private set; } = new BlockingCollection<string>();
         public bool IsRouteWaypoint{get;set;} = false;
 
 
@@ -190,36 +190,41 @@ namespace WHMapper.Models.Custom.Node
                 _wh.NameExtension = 0;
         }
 
-
-        public async Task AddConnectedUser(int accountID)
+        public void SetNameExtension(char c)
         {
-            if (!ConnectedUsers.Contains(accountID))
+            _wh.NameExtension = Convert.ToByte(c);
+        }
+
+
+        public async Task AddConnectedUser(string userName)
+        {
+            if (!ConnectedUsers.Contains(userName))
             {
-                while (!ConnectedUsers.TryAdd(accountID))
+                while (!ConnectedUsers.TryAdd(userName))
                     await Task.Delay(1);
 
                 this.Refresh();
             }
         }
 
-        public async Task RemoveConnectedUser(int accountID)
+        public async Task RemoveConnectedUser(string userName)
         {
-            if (ConnectedUsers.Contains(accountID))
+            if (ConnectedUsers.Contains(userName))
             {
 
-                int comparedItem;
-                var itemsList = new List<int>();
+                string? comparedItem;
+                var itemsList = new List<string>();
                 do
                 {
 
                     while (!ConnectedUsers.TryTake(out comparedItem))
                         await Task.Delay(1);
 
-                    if (!comparedItem.Equals(accountID))
+                    if (!comparedItem.Equals(userName))
                     {
                         itemsList.Add(comparedItem);
                     }
-                } while (!(comparedItem.Equals(accountID)));
+                } while (!(comparedItem.Equals(userName)));
                 Parallel.ForEach(itemsList, async t => await AddConnectedUser(t));
 
                 this.Refresh();

@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Mvc;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.SDE;
+using Microsoft.AspNetCore.SignalR;
 
 namespace WHMapper.Pages.Mapper.Map;
 
@@ -192,8 +193,12 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                                     var systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == (item.Value?.Value ?? 0));
                                     if (systemToAddUser != null)
                                     {
-                                        await systemToAddUser.AddConnectedUser(item.Key);
-                                        systemToAddUser.Refresh();
+                                        CharactereEntity? user= await eveMapperService.GetCharacter(item.Key);
+                                        if(user!=null)
+                                        {
+                                            await systemToAddUser.AddConnectedUser(user.Name);
+                                            systemToAddUser.Refresh();
+                                        }
                                     }
                                 });
 
@@ -816,8 +821,9 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
     }
 
-    private async Task<bool> AddSystemNode(int? mapId,SystemEntity solarSystem,int accountID,double nodePositionX=0,double nodePositionY=0)
+    private async Task<bool> AddSystemNode(int? mapId,SystemEntity solarSystem,int accountID,char? extension=null,double nodePositionX=0,double nodePositionY=0)
     {
+        WHSystem? newWHSystem = null;
         if(!mapId.HasValue)
         {
             Logger.LogError("AddSystemNode mapId is null");
@@ -826,7 +832,14 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
         if(await GetNodeBySolarSystemId(solarSystem.Id)==null)//location not exist on map
         {
-            var newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value,solarSystem.Id,solarSystem.Name, solarSystem.SecurityStatus, nodePositionX, nodePositionY));
+            if(extension.HasValue)
+            {
+                newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value,solarSystem.Id,solarSystem.Name,extension.Value, solarSystem.SecurityStatus, nodePositionX, nodePositionY));
+            }
+            else
+            {
+                newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value,solarSystem.Id,solarSystem.Name, solarSystem.SecurityStatus, nodePositionX, nodePositionY));
+            }
 
             if (newWHSystem!=null)
             {
@@ -850,19 +863,13 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         return false;
     }
 
-    private async Task<bool> AddSystemNode(int? mapId,EveLocation location,int accountID,double nodePositionX=0,double nodePositionY=0)
+    private async Task<bool> AddSystemNode(int? mapId,EveLocation location,int accountID,char? extension=null,double nodePositionX=0,double nodePositionY=0)
     {
         if(!mapId.HasValue)
         {
             Logger.LogError("AddSystemNode mapId is null");
             throw new NullReferenceException("mapId is null");
         }
-/*
-        if(this._selectedWHMapId!=mapId)
-        {
-            Logger.LogError("AddSystemNode mapId is different from selected map");
-            throw new ArgumentException("mapId is different from selected map");
-        }*/
 
         if(await GetNodeBySolarSystemId(location.SolarSystemId)==null)//location not exist on map
         {
@@ -872,126 +879,12 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 Logger.LogError("AddSystemNode locationEntity is null");
                 return false;
             }
-            return await AddSystemNode(mapId,locationEntity,accountID,nodePositionX,nodePositionY);
+
+            return await AddSystemNode(mapId,locationEntity,accountID,extension,nodePositionX,nodePositionY);
             
         }
         return false;
     }
-
-    /*
-    private async Task<bool> AddSystemNode(int? mapId,EveLocation? src,EveLocation target,double nodePositionX=0,double nodePositionY=0,bool isManual=false)
-    {
-        EveSystemNodeModel? previousSystemNode = null;
-        EveSystemNodeModel? targetSystemNode = null;
-        WHSystem? newWHSystem= null;
-        double defaultNewSystemPosX = nodePositionX;
-        double defaultNewSystemPosY = nodePositionY;
-        char extension;
-        int nbSameWHClassLink =0;
-
-        SystemEntity? srcEntity = null;
-        SystemEntity? targetEntity = null;
-        
-        try
-        {
-            if(!mapId.HasValue)
-            {
-                Logger.LogError("AddSystemNode mapId is null");
-                return false;
-            }
-
-            //determine position on map. depends of previous system , todo refactor
-            if(src!=null)
-            {
-                previousSystemNode = await GetNodeBySolarSystemId(src.SolarSystemId);
-                 if(previousSystemNode!=null)
-                {
-                    defaultNewSystemPosX  = previousSystemNode.Position!.X + previousSystemNode.Size!.Width + 10;
-                    defaultNewSystemPosY = previousSystemNode.Position!.Y + previousSystemNode!.Size!.Height + 10;
-                }
-                else
-                {
-                    defaultNewSystemPosX=10;
-                    defaultNewSystemPosY=10;
-                }
-                srcEntity = await eveMapperService.GetSystem(src.SolarSystemId);
-            }
-            
-            targetSystemNode = await GetNodeBySolarSystemId(target.SolarSystemId);
-            targetEntity = await eveMapperService.GetSystem(target.SolarSystemId);
-
-            if(targetEntity==null)
-            {
-                Logger.LogError("AddSystemNode targetEntity is null");
-                return false;
-            }
-
-
-
-            //determine if source have same system link and get next unique ident
-            if(srcEntity != null && await MapperServices.IsRouteViaWH(srcEntity, targetEntity)) //check if HS/LS/NS to HS/LS/NS via WH not gate
-            {
-
-                //get whClass an determine if another connection to another wh with same class exist from previous system. Increment extension value in that case
-                EveSystemType whClass = await MapperServices.GetWHClass(targetEntity);
-                var sameWHClassWHList = _blazorDiagram?.Links?.Where(x =>  ((EveSystemNodeModel)(x.Target!.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId == srcEntity.Id);
-                
-                if(sameWHClassWHList!=null)
-                    nbSameWHClassLink = sameWHClassWHList.Count();
-                else
-                    nbSameWHClassLink=0;
-
-                if (nbSameWHClassLink > 0)
-                {
-                    extension = (Char)(Convert.ToUInt16('A') + nbSameWHClassLink);
-                    newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value, targetEntity.Id, targetEntity.Name, extension, targetEntity.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
-                }
-                else
-                    newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value, targetEntity.Id, targetEntity.Name, targetEntity.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
-            
-            }
-            else
-                newWHSystem = await DbWHSystems.Create(new WHSystem(mapId.Value,targetEntity.Id,targetEntity.Name, targetEntity.SecurityStatus, defaultNewSystemPosX, defaultNewSystemPosY));
-
-            if (newWHSystem!=null)
-            {
-                var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
-                newSystemNode.OnLocked += OnWHSystemNodeLocked;
-                newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChange;
-                
-                if(!isManual)
-                {
-                    await newSystemNode.AddConnectedUser(_userName);
-                }
-
-                _blazorDiagram?.Nodes?.Add(newSystemNode);
-                await EveMapperRealTime.NotifyWormoleAdded(mapId.Value, newWHSystem.Id);
-                
-                
-                if (previousSystemNode != null && !isManual)
-                {
-                    //remove ConnectedUser on previous system
-                    await previousSystemNode.RemoveConnectedUser(_userName);
-                    previousSystemNode.Refresh();
-                }
-
-                _blazorDiagram?.SelectModel(newSystemNode, true);
-                return true;
-            }
-            else
-            {
-                Logger.LogError("AddSystemNode db error");
-                return false;
-            }
-
-            
-        }
-        catch(Exception ex)
-        {
-            Logger.LogError(ex, "AddSystemNode error");
-            return false;
-        }
-    }*/
     
     private async Task<bool> AddSystemNodeLink(int? mapId, SystemEntity src, SystemEntity target,int accountID)
     {
@@ -1031,6 +924,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 _blazorDiagram?.Links?.Add(new EveSystemLinkModel(newLink, srcNode, targetNode));
                 await EveMapperRealTime.NotifyLinkAdded(accountID,mapId, newLink.Id);
                 return true;
+
             }
             return false;
         }
@@ -1040,6 +934,38 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return false;
         }
     }
+
+
+    private async Task<char?> GetTargetExtension(EveLocation? srcNode, EveLocation? targetNode)
+    {
+        ArgumentNullException.ThrowIfNull(srcNode);
+        ArgumentNullException.ThrowIfNull(targetNode);
+
+        int countSameWHClassLink = 0;
+        SystemEntity? srcEntity = await eveMapperService.GetSystem(srcNode.SolarSystemId);
+        SystemEntity? targetEntity = await eveMapperService.GetSystem(targetNode.SolarSystemId);
+        
+        //check if HS/LS/NS to HS/LS/NS via WH not gate
+        if(srcEntity != null && targetEntity !=null && await MapperServices.IsRouteViaWH(srcEntity, targetEntity)) 
+        {
+            //get whClass an determine if another connection to another wh with same class exist from previous system. 
+            // Increment extension value in that case
+            EveSystemType whClass = await MapperServices.GetWHClass(targetEntity);
+            var sameWHClassWHList = _blazorDiagram?.Links?.Where(x =>  ((EveSystemNodeModel)(x.Target!.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId == srcEntity.Id);
+                
+            if(sameWHClassWHList!=null)
+                countSameWHClassLink = sameWHClassWHList.Count();
+            else
+                countSameWHClassLink=0;
+
+            if (countSameWHClassLink > 0)
+            {
+                return (Char)(Convert.ToUInt16('A') + countSameWHClassLink);
+            }
+        }
+        return null;
+    }
+
     private async Task<bool> AddSystemNodeLinkLog(int whSystemLinkID,int accountID,bool isManual=false)
     {
         Ship? currentShip = null;
@@ -1202,7 +1128,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             _currentShips.TryAdd(accountID,newShip);
         }
     }
-
     
     private async Task OnSystemChanged(int accountID,  EveLocation? oldLocation, EveLocation newLocation)
     {
@@ -1215,23 +1140,39 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             if(oldLocation!=null)
                 srcNode=await GetNodeBySolarSystemId(oldLocation.SolarSystemId);
 
-            if(await AddSystemNode(MapId.Value,newLocation,accountID))//add system node if system is not already added
-            {
-                targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
+            targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
 
+            if(targetNode==null)//location not exist on map
+            {   
+                //get extension if needed
+                char? extension = await GetTargetExtension(oldLocation,newLocation);
 
-                if(srcNode!=null && targetNode!=null && !await IsLinkExist(srcNode,targetNode))
+                //get placement, shall be refactored to be more dynamic
+                double nodePositionX = 0;
+                double nodePositionY = 0;
+                if(srcNode!=null)
                 {
-                    if(!await AddSystemNodeLink(MapId.Value,srcNode,targetNode,accountID))//create if new target system added from src
+                    nodePositionX  = srcNode.Position!.X + srcNode.Size!.Width + 10;
+                    nodePositionY = srcNode.Position!.Y + srcNode!.Size!.Height + 10;
+                }
+
+                if(await AddSystemNode(MapId.Value,newLocation,accountID,extension,nodePositionX,nodePositionY))//add system node if system is not already added
+                {
+                    targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
+
+
+                    if(srcNode!=null && targetNode!=null && !await IsLinkExist(srcNode,targetNode))
                     {
-                        Logger.LogError("Add Wormhole Link error");
-                        Snackbar?.Add("Add Wormhole Link error", Severity.Error);
+                        if(!await AddSystemNodeLink(MapId.Value,srcNode,targetNode,accountID))//create if new target system added from src
+                        {
+                            Logger.LogError("Add Wormhole Link error");
+                            Snackbar?.Add("Add Wormhole Link error", Severity.Error);
+                        }
                     }
                 }
-            }
+             }
             else// tartget system already added
             {
-                targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
                 //check if link already exist, if not create if
                 if(srcNode!=null && targetNode!=null && !await IsLinkExist(srcNode,targetNode))
                 {
@@ -1257,8 +1198,12 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             }
 
             //update user position
-            srcNode?.RemoveConnectedUser(accountID);
-            targetNode?.AddConnectedUser(accountID);
+            CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
+            if(user!=null)
+            {
+                srcNode?.RemoveConnectedUser(user.Name);
+                targetNode?.AddConnectedUser(user.Name);
+            }
 
             if(this.MapId.HasValue && targetNode!=null)
             {
@@ -1538,7 +1483,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 {
                     SystemEntity solarSystem = (SystemEntity)result.Data;
                     
-                    if(await AddSystemNode(MapId.Value,solarSystem,PrimaryAccount.Id,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
+                    if(await AddSystemNode(MapId.Value,solarSystem,PrimaryAccount.Id,null,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
                     {
                         Snackbar?.Add(String.Format("{0} solar system successfully added",solarSystem.Name), Severity.Success);
                     }
@@ -1561,20 +1506,27 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
     #region RealTime Events
 
-    private Task OnUserOnMapConnected(int accountID, int mapId)
+    private async Task OnUserOnMapConnected(int accountID, int mapId)
     {
         if (MapId.HasValue && MapId.Value == mapId)
         {
-            Snackbar?.Add($"{accountID} are connected", Severity.Info); 
+            CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
+            if(user==null)
+                throw new NullReferenceException("User not found");
+
+            Snackbar?.Add($"{user.Name} are connected", Severity.Info); 
         }
-        return Task.CompletedTask;
     }
 
     private async Task OnUserOnMapDisconnected(int accountID, int mapId)
     {
         if (MapId.HasValue && MapId.Value == mapId)
         {
-            Snackbar?.Add($"{accountID} are disconnected", Severity.Info);
+            CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
+            if(user==null)
+                throw new NullReferenceException("User not found");
+
+            Snackbar?.Add($"{user.Name} are disconnected", Severity.Info);
             await OnUserDisconnected(accountID);
         }
     }
@@ -1583,10 +1535,14 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {   
         try
         {
-            EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(accountID));
+            CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
+            if(user==null)
+                throw new NullReferenceException("User not found");
+
+            EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
             if (userSystem != null)
             {
-                await userSystem.RemoveConnectedUser(accountID);
+                await userSystem.RemoveConnectedUser(user.Name);
                 userSystem.Refresh();
             }
         }
@@ -1600,19 +1556,23 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         try
         {   
-            if(this.MapId.HasValue && this.MapId.Value == mapId)
+            if(this.MapId.HasValue && this.MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
             {
-                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(accountID));
+                CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
+                if(user==null)
+                    throw new NullReferenceException("User not found");
+
+                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
                 if (userSystem != null)
                 {
-                    await userSystem.RemoveConnectedUser(accountID);
+                    await userSystem.RemoveConnectedUser(user.Name);
                     userSystem.Refresh();
                 }
 
                 EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.IdWH == wormholeId);
                 if (systemToAddUser != null)
                 {
-                    await systemToAddUser.AddConnectedUser(accountID);
+                    await systemToAddUser.AddConnectedUser(user.Name);
                     systemToAddUser.Refresh();
                 }
                 else
@@ -1856,6 +1816,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         node.IncrementNameExtension();
                     else
                         node.DecrementNameExtension();
+
                     node.Refresh();
                 }
                 else
