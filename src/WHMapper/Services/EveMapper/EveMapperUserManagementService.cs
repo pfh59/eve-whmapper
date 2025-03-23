@@ -53,16 +53,19 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         var user = new WHMapperUser(id.Value, portrait?.Picture64x64 ?? string.Empty);
 
 
-
-        _whMapperUsers.AddOrUpdate(clientId,new WHMapperUser[] { user }, (_, users) =>
+        // Check if the user is already in the list
+        if (_whMapperUsers.TryGetValue(clientId, out WHMapperUser[]? users) && users.Any(user => user.Id == id))
         {
-            var updatedUsers = users.Append(user).ToArray();
-            return updatedUsers;
-        });     
+            await _tokenProvider.SaveToken(token);
+            await SetPrimaryAccountAsync(clientId, accountId);
+            return;
+        }
+
+        // Add or update the user list
+        _whMapperUsers.AddOrUpdate(clientId, new[] { user }, (_, existingUsers) => existingUsers.Append(user).ToArray());
 
         await _tokenProvider.SaveToken(token);
-
-        await SetPrimaryAccountAsync(clientId,accountId);
+        await SetPrimaryAccountAsync(clientId, accountId);
     }
 
     public async Task RemoveAuthenticateWHMapperUser(string clientId,string accountId)

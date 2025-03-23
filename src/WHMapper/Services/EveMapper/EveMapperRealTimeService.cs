@@ -485,6 +485,30 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                 }
             }
             _hubConnection.Clear();
+
+            //ckear the events
+            UserConnected = null;
+            UserDisconnected = null;
+            UserPosition = null;
+            WormholeAdded = null;
+            WormholeRemoved = null;
+            LinkAdded = null;
+            LinkRemoved = null;
+            WormholeMoved = null;
+            LinkChanged = null;
+            WormholeNameExtensionChanged = null;
+            WormholeSignaturesChanged = null;
+            WormholeLockChanged = null;
+            WormholeSystemStatusChanged = null;
+            MapAdded = null;
+            MapRemoved = null;
+            MapNameChanged = null;
+            AllMapsRemoved = null;
+            MapAccessesAdded = null;
+            MapAccessRemoved = null;
+            MapAllAccessesRemoved = null;
+            UserOnMapConnected = null;
+            UserOnMapDisconnected = null;
         }
     }
 

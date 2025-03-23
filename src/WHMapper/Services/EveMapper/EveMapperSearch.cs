@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Alliance;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveAPI.Corporation;
@@ -6,6 +7,7 @@ using WHMapper.Models.DTO.EveAPI.Search;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Models.DTO.SDE;
 using WHMapper.Services.EveAPI;
+using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Services.SDE;
 
 namespace WHMapper.Services.EveMapper
@@ -19,12 +21,19 @@ namespace WHMapper.Services.EveMapper
         private readonly ILogger _logger;
         private readonly ISDEService _sdeServices;
         private readonly IEveAPIServices _eveAPIServices;
+        private readonly IEveOnlineTokenProvider _tokenProvider;
+        private readonly IEveMapperUserManagementService _userManagement;
+        private readonly ClientUID _UID;
 
-        public EveMapperSearch(ILogger<EveMapperSearch> logger, ISDEService sdeServices, IEveAPIServices eveAPIServices)
+        public EveMapperSearch(ILogger<EveMapperSearch> logger, ISDEService sdeServices, IEveAPIServices eveAPIServices, IEveOnlineTokenProvider tokenProvider,IEveMapperUserManagementService userManagement,ClientUID UID)
         {
+
             _logger = logger;
             _sdeServices = sdeServices;
             _eveAPIServices = eveAPIServices;
+            _tokenProvider = tokenProvider;
+            _userManagement = userManagement;
+            _UID = UID;
         }
 
         private async Task<IEnumerable<T>?> Search<T>(string value,bool strict, CancellationToken cancellationToken)
@@ -52,6 +61,22 @@ namespace WHMapper.Services.EveMapper
                         MaxDegreeOfParallelism = (Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2),
                         CancellationToken = cancellationToken
                     };
+
+                    
+                    var defaultAccount = await _userManagement.GetPrimaryAccountAsync(_UID.ClientId);
+                    if (defaultAccount == null)
+                    {
+                        _logger.LogError("Search {Value}, No account authenticate to search", value);
+                        return null;
+                    }
+                    var token = await _tokenProvider.GetToken(defaultAccount.Id.ToString());
+                    if (token == null)
+                    {
+                        _logger.LogError("Search {Value}, No token authenticate to search", value);
+                        return null;
+                    }
+                    await _eveAPIServices.SetEveCharacterAuthenticatication(token);
+            
 
                     if (typeof(T) == typeof(CharactereEntity))
                     {

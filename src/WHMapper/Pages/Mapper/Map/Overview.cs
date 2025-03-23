@@ -29,6 +29,7 @@ using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.SDE;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.JSInterop;
 
 namespace WHMapper.Pages.Mapper.Map;
 
@@ -244,20 +245,27 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
         if(EveMapperRealTime!=null)
         {
-            EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
-            EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
-            EveMapperRealTime.UserOnMapDisconnected -= OnUserOnMapDisconnected;
-            
-            EveMapperRealTime.UserPosition -= OnUserPositionChanged;
-            EveMapperRealTime.WormholeAdded -= OnWormholeAdded;
-            EveMapperRealTime.WormholeRemoved -= OnWormholeRemoved;
-            EveMapperRealTime.WormholeMoved -= OnWormholeMoved;
-            EveMapperRealTime.WormholeLockChanged -= OnWormholeLockChanged;
-            EveMapperRealTime.WormholeSystemStatusChanged -= OnWormholeSystemStatusChanged;
-            EveMapperRealTime.WormholeNameExtensionChanged -= OnWormholeNameExtensionChanged;
-            EveMapperRealTime.LinkAdded -= OnLinkAdded;
-            EveMapperRealTime.LinkRemoved -= OnLinkRemoved;
-            EveMapperRealTime.LinkChanged -= OnLinkChanged;
+            try
+            {
+                EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
+                EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
+                EveMapperRealTime.UserOnMapDisconnected -= OnUserOnMapDisconnected;
+                
+                EveMapperRealTime.UserPosition -= OnUserPositionChanged;
+                EveMapperRealTime.WormholeAdded -= OnWormholeAdded;
+                EveMapperRealTime.WormholeRemoved -= OnWormholeRemoved;
+                EveMapperRealTime.WormholeMoved -= OnWormholeMoved;
+                EveMapperRealTime.WormholeLockChanged -= OnWormholeLockChanged;
+                EveMapperRealTime.WormholeSystemStatusChanged -= OnWormholeSystemStatusChanged;
+                EveMapperRealTime.WormholeNameExtensionChanged -= OnWormholeNameExtensionChanged;
+                EveMapperRealTime.LinkAdded -= OnLinkAdded;
+                EveMapperRealTime.LinkRemoved -= OnLinkRemoved;
+                EveMapperRealTime.LinkChanged -= OnLinkChanged;
+            }
+            catch (JSDisconnectedException)
+            {
+                //ignore
+            }
 
 
 /*
@@ -313,6 +321,18 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             _blazorDiagram.Links.Clear();
             _blazorDiagram.Nodes.Clear();
+
+            try
+            {
+                _blazorDiagram.SelectionChanged -= async (item) => await OnDiagramSelectionChanged(item);
+                _blazorDiagram.KeyDown -= async (kbevent) => await OnDiagramKeyDown(kbevent);
+                _blazorDiagram.PointerUp -= async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
+
+            }
+            catch (JSDisconnectedException)
+            {
+                //ignore
+            }
         }
 
         return Task.CompletedTask;
@@ -1145,7 +1165,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             if(targetNode==null)//location not exist on map
             {   
                 //get extension if needed
-                char? extension = await GetTargetExtension(oldLocation,newLocation);
+
+                char? extension = null;
+                if(oldLocation!=null)
+                    extension = await GetTargetExtension(oldLocation,newLocation);
 
                 //get placement, shall be refactored to be more dynamic
                 double nodePositionX = 0;

@@ -77,27 +77,27 @@
   <ItemGroup>
     <PackageReference Include="Blazor.ContextMenu" Version="2.1.0" />
     <PackageReference Include="FibonacciHeap" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="8.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.11" />
-    <PackageReference Include="MudBlazor.ThemeManager" Version="2.1.0" />
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.1.2" />
-    <PackageReference Include="System.IO.Abstractions" Version="21.1.3" />
-    <PackageReference Include="Testably.Abstractions.Compression" Version="3.2.4" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="8.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.14" />
+    <PackageReference Include="MudBlazor.ThemeManager" Version="2.1.*" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.6.1" />
+    <PackageReference Include="System.IO.Abstractions" Version="22.0.12" />
+    <PackageReference Include="Testably.Abstractions.Compression" Version="4.0.1" />
     <PackageReference Include="Z.Blazor.Diagrams" Version="3.0.2" />
     <PackageReference Include="Z.Blazor.Diagrams.Algorithms" Version="3.0.2" />
     <PackageReference Include="Z.Blazor.Diagrams.Core" Version="3.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
-    <PackageReference Include="Npgsql" Version="8.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.14" />
+    <PackageReference Include="Npgsql" Version="8.0.7" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.14">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentValidation" Version="11.11.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.11" />
-    <PackageReference Include="YamlDotNet" Version="16.2.0" />
-    <PackageReference Include="MudBlazor" Version="7.15.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.14" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+    <PackageReference Include="MudBlazor" Version="7.16.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />

@@ -11,8 +11,8 @@
                     </ActivatorContent>
                     <ChildContent>
                         <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>     
-                        <MudMenuItem Icon="@Icons.Material.Filled.SettingsAccessibility" IconColor="Color.Default" Href="whmapperadmin" Target="_blank">Access List</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.Map" IconColor="Color.Default" Href="whmappermapadmin" Target="_blank">Map</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.SettingsAccessibility" IconColor="Color.Default" OnClick="@(() =>OpenAdminAccessDialog())">Access List</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Map" IconColor="Color.Default" OnClick="@(() =>OpenAdminMapDialog())">Map</MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="@GetLogoutUrl()">Logout</MudMenuItem>
                     </ChildContent>
                 </MudMenu>
@@ -23,8 +23,15 @@
                          <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
                     </ActivatorContent>
                     <ChildContent>
-                        <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()"  Target="_blank">Add Account</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="@GetLogoutUrl()">Logout</MudMenuItem>
+                        <AuthorizeView Policy="Access" Context="innerContext2">
+                            <Authorized>
+                                <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="@GetLogoutUrl()">Logout</MudMenuItem>
+                            </Authorized>
+                            <NotAuthorized>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Default" Href="@GetLogoutUrl()">Logout</MudMenuItem>
+                            </NotAuthorized>
+                        </AuthorizeView>
                     </ChildContent>
                 </MudMenu>
             </NotAuthorized>
@@ -50,6 +57,9 @@
     [Inject]
     private ClientUID UID {get; set;} = null!;
 
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
     private string GetLoginUrl()
     {
         return $"login?redirectUri=/&clientId={UID.ClientId}";
@@ -58,6 +68,51 @@
     private string GetLogoutUrl()
     {
         return $"logout?clientId={UID.ClientId}";
+    }
+
+
+    private async Task<bool> OpenAdminAccessDialog()
+    {
+        DialogOptions disableBackdropClick = new DialogOptions()
+        {
+            BackdropClick=false,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Medium,
+            CloseButton = true,
+            FullWidth = true,
+            BackgroundClass="bg-transparent"
+
+        };
+            
+        var parameters = new DialogParameters(); 
+        var dialog = await DialogService.ShowAsync<WHMapper.Pages.Mapper.Administration.Access.Overview>("Access Administration", parameters, disableBackdropClick);
+
+        DialogResult? result = await dialog.Result;
+
+        return true;
+
+    }
+
+    private async Task<bool> OpenAdminMapDialog()
+    {
+        DialogOptions disableBackdropClick = new DialogOptions()
+        {
+            BackdropClick=false,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Medium,
+            CloseButton = true,
+            FullWidth = true,
+            BackgroundClass="bg-transparent"
+
+        };
+            
+        var parameters = new DialogParameters(); 
+        var dialog = await DialogService.ShowAsync<WHMapper.Pages.Mapper.Administration.Map.Overview>("Map Administration", parameters, disableBackdropClick);
+
+        DialogResult? result = await dialog.Result;
+
+        return true;
+
     }
 }
     
