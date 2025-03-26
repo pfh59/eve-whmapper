@@ -131,7 +131,6 @@ namespace WHMapper
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.Name = "WHMapper";
-                options.ExpireTimeSpan = TimeSpan.FromSeconds(30);
                 options.SlidingExpiration = false;
                 options.AccessDeniedPath = "/Forbidden/";
             })
