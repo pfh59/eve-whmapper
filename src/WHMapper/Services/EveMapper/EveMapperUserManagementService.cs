@@ -41,14 +41,13 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
             throw new ArgumentNullException(nameof(accountId), "AccountId cannot be null");
         }
 
-        int? id = int.Parse(accountId);
-        if (!id.HasValue)
+        if (!int.TryParse(accountId, out int id))
         {
-            throw new ArgumentNullException(nameof(id), "AccountId cannot be null");
+            throw new ArgumentException("AccountId must be a valid integer", nameof(accountId));
         }
 
-        Portrait? portrait = await _characterServices.GetCharacterPortrait(id.Value);
-        var user = new WHMapperUser(id.Value, portrait?.Picture64x64 ?? string.Empty);
+        Portrait? portrait = await _characterServices.GetCharacterPortrait(id);
+        var user = new WHMapperUser(id, portrait?.Picture64x64 ?? string.Empty);
 
 
         // Check if the user is already in the list
@@ -78,10 +77,9 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
             throw new ArgumentNullException(nameof(accountId), "AccountId cannot be null");
         }
 
-        int? id = int.Parse(accountId);
-        if (!id.HasValue)
+        if (!int.TryParse(accountId, out int id))
         {
-            throw new ArgumentNullException(nameof(id), "AccountId cannot be null");
+            throw new ArgumentException("AccountId must be a valid integer", nameof(accountId));
         }
 
         if (_whMapperUsers.TryGetValue(clientId, out WHMapperUser[]? users))
