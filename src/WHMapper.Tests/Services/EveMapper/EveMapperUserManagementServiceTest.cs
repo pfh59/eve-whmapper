@@ -160,6 +160,72 @@ public async Task AddAuthenticateWHMapperUser_ShouldUpdateToken_WhenUserAlreadyE
 }
 
 [Fact]
+public async Task AddAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenClientIdIsNull()
+{
+    // Arrange
+    string? clientId = null;
+    var accountId = "123";
+    var token = new UserToken { AccessToken = "test-token" };
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddAuthenticateWHMapperUser(clientId!, accountId, token));
+    Assert.Equal("clientId", exception.ParamName);
+}
+
+[Fact]
+public async Task AddAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenClientIdIsEmpty()
+{
+    // Arrange
+    var clientId = string.Empty;
+    var accountId = "123";
+    var token = new UserToken { AccessToken = "test-token" };
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddAuthenticateWHMapperUser(clientId, accountId, token));
+    Assert.Equal("clientId", exception.ParamName);
+}
+
+[Fact]
+public async Task AddAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenAccountIdIsEmpty()
+{
+    // Arrange
+    var clientId = "test-client-id";
+    string? accountId = string.Empty;
+    var token = new UserToken { AccessToken = "test-token" };
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddAuthenticateWHMapperUser(clientId, accountId, token));
+    Assert.Equal("accountId", exception.ParamName);
+}
+
+[Fact]
+public async Task AddAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenAccountIdIsWhitespace()
+{
+    // Arrange
+    var clientId = "test-client-id";
+    var accountId = " ";
+    var token = new UserToken { AccessToken = "test-token" };
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddAuthenticateWHMapperUser(clientId, accountId, token));
+    Assert.Equal("accountId", exception.ParamName);
+}
+
+[Fact]
+public async Task AddAuthenticateWHMapperUser_ShouldThrowArgumentException_WhenAccountIdIsNotInteger()
+{
+    // Arrange
+    var clientId = "test-client-id";
+    var accountId = "abc";
+    var token = new UserToken { AccessToken = "test-token" };
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentException>(() => _service.AddAuthenticateWHMapperUser(clientId, accountId, token));
+    Assert.Equal("accountId", exception.ParamName);
+}
+
+
+[Fact]
 public async Task RemoveAuthenticateWHMapperUser_ShouldRemoveUser_WhenUserExists()
 {
     // Arrange
@@ -237,6 +303,67 @@ public async Task RemoveAuthenticateWHMapperUser_ShouldRemoveAllUsers_WhenClient
     _mockTokenProvider.Verify(tp => tp.ClearToken("123"), Times.Once);
     _mockTokenProvider.Verify(tp => tp.ClearToken("456"), Times.Once);
 }
+
+[Fact]
+public async Task RemoveAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenClientIdIsNull()
+{
+    // Arrange
+    string? clientId = null;
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.RemoveAuthenticateWHMapperUser(clientId!));
+    Assert.Equal("clientId", exception.ParamName);
+}
+
+[Fact]
+public async Task RemoveAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenClientIdIsEmpty()
+{
+    // Arrange
+    var clientId = string.Empty;
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.RemoveAuthenticateWHMapperUser(clientId));
+    Assert.Equal("clientId", exception.ParamName);
+}
+
+[Fact]
+public async Task RemoveAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenClientAccountIdIsEmpty()
+{
+    // Arrange
+    var clientId = "test-client-id";
+    string? accountId = null;
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.RemoveAuthenticateWHMapperUser(clientId, accountId!));
+    Assert.Equal("accountId", exception.ParamName);
+
+}
+
+[Fact]
+public async Task RemoveAuthenticateWHMapperUser_ShouldThrowArgumentNullException_WhenClientAccountIdIsWhitespace()
+{
+    // Arrange
+    var clientId = "test-client-id";
+    var accountId = " ";
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.RemoveAuthenticateWHMapperUser(clientId, accountId));
+    Assert.Equal("accountId", exception.ParamName);
+}
+
+[Fact]
+public async Task RemoveAuthenticateWHMapperUser_ShouldThrowArgumentException_WhenClientAccountIdIsNotInteger()
+{
+    // Arrange
+    var clientId = "test-client-id";
+    var accountId = "abc";
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<ArgumentException>(() => _service.RemoveAuthenticateWHMapperUser(clientId, accountId));
+    Assert.Equal("accountId", exception.ParamName);
+}
+
+
 
 [Fact]
 public async Task SetPrimaryAccountAsync_ShouldSetPrimaryAccount_WhenAccountExists()
