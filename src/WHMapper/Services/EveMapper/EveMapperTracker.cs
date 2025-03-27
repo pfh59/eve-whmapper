@@ -45,7 +45,7 @@ public class EveMapperTracker : IEveMapperTracker
     {
         foreach (var cts in _cts.Values)
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             cts.Dispose();
         }
   

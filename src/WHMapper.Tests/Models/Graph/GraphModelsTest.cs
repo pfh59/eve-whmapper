@@ -63,7 +63,7 @@ namespace WHMapper.Tests.Models.Graph
             Assert.Empty(node.ConnectedUsers);
             Assert.False(node.Locked);
             Assert.Equal(WHSystemStatus.Friendly,node.SystemStatus);
-
+            
             await node.AddConnectedUser(USERNAME1);
             await node.AddConnectedUser(USERNAME2);
             Assert.Contains(USERNAME1, node.ConnectedUsers);
@@ -85,6 +85,9 @@ namespace WHMapper.Tests.Models.Graph
             for(int i=0; i<26;i++)
                 node.DecrementNameExtension();
             Assert.Null(node.NameExtension);
+
+            node.SetNameExtension('P');
+            Assert.Equal("P",node.NameExtension);
 
             node.SystemStatus=WHSystemStatus.Hostile;
             Assert.Equal(WHSystemStatus.Hostile,node.SystemStatus);

@@ -44,7 +44,7 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         }
 
         int? id = int.Parse(accountId);
-        if (id == null)
+        if (!id.HasValue)
         {
             throw new ArgumentNullException(nameof(id), "AccountId cannot be null");
         }
@@ -81,7 +81,7 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         }
 
         int? id = int.Parse(accountId);
-        if (id == null)
+        if (!id.HasValue)
         {
             throw new ArgumentNullException(nameof(id), "AccountId cannot be null");
         }

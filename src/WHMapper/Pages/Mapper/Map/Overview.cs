@@ -322,17 +322,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             _blazorDiagram.Links.Clear();
             _blazorDiagram.Nodes.Clear();
 
-            try
-            {
-                _blazorDiagram.SelectionChanged -= async (item) => await OnDiagramSelectionChanged(item);
-                _blazorDiagram.KeyDown -= async (kbevent) => await OnDiagramKeyDown(kbevent);
-                _blazorDiagram.PointerUp -= async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
-
-            }
-            catch (JSDisconnectedException)
-            {
-                //ignore
-            }
         }
 
         return Task.CompletedTask;
