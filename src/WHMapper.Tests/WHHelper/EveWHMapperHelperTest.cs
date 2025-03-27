@@ -128,12 +128,10 @@ public class EveWHMapperHelperTest
             ICacheService cacheService = new CacheService(loggerCacheService, _distriCache);
             IEveMapperCacheService eveMapperCacheService = new EveMapperCacheService(loggereveMapperCacheService, cacheService);
 
-            var userInfoService = new EveUserInfosServices(null!);
-
             var httpClient = httpclientfactory.CreateClient();
             httpClient.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
 
-            var apiServices = new EveAPIServices(httpClient,userInfoService);
+            var apiServices = new EveAPIServices(httpClient);
             var mapperEntity = new EveMapperService(loggerEveMapperEntity, eveMapperCacheService, apiServices);
 
             IFileSystem fileSystem = new FileSystem();
