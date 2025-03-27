@@ -14,16 +14,14 @@ namespace WHMapper.Services.EveMapper;
 
 public class EveMapperUserManagementService : IEveMapperUserManagementService
 {
-    private readonly ILogger<EveMapperUserManagementService> _logger;
     private readonly IEveOnlineTokenProvider _tokenProvider;
     private readonly ICharacterServices _characterServices;
     private readonly ConcurrentDictionary<string, WHMapperUser[]> _whMapperUsers;
 
     public string? ClientId { get; set; } = string.Empty;
 
-    public EveMapperUserManagementService(ILogger<EveMapperUserManagementService> logger, IEveOnlineTokenProvider tokenProvider,ICharacterServices characterServices)
+    public EveMapperUserManagementService(IEveOnlineTokenProvider tokenProvider,ICharacterServices characterServices)
     {
-        _logger = logger;
         _tokenProvider = tokenProvider;
         _characterServices = characterServices;
 
@@ -33,12 +31,12 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
 
     public async Task AddAuthenticateWHMapperUser(string clientId,string accountId,UserToken token)
     {
-        if(String.IsNullOrEmpty(clientId))
+         if(String.IsNullOrEmpty(clientId) || String.IsNullOrWhiteSpace(clientId))
         {
             throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
         }
 
-        if(String.IsNullOrEmpty(accountId))
+        if(String.IsNullOrEmpty(accountId) || String.IsNullOrWhiteSpace(accountId))
         {
             throw new ArgumentNullException(nameof(accountId), "AccountId cannot be null");
         }
@@ -70,12 +68,12 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
 
     public async Task RemoveAuthenticateWHMapperUser(string clientId,string accountId)
     {
-        if(String.IsNullOrEmpty(clientId))
+        if(String.IsNullOrEmpty(clientId) || String.IsNullOrWhiteSpace(clientId))
         {
             throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
         }
 
-        if(String.IsNullOrEmpty(accountId))
+        if(String.IsNullOrEmpty(accountId) || String.IsNullOrWhiteSpace(accountId))
         {
             throw new ArgumentNullException(nameof(accountId), "AccountId cannot be null");
         }
@@ -90,14 +88,18 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         {
             var updatedUsers = users.Where(user => user.Id != id).ToArray();
             _whMapperUsers.AddOrUpdate(clientId, updatedUsers, (_, _) => updatedUsers);
-        }
 
-        await _tokenProvider.ClearToken(accountId);
+            // Only clear the token if the user exists
+            if (users.Any(user => user.Id == id))
+            {
+                await _tokenProvider.ClearToken(accountId);
+            }
+        }
     }
 
     public async Task RemoveAuthenticateWHMapperUser(string clientId)
     {
-        if(String.IsNullOrEmpty(clientId))
+        if(String.IsNullOrEmpty(clientId) || String.IsNullOrWhiteSpace(clientId))
         {
             throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
         }
@@ -114,7 +116,7 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
 
     public Task<WHMapperUser[]> GetAccountsAsync(string clientId)
     {
-        if(String.IsNullOrEmpty(clientId))
+        if(String.IsNullOrEmpty(clientId) || String.IsNullOrWhiteSpace(clientId))
         {
             throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
         }
@@ -129,7 +131,7 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
 
     public async Task<WHMapperUser?> GetPrimaryAccountAsync(string clientId)
     {
-        if(String.IsNullOrEmpty(clientId))
+        if(String.IsNullOrEmpty(clientId) || String.IsNullOrWhiteSpace(clientId))
         {
             throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
         }

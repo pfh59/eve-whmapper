@@ -424,12 +424,12 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    public async Task NotifyMapAccessesAdded(int accountID,int mapId, IEnumerable<int> accessId)
+    public async Task NotifyMapAccessesAdded(int accountID,int mapId, IEnumerable<int> accessIds)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendMapAccessesAdded", mapId, accessId);
+            await hubConnection.SendAsync("SendMapAccessesAdded", mapId, accessIds);
         }
     }
 
