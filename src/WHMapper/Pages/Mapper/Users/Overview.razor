@@ -1,0 +1,10 @@
+﻿@foreach(var account in Accounts)
+{
+    var badgeColor = account.Tracking ? Color.Success : Color.Error;
+
+    <MudBadge Color="@badgeColor" Overlap="true" Bordered="true" Dot="true">
+        <MudAvatar Style="@(account.IsPrimary ? "border-color: white;border-width: 1px;border-style: solid;" : null)">
+            <MudImage Src="@account.PortraitUrl"/>
+        </MudAvatar>
+    </MudBadge>
+}

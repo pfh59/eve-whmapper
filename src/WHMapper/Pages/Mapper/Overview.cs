@@ -1,5 +1,3 @@
-
-
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using WHMapper.Repositories.WHMaps;
@@ -8,6 +6,9 @@ using MudBlazor;
 using Microsoft.AspNetCore.Authorization;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using WHMapper.Services.EveMapper;
+using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Pages.Mapper;
 
@@ -15,6 +16,7 @@ namespace WHMapper.Pages.Mapper;
 public partial class Overview : ComponentBase, IAsyncDisposable
 {
     private List<WHMap> WHMaps { get; set; } = new List<WHMap>();
+    private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
     private int _selectedWHMapIndex = 0;
     private int SelectedWHMapIndex
@@ -46,6 +48,12 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     [Inject]
     IEveMapperRealTimeService? RealTimeService {get;set;} = null!;
+    
+    [Inject]
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
 
     [Inject]
     IWHMapRepository DbWHMaps { get; set; } = null!;
@@ -58,19 +66,18 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
 
     private WHMap? _selectedWHMap = null!;
+    private WHMapperUser? PrimaryAccount  { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        if (!await RestoreMaps())
+        PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+
+        if(!await RestoreMaps())
         {
             Snackbar?.Add("Mapper Initialization error", Severity.Error);
         }
-        if(!await InitRealTimeService())
-        {
-            Snackbar?.Add("RealTimeService Initialization error", Severity.Error);
-        }
-
-    
+        
+        
         _loading = false;
         await base.OnInitializedAsync();
     }
@@ -111,13 +118,39 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        
         if (TrackerServices != null)
         {
-            await TrackerServices.StopTracking();
+            await TrackerServices.DisposeAsync();
 
         }
+
+        if(RealTimeService!=null)
+        {
+            
+            RealTimeService.MapAdded -= OnMapAdded;
+            RealTimeService.MapRemoved -= OnMapRemoved;
+            RealTimeService.MapNameChanged -= OnMapNameChanged;
+            RealTimeService.AllMapsRemoved -= OnAllMapsRemoved;
+            RealTimeService.MapAccessesAdded-=OnMapAccessesAdded;
+            RealTimeService.MapAccessRemoved-=OnMapAccessRemoved;
+            RealTimeService.MapAllAccessesRemoved-=OnMapAllAccessesRemoved;
+            await RealTimeService.DisposeAsync();
+            
+        }
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            if(!await InitRealTimeService())
+            {
+                Snackbar?.Add("RealTimeService Initialization error", Severity.Error);
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
 
     private async Task<bool> InitRealTimeService()
     {
@@ -128,7 +161,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 Logger.LogError("RealTimeService is null");
                 return false;
             }
-
+            
             RealTimeService.MapAdded += OnMapAdded;
             RealTimeService.MapRemoved += OnMapRemoved;
             RealTimeService.MapNameChanged += OnMapNameChanged;
@@ -137,7 +170,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             RealTimeService.MapAccessRemoved+=OnMapAccessRemoved;
             RealTimeService.MapAllAccessesRemoved+=OnMapAllAccessesRemoved;
 
-            return await RealTimeService.Start();
+            return true;
         }
         catch (Exception ex)
         {
@@ -148,10 +181,17 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     #region RealTimeService User Events
     
-    private async Task OnMapAdded(string user, int mapId)
+    private async Task OnMapAdded(int accountID, int mapId)
     {
+        await _semaphoreSlim.WaitAsync();
         try
         {
+            //Check if map is already in the list
+            if(WHMaps.Any(m=>m.Id==mapId))
+            {
+                return;
+            }
+
             var map = await DbWHMaps.GetById(mapId);
             if (map != null)
             {
@@ -169,9 +209,16 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyMapAdded error");
         }
-    }     
-    private async Task OnMapRemoved(string user, int mapId)
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
+        
+    }
+
+    private async Task OnMapRemoved(int accountID, int mapId)
     {
+        await _semaphoreSlim.WaitAsync();
         try
         {
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
@@ -186,14 +233,19 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyMapDeleted error");
         }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
     }
 
-    private async Task OnMapNameChanged(string user, int mapId, string newName)
+    private async Task OnMapNameChanged(int accountID, int mapId, string newName)
     {
+        await _semaphoreSlim.WaitAsync();
         try
         {
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
-            if (map != null)
+            if (map != null && map.Name != newName)
             {
                 map.Name = newName;
                 Snackbar?.Add($"Map {map.Name} renamed to {newName}", Severity.Info);
@@ -204,28 +256,42 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyMapNameChanged error");
         }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
     }
 
-    private async Task OnAllMapsRemoved(string user)
+    private async Task OnAllMapsRemoved(int accountID)
     {
+        await _semaphoreSlim.WaitAsync();
         try
         {
+            if (!WHMaps.Any())
+            {
+                return;
+            }
+
             WHMaps.Clear();
-            Snackbar?.Add($"All maps deleted", Severity.Info);
+            Snackbar?.Add("All maps deleted", Severity.Info);
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "On NotifyAllMapsRemoved error");
+            Logger.LogError(ex, "Error occurred while handling OnAllMapsRemoved");
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
         }
     }
 
-    private async Task OnMapAccessesAdded(string user, int mapId, IEnumerable<int> accessId)
+    private async Task OnMapAccessesAdded(int accountID, int mapId, IEnumerable<int> accessId)
     {
+        await _semaphoreSlim.WaitAsync();
         try
-        {          
-            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-
+        {       
+        
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
 
             var mapWithAccessUpdated = await DbWHMaps.GetById(mapId);
@@ -235,6 +301,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 Snackbar?.Add("Map not found on NotifyMapAccessesAdded", Severity.Error);
                 return;
             }
+             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
             var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, mapWithAccessUpdated.Id, "Map");
             
 
@@ -264,16 +331,22 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                     Snackbar?.Add($"Map {mapWithAccessUpdated.Name} added", Severity.Info);
                     await InvokeAsync(StateHasChanged);
                 }
-            }            
+            }
+                      
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "On NotifyMapAccessesAdded error");
         }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
     }
 
-    private async Task OnMapAccessRemoved(string user, int mapId, int accessId)
+    private async Task OnMapAccessRemoved(int accountID, int mapId, int accessId)
     {
+        await _semaphoreSlim.WaitAsync();
         try
         {
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
@@ -301,16 +374,20 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyMapAccessRemoved error");
         }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
     }
 
-    private async Task OnMapAllAccessesRemoved(string user, int mapId)
+    private async Task OnMapAllAccessesRemoved(int accountID, int mapId)
     {
+        await _semaphoreSlim.WaitAsync();
         try
         {
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
             if (map != null)
             {
-                
                 map.WHAccesses.Clear();
                 var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
     
@@ -321,11 +398,15 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                     Snackbar?.Add($"All accesses removed from map {map.Name}", Severity.Info);
                     await InvokeAsync(StateHasChanged);
                 }
-            }
+            }  
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "On NotifyMapAllAccessesRemoved error");
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
         }
     }
 

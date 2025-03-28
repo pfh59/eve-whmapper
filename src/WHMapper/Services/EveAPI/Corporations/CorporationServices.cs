@@ -1,11 +1,13 @@
-﻿using WHMapper.Models.DTO.EveAPI.Corporation;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Corporation;
 
 namespace WHMapper.Services.EveAPI.Corporations
 {
     public class CorporationServices : EveApiServiceBase, ICorporationServices
 
     {
-        public CorporationServices(HttpClient httpClient) : base(httpClient)
+        public CorporationServices(HttpClient httpClient) 
+        : base(httpClient)
         {
         }
 

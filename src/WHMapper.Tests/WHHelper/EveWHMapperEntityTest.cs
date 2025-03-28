@@ -81,7 +81,6 @@ public class EveWHMapperEntityTest
 
             if (_distriCache != null && httpclientfactory != null)
             {
-                var userInfoService = new EveUserInfosServices(null!);
                 ILogger<EveMapperService> logger = new NullLogger<EveMapperService>();
                 ILogger<CacheService> loggerCacheService = new NullLogger<CacheService>();
                 ILogger<EveMapperCacheService> loggereveMapperCacheService = new NullLogger<EveMapperCacheService>();
@@ -90,7 +89,7 @@ public class EveWHMapperEntityTest
                 _eveMapperCacheService = new EveMapperCacheService(loggereveMapperCacheService, cacheService);
                 var httpClient = httpclientfactory.CreateClient();
                 httpClient.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-                var eveApiservice = new EveAPIServices(httpClient, userInfoService);
+                var eveApiservice = new EveAPIServices(httpClient);
 
                 _eveMapperService = new EveMapperService(logger, _eveMapperCacheService, eveApiservice);
             }

@@ -1,11 +1,13 @@
-﻿using WHMapper.Models.DTO.EveAPI.Dogma;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Dogma;
 
 namespace WHMapper.Services.EveAPI.Dogma
 {
     public class DogmaServices : EveApiServiceBase, IDogmaServices
     {
-        public DogmaServices(HttpClient httpClient) : base(httpClient)
+        public DogmaServices(HttpClient httpClient,UserToken? userToken=null) : base(httpClient,userToken)
         {
+
         }
 
         public async Task<Models.DTO.EveAPI.Dogma.Attribute?> GetAttribute(int attribute_id)

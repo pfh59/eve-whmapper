@@ -34,6 +34,11 @@ using StackExchange.Redis;
 using WHMapper.Repositories.WHJumpLogs;
 using System.IO.Abstractions;
 using WHMapper.Services.EveCookieExtensions;
+using WHMapper.Services.LocalStorage;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
+using WHMapper.Models.DTO;
+
 
 namespace WHMapper
 {
@@ -42,6 +47,7 @@ namespace WHMapper
         private static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
 
             // Add services to the container.
             builder.Services.AddDbContextFactory<WHMapperContext>(options =>
@@ -62,6 +68,7 @@ namespace WHMapper
 
             builder.Services.AddSignalR();
 
+            builder.Services.AddControllers();
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor(options =>
             {
@@ -97,12 +104,6 @@ namespace WHMapper
                 });
             });
 
-            //signalR  compression
-            builder.Services.AddResponseCompression(opts =>
-            {
-                opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-                    new[] { "application/octet-stream" });
-            });
 
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -130,9 +131,7 @@ namespace WHMapper
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.Name = "WHMapper";
-                options.Cookie.MaxAge = TimeSpan.FromDays(30);
-                options.ExpireTimeSpan = TimeSpan.FromHours(24);
-                options.SlidingExpiration = true;
+                options.SlidingExpiration = false;
                 options.AccessDeniedPath = "/Forbidden/";
             })
             .AddEVEOnline(EVEOnlineAuthenticationDefaults.AuthenticationScheme, options =>
@@ -152,7 +151,7 @@ namespace WHMapper
             .AddEveOnlineJwtBearer();//validate hub tokken
 
 
-            builder.Services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.AuthenticationScheme, EVEOnlineAuthenticationDefaults.AuthenticationScheme);
+            //builder.Services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.AuthenticationScheme, EVEOnlineAuthenticationDefaults.AuthenticationScheme);
 
 
             builder.Services.AddAuthorization(options =>
@@ -175,17 +174,17 @@ namespace WHMapper
             builder.Services.AddSingleton<IConfiguration>(provider => builder.Configuration);
             builder.Services.AddHttpContextAccessor();
       
-            builder.Services.AddScoped<EveOnlineAccessTokenHandler>();
+            //builder.Services.AddScoped<EveOnlineAccessTokenHandler>();
            
             builder.Services.AddHttpClient<IEveAPIServices, EveAPIServices>(client =>
             {
                 client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-            }).AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
+            });//.AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
 
             builder.Services.AddHttpClient<ICharacterServices, CharacterServices>(client =>
             {
                 client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-            }).AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
+            });//.AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
 
 
             builder.Services.AddScoped<IAnoikDataSupplier>(sp =>
@@ -204,6 +203,9 @@ namespace WHMapper
                 client.BaseAddress = new Uri(builder.Configuration["SdeDataSupplier:BaseUrl"]);
             }); 
 
+
+
+
             #region DB Acess Repo
             builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
             builder.Services.AddScoped<IWHAccessRepository, WHAccessRepository>();
@@ -221,6 +223,10 @@ namespace WHMapper
             #endregion
 
             #region WH HELPER
+            builder.Services.AddScoped<ILocalStorageHelper, LocalStorageHelper>();
+            builder.Services.AddScoped<ClientUID>();
+            builder.Services.AddSingleton<IEveMapperUserManagementService,EveMapperUserManagementService>();
+            
             builder.Services.AddScoped<IEveMapperService, EveMapperService>();
             builder.Services.AddScoped<IEveMapperCacheService, EveMapperCacheService>();
             builder.Services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
@@ -240,9 +246,16 @@ namespace WHMapper
             builder.Services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
 
 
-
             if (!builder.Environment.IsDevelopment())
             {
+
+                //signalR  compression
+                builder.Services.AddResponseCompression(opts =>
+                {
+                    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                        new[] { "application/octet-stream" });
+                });
+
                 builder.Services.AddHttpsRedirection(options =>
                 {
                     options.RedirectStatusCode = (int)HttpStatusCode.PermanentRedirect;
@@ -325,6 +338,7 @@ namespace WHMapper
                 app.UseHsts();
             }
 
+
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
@@ -335,11 +349,12 @@ namespace WHMapper
 
             app.UseAuthentication();
             app.UseAuthorization();
-        
-            app.MapBlazorHub();
-            app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR
-            app.MapFallbackToPage("/_Host");
 
+
+            app.MapBlazorHub();
+            app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR                
+            app.MapFallbackToPage("/_Host");
+                
             app.Run();
         }
     }

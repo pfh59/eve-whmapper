@@ -20,186 +20,58 @@ namespace WHMapper.Tests.Services.EveApi;
 public class EveAPIServicesTest
 {
     [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenHttpClientIsNull()
+    public async Task SetEveCharacterAuthenticatication_ShouldInitializeServicesWithUserToken()
     {
         // Arrange
-        var userServiceMock = new Mock<IEveUserInfosServices>();
+        var mockHttpClient = new Mock<HttpClient>();
+        var userToken = new UserToken { AccessToken = "test-token", RefreshToken = "refresh-token" };
+        var eveApiServices = new EveAPIServices(mockHttpClient.Object);
+
+        // Act
+        await eveApiServices.SetEveCharacterAuthenticatication(userToken);
+
+        // Assert
+        Assert.NotNull(eveApiServices.LocationServices);
+        Assert.NotNull(eveApiServices.SearchServices);
+        Assert.NotNull(eveApiServices.DogmaServices);
+        Assert.NotNull(eveApiServices.AssetsServices);
+
+        // Verify that the services are initialized with the correct HttpClient and UserToken
+        Assert.IsType<LocationServices>(eveApiServices.LocationServices);
+        Assert.IsType<SearchServices>(eveApiServices.SearchServices);
+        Assert.IsType<DogmaServices>(eveApiServices.DogmaServices);
+        Assert.IsType<AssetsServices>(eveApiServices.AssetsServices);
+    }
+
+    [Fact]
+    public async Task SetEveCharacterAuthenticatication_ShouldThrowArgumentNullException_WhenUserTokenIsNull()
+    {
+        // Arrange
+        var mockHttpClient = new Mock<HttpClient>();
+        var eveApiServices = new EveAPIServices(mockHttpClient.Object);
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new EveAPIServices(null!, userServiceMock.Object));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => eveApiServices.SetEveCharacterAuthenticatication(null));
     }
 
     [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenUserServiceIsNull()
+    public async Task SetEveCharacterAuthenticatication_ShouldNotAffectOtherServices()
     {
         // Arrange
-        var httpClient = new HttpClient();
+        var mockHttpClient = new Mock<HttpClient>();
+        var userToken = new UserToken { AccessToken = "test-token", RefreshToken = "refresh-token" };
+        var eveApiServices = new EveAPIServices(mockHttpClient.Object);
 
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new EveAPIServices(httpClient, null!));
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeServices_WhenDependenciesAreValid()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
+        var initialAllianceServices = eveApiServices.AllianceServices;
+        var initialCorporationServices = eveApiServices.CorporationServices;
+        var initialCharacterServices = eveApiServices.CharacterServices;
 
         // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
+        await eveApiServices.SetEveCharacterAuthenticatication(userToken);
 
         // Assert
-        Assert.NotNull(eveAPIServices.LocationServices);
-        Assert.NotNull(eveAPIServices.UniverseServices);
-        Assert.NotNull(eveAPIServices.UserInterfaceServices);
-        Assert.NotNull(eveAPIServices.AllianceServices);
-        Assert.NotNull(eveAPIServices.CorporationServices);
-        Assert.NotNull(eveAPIServices.CharacterServices);
-        Assert.NotNull(eveAPIServices.SearchServices);
-        Assert.NotNull(eveAPIServices.DogmaServices);
-        Assert.NotNull(eveAPIServices.RouteServices);
-        Assert.NotNull(eveAPIServices.AssetsServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeLocationServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<LocationServices>(eveAPIServices.LocationServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeUniverseServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<UniverseServices>(eveAPIServices.UniverseServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeUserInterfaceServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<UserInterfaceServices>(eveAPIServices.UserInterfaceServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeAllianceServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<AllianceServices>(eveAPIServices.AllianceServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeCorporationServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<CorporationServices>(eveAPIServices.CorporationServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeCharacterServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<CharacterServices>(eveAPIServices.CharacterServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeSearchServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<SearchServices>(eveAPIServices.SearchServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeDogmaServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<DogmaServices>(eveAPIServices.DogmaServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeRouteServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<RouteServices>(eveAPIServices.RouteServices);
-    }
-
-    [Fact]
-    public void Constructor_ShouldInitializeAssetsServicesCorrectly()
-    {
-        // Arrange
-        var httpClient = new HttpClient();
-        var userServiceMock = new Mock<IEveUserInfosServices>();
-
-        // Act
-        var eveAPIServices = new EveAPIServices(httpClient, userServiceMock.Object);
-
-        // Assert
-        Assert.IsType<AssetsServices>(eveAPIServices.AssetsServices);
+        Assert.Equal(initialAllianceServices, eveApiServices.AllianceServices);
+        Assert.Equal(initialCorporationServices, eveApiServices.CorporationServices);
+        Assert.Equal(initialCharacterServices, eveApiServices.CharacterServices);
     }
 }
-

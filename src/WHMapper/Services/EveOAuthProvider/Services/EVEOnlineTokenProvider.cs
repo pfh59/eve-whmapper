@@ -16,11 +16,12 @@ namespace WHMapper.Services.EveOAuthProvider.Services
         private readonly EVEOnlineAuthenticationOptions _options;
         private readonly ConcurrentDictionary<string, UserToken> _tokens = new();
 
+
         public EveOnlineTokenProvider(IOptionsMonitor<EVEOnlineAuthenticationOptions> options)
         {
             _options = options.Get(EVEOnlineAuthenticationDefaults.AuthenticationScheme);
         }
-
+        
         public Task SaveToken(UserToken token)
         {
             if (token.AccountId == null)
@@ -32,10 +33,15 @@ namespace WHMapper.Services.EveOAuthProvider.Services
             return Task.CompletedTask;
         }
 
-        public Task<UserToken?> GetToken(string accountId)
+        public async Task<UserToken?> GetToken(string accountId, bool autoResfred = false)
         {
             _tokens.TryGetValue(accountId, out var token);
-            return Task.FromResult(token);
+            if(autoResfred && token != null && await IsTokenExpire(token))
+            {
+                RefreshAccessToken(accountId).Wait();
+                _tokens.TryGetValue(accountId, out token);
+            }
+            return token;
         }
 
         public Task ClearToken(string accountId)
@@ -51,8 +57,17 @@ namespace WHMapper.Services.EveOAuthProvider.Services
             {
                 throw new NullReferenceException("Token is null");
             }
+            return await IsTokenExpire(token);
+        }
 
-            return DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-18);
+        private Task<bool> IsTokenExpire(UserToken token)
+        {
+            if (token == null)
+            {
+                throw new NullReferenceException("Token is null");
+            }
+
+            return Task.FromResult(DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-18));
         }
 
         public async Task RefreshAccessToken(string accountId)

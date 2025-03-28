@@ -7,11 +7,13 @@ using WHMapper.Models.DTO.MapAdmin;
 using System.Linq;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Services.EveMapper;
+using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveMapper;
 
 namespace WHMapper.Pages.Mapper.Administration.Map;
 
 [Authorize(Policy = "Admin")]
-public partial class Overview : ComponentBase, IAsyncDisposable
+public partial class Overview : ComponentBase
 {
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
@@ -27,6 +29,13 @@ public partial class Overview : ComponentBase, IAsyncDisposable
     [Inject]
     private IWHAccessRepository DbWHAccess { get; set; } = null!;
 
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
+    
+    [Inject]
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
     [Inject]
     private IEveMapperRealTimeService EveMapperRealTimeService { get; set; } = null!;
 
@@ -36,19 +45,11 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     private IEnumerable<WHAccess>? WHAccesses { get; set; } = null;
 
- 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        if(EveMapperRealTimeService!=null)
-        {
-            await EveMapperRealTimeService.Start();
-        }
-    }
+    private WHMapperUser? PrimaryAccount { get; set; } = null!;
+
+
 
     
-
-
 
     protected override async Task OnParametersSetAsync()
     {
@@ -58,6 +59,8 @@ public partial class Overview : ComponentBase, IAsyncDisposable
 
     private async Task Restore()
     {
+        PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+
         if (DbWHMap == null)
         {
             Logger.LogError("DbWHMap is null");
@@ -109,7 +112,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
             }
             
             Maps.Add(new MapAdmin(newMap));
-            EveMapperRealTimeService?.NotifyMapAdded(newMap.Id);
+            EveMapperRealTimeService?.NotifyMapAdded(PrimaryAccount.Id,newMap.Id);
         }
     }
 
@@ -129,7 +132,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         if (result != null && !result.Canceled)
         {
             Maps.Clear();
-            EveMapperRealTimeService?.NotifyAllMapsRemoved();
+            EveMapperRealTimeService?.NotifyAllMapsRemoved(PrimaryAccount.Id);
         }
     }
 
@@ -149,7 +152,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
         if (result != null && !result.Canceled)
         {
             ((List<MapAdmin>)Maps).RemoveAll(x => x.Id == mapId);
-            EveMapperRealTimeService?.NotifyMapRemoved(mapId);
+            EveMapperRealTimeService?.NotifyMapRemoved(PrimaryAccount.Id,mapId);
         }
     }
 
@@ -191,7 +194,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 }
             }
 
-            EveMapperRealTimeService?.NotifyMapAccessesAdded(mapId, accesses.Select(x => x.Id).ToList());
+            EveMapperRealTimeService?.NotifyMapAccessesAdded(PrimaryAccount.Id,mapId, accesses.Select(x => x.Id).ToList());
         }
     }
 
@@ -223,7 +226,7 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
             }
 
-            EveMapperRealTimeService?.NotifyMapAccessRemoved(mapId, accessId);
+            EveMapperRealTimeService?.NotifyMapAccessRemoved(PrimaryAccount.Id,mapId, accessId);
         }
     }
 
@@ -252,16 +255,8 @@ public partial class Overview : ComponentBase, IAsyncDisposable
                 Logger.LogError("WHMapAccesses is not a List<WHAccess>");
                 Snackbar.Add("WHMapAccesses is not a List<WHAccess>", Severity.Error);
             }
-            EveMapperRealTimeService?.NotifyMapAllAccessesRemoved(mapId);
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (EveMapperRealTimeService != null)
-        {
-            await EveMapperRealTimeService.Stop();
-            await EveMapperRealTimeService.DisposeAsync();
+            
+           EveMapperRealTimeService?.NotifyMapAllAccessesRemoved(PrimaryAccount.Id,mapId);
         }
     }
 }

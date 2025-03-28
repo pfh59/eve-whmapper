@@ -1,25 +1,35 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using FluentValidation.Validators;
+using Microsoft.AspNetCore.Authentication;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using WHMapper.Models.DTO;
 
 namespace WHMapper.Services.EveAPI
 {
     public abstract class EveApiServiceBase
     {
         private readonly HttpClient _httpClient;
+        protected UserToken? UserToken { get; private set; }
      
-        public EveApiServiceBase(HttpClient httpClient)
+        public EveApiServiceBase(HttpClient httpClient, UserToken? userToken = null)
         {
-
             _httpClient = httpClient;
+            UserToken = userToken;
         }
+
 
         public async Task<T?> Execute<T>(RequestSecurity security, RequestMethod method, string uri, object? body = null)
         {
             //Add bearer token
-            if (security == RequestSecurity.Public)
+            if (security == RequestSecurity.Authenticated)
+            {
+                if (UserToken == null)
+                    throw new Exception("UserToken is required for authenticated requests");
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", UserToken.AccessToken);
+            }
+            else
             {
                 _httpClient.DefaultRequestHeaders.Clear();
             }
