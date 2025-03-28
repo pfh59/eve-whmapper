@@ -42,13 +42,16 @@ public class EveMapperTracker : IEveMapperTracker
         {
             if (!cts.IsCancellationRequested)
             {
-                try
+                if (!cts.IsCancellationRequested)
                 {
-                    await cts.CancelAsync();
-                }
-                catch (ObjectDisposedException)
-                {
-                    _logger.LogWarning("CancellationTokenSource was already disposed.");
+                    try
+                    {
+                        await cts.CancelAsync();
+                    }
+                    catch (ObjectDisposedException odex)
+                    {
+                        _logger.LogWarning(odex,"CancellationTokenSource was already disposed.");
+                    }
                 }
             }
            
@@ -84,9 +87,9 @@ public class EveMapperTracker : IEveMapperTracker
                 {
                     await cts.CancelAsync();
                 }
-                catch (ObjectDisposedException)
+                catch (ObjectDisposedException odex)
                 {
-                    _logger.LogWarning("CancellationTokenSource for account {accountID} was already disposed.", accountID);
+                    _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
                 }
             }
             cts.Dispose();
@@ -150,9 +153,9 @@ public class EveMapperTracker : IEveMapperTracker
                 {
                     await cts.CancelAsync();
                 }
-                catch (ObjectDisposedException)
+                catch (ObjectDisposedException odex)
                 {
-                    _logger.LogWarning("CancellationTokenSource for account {accountID} was already disposed.", accountID);
+                    _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
                 }
             }
             timer.Dispose();
@@ -196,8 +199,8 @@ public class EveMapperTracker : IEveMapperTracker
                 while(!_currentShips.TryAdd(accountID, ship))
                     await Task.Delay(1);
             else
-            while(! _currentShips.TryUpdate(accountID, ship, oldShip))
-                    await Task.Delay(1);
+                while(! _currentShips.TryUpdate(accountID, ship, oldShip))
+                        await Task.Delay(1);
 
 
             if (ship != null)
