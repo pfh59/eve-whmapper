@@ -1,4 +1,4 @@
-﻿using WHMapper.Models.DTO.EveAPI.Location;
+using WHMapper.Models.DTO.EveAPI.Location;
 using WHMapper.Services.EveAPI;
 using System.Collections.Concurrent;
 using WHMapper.Services.EveOAuthProvider.Services;
