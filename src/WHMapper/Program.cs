@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -130,7 +130,7 @@ namespace WHMapper
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
                 options.Cookie.HttpOnly = true;
-                options.Cookie.Name = "WHMapper";
+                options.Cookie.Name = $"WHMapper-{Guid.NewGuid()}";
                 options.SlidingExpiration = false;
                 options.AccessDeniedPath = "/Forbidden/";
             })

@@ -70,6 +70,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     private ICollection<EveSystemNodeModel>? _selectedSystemNodes = null;
     private ICollection<EveSystemLinkModel>? _selectedSystemLinks = null;
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim _semaphoreSlim2 = new SemaphoreSlim(1, 1);
 
     private ConcurrentDictionary<int, Ship> _currentShips= new ConcurrentDictionary<int, Ship>();
 
@@ -415,7 +416,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             else
             {
                 Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
-                await DbWHSystemLinks.DeleteById(item.Id);
+                //await DbWHSystemLinks.DeleteById(item.Id);
             }
             }
             catch (Exception ex)
@@ -1545,6 +1546,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
     private async Task OnUserDisconnected(int accountID)
     {   
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
@@ -1562,10 +1564,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyUserDisconnected error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnUserPositionChanged(int accountID, int mapId, int wormholeId)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {   
             if(this.MapId.HasValue && this.MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1597,10 +1604,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyUserPositionChanged error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnWormholeAdded(int accountID,int mapId, int whId)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1623,9 +1635,14 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyWormholeAdded error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
     private async Task OnWormholeRemoved(int accountID,int mapId, int whId)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1645,10 +1662,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyWormholeRemoved error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnWormholeMoved(int accountID,int mapId, int whId, double posX, double posY)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1668,10 +1690,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyWormholeMoved error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnLinkAdded(int accountID,int mapId, int linkId)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1700,10 +1727,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyLinkAdded error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnLinkRemoved(int accountID,int mapId, int linkId)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1731,10 +1763,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyLinkRemoved error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnLinkChanged(int accountID,int mapId, int linkId, bool isEoL, SystemLinkSize size, SystemLinkMassStatus massStatus)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1765,10 +1802,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyLinkChanged error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnWormholeLockChanged(int accountID,int mapId, int whId, bool locked)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1793,6 +1835,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
     private async Task OnWormholeSystemStatusChanged(int accountID,int mapId, int whId, WHSystemStatus systemStatus)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null) 
@@ -1813,10 +1856,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         {
             Logger.LogError(ex, "On NotifyWormholeSystemStatusChanged error");
         }
+        finally
+        {
+            _semaphoreSlim2.Release();
+        }
     }
 
     private async Task OnWormholeNameExtensionChanged(int accountID,int mapId, int whId, bool increment)
     {
+        await _semaphoreSlim2.WaitAsync();
         try
         {
             if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
@@ -1840,6 +1888,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "On NotifyWormholeNameExtensionChanged error");
+        }
+        finally
+        {
+            _semaphoreSlim2.Release();
         }
     }
 
