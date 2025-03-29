@@ -85,10 +85,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var clientId = await LocalStorageHelper.GetOrCreateClientIdAsync();
+        string? clientId = await LocalStorageHelper.GetOrCreateClientIdAsync();
         if(String.IsNullOrEmpty(clientId))
         {
-            throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
+            if(await LocalStorageHelper.ClearClientIdAsync())
+            {
+                clientId = await LocalStorageHelper.GetOrCreateClientIdAsync();
+                if(String.IsNullOrEmpty(clientId))
+                {
+                    Snackbar.Add("ClientId cannot be null,Init Error", Severity.Error);
+                    throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
+                }
+            }
+            else
+            {
+                Snackbar.Add("ClientId cannot be null,Init Error", Severity.Error);
+                throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
+            }
         }
 
         UID.ClientId = clientId;
