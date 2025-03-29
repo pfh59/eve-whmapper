@@ -85,7 +85,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var clientId = await LocalStorageHelper.GetOrCreateClientIdAsync();
+        string? clientId = await LocalStorageHelper.GetOrCreateClientIdAsync();
         if(String.IsNullOrEmpty(clientId))
         {
             if(await LocalStorageHelper.ClearClientIdAsync())
