@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System;
+using System.Security.Cryptography;
 
 namespace WHMapper.Services.LocalStorage;
 
@@ -27,10 +28,29 @@ public class LocalStorageHelper : ILocalStorageHelper
             }
             return res.Value;
         }
+        catch(CryptographicException ex)
+        {
+            _logger.LogError(ex, "An error occurred while generating a new ClientId.");
+            return null;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while getting or creating the ClientId.");
             return null;
+        }
+    }
+
+    public async Task<bool> ClearClientIdAsync()
+    {
+        try
+        {
+            await _localStorage.DeleteAsync("ClientId");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while clearing the ClientId from localStorage.");
+            return false;
         }
     }
 
