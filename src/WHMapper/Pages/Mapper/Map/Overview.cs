@@ -289,6 +289,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         try
         {
+
             WHMap? selectedWHMap = null;
             Logger.LogInformation("Beginning Restore Map");
 
@@ -303,9 +304,13 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     
             if(selectedWHMap != null)
             {
+                _blazorDiagram.SuspendSorting = true;
+                _blazorDiagram.SuspendRefresh = true;
                 await ClearDiagram();
                 await InitializeSystemNodes(selectedWHMap);
                 await InitializeSystemLinks(selectedWHMap);
+                _blazorDiagram.SuspendSorting = false;
+                _blazorDiagram.SuspendRefresh = false;
             }
 
             Logger.LogInformation("Restore Mapper Success");
@@ -389,13 +394,9 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         var tasks = selectedWHMap.WHSystems.Select(item => Task.Run(async () =>
         {
             var whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
-            if (whSysNode == null)
-            {
-                Logger.LogError("Initialize System Nodes, whSysNode is null");
-                return;
-            }
             whSysNode.OnLocked += OnWHSystemNodeLockedAsync;
             whSysNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
+           
             _blazorDiagram.Nodes.Add(whSysNode);
         }));
 
