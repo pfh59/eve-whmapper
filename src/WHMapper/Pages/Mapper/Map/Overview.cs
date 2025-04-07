@@ -2,7 +2,6 @@ using Blazor.Diagrams;
 using Blazor.Diagrams.Core.Behaviors;
 using BlazorContextMenu;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
@@ -19,16 +18,10 @@ using WHMapper.Repositories.WHSystems;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveMapper;
 using WHMapper.Pages.Mapper.Search;
-using Microsoft.AspNetCore.Authorization;
 using WHMapper.Services.EveOAuthProvider.Services;
-using WHMapper.Services.EveOAuthProvider.Validators;
-using WHMapper.Services.LocalStorage;
 using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Mvc;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.SDE;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.JSInterop;
 
 namespace WHMapper.Pages.Mapper.Map;
@@ -86,15 +79,26 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     
     [Inject]
     private IEveAPIServices EveServices { get; set; } = null!;
-    
     [Inject]
     private IEveMapperTracker TrackerServices { get; set; } = null!;
-    
     [Inject]
     private IEveMapperHelper MapperServices { get; set; } = null!;
 
     [Inject]
     private IEveMapperRealTimeService EveMapperRealTime { get; set; } = null!;    
+
+    [Inject]
+    private IEveOnlineTokenProvider TokenProvider {get; set;} = null!;
+
+    [Inject]
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
+
+
+    [Inject]
+    private IEveMapperService eveMapperService { get; set; } = null!;
     
 
     #region Repositories
@@ -110,7 +114,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     [Inject]
     IWHJumpLogRepository DbWHJumpLogs { get; set; } = null!;
 
-
     [Inject]
     IWHNoteRepository DbNotes { get; set; } = null!;
     #endregion
@@ -118,19 +121,29 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     [Parameter]
     public int? MapId {  get; set; } = null!;
 
-    [Inject]
-    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
 
-    [Inject]
-    private ClientUID UID { get; set; } = null!;
+    private async Task<WHMapperUser[]?> GetAccountsAsync()
+    {
+        if (UID == null || string.IsNullOrEmpty(UID.ClientId))
+        {
+            Logger.LogError("UID is null or empty");
+            throw new NullReferenceException("UID is null or empty");
+        }
+
+        return await UserManagement.GetAccountsAsync(UID.ClientId);
+    }
 
 
-    [Inject]
-    private IEveMapperService eveMapperService { get; set; } = null!;
+    private async Task<WHMapperUser?> GetPrimaryAccountAsync()
+    {
+        if (UID == null || string.IsNullOrEmpty(UID.ClientId))
+        {
+            Logger.LogError("UID is null or empty");
+            throw new NullReferenceException("UID is null or empty");
+        }
 
-
-    private WHMapperUser[] Accounts  { get; set; } = null!;
-    public WHMapperUser? PrimaryAccount { get; private set; } = null!;
+        return await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+    }
 
     
     protected override async Task OnInitializedAsync()
@@ -180,10 +193,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
    
                 //get all user account authorized on map
-                Accounts= await UserManagement.GetAccountsAsync(UID.ClientId);
-                if(Accounts!=null)
+                WHMapperUser[]? accounts= await GetAccountsAsync();
+                if(accounts!=null && accounts.Any())
                 {
-                    foreach(var account in Accounts)
+                    foreach(var account in accounts)
                     {
                         IDictionary<int,KeyValuePair<int,int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition(account.Id);
                         try
@@ -216,8 +229,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                             await TrackerServices.StartTracking(account.Id);
                     }
 
-                    PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
-
+                
                     await InitBlazorDiagramEvents();
                 }
                 else
@@ -387,8 +399,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         var tasks = selectedWHMap.WHSystems.Select(item => Task.Run(async () =>
         {
             var whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
-            whSysNode.OnLocked += OnWHSystemNodeLocked;
-            whSysNode.OnSystemStatusChanged += OnWHSystemStatusChange;
+            whSysNode.OnLocked += OnWHSystemNodeLockedAsync;
+            whSysNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
             _blazorDiagram.Nodes.Add(whSysNode);
         }));
 
@@ -541,7 +553,9 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             else
             {
 
-                if (_selectedSystemNodes != null && _selectedSystemNodes.Count >= 2 && PrimaryAccount != null && !await AddSystemNodeLink(MapId.Value, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1), PrimaryAccount.Id, true))
+                 
+                var primaryAccount = await GetPrimaryAccountAsync();
+                if (_selectedSystemNodes != null && _selectedSystemNodes.Count >= 2 && primaryAccount != null && !await AddSystemNodeLink(MapId.Value, _selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1), primaryAccount.Id, true))
                 {
                     Logger.LogError("Add Wormhole Link db error");
                     Snackbar.Add("Add Wormhole Link db error", Severity.Error);
@@ -608,9 +622,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return;
         }
 
-        if(Accounts!=null)
+        WHMapperUser[]? accounts= await GetAccountsAsync();
+        if(accounts!=null && accounts.Any())
         {
-            foreach(var account in Accounts)
+            foreach(var account in accounts)
             {
                 if(account.Tracking)
                     await TrackerServices.StopTracking(account.Id);
@@ -630,9 +645,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             }
         }
         SelectedSystemNode = null;
-        if(Accounts!=null)
+
+        if(accounts!=null && accounts.Any())
         {
-            foreach(var account in Accounts)
+            foreach(var account in accounts)
             {
                 if(account.Tracking)
                     await TrackerServices.StartTracking(account.Id);
@@ -646,9 +662,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         if(_selectedSystemLinks==null || !_selectedSystemLinks.Any() || !MapId.HasValue)
             return;
 
-        if(Accounts!=null)
+        WHMapperUser[]? accounts= await GetAccountsAsync();
+        if(accounts!=null && accounts.Any())
         {
-            foreach(var account in Accounts)
+            foreach(var account in accounts)
             {
                 if(account.Tracking)
                     await TrackerServices.StopTracking(account.Id);
@@ -660,10 +677,12 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             if (!await DeletedLinkOnMap(MapId.Value, link))
                 Snackbar?.Add("Remove wormhole link db error", Severity.Error);
         }
+
         _selectedSystemLink = null;
-        if(Accounts!=null)
+
+        if(accounts!=null && accounts.Any())
         {
-            foreach(var account in Accounts)
+            foreach(var account in accounts)
             {
                 if(account.Tracking)
                     await TrackerServices.StartTracking(account.Id);
@@ -723,9 +742,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 Snackbar?.Add("Update wormhole node position db error", Severity.Error);
             }
 
-            if (PrimaryAccount != null)
+            WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+            if (primaryAccount != null)
             {
-                await EveMapperRealTime.NotifyWormholeMoved(PrimaryAccount.Id, mapId.Value, wh.Id, wh.PosX, wh.PosY);
+                await EveMapperRealTime.NotifyWormholeMoved(primaryAccount.Id, mapId.Value, wh.Id, wh.PosX, wh.PosY);
             }
         }
     }
@@ -734,25 +754,33 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     #endregion
 
     #region WHSystemNode Events
-    private void OnWHSystemNodeLocked(EveSystemNodeModel whNodeModel)
+    private void OnWHSystemNodeLockedAsync(EveSystemNodeModel whNodeModel)
     {
         if (whNodeModel != null)
         {
-            if (PrimaryAccount != null)
+            _ = Task.Run(async () =>
             {
-                Task.Run(async () => await EveMapperRealTime.NotifyWormholeLockChanged(PrimaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked));
-            }
+                WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                if (primaryAccount != null)
+                {
+                    await EveMapperRealTime.NotifyWormholeLockChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked);
+                }
+            });
         }
     }
 
-    private void OnWHSystemStatusChange(EveSystemNodeModel whNodeModel)
+    private void OnWHSystemStatusChangeAsync(EveSystemNodeModel whNodeModel)
     {
         if (whNodeModel != null)
         {
-            if (PrimaryAccount != null)
+            _ = Task.Run(async () =>
             {
-                Task.Run(async () => await EveMapperRealTime.NotifyWormholeSystemStatusChanged(PrimaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus));
-            }
+                WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                if (primaryAccount != null)
+                {
+                    await EveMapperRealTime.NotifyWormholeSystemStatusChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus);
+                }
+            });
         }
     }
     #endregion
@@ -854,8 +882,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             if (newWHSystem!=null)
             {
                 var newSystemNode = await MapperServices.DefineEveSystemNodeModel(newWHSystem);
-                newSystemNode.OnLocked += OnWHSystemNodeLocked;
-                newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChange;
+                newSystemNode.OnLocked += OnWHSystemNodeLockedAsync;
+                newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
                 
                 _blazorDiagram?.Nodes?.Add(newSystemNode);
                 await EveMapperRealTime.NotifyWormoleAdded(accountID,mapId.Value, newWHSystem.Id);
@@ -1026,9 +1054,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
             if (await DbWHSystems.DeleteById(node.IdWH))//db link will be automatically delete via db foreignkey cascade
             {                
-                if (PrimaryAccount != null)
+                WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                if (primaryAccount != null)
                 {
-                    await EveMapperRealTime.NotifyWormholeRemoved(PrimaryAccount.Id, mapId.Value, node.IdWH);
+                    await EveMapperRealTime.NotifyWormholeRemoved(primaryAccount.Id, mapId.Value, node.IdWH);
                 }
                 return true;
             }
@@ -1053,9 +1082,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
             if(await DbWHSystemLinks.DeleteById(link.Id))
             {
-                if (PrimaryAccount != null)
+                WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                if (primaryAccount != null)
                 {
-                    await EveMapperRealTime.NotifyLinkRemoved(PrimaryAccount.Id, mapId.Value, link.Id);
+                    await EveMapperRealTime.NotifyLinkRemoved(primaryAccount.Id, mapId.Value, link.Id);
                 }
                 return true;
             }
@@ -1097,9 +1127,10 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
                 if (wh != null)
                 {
-                    if (PrimaryAccount != null)
+                     WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                    if (primaryAccount != null)
                     {
-                        await EveMapperRealTime.NotifyWormholeNameExtensionChanged(PrimaryAccount.Id, mapId.Value, wh.Id, increment);
+                        await EveMapperRealTime.NotifyWormholeNameExtensionChanged(primaryAccount.Id, mapId.Value, wh.Id, increment);
                     }
                     return true;
                 }
@@ -1248,12 +1279,28 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                     Logger.LogError("Set system status error, no node selected");
                     return false;
                 }
-                int solarSystemId = SelectedSystemNode.SolarSystemId;
-                if (solarSystemId>0)
-                {
-                    await EveServices.UserInterfaceServices.SetWaypoint(solarSystemId, false, true);
-                    return true;
 
+                var primaryAccount = await GetPrimaryAccountAsync();
+                if (primaryAccount == null)
+                {
+                    Logger.LogError("Set destination waypoint error, no primary account found");
+                    return false;
+                }
+
+                var token = await TokenProvider.GetToken(primaryAccount.Id.ToString(),true);
+                if (token != null)
+                {
+                    int solarSystemId = SelectedSystemNode.SolarSystemId;
+                    if (solarSystemId <= 0)
+                    {
+                        Logger.LogError("Set destination waypoint error, no solar system id found");
+                        return false;
+                    }
+
+                    // Set the destination waypoint using the EveServices
+                    await EveServices.SetEveCharacterAuthenticatication(token);          
+                    await EveServices.UserInterfaceServices.SetWaypoint(solarSystemId,false, true);
+                    return true;
                 }
 
                 return false;
@@ -1371,8 +1418,17 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         {
                             SelectedSystemLink.IsEoL = link.IsEndOfLifeConnection;
                             SelectedSystemLink.Refresh();
-                            await EveMapperRealTime.NotifyLinkChanged(PrimaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size,link.MassStatus);
-                            return true;
+                            WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                            if (primaryAccount != null)
+                            {
+                                await EveMapperRealTime.NotifyLinkChanged(primaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size,link.MassStatus);
+                                return true;
+                            }
+                            else
+                            {
+                                Logger.LogError("Toggle system link eol, unable to find primary account");
+                                return false;
+                            }
                         }
                         else
                         {
@@ -1412,8 +1468,17 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                         {
                             SelectedSystemLink.MassStatus = link.MassStatus;
                             SelectedSystemLink.Refresh();
-                            await EveMapperRealTime.NotifyLinkChanged(PrimaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
-                            return true;
+                             WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                            if (primaryAccount != null)
+                            {
+                                await EveMapperRealTime.NotifyLinkChanged(primaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
+                                return true;
+                            }
+                            else
+                            {
+                                Logger.LogError("Set system link status, unable to find primary account");
+                                return false;
+                            }
                         }
                         else
                         {
@@ -1454,9 +1519,17 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                                 //update link size on diagram (refresh link
                             SelectedSystemLink.Size = link.Size;
                             SelectedSystemLink.Refresh();
-                            await EveMapperRealTime.NotifyLinkChanged(PrimaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
-
-                            return true;
+                            WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                            if (primaryAccount != null)
+                            {
+                                await EveMapperRealTime.NotifyLinkChanged(primaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
+                                return true;
+                            }
+                            else
+                            {
+                                Logger.LogError("Set system link size, unable to find primary account");
+                                return false;
+                            }
                         }
                         else
                         {
@@ -1496,13 +1569,22 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 {
                     SystemEntity solarSystem = (SystemEntity)result.Data;
                     
-                    if(await AddSystemNode(MapId.Value,solarSystem,PrimaryAccount.Id,null,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
+                    WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
+                    if (primaryAccount != null)
                     {
-                        Snackbar?.Add(String.Format("{0} solar system successfully added",solarSystem.Name), Severity.Success);
+                        if(await AddSystemNode(MapId.Value,solarSystem,primaryAccount.Id,null,e.MouseEvent.ClientX,e.MouseEvent.ClientY))
+                        {
+                            Snackbar?.Add(String.Format("{0} solar system successfully added",solarSystem.Name), Severity.Success);
+                        }
+                        else
+                        {
+                            Snackbar?.Add("Add solar system error", Severity.Error);
+                        }
                     }
                     else
                     {
-                        Snackbar?.Add("Add solar system error", Severity.Error);
+                        Logger.LogError("OpenSearchAndAddDialog, unable to find primary account to notify wormhole added");
+                        Snackbar?.Add("Unable to find primary account to notify wormhole added", Severity.Warning);
                     }
                 }
                 else
@@ -1575,7 +1657,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {   
-            if(this.MapId.HasValue && this.MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            WHMapperUser[]? accounts= await GetAccountsAsync();
+            if(this.MapId.HasValue && this.MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
             {
                 CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
                 if(user==null)
@@ -1615,14 +1698,15 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            WHMapperUser[]? accounts= await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
             {
                 var wh = await DbWHSystems.GetById(whId);
                 if (wh != null)
                 {
                     var newSystemNode = await MapperServices.DefineEveSystemNodeModel(wh);
-                    newSystemNode.OnLocked += OnWHSystemNodeLocked;
-                    newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChange;
+                    newSystemNode.OnLocked += OnWHSystemNodeLockedAsync;
+                    newSystemNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
                     _blazorDiagram?.Nodes?.Add(newSystemNode);
                 }
                 else
@@ -1645,7 +1729,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            WHMapperUser[]? accounts= await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
             {
                 var node = await GetSystemNode(whId);
                 if (node != null)
@@ -1673,7 +1758,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            WHMapperUser[]? accounts= await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
             {
                 var node = await GetSystemNode(whId);
                 if (node != null)
@@ -1701,7 +1787,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            WHMapperUser[]? accounts= await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
             {
                 var link = await DbWHSystemLinks.GetById(linkId);
                 if (link != null)
@@ -1738,7 +1825,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            var accounts = await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
                 var link = await DbWHSystemLinks.GetById(linkId);
                 if (link != null)
@@ -1774,7 +1862,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            var accounts = await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
                 var link = await DbWHSystemLinks.GetById(linkId);
                 if (link != null)
@@ -1813,7 +1902,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            var accounts = await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
                 var node = await GetSystemNode(whId);
                 if (node != null)
@@ -1838,7 +1928,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null) 
+            var accounts = await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null) 
             {
                 var node = await GetSystemNode(whId);
                 if (node != null)
@@ -1867,7 +1958,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            if (MapId.HasValue && MapId.Value == mapId && Accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            var accounts = await GetAccountsAsync();
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
                 var node = await GetSystemNode(whId);
                 if (node != null)

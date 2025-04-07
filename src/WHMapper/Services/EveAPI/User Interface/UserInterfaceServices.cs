@@ -4,10 +4,11 @@ namespace WHMapper.Services.EveAPI.UserInterface
 {
     public class UserInterfaceServices : EveApiServiceBase, IUserInterfaceServices
     {
-        public UserInterfaceServices(HttpClient httpClient)
-            : base(httpClient)
+        public UserInterfaceServices(HttpClient httpClient, UserToken? userToken = null)
+            : base(httpClient, userToken)
         {
         }
+
 
         public async Task<string?> SetWaypoint(int destination_id, bool add_to_beginning = false, bool clear_other_waypoints = false)
         {

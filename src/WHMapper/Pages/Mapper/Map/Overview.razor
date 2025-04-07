@@ -87,7 +87,7 @@
             <MudHidden Breakpoint="Breakpoint.MdAndDown">
                 <WHMapper.Pages.Mapper.SystemInfos.Overview CurrentMapId="@MapId" CurrentSystemNode="SelectedSystemNode"/>
             </MudHidden>
-            <WHMapper.Pages.Mapper.Signatures.Overview CurrentMapId="@MapId" CurrentSystemNodeId="@SelectedSystemNode?.IdWH" CurrentPrimaryUserId="@PrimaryAccount?.Id"/>
+            <WHMapper.Pages.Mapper.Signatures.Overview CurrentMapId="@MapId" CurrentSystemNodeId="@SelectedSystemNode?.IdWH" CurrentPrimaryUserId="@GetPrimaryAccountAsync().Result?.Id"/>
             <MudHidden Breakpoint="Breakpoint.MdAndDown">
                 <WHMapper.Pages.Mapper.RoutePlanner.Overview CurrentMapId="@MapId" CurrentSystemNode="SelectedSystemNode" CurrentLinks="_blazorDiagram.Links"></WHMapper.Pages.Mapper.RoutePlanner.Overview>
             </MudHidden>
