@@ -29,6 +29,8 @@ namespace WHMapper.Pages.Mapper.Map;
 public partial class Overview : ComponentBase,IAsyncDisposable
 {
     private const float EPSILON = 0.0001f; // or some other small value
+    private const string UidNullOrEmptyMessage = "UID is null or empty";
+
     private BlazorDiagram _blazorDiagram  = null!;
     private int? _selectedWHMapId = null;
 
@@ -126,20 +128,19 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if (UID == null || string.IsNullOrEmpty(UID.ClientId))
         {
-            Logger.LogError("UID is null or empty");
-            throw new NullReferenceException("UID is null or empty");
+            Logger.LogError(UidNullOrEmptyMessage);
+            throw new InvalidOperationException(UidNullOrEmptyMessage);
         }
 
         return await UserManagement.GetAccountsAsync(UID.ClientId);
     }
 
-
     private async Task<WHMapperUser?> GetPrimaryAccountAsync()
     {
         if (UID == null || string.IsNullOrEmpty(UID.ClientId))
         {
-            Logger.LogError("UID is null or empty");
-            throw new NullReferenceException("UID is null or empty");
+            Logger.LogError(UidNullOrEmptyMessage);
+            throw new InvalidOperationException(UidNullOrEmptyMessage);
         }
 
         return await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
@@ -162,8 +163,8 @@ public partial class Overview : ComponentBase,IAsyncDisposable
     {
         if(UID==null || String.IsNullOrEmpty(UID.ClientId))
         {
-            Logger.LogError("UID is null");
-            throw new NullReferenceException("UID is null");
+            Logger.LogError(UidNullOrEmptyMessage);
+            throw new InvalidOperationException(UidNullOrEmptyMessage);
         }
 
         if(MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value!=MapId.Value))
@@ -194,7 +195,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
    
                 //get all user account authorized on map
                 WHMapperUser[]? accounts= await GetAccountsAsync();
-                if(accounts!=null && accounts.Any())
+                if(accounts!=null)
                 {
                     foreach(var account in accounts)
                     {
@@ -232,11 +233,6 @@ public partial class Overview : ComponentBase,IAsyncDisposable
                 
                     await InitBlazorDiagramEvents();
                 }
-                else
-                {
-                    Logger.LogError("Accounts is null");
-                    throw new NullReferenceException("Accounts is null");
-                }
             }
             else
             {
@@ -258,27 +254,21 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
         if(EveMapperRealTime!=null)
         {
-            try
-            {
-                EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
-                EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
-                EveMapperRealTime.UserOnMapDisconnected -= OnUserOnMapDisconnected;
-                
-                EveMapperRealTime.UserPosition -= OnUserPositionChanged;
-                EveMapperRealTime.WormholeAdded -= OnWormholeAdded;
-                EveMapperRealTime.WormholeRemoved -= OnWormholeRemoved;
-                EveMapperRealTime.WormholeMoved -= OnWormholeMoved;
-                EveMapperRealTime.WormholeLockChanged -= OnWormholeLockChanged;
-                EveMapperRealTime.WormholeSystemStatusChanged -= OnWormholeSystemStatusChanged;
-                EveMapperRealTime.WormholeNameExtensionChanged -= OnWormholeNameExtensionChanged;
-                EveMapperRealTime.LinkAdded -= OnLinkAdded;
-                EveMapperRealTime.LinkRemoved -= OnLinkRemoved;
-                EveMapperRealTime.LinkChanged -= OnLinkChanged;
-            }
-            catch (JSDisconnectedException)
-            {
-                //ignore
-            }
+            EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
+            EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
+            EveMapperRealTime.UserOnMapDisconnected -= OnUserOnMapDisconnected;
+            
+            EveMapperRealTime.UserPosition -= OnUserPositionChanged;
+            EveMapperRealTime.WormholeAdded -= OnWormholeAdded;
+            EveMapperRealTime.WormholeRemoved -= OnWormholeRemoved;
+            EveMapperRealTime.WormholeMoved -= OnWormholeMoved;
+            EveMapperRealTime.WormholeLockChanged -= OnWormholeLockChanged;
+            EveMapperRealTime.WormholeSystemStatusChanged -= OnWormholeSystemStatusChanged;
+            EveMapperRealTime.WormholeNameExtensionChanged -= OnWormholeNameExtensionChanged;
+            EveMapperRealTime.LinkAdded -= OnLinkAdded;
+            EveMapperRealTime.LinkRemoved -= OnLinkRemoved;
+            EveMapperRealTime.LinkChanged -= OnLinkChanged;
+
 
 
 /*
@@ -399,6 +389,11 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         var tasks = selectedWHMap.WHSystems.Select(item => Task.Run(async () =>
         {
             var whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
+            if (whSysNode == null)
+            {
+                Logger.LogError("Initialize System Nodes, whSysNode is null");
+                return;
+            }
             whSysNode.OnLocked += OnWHSystemNodeLockedAsync;
             whSysNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
             _blazorDiagram.Nodes.Add(whSysNode);
@@ -623,7 +618,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         }
 
         WHMapperUser[]? accounts= await GetAccountsAsync();
-        if(accounts!=null && accounts.Any())
+        if(accounts!=null)
         {
             foreach(var account in accounts)
             {
@@ -646,7 +641,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
         }
         SelectedSystemNode = null;
 
-        if(accounts!=null && accounts.Any())
+        if(accounts!=null)
         {
             foreach(var account in accounts)
             {
@@ -663,7 +658,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             return;
 
         WHMapperUser[]? accounts= await GetAccountsAsync();
-        if(accounts!=null && accounts.Any())
+        if(accounts!=null)
         {
             foreach(var account in accounts)
             {
@@ -680,7 +675,7 @@ public partial class Overview : ComponentBase,IAsyncDisposable
 
         _selectedSystemLink = null;
 
-        if(accounts!=null && accounts.Any())
+        if(accounts!=null)
         {
             foreach(var account in accounts)
             {
@@ -1403,102 +1398,110 @@ public partial class Overview : ComponentBase,IAsyncDisposable
             }
         }
         #endregion
-        private async Task<bool> ToggleSlectedSystemLinkEOL()
+        private async Task<bool> ToggleSelectedSystemLinkEOL()
         {
+            if (!MapId.HasValue || SelectedSystemLink == null)
+            {
+                Logger.LogError("Toggle system link EOL failed: MapId or SelectedSystemLink is null");
+                return false;
+            }
+
             try
             {
-                if (MapId.HasValue && SelectedSystemLink != null)
+                var link = await DbWHSystemLinks.GetById(SelectedSystemLink.Id);
+                if (link == null)
                 {
-                    WHSystemLink? link = await DbWHSystemLinks.GetById(SelectedSystemLink.Id);
-                    if (link != null)
-                    {
-                        link.IsEndOfLifeConnection = !link.IsEndOfLifeConnection;
-                        link = await DbWHSystemLinks.Update(SelectedSystemLink.Id, link);
-                        if(link!=null)
-                        {
-                            SelectedSystemLink.IsEoL = link.IsEndOfLifeConnection;
-                            SelectedSystemLink.Refresh();
-                            WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
-                            if (primaryAccount != null)
-                            {
-                                await EveMapperRealTime.NotifyLinkChanged(primaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size,link.MassStatus);
-                                return true;
-                            }
-                            else
-                            {
-                                Logger.LogError("Toggle system link eol, unable to find primary account");
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            Logger.LogError("Toggle system link eol db error");
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
+                    Logger.LogError("Toggle system link EOL failed: Link not found in database");
                     return false;
                 }
+
+                link.IsEndOfLifeConnection = !link.IsEndOfLifeConnection;
+                var updatedLink = await DbWHSystemLinks.Update(SelectedSystemLink.Id, link);
+
+                if (updatedLink == null)
+                {
+                    Logger.LogError("Toggle system link EOL failed: Database update error");
+                    return false;
+                }
+
+                SelectedSystemLink.IsEoL = updatedLink.IsEndOfLifeConnection;
+                SelectedSystemLink.Refresh();
+
+                var primaryAccount = await GetPrimaryAccountAsync();
+                if (primaryAccount == null)
+                {
+                    Logger.LogError("Toggle system link EOL failed: Unable to find primary account");
+                    return false;
+                }
+
+                await EveMapperRealTime.NotifyLinkChanged(
+                    primaryAccount.Id,
+                    MapId.Value,
+                    updatedLink.Id,
+                    updatedLink.IsEndOfLifeConnection,
+                    updatedLink.Size,
+                    updatedLink.MassStatus
+                );
+
+                return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Logger.LogError(ex, "Toggle system link eol error");
+                Logger.LogError(ex, "Toggle system link EOL error");
                 return false;
             }
         }
 
         private async Task<bool> SetSelectedSystemLinkStatus(SystemLinkMassStatus massStatus)
         {
+            if (!MapId.HasValue || SelectedSystemLink == null)
+            {
+                Logger.LogError("Set system link status failed: MapId or SelectedSystemLink is null");
+                return false;
+            }
+
             try
             {
-                if (MapId.HasValue && SelectedSystemLink != null)
+                var link = await DbWHSystemLinks.GetById(SelectedSystemLink.Id);
+                if (link == null)
                 {
-                    WHSystemLink? link = await DbWHSystemLinks.GetById(SelectedSystemLink.Id);
-                    if (link != null)
-                    {
-                        link.MassStatus = massStatus;
-                        link = await DbWHSystemLinks.Update(SelectedSystemLink.Id, link);
-                        if(link!=null)
-                        {
-                            SelectedSystemLink.MassStatus = link.MassStatus;
-                            SelectedSystemLink.Refresh();
-                             WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
-                            if (primaryAccount != null)
-                            {
-                                await EveMapperRealTime.NotifyLinkChanged(primaryAccount.Id,MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
-                                return true;
-                            }
-                            else
-                            {
-                                Logger.LogError("Set system link status, unable to find primary account");
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            Logger.LogError("Set system link status db error");
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
+                    Logger.LogError("Set system link status failed: Link not found in database");
                     return false;
                 }
+
+                link.MassStatus = massStatus;
+                var updatedLink = await DbWHSystemLinks.Update(SelectedSystemLink.Id, link);
+
+                if (updatedLink == null)
+                {
+                    Logger.LogError("Set system link status failed: Database update error");
+                    return false;
+                }
+
+                SelectedSystemLink.MassStatus = updatedLink.MassStatus;
+                SelectedSystemLink.Refresh();
+
+                var primaryAccount = await GetPrimaryAccountAsync();
+                if (primaryAccount == null)
+                {
+                    Logger.LogError("Set system link status failed: Unable to find primary account");
+                    return false;
+                }
+
+                await EveMapperRealTime.NotifyLinkChanged(
+                    primaryAccount.Id,
+                    MapId.Value,
+                    updatedLink.Id,
+                    updatedLink.IsEndOfLifeConnection,
+                    updatedLink.Size,
+                    updatedLink.MassStatus
+                );
+
+                return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Logger.LogError(ex, "System link status error");
+                Logger.LogError(ex, "Set system link status error");
                 return false;
             }
         }

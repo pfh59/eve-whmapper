@@ -23,7 +23,7 @@
 
 @if (SelectedSystemLink != null)
 {
-    <Item OnClick="@(() => ToggleSlectedSystemLinkEOL())"> Toggle EOL </Item>
+    <Item OnClick="@(() => ToggleSelectedSystemLinkEOL())"> Toggle EOL </Item>
     <Item>Status
         <SubMenu>
             <Item OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))"> Normal </Item>
