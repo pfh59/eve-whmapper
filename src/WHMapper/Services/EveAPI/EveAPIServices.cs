@@ -55,6 +55,7 @@ namespace WHMapper.Services.EveAPI
             SearchServices = new SearchServices(_httpClient, userToken);
             DogmaServices = new DogmaServices(_httpClient, userToken);
             AssetsServices = new AssetsServices(_httpClient, userToken);
+            UserInterfaceServices = new UserInterfaceServices(_httpClient, userToken);
 
             return Task.CompletedTask;
         }

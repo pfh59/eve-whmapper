@@ -35,12 +35,14 @@ public class EveAPIServicesTest
         Assert.NotNull(eveApiServices.SearchServices);
         Assert.NotNull(eveApiServices.DogmaServices);
         Assert.NotNull(eveApiServices.AssetsServices);
+        Assert.NotNull(eveApiServices.UserInterfaceServices);
 
         // Verify that the services are initialized with the correct HttpClient and UserToken
         Assert.IsType<LocationServices>(eveApiServices.LocationServices);
         Assert.IsType<SearchServices>(eveApiServices.SearchServices);
         Assert.IsType<DogmaServices>(eveApiServices.DogmaServices);
         Assert.IsType<AssetsServices>(eveApiServices.AssetsServices);
+        Assert.IsType<UserInterfaceServices>(eveApiServices.UserInterfaceServices);
     }
 
     [Fact]
