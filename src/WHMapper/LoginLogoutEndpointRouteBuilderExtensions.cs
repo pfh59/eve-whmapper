@@ -16,21 +16,11 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
         group.MapGet("/login", (string? returnUrl,string? clientId) => TypedResults.Challenge(GetAuthProperties(returnUrl,clientId )))
             .AllowAnonymous();
 
-        group.MapPost("/logout", async ([FromForm] string? returnUrl,[FromForm]string? clientId, IEveMapperUserManagementService userManagementService, IEveMapperTracker eveMapperTracker) => 
+        group.MapPost("/logout", async ([FromForm] string? returnUrl,[FromForm]string? clientId, IEveMapperUserManagementService userManagementService) => 
         {
            
             if (!string.IsNullOrEmpty(clientId))
             {
-                WHMapperUser[] accounts = await userManagementService.GetAccountsAsync(clientId);
-                if (accounts != null && accounts.Length>0)
-                {
-                    foreach (var account in accounts)
-                    {
-                        await eveMapperTracker.StopTracking(account.Id);
-                    }
-                    
-                    await Task.Delay(new TimeSpan(0, 0, 5));
-                }
                  await userManagementService.RemoveAuthenticateWHMapperUser(clientId);
             }
 

@@ -22,6 +22,8 @@ public class EveMapperTracker : IEveMapperTracker
     private readonly ConcurrentDictionary<int, CancellationTokenSource> _cts ;
     private readonly SemaphoreSlim _semaphoreSlim ;
 
+    private string test=Guid.NewGuid().ToString();
+
 
     public EveMapperTracker(ILogger<EveMapperTracker> logger, IEveAPIServices eveAPI, IEveOnlineTokenProvider tokenProvider)
     {
@@ -164,7 +166,7 @@ public class EveMapperTracker : IEveMapperTracker
         }
     }
     
-    private async Task UpdateCurrentShip(int accountID,CancellationToken cancellationToken = default)
+    private async Task UpdateCurrentShip(int accountID)
     {    
         UserToken? token = null;
         Ship? ship = null;
@@ -218,7 +220,7 @@ public class EveMapperTracker : IEveMapperTracker
 
     }
 
-    private async Task UpdateCurrentLocation(int accountID,CancellationToken cancellationToken = default)
+    private async Task UpdateCurrentLocation(int accountID)
     {
         EveLocation? newLocation = null;
         UserToken? token = null;

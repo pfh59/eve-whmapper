@@ -67,7 +67,7 @@ namespace WHMapper.Services.EveOAuthProvider.Services
                 throw new NullReferenceException("Token is null");
             }
 
-            return Task.FromResult(DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-18));
+            return Task.FromResult(DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-5));//// 5 minutes before expiry
         }
 
         public async Task RefreshAccessToken(string accountId)
