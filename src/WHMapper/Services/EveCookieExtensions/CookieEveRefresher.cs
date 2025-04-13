@@ -10,24 +10,30 @@ using System.Text;
 using System.Text.Json;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.SSO;
+using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Services.BrowserClientIdProvider;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOAuthProvider;
 using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveCookieExtensions;
 
-internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
+internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientIdProvider, IEveOnlineTokenProvider tokenProvider,IEveMapperUserManagementService eveMapperUserManagement)
 {        
     public async Task ValidateOrRefreshCookieAsync(CookieValidatePrincipalContext validateContext, string scheme)
     {
-        if(validateContext == null)
+        var clientId = await browserClientIdProvider.GetOrCreateClientIdAsync();
+        
+        if (string.IsNullOrEmpty(clientId))
         {
+            validateContext?.RejectPrincipal();
             return;
         }
-
         var accountId = validateContext?.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if(string.IsNullOrEmpty(accountId))
         {
+            await eveMapperUserManagement.RemoveAuthenticateWHMapperUser(clientId);
             validateContext?.RejectPrincipal();
             return;
         }
@@ -43,8 +49,7 @@ internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
 
         if (await tokenProvider.GetToken(accountId) == null)
         {
-            //add token to cache
-            await tokenProvider.SaveToken(new UserToken
+            await eveMapperUserManagement.AddAuthenticateWHMapperUser(clientId, accountId, new UserToken
             {
                 AccountId = accountId,
                 AccessToken = access_token,
@@ -53,7 +58,7 @@ internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
             });
         }
 
-        if(await tokenProvider.IsTokenExpire(accountId)==false)
+        if(!await tokenProvider.IsTokenExpire(accountId))
         {
             return;
         }
@@ -61,21 +66,29 @@ internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
         try
         {
             await tokenProvider.RefreshAccessToken(accountId);
+
+            // Refresh all tokens associated with the clientId, except the current one.
+            WHMapperUser[] accounts = await eveMapperUserManagement.GetAccountsAsync(clientId);
+            accounts = accounts.Where(x => x.Id.ToString() != accountId).ToArray();
+            foreach (var account in accounts)
+            {
+                await tokenProvider.RefreshAccessToken(account.Id.ToString());
+            }
+      
         }
         catch (Exception)
         {
-            await tokenProvider.ClearToken(accountId);
+            await eveMapperUserManagement.RemoveAuthenticateWHMapperUser(clientId);
             validateContext?.RejectPrincipal();
             return;
         }
         var token = await tokenProvider.GetToken(accountId);
         if (token == null)
         {
-            await tokenProvider.ClearToken(accountId);
+            await eveMapperUserManagement.RemoveAuthenticateWHMapperUser(clientId);
             validateContext?.RejectPrincipal();
             return;
         }
-
 
 
         if (validateContext != null)
@@ -85,10 +98,13 @@ internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
         
         if (token.AccessToken == null || token.RefreshToken == null)
         {
+            await eveMapperUserManagement.RemoveAuthenticateWHMapperUser(clientId);
             validateContext?.RejectPrincipal();
             return;
         }
 
+
+       // validateContex?.ReplacePrincipal(new ClaimsPrincipal(validationResult.ClaimsIdentity));
         validateContext?.Properties.StoreTokens(new[]
         {
             new AuthenticationToken { Name = "access_token", Value = token.AccessToken },
@@ -96,6 +112,6 @@ internal sealed class  CookieEveRefresher(IEveOnlineTokenProvider tokenProvider)
             new AuthenticationToken { Name = "expires_at", Value = token.Expiry.ToString("o", CultureInfo.InvariantCulture) }
         });
 
-        await tokenProvider.SaveToken(token);
+         await eveMapperUserManagement.AddAuthenticateWHMapperUser(clientId, accountId, token);
     }
 }

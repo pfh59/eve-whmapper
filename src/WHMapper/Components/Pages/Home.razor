@@ -1,0 +1,131 @@
+﻿@page "/"
+
+<AuthorizeView>
+    <Authorizing>
+        <MudText class="py-1" Typo="Typo.body2">"Authorization in progress,please wait ...")
+            <MudProgressCircular Color="Color.Secondary" Size="MudBlazor.Size.Small" />
+        </MudText>
+    </Authorizing>
+    <Authorized>
+        <WHMapper.Components.Pages.Mapper.Overview/>
+    </Authorized>
+    <NotAuthorized>
+        @if(_loading)
+        {
+            <MudPaper Class="d-flex align-center justify-center" Height="100vh" Width="100%">
+                <MudCard Outlined="true">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Initialization</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Align="Align.Center">EVE Wormhole mapper is downloading a new SDE package.</MudText>
+                        <MudText class="py-1" Typo="Typo.body2">@String.Format("{0}, please wait ...",_init_process_msg)
+                            <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Small" />
+                        </MudText>                 
+                    </MudCardContent>
+                </MudCard>
+            </MudPaper>
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _loading = true;
+    private string _init_process_msg = string.Empty;
+
+
+    [Inject]
+    private ISnackbar Snackbar {get;set;} =null!;
+
+    [Inject]
+    private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(SDEServices.IsExtractionSuccesful())
+        {
+            _loading = false;
+        }
+
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            if(!SDEServices.IsExtractionSuccesful())
+            {
+                await DownloadExtractImportSDE();
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    private async Task SetProcessMessage(string message)
+    {
+        await InvokeAsync(() => {
+            _init_process_msg = message;
+            StateHasChanged();
+        });
+    }
+
+    private async Task SetLoading(bool loading)
+    {
+        await InvokeAsync(() => {
+            _loading = loading;
+            StateHasChanged();
+        });
+    }
+
+    private async Task Cleaning()
+    {
+        await SetProcessMessage("Cleaning ... ");
+        await SDEServices.ClearCache();
+    }
+
+    private async Task DownloadExtractImportSDE()
+    {
+       if(await SDEServices.IsNewSDEAvailable())
+       {
+            await SetProcessMessage("Removing current SDE package (1/4)");
+            if (!await SDEServices.ClearSDEResources())
+            {
+                Snackbar.Add("Removing current SDE package failed", Severity.Error);
+                await Cleaning();
+                return;
+            }
+
+            await SetProcessMessage("Download SDE package (2/4)");
+            if(!await SDEServices.DownloadSDE())
+            {
+                Snackbar.Add("Download SDE package failed.", Severity.Error);
+                await Cleaning();
+                return;
+            }
+            
+            await SetProcessMessage("Extract SDE package (3/4)");
+            if(!await SDEServices.ExtractSDE())
+            {
+                Snackbar.Add("Extract SDE package failed.", Severity.Error);
+                await Cleaning();
+                return;
+            }
+
+            await SetProcessMessage("Initialize SDE cache (4/4)");
+            if(!await SDEServices.BuildCache())
+            {
+                Snackbar.Add("Initialize SDE cache failed.", Severity.Error);
+                await Cleaning();
+                return;
+            }
+        }
+        await SetLoading(false);    
+    }
+
+}

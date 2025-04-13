@@ -1,0 +1,104 @@
+﻿@using WHMapper.Models.DTO
+@using WHMapper.Services.BrowserClientIdProvider
+@using WHMapper.Services.WHSignature
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="_currentTheme" DefaultScrollbar="false" IsDarkMode="true"/>
+<MudPopoverProvider/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+
+<MudLayout @oncustompaste="HandleCustomPaste" class="overflow-x-hidden">
+    <MudAppBar Elevation="1" Dense=true>
+        <MudText Typo="Typo.h5" Class="ml-5">Wormhole Mapper</MudText>
+        <MudChip T="string" Class="ml-5" Disabled="true" Variant="Variant.Outlined" >@String.Format("v{0}", Version)</MudChip>        
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <WHMapper.Components.Pages.Mapper.Users.Overview/>
+            </Authorized>
+        </AuthorizeView>
+        <AccessControl/>
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private MudTheme _currentTheme = null!;
+    private string Version { get; set; } = string.Empty;
+
+
+    [Inject]
+    private ISnackbar Snackbar {get;set;} =null!;
+
+    [Inject]
+    private IBrowserClientIdProvider BrowserClientIdProvider { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID {get; set;} = null!;
+
+    [Inject]
+    private IPasteServices PasteServices {get;set;} =null!;
+
+    [Inject]
+    private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
+
+    [Inject]
+    private IWHSignatureHelper SignatureService {get;set;} =null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentTheme = new MudTheme()
+        {
+            PaletteDark = new PaletteDark()
+            {
+                Black = "#27272f",
+                Background = "#32333d",
+                BackgroundGray = "#27272f",
+                Surface = "#373740",
+                DrawerBackground = "#27272f",
+                DrawerText = "rgba(255,255,255, 0.50)",
+                DrawerIcon = "rgba(255,255,255, 0.50)",
+                AppbarBackground = "#27272f",
+                AppbarText = "rgba(255,255,255, 0.70)",
+                TextPrimary = "rgba(255,255,255, 0.70)",
+                TextSecondary = "rgba(255,255,255, 0.50)",
+                ActionDefault = "#adadb1",
+                ActionDisabled = "rgba(255,255,255, 0.26)",
+                ActionDisabledBackground = "rgba(255,255,255, 0.12)",
+                Primary = "#ffffff",
+                PrimaryDarken = "#ffffff",
+                PrimaryLighten = "#ffffff"
+            }
+        };
+
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        Version = version != null ? version.ToString(3) : "Unknown";
+
+        string? clientId = await BrowserClientIdProvider.GetOrCreateClientIdAsync();
+        if(String.IsNullOrEmpty(clientId))
+        {
+            Snackbar.Add("ClientId cannot be null,Init Error", Severity.Error);
+            throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
+        }
+
+        UID.ClientId = clientId;
+
+        await base.OnInitializedAsync();
+    }
+
+
+    private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)
+    {
+        if(!String.IsNullOrEmpty(eventArgs.PastedData) && !String.IsNullOrWhiteSpace(eventArgs.PastedData))
+        { 
+            if(await SignatureService.ValidateScanResult(eventArgs.PastedData))
+            { 
+                await PasteServices.Paste(eventArgs.PastedData);
+            }
+        }
+    }
+}

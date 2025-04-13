@@ -8,7 +8,6 @@ using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveOAuthProvider.Services;
-using WHMapper.Services.LocalStorage;
 
 namespace WHMapper.Services.EveMapper;
 

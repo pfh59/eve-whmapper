@@ -46,13 +46,12 @@ public class SdeServiceManagerIntegrationTests
 
         IDistributedCache? _distriCache = provider.GetRequiredService<IDistributedCache>();
 
-        IFileSystem fileSystem = new FileSystem();
         ICacheService cacheService = new CacheService(new NullLogger<CacheService>(), _distriCache);
 
         HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
         ISDEDataSupplier sDEDataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
 
-        SDEServiceManager = new SDEServiceManager(new NullLogger<SDEServiceManager>(), fileSystem, sDEDataSupplier, cacheService);
+        SDEServiceManager = new SDEServiceManager(new NullLogger<SDEServiceManager>(), sDEDataSupplier, cacheService);
         SDEService = new SDEService(new NullLogger<SDEService>(), cacheService);
     }
 

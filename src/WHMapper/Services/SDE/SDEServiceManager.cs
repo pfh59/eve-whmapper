@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
-using System.IO.Abstractions;
-using Testably.Abstractions;
 using WHMapper.Models.DTO.SDE;
+using System.IO.Compression;
 using WHMapper.Services.Cache;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -19,17 +18,15 @@ namespace WHMapper.Services.SDE
 
         private readonly Mutex mut;
         private readonly ILogger<SDEServiceManager> _logger;
-        private readonly IFileSystem _fileSystem;
+
         private readonly ISDEDataSupplier _dataSupplier;
         private readonly ICacheService _cacheService;
 
         public SDEServiceManager(ILogger<SDEServiceManager> logger,
-            IFileSystem fileSystem,
             ISDEDataSupplier dataSupplier,
             ICacheService cacheService)
         {
             _logger = logger;
-            _fileSystem = fileSystem;
             _dataSupplier = dataSupplier;
             _cacheService = cacheService;
             mut = new Mutex();
@@ -37,7 +34,7 @@ namespace WHMapper.Services.SDE
 
         public bool IsExtractionSuccesful()
         {
-            return _fileSystem.Directory.Exists(SDE_TARGET_DIRECTORY);
+            return Directory.Exists(SDE_TARGET_DIRECTORY);
         }
 
         /// <summary>
@@ -70,7 +67,7 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                var fileContent = _fileSystem.File.ReadLines(SDE_CHECKSUM_FILE);
+                var fileContent = File.ReadLines(SDE_CHECKSUM_FILE);
                 return string.Join(";", fileContent);
             }
             catch (FileNotFoundException)
@@ -93,10 +90,10 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (_fileSystem.Directory.Exists(SDE_DIRECTORY))
+                if (Directory.Exists(SDE_DIRECTORY))
                 {
                     _logger.LogInformation($"Deleting Eve SDE resources at {SDE_DIRECTORY}");
-                    _fileSystem.Directory.Delete(SDE_DIRECTORY, true);
+                    Directory.Delete(SDE_DIRECTORY, true);
                 }
 
                 return Task.FromResult(true);
@@ -115,23 +112,23 @@ namespace WHMapper.Services.SDE
         {
             try
             {
-                if (!_fileSystem.Directory.Exists(SDE_DIRECTORY))
+                if (!Directory.Exists(SDE_DIRECTORY))
                 {
-                    _fileSystem.Directory.CreateDirectory(SDE_DIRECTORY);
+                    Directory.CreateDirectory(SDE_DIRECTORY);
                 }
 
                 _logger.LogInformation("Start to download Eve SDE files");
 
                 using (var sdeData = await _dataSupplier.GetSDEDataStreamAsync())
                 {
-                    using (Stream fs = _fileSystem.FileStream.New(SDE_ZIP_PATH, FileMode.OpenOrCreate))
+                    using (Stream fs = new FileStream(SDE_ZIP_PATH, FileMode.OpenOrCreate))
                     {
                         await sdeData.CopyToAsync(fs);
                     }
                 }
 
                 var checksum = _dataSupplier.GetChecksum();
-                await _fileSystem.File.WriteAllTextAsync(SDE_CHECKSUM_FILE, checksum);
+                await File.WriteAllTextAsync(SDE_CHECKSUM_FILE, checksum);
 
                 _logger.LogInformation("Eve SDE files downloaded");
                 return true;
@@ -155,17 +152,16 @@ namespace WHMapper.Services.SDE
                     _logger.LogInformation("Start to extract Eve SDE files");
 
                     //Check if ZIP exists
-                    if (!_fileSystem.File.Exists(SDE_ZIP_PATH))
+                    if (!File.Exists(SDE_ZIP_PATH))
                     {
                         _logger.LogError("Impossible to extract SDE, no zip file");
                         return Task.FromResult(false);
                     }
 
                     //Get a stream that reads the ZIP from the filesystem
-                    using (var archiveStream = _fileSystem.FileStream.New(SDE_ZIP_PATH, FileMode.Open))
+                    using (var archiveStream = new FileStream(SDE_ZIP_PATH, FileMode.Open))
                     {
-                        //Extract the stream to the SDE target directory 
-                        using (var archive = _fileSystem.ZipArchive().New(archiveStream))
+                        using (var archive = new ZipArchive(archiveStream, ZipArchiveMode.Read))
                         {
                             archive.ExtractToDirectory(SDE_TARGET_DIRECTORY);
                         }
@@ -250,7 +246,7 @@ namespace WHMapper.Services.SDE
             var collectionOfFiles = new List<string>();
             foreach (var path in searchPaths)
             {
-                var result = _fileSystem.Directory.GetFiles(path, "solarsystem.yaml", SearchOption.AllDirectories);
+                var result = Directory.GetFiles(path, "solarsystem.yaml", SearchOption.AllDirectories);
                 collectionOfFiles.AddRange(result);
             }
 

@@ -164,7 +164,7 @@ public class EveMapperTracker : IEveMapperTracker
         }
     }
     
-    private async Task UpdateCurrentShip(int accountID)
+    private async Task UpdateCurrentShip(int accountID,CancellationToken cancellationToken = default)
     {    
         UserToken? token = null;
         Ship? ship = null;
@@ -218,7 +218,7 @@ public class EveMapperTracker : IEveMapperTracker
 
     }
 
-    private async Task UpdateCurrentLocation(int accountID)
+    private async Task UpdateCurrentLocation(int accountID,CancellationToken cancellationToken = default)
     {
         EveLocation? newLocation = null;
         UserToken? token = null;

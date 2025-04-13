@@ -1,0 +1,175 @@
+﻿@using Microsoft.AspNetCore.Antiforgery
+@using WHMapper.Models.DTO
+@implements IDisposable
+@inject NavigationManager Navigation
+
+
+<AuthorizeView>
+    <Authorized>
+        <AuthorizeView Policy="Admin" Context="innerContext">
+           <Authorized>
+                <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <ActivatorContent>
+                        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>     
+                        <MudMenuItem Icon="@Icons.Material.Filled.SettingsAccessibility" IconColor="Color.Default" OnClick="@(() =>OpenAdminAccessDialog())">Access List</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Map" IconColor="Color.Default" OnClick="@(() =>OpenAdminMapDialog())">Map</MudMenuItem>
+                                <MudForm action="authentication/logout" method="post">
+                                    <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
+                                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                    <input type="hidden" name="clientId" value="@UID.ClientId" />
+                                    <MudButton Variant="Variant.Text" Color="Color.Default" ButtonType="ButtonType.Submit">
+                                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+                                        Logout
+                                    </MudButton>
+                                </MudForm>
+                    </ChildContent>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <AuthorizeView Policy="Access" Context="innerContext2">
+                    <Authorized>
+                        <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                            <ActivatorContent>
+                                 <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+                            </ActivatorContent>
+                            <ChildContent>
+                                <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
+                                <MudForm action="authentication/logout" method="post">
+                                    <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
+                                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                    <input type="hidden" name="clientId" value="@UID.ClientId" />
+                                    <MudButton Variant="Variant.Text" Color="Color.Default" ButtonType="ButtonType.Submit">
+                                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+                                        Logout
+                                    </MudButton>
+                                </MudForm>
+                            </ChildContent>
+                        </MudMenu>
+                    </Authorized>
+                    <NotAuthorized>
+                        <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                            <ActivatorContent>
+                                 <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+                            </ActivatorContent>
+                            <ChildContent>
+                                <MudForm action="authentication/logout" method="post">
+                                    <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
+                                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                    <input type="hidden" name="clientId" value="@UID.ClientId" />
+                                    <MudButton Variant="Variant.Text" Color="Color.Default"  ButtonType="ButtonType.Submit">
+                                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+                                        Logout
+                                    </MudButton>
+                                </MudForm>
+                            </ChildContent>
+                        </MudMenu>
+                    </NotAuthorized>
+                </AuthorizeView>
+
+            </NotAuthorized>
+        </AuthorizeView>
+
+    </Authorized>
+    <NotAuthorized>
+        <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+            <ActivatorContent>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Person">Account</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem Icon=@Icons.Material.Filled.Login IconColor="Color.Default" Href="@GetLoginUrl()">Login</MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code
+{
+    private string? currentUrl;
+    private string? _antiForgeryToken;
+
+    [Inject]
+    private ClientUID UID {get; set;} = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
+    [Inject]
+    private IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
+
+    [Inject]
+    private IAntiforgery Antiforgery { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        var tokens = Antiforgery.GetAndStoreTokens(HttpContextAccessor.HttpContext!);
+        _antiForgeryToken = tokens.RequestToken;
+        currentUrl = Navigation.Uri;
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = Navigation.Uri;
+        StateHasChanged();
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    
+    private string GetLoginUrl()
+    {
+        return $"authentication/login?clientId={UID.ClientId}";
+    }
+
+    private string GetLogoutUrl()
+    {
+        return $"logout?clientId={UID.ClientId}";
+    }
+
+
+    private async Task<bool> OpenAdminAccessDialog()
+    {
+        DialogOptions disableBackdropClick = new DialogOptions()
+        {
+            BackdropClick=false,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Medium,
+            CloseButton = true,
+            FullWidth = true,
+            BackgroundClass="bg-transparent"
+
+        };
+            
+        var parameters = new DialogParameters(); 
+        var dialog = await DialogService.ShowAsync<WHMapper.Components.Pages.Mapper.Administration.Access.Overview>("Access Administration", parameters, disableBackdropClick);
+
+        DialogResult? result = await dialog.Result;
+
+        return true;
+
+    }
+
+    private async Task<bool> OpenAdminMapDialog()
+    {
+        DialogOptions disableBackdropClick = new DialogOptions()
+        {
+            BackdropClick=false,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Medium,
+            CloseButton = true,
+            FullWidth = true,
+            BackgroundClass="bg-transparent"
+
+        };
+            
+        var parameters = new DialogParameters(); 
+        var dialog = await DialogService.ShowAsync<WHMapper.Components.Pages.Mapper.Administration.Map.Overview>("Map Administration", parameters, disableBackdropClick);
+
+        DialogResult? result = await dialog.Result;
+
+        return true;
+
+    }
+}
