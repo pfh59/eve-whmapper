@@ -7,7 +7,6 @@ using System.Security.Claims;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO;
 using WHMapper.Services.EveOAuthProvider.Services;
-using WHMapper.Services.LocalStorage;
 
 namespace WHMapper.Services.EveMapper;
 

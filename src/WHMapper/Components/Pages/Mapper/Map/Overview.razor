@@ -1,0 +1,94 @@
+﻿@using Blazor.Diagrams
+@using Blazor.Diagrams.Core;
+@using Blazor.Diagrams.Core.Geometry;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Components;
+@using Blazor.Diagrams.Algorithms;
+@using Blazor.Diagrams.Components.Widgets; 
+@using WHMapper.Models.Db.Enums
+
+
+<MudPaper class="d-flex flex-column flex-grow-1 gap-2 align-stretch">
+    <MudPaper Class="d-flex align-stretch flex-grow-1">
+        <MudMenu PositionAtCursor="true" Dense="true" FullWidth="true" ActivationEvent="@MouseEvent.RightClick" Style="width: 100%; height: 100%;">
+            <ActivatorContent>
+                <MudPaper Class="d-flex flex-1">
+                    <CascadingValue Value="_blazorDiagram" IsFixed="true">
+                        <DiagramCanvas>
+                            <Widgets>
+                                <SelectionBoxWidget />
+                            </Widgets>
+                        </DiagramCanvas>
+                    </CascadingValue>
+                </MudPaper>
+            </ActivatorContent>
+            <ChildContent>
+                @if (SelectedSystemLink == null && SelectedSystemNode == null)
+                {
+                    <MudMenuItem Label="Add System" OnClick="@((e) => OpenSearchAndAddDialog(e))" />
+                }
+
+                @if(SelectedSystemNode !=null)
+                {
+                    <MudMenuItem OnClick="@(()=>SetSelectedSystemDestinationWaypoint())" Label="Set Destination" Icon="@Icons.Material.Sharp.FlagCircle"/>
+                        if(SelectedSystemNode.Locked)
+                        {
+                            <MudMenuItem OnClick="@(() =>ToggleSystemLock())" Icon="@Icons.Material.Sharp.LockOpen" Label="UnLock"/>
+                        }
+                        else
+                        {
+                            <MudMenuItem OnClick="@(() =>ToggleSystemLock())" Icon="@Icons.Material.Sharp.Lock" Label="Lock" />
+                        }
+                        
+                    <MudMenu Icon="@Icons.Material.Filled.GraphicEq" Label="System Status">
+                        <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Unknown))" Label="Unknown"/>
+                        <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Occupied))" Label="Occupied"/>
+                        <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Hostile))" Label="Hostile" />   
+                        <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Friendly))" Label="Friendly"/>
+                    </MudMenu>
+                }
+
+
+                @if (SelectedSystemLink != null)
+                {
+                    <MudMenuItem Label="Toggle EOL" OnClick="@(() => ToggleSelectedSystemLinkEOL())"/>
+                    <MudMenu Label="Status">
+                        <MudMenuItem Label="Normal" OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))"/>  
+                        <MudMenuItem Label="Critical" OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))"/> 
+                        <MudMenuItem Label="Verge" OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Verge))"/> 
+                    </MudMenu>
+                    <MudMenu Label="Size">
+                        <MudMenuItem Label="Small" OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Small))" />
+                        <MudMenuItem Label="Medium" OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Medium))" />
+                        <MudMenuItem Label="Large" OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.Large))" />
+                        <MudMenuItem Label="XLarge" OnClick="@(() => SetSelectedSystemLinkSize(SystemLinkSize.XLarge))" />
+                    </MudMenu>
+                }
+
+            </ChildContent>
+        </MudMenu>
+    </MudPaper>
+
+    <MudPaper Class="flex-none" Width="100%">
+        <MudStack Row="true" Justify="Justify.Center">
+            <WHMapper.Components.Pages.Mapper.LinkInfos.Overview CurrentSystemLink="SelectedSystemLink" />
+            <MudHidden Breakpoint="Breakpoint.MdAndDown">
+                <WHMapper.Components.Pages.Mapper.SystemInfos.Overview CurrentMapId="@MapId" CurrentSystemNode="SelectedSystemNode"/>
+            </MudHidden>
+            <WHMapper.Components.Pages.Mapper.Signatures.Overview CurrentMapId="@MapId" CurrentSystemNodeId="@SelectedSystemNode?.IdWH" CurrentPrimaryUserId="@GetPrimaryAccountAsync().Result?.Id"/>
+            <MudHidden Breakpoint="Breakpoint.MdAndDown">
+                <WHMapper.Components.Pages.Mapper.RoutePlanner.Overview CurrentMapId="@MapId" CurrentSystemNode="SelectedSystemNode" CurrentLinks="_blazorDiagram.Links"/>
+            </MudHidden>
+        </MudStack>
+    </MudPaper>
+</MudPaper>
+
+@if (_loading)
+{
+    <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
+    </MudOverlay>
+}
+    
+
+

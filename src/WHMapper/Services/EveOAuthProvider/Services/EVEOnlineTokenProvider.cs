@@ -38,7 +38,7 @@ namespace WHMapper.Services.EveOAuthProvider.Services
             _tokens.TryGetValue(accountId, out var token);
             if(autoResfred && token != null && await IsTokenExpire(token))
             {
-                RefreshAccessToken(accountId).Wait();
+                await RefreshAccessToken(accountId);
                 _tokens.TryGetValue(accountId, out token);
             }
             return token;

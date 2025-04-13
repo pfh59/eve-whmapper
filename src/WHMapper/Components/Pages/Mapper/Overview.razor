@@ -1,0 +1,49 @@
+﻿@page "/whmapper"
+
+@using Blazor.Diagrams.Core;
+@using Blazor.Diagrams.Core.Geometry;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Components;
+@using Blazor.Diagrams.Algorithms;
+@using WHMapper.Models.Db.Enums;
+
+
+
+<MudPaper class="d-flex" Width="100%" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" hidden="@(_loading)">
+    @if (WHMaps != null && WHMaps.Any())
+    {
+        @if (WHMaps.Count() > 1)
+        {
+            <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="SelectedWHMapIndex" Rounded="true" Border="true" 
+                            Class="d-flex align-stretch flex-grow-1" PanelClass="d-flex align-stretch flex-grow-1" CloseTab="@CloseMapTab" AddIconClass="d-none">
+                <ChildContent>
+                    @foreach (var item in WHMaps)
+                    {
+                        <MudTabPanel ID="@item.Id" Text="@item.Name">
+                            <WHMapper.Components.Pages.Mapper.Map.Overview MapId="@item.Id" />
+                        </MudTabPanel>
+                    }
+                </ChildContent>
+                <Header>
+                </Header>
+            </MudDynamicTabs>
+        }
+        else
+        {
+            <WHMapper.Components.Pages.Mapper.Map.Overview MapId="@WHMaps.First().Id" />
+        }
+    }
+    else
+    {
+        <MudPaper Class="d-flex flex-column flex-grow-1 justify-center align-center" Width="100%" Height="100%">
+            <MudText Typo="Typo.h4">No map available.</MudText>
+        </MudPaper>
+    }
+</MudPaper>
+
+@if (_loading)
+{
+    <MudOverlay @bind-Visible="@(_loading)" DarkBackground="true" ZIndex="9999" AutoClose="false">
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Large" />
+    </MudOverlay>
+}

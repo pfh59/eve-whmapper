@@ -4,11 +4,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-# Create a non-root user and group
-#RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-#RUN chown appuser:appgroup /app
-#RUN chmod -R u+rw /app
-#USER appuser
+
 
 # Use the official .NET SDK as a parent image for building the application
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
@@ -27,4 +23,11 @@ RUN dotnet publish "WHMapper.csproj" -c Release -o /app/publish /p:Version=$VERS
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Create a non-root user and group
+#RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+#RUN chown appuser:appgroup /app
+#RUN chmod -R u+rw /app
+#USER appuser
+
 ENTRYPOINT ["dotnet", "WHMapper.dll"]
