@@ -29,7 +29,7 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
                         await eveMapperTracker.StopTracking(account.Id);
                     }
                     
-                    await Task.Delay(new TimeSpan(0, 0, 1));
+                    await Task.Delay(new TimeSpan(0, 0, 5));
                 }
                  await userManagementService.RemoveAuthenticateWHMapperUser(clientId);
             }
