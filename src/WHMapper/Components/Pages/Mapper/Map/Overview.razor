@@ -40,7 +40,7 @@
                             <MudMenuItem OnClick="@(() =>ToggleSystemLock())" Icon="@Icons.Material.Sharp.Lock" Label="Lock" />
                         }
                         
-                    <MudMenu Icon="@Icons.Material.Filled.GraphicEq" Label="System Status">
+                    <MudMenu StartIcon="@Icons.Material.Filled.GraphicEq" Label="System Status">
                         <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Unknown))" Label="Unknown"/>
                         <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Occupied))" Label="Occupied"/>
                         <MudMenuItem OnClick="@(() => SetSelectedSystemStatus(WHSystemStatus.Hostile))" Label="Hostile" />   

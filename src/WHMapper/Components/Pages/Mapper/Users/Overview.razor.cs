@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Mono.TextTemplating;
 using System;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper;
@@ -47,17 +48,35 @@ public partial class Overview : IAsyncDisposable
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private Task ToggleTracking(int accountId)
+    private async Task ToggleTracking(int accountId)
     {
         var account = Accounts.FirstOrDefault(a => a.Id == accountId);
         if (account == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         account.Tracking = !account.Tracking;
+        if (account.Tracking)
+        {
+            await TrackerServices.StartTracking(account.Id);
+        }
+        else
+        {
+            await TrackerServices.StopTracking(account.Id);
+        }
+        
         StateHasChanged();
-        return Task.CompletedTask;
+        return;
+    }
+
+    private async Task SetPrimaryAccount(int accountId)
+    {
+        if (!string.IsNullOrEmpty(UID.ClientId))
+        {
+            await EveMapperUserManagementService.SetPrimaryAccountAsync(UID.ClientId, accountId.ToString());
+            StateHasChanged();
+        }
     }
 
 

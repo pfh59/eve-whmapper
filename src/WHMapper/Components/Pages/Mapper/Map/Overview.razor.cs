@@ -1248,8 +1248,20 @@ public partial class Overview : IAsyncDisposable
             CharactereEntity? user= await eveMapperService.GetCharacter(accountID);
             if(user!=null)
             {
-                srcNode?.RemoveConnectedUser(user.Name);
-                targetNode?.AddConnectedUser(user.Name);
+                //remove user from old system if exist
+                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
+                if (userSystem != null)
+                {
+                    await userSystem.RemoveConnectedUser(user.Name);
+                    userSystem.Refresh();
+                }
+                
+
+                if (targetNode != null)
+                {
+                    await targetNode.AddConnectedUser(user.Name);
+                    targetNode.Refresh();
+                }
             }
 
             if(this.MapId.HasValue && targetNode!=null)

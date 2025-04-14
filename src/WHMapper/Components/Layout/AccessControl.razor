@@ -20,8 +20,7 @@
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
                                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                                     <input type="hidden" name="clientId" value="@UID.ClientId" />
-                                    <MudButton Variant="Variant.Text" Color="Color.Default" ButtonType="ButtonType.Submit">
-                                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+                                    <MudButton Variant="Variant.Text" Color="Color.Default"  ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.ExitToApp">
                                         Logout
                                     </MudButton>
                                 </MudForm>
@@ -41,8 +40,8 @@
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
                                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                                     <input type="hidden" name="clientId" value="@UID.ClientId" />
-                                    <MudButton Variant="Variant.Text" Color="Color.Default" ButtonType="ButtonType.Submit">
-                                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+                                    <MudMenuItem Icon="@Icons.Material.Filled.ExitToApp" Label="Logout" ></MudMenuItem>
+                                    <MudButton Variant="Variant.Text" Color="Color.Default"  ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.ExitToApp">
                                         Logout
                                     </MudButton>
                                 </MudForm>
@@ -59,8 +58,7 @@
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
                                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                                     <input type="hidden" name="clientId" value="@UID.ClientId" />
-                                    <MudButton Variant="Variant.Text" Color="Color.Default"  ButtonType="ButtonType.Submit">
-                                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+                                    <MudButton Variant="Variant.Text" Color="Color.Default"  ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.ExitToApp">
                                         Logout
                                     </MudButton>
                                 </MudForm>
@@ -122,12 +120,6 @@
     {
         return $"authentication/login?clientId={UID.ClientId}";
     }
-
-    private string GetLogoutUrl()
-    {
-        return $"logout?clientId={UID.ClientId}";
-    }
-
 
     private async Task<bool> OpenAdminAccessDialog()
     {

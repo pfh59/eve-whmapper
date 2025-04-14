@@ -22,7 +22,17 @@
     <script src="_framework/blazor.web.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/Z.Blazor.Diagrams/script.min.js"></script>
-    <script type="module" src="WHMapper.lib.module.js"></script>
+    <script type="module">
+        import * as WHMapper from './WHMapper.lib.module.js';
+
+        Blazor.start().then(blazor => {
+            if (blazor._internal?.mode === "server") {
+                WHMapper.afterServerStarted(blazor);
+            } else if (blazor._internal?.mode === "webassembly") {
+                WHMapper.afterWebAssemblyStarted?.(blazor);
+            }
+        });
+    </script>
 </body>
 
 </html>

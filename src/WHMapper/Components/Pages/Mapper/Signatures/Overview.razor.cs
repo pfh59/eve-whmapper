@@ -19,8 +19,6 @@ public partial class Overview : ComponentBase,IDisposable
     [Inject]
     public ILogger<Overview> Logger { get; set; } = null!;
 
-    [Inject]
-    private IEveUserInfosServices  UserInfos { get; set; } = null!;
 
     [Inject]
     private IWHSignatureRepository DbWHSignatures { get; set; } = null!;
@@ -46,6 +44,9 @@ public partial class Overview : ComponentBase,IDisposable
     [Inject]
     private IPasteServices PasteServices { get; set; } = null!;
 
+    [Inject]
+    private IEveMapperService EveMapperServices { get; set; } = null!;
+
     private IEnumerable<WHSignature> Signatures { get; set; } = null!;
 
     [Parameter]
@@ -68,12 +69,11 @@ public partial class Overview : ComponentBase,IDisposable
 
     private MudTable<WHSignature?> _signatureTable { get; set; } =null!;
 
-    private string? _currentUser;
+    private string? _currentUser = null!;
 
 
     protected override async  Task OnInitializedAsync()
     {
-        _currentUser = await UserInfos.GetUserName();
         EveMapperRealTimeService.WormholeSignaturesChanged += OnWormholeSignaturesChanged;
         await base.OnInitializedAsync();
         if(PasteServices!=null)
@@ -82,10 +82,32 @@ public partial class Overview : ComponentBase,IDisposable
 
     protected override Task OnParametersSetAsync()
     {
-        Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync()));
+        Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync()), Task.Run(() => LoadCurrentUserNameAsync()));
         return base.OnParametersSetAsync();
     }
+    private async Task LoadCurrentUserNameAsync()
+    {
+        if (!CurrentPrimaryUserId.HasValue)
+        {
+            Logger.LogWarning("CurrentPrimaryUserId is not set.");
+            return;
+        }
 
+        try
+        {
+            var characterEntity = await EveMapperServices.GetCharacter(CurrentPrimaryUserId.Value);
+            _currentUser = characterEntity?.Name ?? string.Empty;
+
+            if (string.IsNullOrEmpty(_currentUser))
+            {
+                Logger.LogWarning("Character name could not be retrieved for user ID {UserId}.", CurrentPrimaryUserId.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error while retrieving character name for user ID {UserId}.", CurrentPrimaryUserId.Value);
+        }
+    }
     private async Task HandleTimerAsync()
     {
 
@@ -169,6 +191,7 @@ public partial class Overview : ComponentBase,IDisposable
         return displayAttribute.ShortName ?? displayAttribute.Name ?? value.ToString();
     }
 
+
     protected async Task  OpenImportDialog()
     {
         DialogOptions disableBackdropClick = new DialogOptions()
@@ -180,6 +203,7 @@ public partial class Overview : ComponentBase,IDisposable
         };
         var parameters = new DialogParameters();
         parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId);
+        parameters.Add("CurrentPrimaryUserId", CurrentPrimaryUserId);
 
         var dialog = await DialogService.ShowAsync<Import>("Import Scan Dialog", parameters, disableBackdropClick);
         DialogResult? result = await dialog.Result;

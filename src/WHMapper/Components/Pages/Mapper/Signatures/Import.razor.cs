@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.EveOAuthProvider.Services;
+using WHMapper.Services.EveMapper;
 
 namespace WHMapper.Components.Pages.Mapper.Signatures;
 
@@ -16,7 +17,7 @@ public partial class Import
 {
 
     [Inject]
-    private IEveUserInfosServices  UserService { get; set; } = null!;
+    private IEveMapperService EveMapperServices { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -33,8 +34,11 @@ public partial class Import
     [Parameter]
     public int CurrentSystemNodeId { get; set; }
 
+    [Parameter]
+    public int CurrentPrimaryUserId { get; set; }
+
     private IEnumerable<WHSignature>? _currentSystemSigs = null!;
-    private string scanUser = String.Empty;
+    private string _scanUser = String.Empty;
 
     private MudForm _form = null!;
     private bool _success = false;
@@ -109,7 +113,8 @@ public partial class Import
         _lazyDeleted = false;
         Success = false;
         _currentSystemSigs = await SignatureHelper.GetCurrentSystemSignatures(CurrentSystemNodeId);
-        scanUser = await UserService.GetUserName();
+        var characterEntity = await EveMapperServices.GetCharacter(CurrentPrimaryUserId);
+        _scanUser = characterEntity?.Name ?? string.Empty;
     }
 
     private async Task Submit()
@@ -120,7 +125,7 @@ public partial class Import
         {
             try
             {
-                if (await SignatureHelper.ImportScanResult(scanUser, CurrentSystemNodeId, ScanResult, _lazyDeleted))
+                if (await SignatureHelper.ImportScanResult(_scanUser, CurrentSystemNodeId, ScanResult, _lazyDeleted))
                 {
                     Snackbar.Add("Signatures successfully added/updated", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(true));
@@ -152,7 +157,7 @@ public partial class Import
 
     private async Task Analyze()
     {
-        var sigs = await SignatureHelper.ParseScanResult(scanUser, CurrentSystemNodeId, ScanResult);
+        var sigs = await SignatureHelper.ParseScanResult(_scanUser, CurrentSystemNodeId, ScanResult);
         var res = await SignatureHelper.AnalyzedSignatures(sigs, _currentSystemSigs, _lazyDeleted);
         AnalyzesSignatures = res?.OrderBy(x=>x.Name);
         await InvokeAsync(() => {
