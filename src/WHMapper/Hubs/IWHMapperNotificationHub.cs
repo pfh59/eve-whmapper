@@ -13,7 +13,7 @@ namespace WHMapper.Hubs
 		Task NotifyLinkRemoved(int accountID, int mapId, int linkId);
         Task NotifyWormoleMoved(int accountID, int mapId, int wormholeId,double posx,double posy);
         Task NotifyLinkChanged(int accountID,int mapId, int linkId, bool eol, SystemLinkSize size, SystemLinkMassStatus mass);
-        Task NotifyWormholeNameExtensionChanged(int accountID, int mapId, int wormholeId,bool increment);
+        Task NotifyWormholeNameExtensionChanged(int accountID, int mapId, int wormholeId,char? extension);
         Task NotifyWormholeSignaturesChanged(int accountID, int mapId, int wormholeId);
         Task NotifyWormholeLockChanged(int accountID, int mapId, int wormholeId, bool locked);
         Task NotifyWormholeSystemStatusChanged(int accountID, int mapId, int wormholeId, WHSystemStatus systemStatus);

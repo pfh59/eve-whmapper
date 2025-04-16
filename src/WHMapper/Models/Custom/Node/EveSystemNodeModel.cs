@@ -190,9 +190,14 @@ namespace WHMapper.Models.Custom.Node
                 _wh.NameExtension = 0;
         }
 
-        public void SetNameExtension(char c)
+        public void SetNameExtension(char? c)
         {
-            _wh.NameExtension = Convert.ToByte(c);
+            if(c == null)
+                _wh.NameExtension = 0;
+            else if (c < 'A' || c > 'Z')
+                throw new ArgumentOutOfRangeException("Name extension must be between A and Z");
+            else
+                _wh.NameExtension = Convert.ToByte(c);
         }
 
 

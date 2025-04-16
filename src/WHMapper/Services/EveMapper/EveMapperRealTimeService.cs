@@ -26,7 +26,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, int, Task>? LinkRemoved;
     public event Func<int, int, int, double, double, Task>? WormholeMoved;
     public event Func<int, int, int, bool, SystemLinkSize, SystemLinkMassStatus, Task>? LinkChanged;
-    public event Func<int, int, int, bool, Task>? WormholeNameExtensionChanged;
+    public event Func<int, int, int, char?, Task>? WormholeNameExtensionChanged;
     public event Func<int, int, int, Task>? WormholeSignaturesChanged;
     public event Func<int, int, int, bool, Task>? WormholeLockChanged;
     public event Func<int, int, int, WHSystemStatus, Task>? WormholeSystemStatusChanged;
@@ -130,11 +130,11 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                         await LinkChanged.Invoke(accountID, mapId, linkId, eol, size, mass);
                     }
                 });
-                hubConnection.On<int, int, int, bool>("NotifyWormholeNameExtensionChanged", async (accountID, mapId, wormholeId, increment) => 
+                hubConnection.On<int, int, int, char?>("NotifyWormholeNameExtensionChanged", async (accountID, mapId, wormholeId, extension) => 
                 {
                     if (WormholeNameExtensionChanged != null)
                     {
-                        await WormholeNameExtensionChanged.Invoke(accountID, mapId, wormholeId, increment);
+                        await WormholeNameExtensionChanged.Invoke(accountID, mapId, wormholeId, extension);
                     }
                 });
                 hubConnection.On<int, int, int>("NotifyWormholeSignaturesChanged", async (accountID, mapId, wormholeId) => 
@@ -340,12 +340,12 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    public async Task NotifyWormholeNameExtensionChanged(int accountID,int mapId, int wormholeId, bool increment)
+    public async Task NotifyWormholeNameExtensionChanged(int accountID,int mapId, int wormholeId, char? extension)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendWormholeNameExtensionChanged", mapId, wormholeId, increment);
+            await hubConnection.SendAsync("SendWormholeNameExtensionChanged", mapId, wormholeId, extension);
         }
     }
 

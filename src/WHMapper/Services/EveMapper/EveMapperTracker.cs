@@ -131,8 +131,8 @@ public class EveMapperTracker : IEveMapperTracker
         {
             while (await timer.WaitForNextTickAsync(cts.Token))
             {
-                await UpdateCurrentShip(accountID);
-                await UpdateCurrentLocation(accountID);
+                await UpdateCurrentShip(accountID,cts);
+                await UpdateCurrentLocation(accountID,cts);
             }
         }
         catch (OperationCanceledException oce)
@@ -166,7 +166,7 @@ public class EveMapperTracker : IEveMapperTracker
         }
     }
     
-    private async Task UpdateCurrentShip(int accountID)
+    private async Task UpdateCurrentShip(int accountID, CancellationTokenSource? cts)
     {    
         UserToken? token = null;
         Ship? ship = null;
@@ -178,6 +178,17 @@ public class EveMapperTracker : IEveMapperTracker
             if (token == null)
             {
                 _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
+                if(cts != null && !cts.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await cts.CancelAsync();
+                    }
+                    catch (ObjectDisposedException odex)
+                    {
+                        _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
+                    }
+                }
                 return; // Exit early if the token is not found
             }
 
@@ -220,7 +231,7 @@ public class EveMapperTracker : IEveMapperTracker
 
     }
 
-    private async Task UpdateCurrentLocation(int accountID)
+    private async Task UpdateCurrentLocation(int accountID,CancellationTokenSource? cts)
     {
         EveLocation? newLocation = null;
         UserToken? token = null;
@@ -231,6 +242,17 @@ public class EveMapperTracker : IEveMapperTracker
             if (token == null)
             {
                 _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
+                if(cts != null && !cts.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await cts.CancelAsync();
+                    }
+                    catch (ObjectDisposedException odex)
+                    {
+                        _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
+                    }
+                }
                 return; // Exit early if the token is not found
             }
 

@@ -93,8 +93,8 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="accountID">The accountID of the user who changed the wormhole name extension.</param>
     /// <param name="mapId">The ID of the map where the wormhole name extension was changed.</param>
     /// <param name="wormholeId">The ID of the wormhole with the changed name extension.</param>
-    /// <param name="increment">Indicates if the name extension was incremented.</param>
-    event Func<int, int, int, bool, Task> WormholeNameExtensionChanged;
+    /// <param name="extension">The new name extension of the wormhole, or null if removed.</param>
+    event Func<int, int, int, char?, Task> WormholeNameExtensionChanged;
 
     /// <summary>
     /// Triggered when a wormhole signature is changed.
@@ -269,9 +269,9 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="accountID">The ID of the account.</param>
     /// <param name="mapId">The ID of the map where the wormhole name extension was changed.</param>
     /// <param name="wormholeId">The ID of the wormhole with the changed name extension.</param>
-    /// <param name="increment">Indicates if the name extension was incremented.</param>
+    /// <param name="extension">The new name extension of the wormhole, or null if removed.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task NotifyWormholeNameExtensionChanged(int accountID, int mapId, int wormholeId, bool increment);
+    Task NotifyWormholeNameExtensionChanged(int accountID, int mapId, int wormholeId, char? extension);
 
     /// <summary>
     /// Notifies the server that a wormhole signature has been changed.
