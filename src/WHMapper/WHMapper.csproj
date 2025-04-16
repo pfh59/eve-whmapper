@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>4a1af26f-e1f0-4229-b68c-16e61e58037d</UserSecretsId>
     <Version>0.0.0</Version>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>

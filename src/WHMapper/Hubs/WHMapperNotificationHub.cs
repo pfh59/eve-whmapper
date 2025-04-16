@@ -141,12 +141,12 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         }
     }
 
-    public async Task SendWormholeNameExtensionChanged(int mapId, int wowrmholeId,bool increment)
+    public async Task SendWormholeNameExtensionChanged(int mapId, int wowrmholeId,char? extension)
     {
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionChanged(accountID, mapId, wowrmholeId,increment);
+            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionChanged(accountID, mapId, wowrmholeId,extension);
         }
 
     }

@@ -1133,7 +1133,10 @@ public partial class Overview : IAsyncDisposable
                      WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
                     if (primaryAccount != null)
                     {
-                        await EveMapperRealTime.NotifyWormholeNameExtensionChanged(primaryAccount.Id, mapId.Value, wh.Id, increment);
+                        if(node.NameExtension == null)
+                            await EveMapperRealTime.NotifyWormholeNameExtensionChanged(primaryAccount.Id, mapId.Value, wh.Id, null);
+                        else
+                            await EveMapperRealTime.NotifyWormholeNameExtensionChanged(primaryAccount.Id, mapId.Value, wh.Id, ((node.NameExtension.ToCharArray())[0]));
                     }
                     return true;
                 }
@@ -1688,21 +1691,17 @@ public partial class Overview : IAsyncDisposable
                     throw new NullReferenceException("User not found");
 
                 EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
-                if (userSystem != null)
+                if (userSystem != null && userSystem.IdWH != wormholeId)
                 {
                     await userSystem.RemoveConnectedUser(user.Name);
                     userSystem.Refresh();
                 }
 
                 EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.IdWH == wormholeId);
-                if (systemToAddUser != null)
+                if (systemToAddUser != null && systemToAddUser.ConnectedUsers != null && !systemToAddUser.ConnectedUsers.Contains(user.Name))
                 {
                     await systemToAddUser.AddConnectedUser(user.Name);
                     systemToAddUser.Refresh();
-                }
-                else
-                {
-                    Logger.LogWarning("On NotifyUserPosition, unable to find system to add user");
                 }
             }
         }
@@ -1722,7 +1721,9 @@ public partial class Overview : IAsyncDisposable
         try
         {
             WHMapperUser[]? accounts= await GetAccountsAsync();
-            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null 
+                && accounts.FirstOrDefault(x=>x.Id==accountID)==null 
+                && _blazorDiagram?.Nodes.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == whId) == null)
             {
                 var wh = await DbWHSystems.GetById(whId);
                 if (wh != null)
@@ -1753,7 +1754,9 @@ public partial class Overview : IAsyncDisposable
         try
         {
             WHMapperUser[]? accounts= await GetAccountsAsync();
-            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null 
+                && accounts.FirstOrDefault(x=>x.Id==accountID)==null
+                && _blazorDiagram?.Nodes.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == whId) != null)
             {
                 var node = await GetSystemNode(whId);
                 if (node != null)
@@ -1782,16 +1785,17 @@ public partial class Overview : IAsyncDisposable
         try
         {
             WHMapperUser[]? accounts= await GetAccountsAsync();
-            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null 
+                && accounts.FirstOrDefault(x=>x.Id==accountID)==null
+                && _blazorDiagram?.Nodes.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == whId) != null)
             {
                 var node = await GetSystemNode(whId);
-                if (node != null)
+                if (node != null && node.Position!=null &&
+                    ((Math.Abs(node.Position.X - posX) >= EPSILON) || 
+                    (Math.Abs(node.Position.Y - posY) >= EPSILON))
+                )
                 {
-                    node.SetPosition(posX, posY);
-                }
-                else
-                {
-                    Logger.LogWarning("On NotifyWormholeMoved, unable to find moved wormhole");
+                    node?.SetPosition(posX, posY);
                 }
             }
         }
@@ -1811,7 +1815,9 @@ public partial class Overview : IAsyncDisposable
         try
         {
             WHMapperUser[]? accounts= await GetAccountsAsync();
-            if (MapId.HasValue && MapId.Value == mapId && accounts!=null && accounts.FirstOrDefault(x=>x.Id==accountID)==null)
+            if (MapId.HasValue && MapId.Value == mapId && accounts!=null 
+                && accounts.FirstOrDefault(x=>x.Id==accountID)==null
+                && _blazorDiagram?.Links.FirstOrDefault(x => ((EveSystemLinkModel)x).Id == linkId) == null)
             {
                 var link = await DbWHSystemLinks.GetById(linkId);
                 if (link != null)
@@ -1849,7 +1855,9 @@ public partial class Overview : IAsyncDisposable
         try
         {
             var accounts = await GetAccountsAsync();
-            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null 
+                && accounts.FirstOrDefault(x => x.Id == accountID) == null
+                && _blazorDiagram?.Links?.FirstOrDefault(x => ((EveSystemLinkModel)x).Id == linkId) != null)
             {
                 var link = await DbWHSystemLinks.GetById(linkId);
                 if (link != null)
@@ -1886,27 +1894,22 @@ public partial class Overview : IAsyncDisposable
         try
         {
             var accounts = await GetAccountsAsync();
-            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null 
+                && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
                 var link = await DbWHSystemLinks.GetById(linkId);
                 if (link != null)
                 {
-                    var linkToChange = _blazorDiagram?.Links?.FirstOrDefault(x => ((EveSystemLinkModel)x).Id == linkId);
-                    if (linkToChange != null)
+                    EveSystemLinkModel? linkToChange = _blazorDiagram?.Links?.FirstOrDefault(x => ((EveSystemLinkModel)x).Id == linkId) as EveSystemLinkModel;
+                    if (linkToChange != null
+                        && (linkToChange.IsEoL != isEoL || linkToChange.Size != size || linkToChange.MassStatus != massStatus) // Check if any property has changed
+                    )
                     {
-                        ((EveSystemLinkModel)linkToChange).IsEoL = isEoL;
-                        ((EveSystemLinkModel)linkToChange).Size = size;
-                        ((EveSystemLinkModel)linkToChange).MassStatus = massStatus;
+                        linkToChange.IsEoL = isEoL;
+                        linkToChange.Size = size;
+                        linkToChange.MassStatus = massStatus;
                         linkToChange.Refresh();
                     }
-                    else
-                    {
-                        Logger.LogWarning("On NotifyLinkChanged, unable to find changed link");
-                    }
-                }
-                else
-                {
-                    Logger.LogWarning("On NotifyLinkChanged, unable to find changed link");
                 }
             }
         }
@@ -1926,17 +1929,14 @@ public partial class Overview : IAsyncDisposable
         try
         {
             var accounts = await GetAccountsAsync();
-            if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
+            if (MapId.HasValue && MapId.Value == mapId && accounts != null 
+                && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
                 var node = await GetSystemNode(whId);
-                if (node != null)
+                if (node != null && node.Locked!=locked)
                 {
                     node.Locked = locked;
                     node.Refresh();
-                }
-                else
-                {
-                    Logger.LogWarning("On NotifyWormholeLockChanged, unable to find changed wormhole");
                 }
             }
         }
@@ -1955,14 +1955,10 @@ public partial class Overview : IAsyncDisposable
             if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null) 
             {
                 var node = await GetSystemNode(whId);
-                if (node != null)
+                if (node != null && node.SystemStatus != systemStatus)
                 {
                     node.SystemStatus = systemStatus;
                     node.Refresh();
-                }
-                else
-                {
-                    Logger.LogWarning("On NotifyWormholeSystemStatusChanged, unable to find changed wormhole");
                 }
             }
         }
@@ -1976,7 +1972,7 @@ public partial class Overview : IAsyncDisposable
         }
     }
 
-    private async Task OnWormholeNameExtensionChanged(int accountID,int mapId, int whId, bool increment)
+    private async Task OnWormholeNameExtensionChanged(int accountID,int mapId, int whId, char? extension)
     {
         await _semaphoreSlim2.WaitAsync();
         try
@@ -1985,18 +1981,10 @@ public partial class Overview : IAsyncDisposable
             if (MapId.HasValue && MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
                 var node = await GetSystemNode(whId);
-                if (node != null)
+                if (node != null && node.NameExtension!=extension.ToString())
                 {
-                    if (increment)
-                        node.IncrementNameExtension();
-                    else
-                        node.DecrementNameExtension();
-
+                    node.SetNameExtension(extension);
                     node.Refresh();
-                }
-                else
-                {
-                    Logger.LogWarning("On NotifyWormholeNameExtensionChanged, unable to find changed wormhole");
                 }
             }
         }
