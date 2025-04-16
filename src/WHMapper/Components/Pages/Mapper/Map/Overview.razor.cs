@@ -1791,10 +1791,11 @@ public partial class Overview : IAsyncDisposable
             {
                 var node = await GetSystemNode(whId);
                 if (node != null && node.Position!=null &&
-                    (node.Position?.X != posX || node.Position?.Y != posY) // Check if position has changed
-                    )
+                    ((Math.Abs(node.Position.X - posX) >= EPSILON) || 
+                    (Math.Abs(node.Position.Y - posY) >= EPSILON))
+                )
                 {
-                    node.SetPosition(posX, posY);
+                    node?.SetPosition(posX, posY);
                 }
             }
         }

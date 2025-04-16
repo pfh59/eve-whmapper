@@ -89,6 +89,9 @@ namespace WHMapper.Tests.Models.Graph
             node.SetNameExtension('P');
             Assert.Equal("P",node.NameExtension);
 
+            Assert.Throws<ArgumentOutOfRangeException>(() => node.SetNameExtension('1'));
+
+
             node.SystemStatus=WHSystemStatus.Hostile;
             Assert.Equal(WHSystemStatus.Hostile,node.SystemStatus);
 
