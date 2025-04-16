@@ -90,7 +90,6 @@
         await base.OnInitializedAsync();
     }
 
-    [JSInvokable]
     private async Task HandleCustomPaste(CustomPasteEventArgs eventArgs)
     {
         if(!String.IsNullOrEmpty(eventArgs.PastedData) && !String.IsNullOrWhiteSpace(eventArgs.PastedData))
