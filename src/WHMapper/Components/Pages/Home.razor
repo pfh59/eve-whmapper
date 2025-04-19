@@ -12,7 +12,7 @@
     <NotAuthorized>
         @if(_loading)
         {
-            <MudPaper Class="d-flex align-center justify-center" Height="100vh" Width="100%">
+            <MudPaper Class="d-flex align-center justify-center" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" Width="100%">
                 <MudCard Outlined="true">
                     <MudCardHeader>
                         <CardHeaderContent>
@@ -27,6 +27,30 @@
                     </MudCardContent>
                 </MudCard>
             </MudPaper>
+        }
+        else
+        {
+
+            <div class="d-flex align-center justify-center position-relative" style="height: calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4); width: 100%;">
+                 <MudStack Class="d-flex flex-none position-absolute" Row="false" Spacing="5" Style="top: 25px;" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.h4" Align="Align.Center">EVE WHMapper</MudText>
+                    <MudText Typo="Typo.body1" Align="Align.Center">Map wormholes, track chains, and keep your corp connected.</MudText>
+                 </MudStack>
+                <MudImage Class="d-flex flex-1" Src="Images/splashscreen.png" ObjectFit="ObjectFit.Contain" Style="max-width: 100%; max-height: 100%;"/>
+                <MudStack Class="d-flex flex-none position-absolute" Row="true" Spacing="2" Style="bottom: 25px;" Justify="Justify.SpaceBetween">
+                    <MudTooltip Text="Documentation" Placement="Placement.Top">
+                        <MudIconButton Icon="@Icons.Material.Filled.HelpOutline" Size="Size.Medium" Color="Color.Default" Href="https://pfh59.github.io/eve-whmapper-docs/" Target="_blank"/>
+                    </MudTooltip>
+                    <MudTooltip Text="Forum" Placement="Placement.Top">
+                        <MudIconButton Icon="@Icons.Material.Filled.Forum" Size="Size.Medium" Color="Color.Default" Href="https://forums.eveonline.com/t/whmapper/421061" Target="_blank" />
+                    </MudTooltip>
+                    <MudTooltip Text="GitHub Repository" Placement="Placement.Top">
+                        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Size="Size.Medium" Color="Color.Default" Href="https://github.com/pfh59/eve-whmapper" Target="_blank" />
+                    </MudTooltip>
+                </MudStack>
+            </div>
+
+
         }
     </NotAuthorized>
 </AuthorizeView>
