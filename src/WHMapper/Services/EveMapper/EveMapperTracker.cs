@@ -204,8 +204,15 @@ public class EveMapperTracker : IEveMapperTracker
                 _semaphoreSlim.Release();
             }
 
-            while(!_currentShips.TryGetValue(accountID, out oldShip))
-                await Task.Delay(1);
+            if(_currentShips.ContainsKey(accountID))
+            {
+                while(!_currentShips.TryGetValue(accountID, out oldShip))
+                    await Task.Delay(1);
+            }
+            else
+            {
+                oldShip = null;
+            }
             
             if (ship == null  || oldShip?.ShipItemId == ship.ShipItemId) return;
 
@@ -272,9 +279,16 @@ public class EveMapperTracker : IEveMapperTracker
                 _semaphoreSlim.Release();
             }
 
-             while(!_currentLocations.TryGetValue(accountID, out  oldLocation))
-                await Task.Delay(1);
-         
+
+            if(_currentLocations.ContainsKey(accountID))
+            {
+                while(!_currentLocations.TryGetValue(accountID, out oldLocation))
+                    await Task.Delay(1);
+            }
+            else
+            {
+                oldLocation = null;
+            }         
 
             if (newLocation == null || oldLocation?.SolarSystemId == newLocation.SolarSystemId) return;
 
