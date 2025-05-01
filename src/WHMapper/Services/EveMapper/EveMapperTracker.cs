@@ -170,6 +170,7 @@ public class EveMapperTracker : IEveMapperTracker
     {    
         UserToken? token = null;
         Ship? ship = null;
+        Ship? oldShip = null;
 
     
         try
@@ -203,17 +204,20 @@ public class EveMapperTracker : IEveMapperTracker
                 _semaphoreSlim.Release();
             }
 
-            _currentShips.TryGetValue(accountID, out var oldShip);
+            while(!_currentShips.TryGetValue(accountID, out oldShip))
+                await Task.Delay(1);
             
             if (ship == null  || oldShip?.ShipItemId == ship.ShipItemId) return;
 
             _logger.LogInformation("Ship Changed");
-            if(oldShip==null)
-                while(!_currentShips.TryAdd(accountID, ship))
+            if(oldShip!=null)
+            {
+                while(!_currentShips.TryRemove(accountID, out _))
                     await Task.Delay(1);
-            else
-                while(! _currentShips.TryUpdate(accountID, ship, oldShip))
-                        await Task.Delay(1);
+            }
+
+            while(! _currentShips.TryAdd(accountID, ship))
+                await Task.Delay(1);
 
 
             if (ship != null)
@@ -234,6 +238,7 @@ public class EveMapperTracker : IEveMapperTracker
     private async Task UpdateCurrentLocation(int accountID,CancellationTokenSource? cts)
     {
         EveLocation? newLocation = null;
+        EveLocation? oldLocation = null;
         UserToken? token = null;
 
         try
@@ -267,17 +272,21 @@ public class EveMapperTracker : IEveMapperTracker
                 _semaphoreSlim.Release();
             }
 
-             _currentLocations.TryGetValue(accountID, out var oldLocation);
+             while(!_currentLocations.TryGetValue(accountID, out  oldLocation))
+                await Task.Delay(1);
+         
 
             if (newLocation == null || oldLocation?.SolarSystemId == newLocation.SolarSystemId) return;
 
             _logger.LogInformation("System Changed");
-            if(oldLocation==null)
-                while(!_currentLocations.TryAdd(accountID, newLocation))
+            if(oldLocation!=null)
+            {
+                while(!_currentLocations.TryRemove(accountID, out _))
                     await Task.Delay(1);
-            else
-                while(!_currentLocations.TryUpdate(accountID, newLocation, oldLocation))
-                    await Task.Delay(1);
+            }
+        
+            while(!_currentLocations.TryAdd(accountID, newLocation))
+                await Task.Delay(1);
 
             if (newLocation != null)
             {

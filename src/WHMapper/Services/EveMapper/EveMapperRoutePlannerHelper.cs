@@ -121,7 +121,6 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
         if (fromSolarSystemJump.JumpList.Count() == 0)
         {
-            _logger.LogWarning("No connection from solar system {0}", fromSolarSystemId);
             return new int[0];
         }
 

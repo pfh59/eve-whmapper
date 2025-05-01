@@ -1159,21 +1159,12 @@ public partial class Overview : IAsyncDisposable
     {
         if(_currentShips.ContainsKey(accountID))
         {
-            if (oldShip != null)
-            {
-                while(!_currentShips.TryUpdate(accountID, newShip, oldShip))
-                    await Task.Delay(1);
-            }
-            else
-            {
-                while(!_currentShips.TryAdd(accountID, newShip))
-                    await Task.Delay(1);
-            }
+            while(!_currentShips.TryRemove(accountID, out _))
+                await Task.Delay(1);
         }
-        else
-        {
-            _currentShips.TryAdd(accountID,newShip);
-        }
+
+        while(!_currentShips.TryAdd(accountID,newShip))
+            await Task.Delay(1);
     }
     
     private async Task OnSystemChanged(int accountID,  EveLocation? oldLocation, EveLocation newLocation)
