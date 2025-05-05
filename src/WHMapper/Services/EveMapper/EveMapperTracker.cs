@@ -131,13 +131,15 @@ public class EveMapperTracker : IEveMapperTracker
         {
             while (await timer.WaitForNextTickAsync(cts.Token))
             {
-                await UpdateCurrentShip(accountID,cts);
-                await UpdateCurrentLocation(accountID,cts);
+                await Task.WhenAll(
+                    UpdateCurrentShip(accountID,cts),
+                    UpdateCurrentLocation(accountID,cts)
+                );
             }
         }
         catch (OperationCanceledException oce)
         {
-            _logger.LogInformation(oce, "Operation canceled");
+            _logger.LogInformation(oce,"Tracking operation for account {accountID} was canceled.", accountID);
         }
         catch (ObjectDisposedException odex)
         {

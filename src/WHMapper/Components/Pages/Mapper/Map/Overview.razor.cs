@@ -1191,10 +1191,10 @@ public partial class Overview : IAsyncDisposable
                 //get placement, shall be refactored to be more dynamic
                 double nodePositionX = 0;
                 double nodePositionY = 0;
-                if(srcNode!=null)
+                if(srcNode!=null && srcNode.Position!=null && srcNode.Size!=null)
                 {
-                    nodePositionX  = srcNode.Position!.X + srcNode.Size!.Width + 10;
-                    nodePositionY = srcNode.Position!.Y + srcNode!.Size!.Height + 10;
+                    nodePositionX  = srcNode.Position.X + srcNode.Size.Width + 10;
+                    nodePositionY = srcNode.Position.Y + srcNode!.Size.Height + 10;
                 }
 
                 if(await AddSystemNode(MapId.Value,newLocation,accountID,extension,nodePositionX,nodePositionY))//add system node if system is not already added
@@ -1266,7 +1266,7 @@ public partial class Overview : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "On System Changed");
+            Logger.LogError(ex, "On System Changed. StackTrace: {StackTrace}", ex.StackTrace);
         }
         finally
         {
