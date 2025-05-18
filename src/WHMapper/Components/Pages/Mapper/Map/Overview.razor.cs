@@ -311,13 +311,9 @@ public partial class Overview : IAsyncDisposable
     
             if(selectedWHMap != null)
             {
-                _blazorDiagram.SuspendSorting = true;
-                _blazorDiagram.SuspendRefresh = true;
                 await ClearDiagram();
                 await InitializeSystemNodes(selectedWHMap);
                 await InitializeSystemLinks(selectedWHMap);
-                _blazorDiagram.SuspendSorting = false;
-                _blazorDiagram.SuspendRefresh = false;
             }
 
             Logger.LogInformation("Restore Mapper Success");
@@ -398,16 +394,37 @@ public partial class Overview : IAsyncDisposable
             return;
         }
 
-        var tasks = selectedWHMap.WHSystems.Select(item => Task.Run(async () =>
+        var nodeTasks = selectedWHMap.WHSystems.Select<WHSystem, Task<EveSystemNodeModel?>>(async item =>
         {
-            var whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
-            whSysNode.OnLocked += OnWHSystemNodeLockedAsync;
-            whSysNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
-           
-            _blazorDiagram.Nodes.Add(whSysNode);
-        }));
+            try
+            {
+                var whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
+                if (whSysNode == null)
+                {
+                    Logger.LogWarning("bad node, whsysnode is null. NodeId: {NodeId}, MapId: {MapId}", item.Id, selectedWHMap.Id);
+                    return null;
+                }
+                whSysNode.OnLocked += OnWHSystemNodeLockedAsync;
+                whSysNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
 
-        await Task.WhenAll(tasks);
+                return whSysNode;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to load the system Node {NodeId} for map {MapId};", item.Id, selectedWHMap.Id);
+                return null;
+            }
+        });
+
+        IEnumerable<EveSystemNodeModel> eveSysNodeModels = (await Task.WhenAll(nodeTasks)).Where(x => x != null)!;
+        if (_blazorDiagram.Nodes != null)
+        {
+            _blazorDiagram.Nodes.Add(eveSysNodeModels);
+        }
+        else
+        {
+            Logger.LogError("Blazor Diagram Nodes is null");
+        }
     }
 
     private async Task InitializeSystemLinks(WHMap? selectedWHMap)
@@ -417,30 +434,35 @@ public partial class Overview : IAsyncDisposable
             return;
         }
 
-        var tasks = selectedWHMap.WHSystemLinks.Select(item => Task.Run(async () =>
+        var linkTasks = selectedWHMap.WHSystemLinks.Select(async item =>
         {
             try
             {
             var srcNode = await GetSystemNode(item.IdWHSystemFrom);
             var targetNode = await GetSystemNode(item.IdWHSystemTo);
-
             if (srcNode != null && targetNode != null)
             {
-                _blazorDiagram.Links.Add(new EveSystemLinkModel(item, srcNode, targetNode));
+                return new EveSystemLinkModel(item, srcNode, targetNode);
             }
             else
             {
-                Logger.LogWarning("Bad Link, srcNode or Targetnode is null, Auto remove");
-                //await DbWHSystemLinks.DeleteById(item.Id);
+                Logger.LogWarning("Bad Link, srcNode or Targetnode is null.LinkId: {LinkId}, srcNodeId: {SrcNodeId}, targetNodeId: {TargetNodeId}, MapId: {MapId}", item.Id, item.IdWHSystemFrom, item.IdWHSystemTo,selectedWHMap.Id);
+                return null;
             }
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Initialize System Links Error");
+            Logger.LogError(ex, "Initialize System Links Error");
+            return null;
             }
-        }));
+        });
 
-        await Task.WhenAll(tasks);
+        IEnumerable<EveSystemLinkModel> eveSysLinkModels = (await Task.WhenAll(linkTasks)).Where(x => x != null)!;
+        if (_blazorDiagram.Links != null)
+            _blazorDiagram.Links.Add(eveSysLinkModels);
+        else
+            Logger.LogError("Blazor Diagram Links is null");
+
     }
 
     #region Diagram Events
