@@ -38,8 +38,17 @@ using WHMapper.Services.BrowserClientIdProvider;
 using WHMapper.Services.EveCookieExtensions;
 using Microsoft.AspNetCore.HttpOverrides;
 using WHMapper.Components;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services);
+});
+
 
 builder.Services.AddDbContextFactory<WHMapperContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
