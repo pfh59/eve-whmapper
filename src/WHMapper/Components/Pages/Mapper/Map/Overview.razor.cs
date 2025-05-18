@@ -399,13 +399,14 @@ public partial class Overview : IAsyncDisposable
             try
             {
                 var whSysNode = await MapperServices.DefineEveSystemNodeModel(item);
-                whSysNode.OnLocked += OnWHSystemNodeLockedAsync;
-                whSysNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
                 if (whSysNode == null)
                 {
                     Logger.LogWarning("bad node, whsysnode is null. NodeId: {NodeId}, MapId: {MapId}", item.Id, selectedWHMap.Id);
                     return null;
                 }
+                whSysNode.OnLocked += OnWHSystemNodeLockedAsync;
+                whSysNode.OnSystemStatusChanged += OnWHSystemStatusChangeAsync;
+
                 return whSysNode;
             }
             catch (Exception ex)
