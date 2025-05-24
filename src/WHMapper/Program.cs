@@ -39,6 +39,7 @@ using WHMapper.Services.EveCookieExtensions;
 using Microsoft.AspNetCore.HttpOverrides;
 using WHMapper.Components;
 using Serilog;
+using WHMapper.Services.BrowserClientIdProvider.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -358,6 +359,7 @@ if (app.Environment.IsProduction())
 }
 app.UseForwardedHeaders();
 app.UseResponseCompression();
+app.UseMiddleware<BrowserClientIdCookieMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
