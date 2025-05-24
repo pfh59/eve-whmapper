@@ -1,94 +1,74 @@
 using System;
-
-namespace WHMapper.Tests.Services.BrowserClientIfProvider;
-
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Threading.Tasks;
+using WHMapper.Services.BrowserClientIdProvider;
 using Xunit;
 
-
-public class BrowserClientIdProviderTest
+namespace WHMapper.Services.BrowserClientIdProvider.Tests
 {
-    private readonly Mock<ILogger<WHMapper.Services.BrowserClientIdProvider.BrowserClientIdProvider>> _mockLogger;
-    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly WHMapper.Services.BrowserClientIdProvider.BrowserClientIdProvider _clientIdProvider;
-
-    public BrowserClientIdProviderTest()
+    public class BrowserClientIdProviderTests
     {
-        _mockLogger = new Mock<ILogger<WHMapper.Services.BrowserClientIdProvider.BrowserClientIdProvider>>();
-        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        _clientIdProvider = new WHMapper.Services.BrowserClientIdProvider.BrowserClientIdProvider(
-            _mockLogger.Object,
-            _mockHttpContextAccessor.Object
-        );
-    }
+        private readonly Mock<ILogger<BrowserClientIdProvider>> _mockLogger;
+        private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
+        private readonly BrowserClientIdProvider _provider;
 
-    [Fact]
-    public async Task GetOrCreateClientIdAsync_ShouldReturnNull_WhenHttpContextIsNull()
-    {
-        // Arrange
-        _mockHttpContextAccessor.Setup(a => a.HttpContext).Returns((HttpContext?)null);
+        public BrowserClientIdProviderTests()
+        {
+            _mockLogger = new Mock<ILogger<BrowserClientIdProvider>>();
+            _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            _provider = new BrowserClientIdProvider(_mockLogger.Object, _mockHttpContextAccessor.Object);
+        }
 
-        // Act
-        var result = await _clientIdProvider.GetOrCreateClientIdAsync();
+        [Fact]
+        public async Task GetClientIdAsync_ReturnsNull_WhenHttpContextIsNull()
+        {
+            _mockHttpContextAccessor.Setup(a => a.HttpContext).Returns((HttpContext?)null);
 
-        // Assert
-        Assert.Null(result);
-        /*_mockLogger.Verify(
-            l => l.LogError("HttpContext is null. Cannot access cookies."),
-            Times.Once
-        );*/
-    }
+            var result = await _provider.GetClientIdAsync();
 
-    [Fact]
-    public async Task GetOrCreateClientIdAsync_ShouldCreateAndReturnNewClientId_WhenCookieDoesNotExist()
-    {
-        // Arrange
-        var mockHttpContext = new DefaultHttpContext();
-        mockHttpContext.Request.Cookies = new Mock<IRequestCookieCollection>().Object;
-       // mockHttpContext.Response.Cookies = new Mock<IResponseCookies>().Object;
+            Assert.Null(result);
+            _mockLogger.Verify(
+                l => l.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("HttpContext is null. Cannot access cookies.")),
+                    null,
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once
+            );
+        }
 
-        _mockHttpContextAccessor.Setup(a => a.HttpContext).Returns(mockHttpContext);
+        [Fact]
+        public async Task GetClientIdAsync_ReturnsClientId_WhenCookieExists()
+        {
+            var mockHttpContext = new DefaultHttpContext();
+            var cookiesMock = new Mock<IRequestCookieCollection>();
+            cookiesMock.Setup(c => c.ContainsKey("client_uid")).Returns(true);
+            cookiesMock.Setup(c => c["client_uid"]).Returns("test-client-id");
+            mockHttpContext.Request.Cookies = cookiesMock.Object;
 
-        var responseCookiesMock = new Mock<IResponseCookies>();
-        responseCookiesMock
-            .Setup(c => c.Append(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CookieOptions>()));
+            _mockHttpContextAccessor.Setup(a => a.HttpContext).Returns(mockHttpContext);
 
-       // mockHttpContext.Response.Cookies = responseCookiesMock.Object;
+            var result = await _provider.GetClientIdAsync();
 
-        // Act
-        var result = await _clientIdProvider.GetOrCreateClientIdAsync();
+            Assert.Equal("test-client-id", result);
+        }
 
-        // Assert
-        Assert.NotNull(result);
-        /*responseCookiesMock.Verify(
-            c => c.Append(
-                "client_uid",
-                It.IsAny<string>(),
-                It.Is<CookieOptions>(o => o.HttpOnly && o.Secure && o.SameSite == SameSiteMode.Lax)
-            ),
-            Times.Once
-        );*/
-    }
+        [Fact]
+        public async Task GetClientIdAsync_ReturnsNull_WhenCookieDoesNotExist()
+        {
+            var mockHttpContext = new DefaultHttpContext();
+            var cookiesMock = new Mock<IRequestCookieCollection>();
+            cookiesMock.Setup(c => c.ContainsKey("client_uid")).Returns(false);
+            mockHttpContext.Request.Cookies = cookiesMock.Object;
 
-    [Fact]
-    public async Task GetOrCreateClientIdAsync_ShouldReturnExistingClientId_WhenCookieExists()
-    {
-        // Arrange
-        var mockHttpContext = new DefaultHttpContext();
-        var requestCookiesMock = new Mock<IRequestCookieCollection>();
-        requestCookiesMock.Setup(c => c.ContainsKey("client_uid")).Returns(true);
-        requestCookiesMock.Setup(c => c["client_uid"]).Returns("existing-client-id");
+            _mockHttpContextAccessor.Setup(a => a.HttpContext).Returns(mockHttpContext);
 
-        mockHttpContext.Request.Cookies = requestCookiesMock.Object;
-        _mockHttpContextAccessor.Setup(a => a.HttpContext).Returns(mockHttpContext);
+            var result = await _provider.GetClientIdAsync();
 
-        // Act
-        var result = await _clientIdProvider.GetOrCreateClientIdAsync();
-
-        // Assert
-        Assert.Equal("existing-client-id", result);
+            Assert.Null(result);
+        }
     }
 }
