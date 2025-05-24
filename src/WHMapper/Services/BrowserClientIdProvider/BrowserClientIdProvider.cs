@@ -14,7 +14,7 @@ public class BrowserClientIdProvider : IBrowserClientIdProvider
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Task<string?> GetOrCreateClientIdAsync()
+    public Task<string?> GetClientIdAsync()
     {
         var context = _httpContextAccessor.HttpContext;
         if (context == null)
@@ -23,23 +23,12 @@ public class BrowserClientIdProvider : IBrowserClientIdProvider
             return Task.FromResult<string?>(null);
         }
 
-        if (!context.Request.Cookies.ContainsKey("client_uid"))
+        if (context.Request.Cookies.ContainsKey("client_uid"))
         {
-            var uid = Guid.NewGuid().ToString();
-            context.Response.Cookies.Append("client_uid", uid, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddYears(1)
-            });
-
-            return Task.FromResult<string?>(uid);
-        } 
-        else
-        {
+            // If the cookie exists, return its value
             return Task.FromResult<string?>(context.Request.Cookies["client_uid"]);
         }
+        return Task.FromResult<string?>(null);
     }
 
 }

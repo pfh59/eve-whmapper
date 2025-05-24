@@ -9,6 +9,7 @@ using WHMapper.Services.EveMapper;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.EveOAuthProvider.Services;
+using WHMapper.Services.BrowserClientIdProvider;
 
 namespace WHMapper.Components.Pages.Mapper;
 
@@ -68,8 +69,10 @@ public partial class Overview : IAsyncDisposable
     private WHMap? _selectedWHMap = null!;
     private WHMapperUser? PrimaryAccount  { get; set; } = null!;
 
+
     protected override async Task OnInitializedAsync()
     {
+
         if (!string.IsNullOrEmpty(UID.ClientId) && !string.IsNullOrWhiteSpace(UID.ClientId))
         {
             PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
@@ -80,7 +83,7 @@ public partial class Overview : IAsyncDisposable
             Snackbar?.Add("Error: ClientId is null", Severity.Error);
         }
 
-        if(!await InitRealTimeService())
+        if (!await InitRealTimeService())
         {
             Snackbar?.Add("RealTimeService Initialization error", Severity.Error);
         }

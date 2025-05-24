@@ -22,7 +22,7 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
 {        
     public async Task ValidateOrRefreshCookieAsync(CookieValidatePrincipalContext validateContext, string scheme)
     {
-        var clientId = await browserClientIdProvider.GetOrCreateClientIdAsync();
+        var clientId = await browserClientIdProvider.GetClientIdAsync();
         
         if (string.IsNullOrEmpty(clientId))
         {

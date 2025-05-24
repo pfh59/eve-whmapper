@@ -3,6 +3,8 @@ using WHMapper.Services.EveAPI;
 using System.Collections.Concurrent;
 using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Models.DTO;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Linq.Expressions;
 
 namespace WHMapper.Services.EveMapper;
 
@@ -18,8 +20,7 @@ public class EveMapperTracker : IEveMapperTracker
 
     private readonly ConcurrentDictionary<int, EveLocation> _currentLocations;
     private readonly ConcurrentDictionary<int, Ship> _currentShips;
-    private readonly ConcurrentDictionary<int, PeriodicTimer> _timers ;
-    private readonly ConcurrentDictionary<int, CancellationTokenSource> _cts ;
+    private readonly ConcurrentDictionary<int, Timer> _timers ;
     private readonly SemaphoreSlim _semaphoreSlim ;
 
     private string test=Guid.NewGuid().ToString();
@@ -33,142 +34,122 @@ public class EveMapperTracker : IEveMapperTracker
 
         _currentLocations = new ConcurrentDictionary<int, EveLocation>();
         _currentShips = new ConcurrentDictionary<int, Ship>();
-        _timers = new ConcurrentDictionary<int, PeriodicTimer>();
-        _cts = new ConcurrentDictionary<int, CancellationTokenSource>();
+        _timers = new ConcurrentDictionary<int, Timer>();
         _semaphoreSlim = new SemaphoreSlim(1,1);
     }
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var cts in _cts.Values)
-        {
-            if (!cts.IsCancellationRequested)
-            {
-                if (!cts.IsCancellationRequested)
-                {
-                    try
-                    {
-                        await cts.CancelAsync();
-                    }
-                    catch (ObjectDisposedException odex)
-                    {
-                        _logger.LogWarning(odex,"CancellationTokenSource was already disposed.");
-                    }
-                }
-            }
-           
-            cts.Dispose();
-        }
-  
-
+        _logger.LogInformation("Disposing EveMapperTracker");
         foreach (var timer in _timers.Values)
         {
-            timer.Dispose();
+            try
+            {
+                timer.Change(Timeout.Infinite, Timeout.Infinite);
+                await timer.DisposeAsync();
+            }
+            catch (ObjectDisposedException odex)
+            {
+                _logger.LogWarning(odex, "Timer was already disposed.");
+            }
         }
+
+        _timers.Clear();
         _currentLocations.Clear();
         _currentShips.Clear();
+
         await Task.CompletedTask;
     }
 
     public async Task StartTracking(int accountID)
     {
+        Timer? accountTimer;
+
         _logger.LogInformation("Starting tracking for account {accountID}", accountID);
         await ClearTracking(accountID);
-        _ = Task.Run(() => HandleTrackPositionAsync(accountID));
+
+
+        if (!_timers.ContainsKey(accountID))
+        {
+            accountTimer = new Timer(HandleTrackPositionAsync, accountID, Timeout.Infinite, Timeout.Infinite);
+            while (!_timers.TryAdd(accountID, accountTimer))
+                await Task.Delay(1);
+
+        }
+        _timers[accountID].Change(TRACK_HIT_IN_MS, TRACK_HIT_IN_MS);
+
     }
 
     public async Task StopTracking(int accountID)
     {
+        Timer? _accountTimer;
         _logger.LogInformation("Stopping tracking for account {accountID}", accountID);
 
-        if (_cts.TryGetValue(accountID, out var cts))
-        {
-            if (!cts.IsCancellationRequested)
-            {
-                try
-                {
-                    await cts.CancelAsync();
-                }
-                catch (ObjectDisposedException odex)
-                {
-                    _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
-                }
-            }
-            cts.Dispose();
-        }
 
-        if(_timers.TryGetValue(accountID, out var timer))
+        if (_timers.ContainsKey(accountID))
         {
-            timer.Dispose();
+            if (!_timers[accountID].Change(Timeout.Infinite, Timeout.Infinite))
+            {
+
+                return;
+            }
+            while (!_timers.TryRemove(accountID, out _accountTimer))
+                await Task.Delay(1);
+
+            _accountTimer.Dispose(); ;
         }
-        _cts.TryRemove(accountID, out _);
-        _timers.TryRemove(accountID, out _);
     }
 
     private Task ClearTracking(int accountID)
     {
-        _currentLocations.TryRemove(accountID, out _);
-        _currentShips.TryRemove(accountID, out _);
+        if(_currentLocations.ContainsKey(accountID))
+        {
+            while (!_currentLocations.TryRemove(accountID, out _))
+                Task.Delay(1);
+        }
+
+        if(_currentShips.ContainsKey(accountID))
+        {
+            while (!_currentShips.TryRemove(accountID, out _))
+                Task.Delay(1);
+        }
+
         return Task.CompletedTask;
     }
 
 
-    private async Task HandleTrackPositionAsync(int accountID)
+    private async void HandleTrackPositionAsync(object? state)
     {
-        if(_timers.ContainsKey(accountID)) 
-            return;
-
-        
-        var cts = new CancellationTokenSource();
-        while(!_cts.TryAdd(accountID, cts))
-            await Task.Delay(1);
-
-        var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_HIT_IN_MS));
-        while(!_timers.TryAdd(accountID, timer))
-            await Task.Delay(1);
-
+        int accountID = 0;
         try
         {
-            while (await timer.WaitForNextTickAsync(cts.Token))
+            accountID = (int)state!;
+            if (_timers.ContainsKey(accountID))
             {
-                await Task.WhenAll(
-                    UpdateCurrentShip(accountID,cts),
-                    UpdateCurrentLocation(accountID,cts)
-                );
+                if (!_timers[accountID].Change(Timeout.Infinite, Timeout.Infinite))
+                {
+                    _logger.LogWarning("Timer was already disposed.");
+                    return;
+                }
+
+                await UpdateCurrentShip(accountID);
+                await UpdateCurrentLocation(accountID);
             }
-        }
-        catch (OperationCanceledException oce)
-        {
-            _logger.LogInformation(oce,"Tracking operation for account {accountID} was canceled.", accountID);
-        }
-        catch (ObjectDisposedException odex)
-        {
-            _logger.LogInformation(odex, "Object disposed");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in timer");
+            _logger.LogError(ex, "Track error");
         }
         finally
         {
-            if(!cts.IsCancellationRequested)
-            {
-                try
-                {
-                    await cts.CancelAsync();
-                }
-                catch (ObjectDisposedException odex)
-                {
-                    _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
-                }
-            }
-            timer.Dispose();
-            _cts.TryRemove(accountID, out _);
-            _timers.TryRemove(accountID, out _);
+            if (_timers.ContainsKey(accountID))
+                _timers[accountID].Change(TRACK_HIT_IN_MS, TRACK_HIT_IN_MS);
+            
         }
     }
+
     
-    private async Task UpdateCurrentShip(int accountID, CancellationTokenSource? cts)
+    private async Task UpdateCurrentShip(int accountID)
     {    
         UserToken? token = null;
         Ship? ship = null;
@@ -181,17 +162,6 @@ public class EveMapperTracker : IEveMapperTracker
             if (token == null)
             {
                 _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
-                if(cts != null && !cts.IsCancellationRequested)
-                {
-                    try
-                    {
-                        await cts.CancelAsync();
-                    }
-                    catch (ObjectDisposedException odex)
-                    {
-                        _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
-                    }
-                }
                 return; // Exit early if the token is not found
             }
 
@@ -244,7 +214,7 @@ public class EveMapperTracker : IEveMapperTracker
 
     }
 
-    private async Task UpdateCurrentLocation(int accountID,CancellationTokenSource? cts)
+    private async Task UpdateCurrentLocation(int accountID)
     {
         EveLocation? newLocation = null;
         EveLocation? oldLocation = null;
@@ -256,17 +226,6 @@ public class EveMapperTracker : IEveMapperTracker
             if (token == null)
             {
                 _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
-                if(cts != null && !cts.IsCancellationRequested)
-                {
-                    try
-                    {
-                        await cts.CancelAsync();
-                    }
-                    catch (ObjectDisposedException odex)
-                    {
-                        _logger.LogWarning(odex,"CancellationTokenSource for account {accountID} was already disposed.", accountID);
-                    }
-                }
                 return; // Exit early if the token is not found
             }
 

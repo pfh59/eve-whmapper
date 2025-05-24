@@ -26,14 +26,16 @@ services:
      - EveSSO__Secret=xxxxxxxxx
      - ConnectionStrings__DatabaseConnection=server=db;port=5432;database=whmapper;User Id=postgres;Password=secret
      - ConnectionStrings__RedisConnection=redis:6379
-     - Logging__LogLevel__Default=Warning
-     - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
+     - Serilog__MinimumLevel__Default=Warning
+     - Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore.Database.Command=Warning
     links:
       - db     
     depends_on:
       - db 
     networks:
      - net
+    volumes:
+     - ./Logs:/app/Logs
 
 networks:
   net:
