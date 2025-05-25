@@ -19,14 +19,21 @@ public class BrowserClientIdCookieMiddleware
             {
                 var uid = Guid.NewGuid().ToString();
 
-                context.Response.Cookies.Append("client_uid", uid, new CookieOptions
+
+                var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
                     SameSite = SameSiteMode.Lax,
-                    Secure = context.Request.IsHttps,
                     Path = "/",
                     Expires = DateTimeOffset.UtcNow.AddYears(1)
-                });
+                };
+
+                if (context.Request.IsHttps)
+                {
+                    cookieOptions.Secure = true;
+                }
+
+                context.Response.Cookies.Append("client_uid", uid, cookieOptions);
             }
         }
 
