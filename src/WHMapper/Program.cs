@@ -38,8 +38,18 @@ using WHMapper.Services.BrowserClientIdProvider;
 using WHMapper.Services.EveCookieExtensions;
 using Microsoft.AspNetCore.HttpOverrides;
 using WHMapper.Components;
+using Serilog;
+using WHMapper.Services.BrowserClientIdProvider.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services);
+});
+
 
 builder.Services.AddDbContextFactory<WHMapperContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
@@ -349,6 +359,7 @@ if (app.Environment.IsProduction())
 }
 app.UseForwardedHeaders();
 app.UseResponseCompression();
+app.UseMiddleware<BrowserClientIdCookieMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

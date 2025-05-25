@@ -16,7 +16,7 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
         group.MapGet("/login", (string? returnUrl,string? clientId) => TypedResults.Challenge(GetAuthProperties(returnUrl,clientId )))
             .AllowAnonymous();
 
-        group.MapPost("/logout", async ([FromForm] string? returnUrl,[FromForm]string? clientId, IEveMapperUserManagementService userManagementService) => 
+        group.MapPost("/logout", async ([FromForm] string? returnUrl,[FromForm]string? clientId, IEveMapperUserManagementService userManagementService, HttpContext httpContext) => 
         {
            
             if (!string.IsNullOrEmpty(clientId))
@@ -24,7 +24,12 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
                  await userManagementService.RemoveAuthenticateWHMapperUser(clientId);
             }
 
-            return TypedResults.SignOut(GetAuthProperties(returnUrl,null),[CookieAuthenticationDefaults.AuthenticationScheme]);
+            // Clear antiforgery cookie(s)
+            foreach (var cookie in httpContext.Request.Cookies.Keys.Where(c => c.StartsWith(".AspNetCore.Antiforgery")))
+            {
+                httpContext.Response.Cookies.Delete(cookie);
+            }
+            return TypedResults.SignOut(GetAuthProperties(returnUrl, null), [CookieAuthenticationDefaults.AuthenticationScheme]);
         });
 
         return group;
