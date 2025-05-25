@@ -24,12 +24,10 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-RUN rm -rf /src /app/build /app/publish
-
-# Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-RUN chown -R appuser:appgroup /app
-RUN chmod -R u+rw /app
+RUN rm -rf /src /app/build /app/publish && \
+    addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app && \
+    chmod -R u+rw /app
 USER appuser
 
 ENTRYPOINT ["dotnet", "WHMapper.dll"]

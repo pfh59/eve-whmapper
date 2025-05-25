@@ -39,7 +39,6 @@ public partial class Overview : IAsyncDisposable
                 foreach (var account in Accounts)
                 {
                     await EveMapperRealTime.Start(account.Id);
-                    //await TrackerServices.StartTracking(account.Id);
                 }
             }
 

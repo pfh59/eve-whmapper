@@ -78,14 +78,7 @@
         var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
         Version = version != null ? version.ToString(3) : "Unknown";
 
-        string? clientId = await BrowserClientIdProvider.GetClientIdAsync();
-       /* if(String.IsNullOrEmpty(clientId))
-        {
-            Snackbar.Add("ClientId cannot be null,Init Error", Severity.Error);
-            throw new ArgumentNullException(nameof(clientId), "ClientId cannot be null");
-        }*/
-
-        UID.ClientId = clientId;
+        UID.ClientId = await BrowserClientIdProvider.GetClientIdAsync();
 
         await base.OnInitializedAsync();
     }

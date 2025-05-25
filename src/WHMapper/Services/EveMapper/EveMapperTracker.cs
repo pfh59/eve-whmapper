@@ -82,21 +82,18 @@ public class EveMapperTracker : IEveMapperTracker
 
     public async Task StopTracking(int accountID)
     {
-        Timer? _accountTimer;
         _logger.LogInformation("Stopping tracking for account {accountID}", accountID);
 
-
-        if (_timers.ContainsKey(accountID))
+        if (_timers.TryGetValue(accountID, out var accountTimer))
         {
-            if (!_timers[accountID].Change(Timeout.Infinite, Timeout.Infinite))
+            if (!accountTimer.Change(Timeout.Infinite, Timeout.Infinite))
             {
-
                 return;
             }
-            while (!_timers.TryRemove(accountID, out _accountTimer))
+            while (!_timers.TryRemove(accountID, out _))
                 await Task.Delay(1);
 
-            _accountTimer.Dispose(); ;
+            await accountTimer.DisposeAsync();
         }
     }
 
@@ -124,9 +121,9 @@ public class EveMapperTracker : IEveMapperTracker
         try
         {
             accountID = (int)state!;
-            if (_timers.ContainsKey(accountID))
+            if (_timers.TryGetValue(accountID, out var timer))
             {
-                if (!_timers[accountID].Change(Timeout.Infinite, Timeout.Infinite))
+                if (!timer.Change(Timeout.Infinite, Timeout.Infinite))
                 {
                     _logger.LogWarning("Timer was already disposed.");
                     return;
@@ -142,9 +139,8 @@ public class EveMapperTracker : IEveMapperTracker
         }
         finally
         {
-            if (_timers.ContainsKey(accountID))
-                _timers[accountID].Change(TRACK_HIT_IN_MS, TRACK_HIT_IN_MS);
-            
+            if (_timers.TryGetValue(accountID, out var timer))
+                timer.Change(TRACK_HIT_IN_MS, TRACK_HIT_IN_MS);
         }
     }
 

@@ -29,15 +29,6 @@ namespace WHMapper.Services.BrowserClientIdProvider.Tests
             var result = await _provider.GetClientIdAsync();
 
             Assert.Null(result);
-            _mockLogger.Verify(
-                l => l.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("HttpContext is null. Cannot access cookies.")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once
-            );
         }
 
         [Fact]

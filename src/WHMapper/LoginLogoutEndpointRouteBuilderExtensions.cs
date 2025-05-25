@@ -25,13 +25,9 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
             }
 
             // Clear antiforgery cookie(s)
-            foreach (var cookie in httpContext.Request.Cookies.Keys)
+            foreach (var cookie in httpContext.Request.Cookies.Keys.Where(c => c.StartsWith(".AspNetCore.Antiforgery")))
             {
-                if (cookie.StartsWith(".AspNetCore.Antiforgery"))
-                {
-                    httpContext.Response.Cookies.Delete(cookie);
-                    break;
-                }
+                httpContext.Response.Cookies.Delete(cookie);
             }
             return TypedResults.SignOut(GetAuthProperties(returnUrl, null), [CookieAuthenticationDefaults.AuthenticationScheme]);
         });

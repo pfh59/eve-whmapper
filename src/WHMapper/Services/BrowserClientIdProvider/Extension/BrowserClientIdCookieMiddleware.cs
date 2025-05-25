@@ -13,28 +13,24 @@ public class BrowserClientIdCookieMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (!context.Request.Cookies.ContainsKey("client_uid"))
+        if (!context.Request.Cookies.ContainsKey("client_uid") && !context.Response.HasStarted)
         {
-            if (!context.Response.HasStarted)
+            var uid = Guid.NewGuid().ToString();
+
+            var cookieOptions = new CookieOptions
             {
-                var uid = Guid.NewGuid().ToString();
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddYears(1)
+            };
 
-
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.Lax,
-                    Path = "/",
-                    Expires = DateTimeOffset.UtcNow.AddYears(1)
-                };
-
-                if (context.Request.IsHttps)
-                {
-                    cookieOptions.Secure = true;
-                }
-
-                context.Response.Cookies.Append("client_uid", uid, cookieOptions);
+            if (context.Request.IsHttps)
+            {
+                cookieOptions.Secure = true;
             }
+
+            context.Response.Cookies.Append("client_uid", uid, cookieOptions);
         }
 
         await _next(context);
