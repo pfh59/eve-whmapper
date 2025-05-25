@@ -22,13 +22,9 @@ public class BrowserClientIdCookieMiddleware
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
-                Expires = DateTimeOffset.UtcNow.AddYears(1)
+                Expires = DateTimeOffset.UtcNow.AddYears(1),
+                Secure = context.Request.IsHttps // Always set Secure based on HTTPS
             };
-
-            if (context.Request.IsHttps)
-            {
-                cookieOptions.Secure = true;
-            }
 
             context.Response.Cookies.Append("client_uid", uid, cookieOptions);
         }
