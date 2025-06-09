@@ -47,7 +47,7 @@
                             AdornmentIcon="@Icons.Material.Filled.Search" 
                             AdornmentColor="Color.Primary" 
                             ToStringFunc="@(x=> x==null ? null : $"{x.Name}")" 
-                            MaxItems="100">
+                            MaxItems=null>
                             <ItemTemplate Context="item">
                                 <MudText>
                                     @if (item.EntityType == EveEntityEnums.Alliance)
@@ -108,7 +108,7 @@
                                         Required="true" ResetValueOnEmptyText="true" CoerceValue="true" CoerceText="true"
                                         Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
                                         AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" 
-                                        ToStringFunc="@(x=> x==null?null : $"{x.Name}")" MaxItems="100">
+                                        ToStringFunc="@(x=> x==null?null : $"{x.Name}")" MaxItems=null>
                             <ItemTemplate Context="item">
                                 <MudText>
                                     <MudIcon Icon="@Icons.Material.Filled.Person" Class="mb-n1 mr-3" />

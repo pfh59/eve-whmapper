@@ -10,7 +10,7 @@
                 AdornmentIcon="@Icons.Material.Filled.Search" 
                 AdornmentColor="Color.Primary" 
                 ToStringFunc="@(x=> x==null?null : $"{x.Name}")" 
-                MinCharacters="@Services.EveMapper.IEveMapperSearch.MIN_SEARCH_SYSTEM_CHARACTERS" />
+                MinCharacters="@Services.EveMapper.IEveMapperSearch.MIN_SEARCH_SYSTEM_CHARACTERS" MaxItems=null />
         </MudForm>
     </DialogContent>
     <DialogActions>
