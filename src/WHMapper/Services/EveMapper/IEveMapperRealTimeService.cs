@@ -123,6 +123,15 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     event Func<int, int, int, WHSystemStatus, Task> WormholeSystemStatusChanged;
 
     /// <summary>
+    /// Triggered when a wormhole alternate name is changed.
+    /// </summary>
+    /// <param name="accountID">The accountID of the user who changed the wormhole alternate name.</param>
+    /// <param name="mapId">The ID of the map where the wormhole alternate name was changed.</param>
+    /// <param name="wormholeId">The ID of the wormhole with the changed alternate name.</param>
+    /// <param name="alternateName">The new alternate name of the wormhole, or null if removed.</param>
+    event Func<int, int,int, string?, Task> WormholeAlternateNameChanged;
+
+    /// <summary>
     /// Triggered when a map is added.
     /// </summary>
     /// <param name="accountID">The accountID of the user who added the map.</param>
@@ -301,6 +310,17 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="systemStatus">The new system status of the wormhole.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task NotifyWormholeSystemStatusChanged(int accountID, int mapId, int wormholeId, WHSystemStatus systemStatus);
+
+
+    /// <summary>
+    /// Notifies the server that an alternate name has been changed.
+    /// </summary>
+    /// <param name="accountID">The ID of the account.</param>
+    /// <param name="mapId">The ID of the map where the alternate name was changed.</param>
+    /// <param name="wormholeId">The ID of the wormhole with the changed alternate name.</param>
+    /// <param name="alternateName">The new alternate name of the wormhole, or null if removed.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task NotifyAlternameNameChanged(int accountID, int mapId, int wormholeId, string? alternateName);
 
     /// <summary>
     /// Gets the position of connected users.

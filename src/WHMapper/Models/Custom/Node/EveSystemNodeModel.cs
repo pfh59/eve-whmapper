@@ -11,6 +11,7 @@ namespace WHMapper.Models.Custom.Node
     {
         public event Action<EveSystemNodeModel>? OnLocked;
         public event Action<EveSystemNodeModel>? OnSystemStatusChanged;
+        public event Action<EveSystemNodeModel>? OnAlternateNameChanged;
 
         private readonly WHSystem _wh;
         
@@ -41,12 +42,22 @@ namespace WHMapper.Models.Custom.Node
                 return _wh.Name;
             }
          }
+         
+        public String? AlternateName
+        {
+            get
+            {
+                if (_wh.AlternateName != null && _wh.AlternateName.Length > 0)
+                    return _wh.AlternateName;
+                return null;
+            }
+        }
 
         public String? NameExtension
         {
             get
             {
-                if(_wh!=null && _wh.NameExtension!=0)
+                if (_wh != null && _wh.NameExtension != 0)
                     return Convert.ToChar(_wh.NameExtension).ToString();
                 return null;
             }
@@ -200,6 +211,13 @@ namespace WHMapper.Models.Custom.Node
                 _wh.NameExtension = Convert.ToByte(c);
         }
 
+        public void SetAlternateName(string? alternateName)
+        {
+            if (alternateName != null && alternateName.Length > 255)
+                throw new ArgumentOutOfRangeException("Alternate name is too long. Maximum length is 255 characters.");
+            _wh.AlternateName = alternateName;
+            OnAlternateNameChanged?.Invoke(this);
+        }
 
         public async Task AddConnectedUser(string userName)
         {

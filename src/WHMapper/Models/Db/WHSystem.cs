@@ -15,13 +15,16 @@ namespace WHMapper.Models.Db
         [Required]
         public int SoloarSystemId { get; set; } = -1;
 
-        [Required , StringLength(255, ErrorMessage = "Map name is too long.")]
+        [Required, StringLength(255, ErrorMessage = "Map name is too long.")]
         public String Name { get; set; } = string.Empty;
+
+        [StringLength(255, ErrorMessage = "Alternate name is too long.")]
+        public String? AlternateName { get; set; } = null;
 
         public byte NameExtension { get; set; }
 
         [Required]
-        public float SecurityStatus { get;  set; }
+        public float SecurityStatus { get; set; }
 
         public virtual ICollection<WHSignature> WHSignatures { get; } = new HashSet<WHSignature>();
 
@@ -33,7 +36,7 @@ namespace WHMapper.Models.Db
 
         [Obsolete("EF Requires it")]
         protected WHSystem() { }
-        public WHSystem(int whMapId,int solarSystemId,string name, float securityStatus,double posX, double posY)
+        public WHSystem(int whMapId, int solarSystemId, string name, float securityStatus, double posX, double posY)
         {
             WHMapId = whMapId;
             SoloarSystemId = solarSystemId;
@@ -56,15 +59,17 @@ namespace WHMapper.Models.Db
 
 
         public WHSystem(int whMapId, int solarSystemId, string name, float securityStatus) :
-            this(whMapId,solarSystemId, name, securityStatus, 0, 0)
+            this(whMapId, solarSystemId, name, securityStatus, 0, 0)
         {
         }
 
         public WHSystem(int whMapId, int solarSystemId, string name, char nameExtension, float securityStatus) :
-            this(whMapId,solarSystemId, name, nameExtension,securityStatus,0,0)
+            this(whMapId, solarSystemId, name, nameExtension, securityStatus, 0, 0)
         {
 
         }
+        
+        
 
     }
 }

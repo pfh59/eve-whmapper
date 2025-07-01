@@ -11,7 +11,30 @@
             </MudBadge>
         </CardHeaderAvatar>
         <CardHeaderContent>
-            <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;">@Node.Name</MudText>
+            @if (_isEditingName)
+            {
+                <MudTextField @bind-Value="_editedName"
+                      Immediate="true"
+                      @onblur="@(() => SaveName())"
+                      @onkeyup="@((e) => OnKeyUp(e))"
+                      Class="ml-n1 pr-2 mt-1"
+                      Style="font-weight:bold; width: 120px;"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      AutoFocus="true" />
+            }
+            else
+            {   
+                @if(Node.AlternateName!=null)
+                {
+                    <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;" @ondblclick="StartEditingName">@Node.AlternateName</MudText>
+
+                }
+                else
+                {
+                    <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;" @ondblclick="StartEditingName">@Node.Name</MudText>
+                }
+            }
         </CardHeaderContent>
         <CardHeaderActions>
             @if (Locked)
