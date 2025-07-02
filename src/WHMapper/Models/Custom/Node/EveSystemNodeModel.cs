@@ -9,6 +9,9 @@ namespace WHMapper.Models.Custom.Node
 {
     public class EveSystemNodeModel : NodeModel
     {
+        private const string NameExtensionErrorMessage = "Name extension must be between A and Z";
+        private const string AlternateNameErrorMessage = "Alternate name is too long. Maximum length is 255 characters.";
+
         public event Action<EveSystemNodeModel>? OnLocked;
         public event Action<EveSystemNodeModel>? OnSystemStatusChanged;
         public event Action<EveSystemNodeModel>? OnAlternateNameChanged;
@@ -206,7 +209,7 @@ namespace WHMapper.Models.Custom.Node
             if(c == null)
                 _wh.NameExtension = 0;
             else if (c < 'A' || c > 'Z')
-                throw new ArgumentOutOfRangeException("Name extension must be between A and Z");
+                throw new ArgumentOutOfRangeException(nameof(c), NameExtensionErrorMessage);
             else
                 _wh.NameExtension = Convert.ToByte(c);
         }
@@ -214,7 +217,7 @@ namespace WHMapper.Models.Custom.Node
         public void SetAlternateName(string? alternateName)
         {
             if (alternateName != null && alternateName.Length > 255)
-                throw new ArgumentOutOfRangeException("Alternate name is too long. Maximum length is 255 characters.");
+                throw new ArgumentOutOfRangeException(nameof(alternateName), AlternateNameErrorMessage);
             _wh.AlternateName = alternateName;
             OnAlternateNameChanged?.Invoke(this);
         }
