@@ -235,6 +235,11 @@ public class EveWHMapperHelperTest
         Assert.Equal(SOLAR_SYSTEM_WH_CLASS, wh_result.SystemType);
         Assert.NotEqual(WHEffect.None, wh_result.Effect);
         Assert.Equal(SOLAR_SYSTEM_WH_EFFECT, wh_result.Effect);
+        Assert.Null(wh_result.AlternateName);
+
+        wh_result.SetAlternateName("J165153-1");
+        Assert.Equal("J165153-1", wh_result.AlternateName);
+        Assert.Throws<ArgumentOutOfRangeException>(() => wh_result.SetAlternateName("ABCDEFGHGHIJKLMNOPQRSTUVWXYZABCDEFGGHIJKLMNOPQRSTUVWXYZABCDEFGGHIJKLMNOPQRSTUVWXYZABCDEFGIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFG"));
     }
 
     [Fact, Priority(4)]

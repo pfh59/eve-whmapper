@@ -27,6 +27,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, int, double, double, Task>? WormholeMoved;
     public event Func<int, int, int, bool, SystemLinkSize, SystemLinkMassStatus, Task>? LinkChanged;
     public event Func<int, int, int, char?, Task>? WormholeNameExtensionChanged;
+    public event Func<int, int, int,string?, Task>? WormholeAlternateNameChanged;
     public event Func<int, int, int, Task>? WormholeSignaturesChanged;
     public event Func<int, int, int, bool, Task>? WormholeLockChanged;
     public event Func<int, int, int, WHSystemStatus, Task>? WormholeSystemStatusChanged;
@@ -40,7 +41,8 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, Task>? UserOnMapConnected;
     public event Func<int, int, Task>? UserOnMapDisconnected;
 
-    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation,IEveOnlineTokenProvider tokenProvider)
+
+    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, IEveOnlineTokenProvider tokenProvider)
     {
         _logger = logger;
         _navigation = navigation;
@@ -158,6 +160,13 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                         await WormholeSystemStatusChanged.Invoke(accountID, mapId, wormholeId, systemStatus);
                     }
                 });
+                hubConnection.On<int, int, int,string?>("NotifyWormholeAlternateNameChanged", async (accountID, mapId,wormholeId, alternateName) => 
+                {
+                    if (WormholeAlternateNameChanged != null)
+                    {
+                        await WormholeAlternateNameChanged.Invoke(accountID, mapId, wormholeId,alternateName);
+                    }
+                });
                 hubConnection.On<int, int>("NotifyMapAdded", async (accountID, mapId) => 
                 {
                     if (MapAdded != null)
@@ -223,10 +232,11 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                         await UserOnMapDisconnected.Invoke(accountID, mapId);
                     }
                 });
+
             
 
-                while(!_hubConnection.TryAdd(accountID, hubConnection))
-                    await Task.Delay(1);
+                while (!_hubConnection.TryAdd(accountID, hubConnection))
+                        await Task.Delay(1);
             }
 
             if(hubConnection.State == HubConnectionState.Connected)
@@ -348,8 +358,9 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             await hubConnection.SendAsync("SendWormholeNameExtensionChanged", mapId, wormholeId, extension);
         }
     }
+    
 
-    public async Task NotifyWormholeSignaturesChanged(int accountID,int mapId, int wormholeId)
+    public async Task NotifyWormholeSignaturesChanged(int accountID, int mapId, int wormholeId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
         if (hubConnection is not null)
@@ -376,15 +387,24 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    public async Task<IDictionary<int, KeyValuePair<int,int>?>> GetConnectedUsersPosition(int accountID)
+    public async Task NotifyAlternameNameChanged(int accountID, int mapId, int wormholeId, string? alternateName)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
         if (hubConnection is not null)
         {
-            return await hubConnection.InvokeAsync<IDictionary<int, KeyValuePair<int,int>?>>("GetConnectedUsersPosition");
+            await hubConnection.SendAsync("SendWormholeAlternateNameChanged", mapId, wormholeId, alternateName);
+        }
+    }
+
+    public async Task<IDictionary<int, KeyValuePair<int, int>?>> GetConnectedUsersPosition(int accountID)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null)
+        {
+            return await hubConnection.InvokeAsync<IDictionary<int, KeyValuePair<int, int>?>>("GetConnectedUsersPosition");
         }
 
-        return new Dictionary<int, KeyValuePair<int,int>?>();
+        return new Dictionary<int, KeyValuePair<int, int>?>();
     }
 
     public async Task NotifyMapAdded(int accountID,int mapId)

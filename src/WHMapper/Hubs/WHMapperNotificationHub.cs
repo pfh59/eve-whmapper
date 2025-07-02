@@ -177,10 +177,19 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
             await Clients.AllExcept(Context.ConnectionId).NotifyWormholeSystemStatusChanged(accountID, mapId, wormholeId, systemStatus);
         }
     }
-
-    public Task<IDictionary<int,KeyValuePair<int,int>?>> GetConnectedUsersPosition()
+    
+    public async Task SendWormholeAlternateNameChanged(int mapId, int wormholeId, string? alternateName)
     {
-        return Task.FromResult<IDictionary<int,KeyValuePair<int,int>?>>(_connectedUserPosition);
+        int accountID = CurrentAccountId();
+        if(accountID != 0)
+        {
+            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeAlternateNameChanged(accountID, mapId, wormholeId, alternateName);
+        }
+    }
+
+    public Task<IDictionary<int, KeyValuePair<int, int>?>> GetConnectedUsersPosition()
+    {
+        return Task.FromResult<IDictionary<int, KeyValuePair<int, int>?>>(_connectedUserPosition);
     }
 
     public async Task SendMapAdded(int mapId)

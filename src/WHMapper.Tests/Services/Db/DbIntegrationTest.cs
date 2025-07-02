@@ -234,10 +234,12 @@ public class DbIntegrationTest
         //update
         result1.Name = FOOBAR_UPDATED;
         result1.SecurityStatus = 0.5F;
+        result1.AlternateName = FOOBAR_SHORT_UPDATED;
         var resultUpdate = await repo.Update(result1.Id, result1);
         Assert.NotNull(resultUpdate);
         Assert.Equal(FOOBAR_UPDATED, resultUpdate?.Name);
         Assert.Equal(0.5F, resultUpdate?.SecurityStatus);
+        Assert.Equal(FOOBAR_SHORT_UPDATED, resultUpdate?.AlternateName);
 
         //update duplicate
         Assert.NotNull(result2);

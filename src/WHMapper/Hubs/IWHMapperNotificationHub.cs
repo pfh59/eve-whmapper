@@ -17,6 +17,7 @@ namespace WHMapper.Hubs
         Task NotifyWormholeSignaturesChanged(int accountID, int mapId, int wormholeId);
         Task NotifyWormholeLockChanged(int accountID, int mapId, int wormholeId, bool locked);
         Task NotifyWormholeSystemStatusChanged(int accountID, int mapId, int wormholeId, WHSystemStatus systemStatus);
+        Task NotifyWormholeAlternateNameChanged(int accountID, int mapId, int wormholeId, string? alternateName);
         Task NotifyMapAdded(int accountID, int mapId);
         Task NotifyMapRemoved(int accountID, int mapId);
         Task NotifyMapNameChanged(int accountID, int mapId, string newName);
