@@ -19,6 +19,19 @@ public class EveRoute
         }
     }
 
+    public int JumpLength
+    {
+        get
+        {
+            if(Route == null || Route.Length < 2)
+                return 0;
+            else
+            {
+                return Route.Length - 1;
+            }
+        }
+    }
+
     public bool IsAvailable
     {
         get
