@@ -322,28 +322,6 @@ using (var scope = app.Services.CreateScope())
         {
             logger.LogError(ex, "An error occurred while migrating the database.");
         }
-        attempt++;
-    }
-
-    if (attempt >= 10)
-    {
-        logger.LogError("Database not ready after 10 attempts; exiting.");
-        return ;
-    }
-
-
-    if(dbContext.Database.GetPendingMigrations().Any())
-    {
-        logger.LogInformation("Migrating database...");
-        try
-        {
-            dbContext.Database.Migrate();
-            logger.LogInformation("Database migrated successfully.");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An error occurred while migrating the database.");
-        }
     }
 }
 

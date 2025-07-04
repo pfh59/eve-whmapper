@@ -144,6 +144,7 @@ public class EveWHMapperRoutePlannerHelperTest
         var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_WH_ID,RouteType.Shortest, null);
         Assert.NotNull(routes);
         Assert.Empty(routes);
+        
 
         var result = await _eveMapperRoutePlannerHelper.AddRoute(_defaultMAp.Id,SOLAR_SYSTEM_AHBAZON_ID,true);
 
@@ -156,6 +157,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.False(route_JITA_AHBAZON.IsShowed);
         Assert.NotNull(route_JITA_AHBAZON.Route);
         Assert.Equal(5,route_JITA_AHBAZON.RouteLength);
+        Assert.Equal(4,route_JITA_AHBAZON.JumpLength);
 
         routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_WH_ID,RouteType.Shortest, new BlockingCollection<RouteConnection> 
         {
@@ -170,6 +172,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotNull(route_WH_AHBAZON);
         Assert.NotNull(route_WH_AHBAZON.Route);
         Assert.Equal(2,route_WH_AHBAZON.RouteLength);
+        Assert.Equal(1,route_WH_AHBAZON.JumpLength);   
 
         routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_JITA_ID,RouteType.Shortest,new BlockingCollection<RouteConnection> 
         {
@@ -201,6 +204,20 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.False(route_JITA_AMARR.IsShowed);
         Assert.NotNull(route_JITA_AMARR.Route);
         Assert.Equal(46,route_JITA_AMARR.RouteLength);
+
+        //Amarr to Amarr
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_AMARR_ID,RouteType.Secure, new BlockingCollection<RouteConnection>
+        {
+            new RouteConnection(SOLAR_SYSTEM_JITA_ID,1.0f,SOLAR_SYSTEM_AMARR_ID,1.0f),
+            new RouteConnection(SOLAR_SYSTEM_AMARR_ID,1.0f,SOLAR_SYSTEM_JITA_ID,1.0f)
+        });
+        Assert.NotNull(routes);
+        Assert.NotEmpty(routes);
+        var route_JITA_JITA = routes.FirstOrDefault();
+        Assert.NotNull(route_JITA_JITA);
+        Assert.NotNull(route_JITA_JITA.Route);
+        Assert.Equal(1,route_JITA_JITA.RouteLength);
+        Assert.Equal(0,route_JITA_JITA.JumpLength);
 
         result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result!.Id);
         Assert.True(result2);
