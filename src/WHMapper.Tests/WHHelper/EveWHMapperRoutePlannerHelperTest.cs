@@ -205,8 +205,8 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.NotNull(route_JITA_AMARR.Route);
         Assert.Equal(46,route_JITA_AMARR.RouteLength);
 
-        //Jita to Jita
-        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_JITA_ID,RouteType.Secure, new BlockingCollection<RouteConnection>
+        //Amarr to Amarr
+        routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id,SOLAR_SYSTEM_AMARR_ID,RouteType.Secure, new BlockingCollection<RouteConnection>
         {
             new RouteConnection(SOLAR_SYSTEM_JITA_ID,1.0f,SOLAR_SYSTEM_AMARR_ID,1.0f),
             new RouteConnection(SOLAR_SYSTEM_AMARR_ID,1.0f,SOLAR_SYSTEM_JITA_ID,1.0f)
@@ -216,8 +216,8 @@ public class EveWHMapperRoutePlannerHelperTest
         var route_JITA_JITA = routes.FirstOrDefault();
         Assert.NotNull(route_JITA_JITA);
         Assert.NotNull(route_JITA_JITA.Route);
-        Assert.Equal(2,route_JITA_JITA.RouteLength);
-        Assert.Equal(1,route_JITA_JITA.JumpLength);
+        Assert.Equal(1,route_JITA_JITA.RouteLength);
+        Assert.Equal(0,route_JITA_JITA.JumpLength);
 
         result2 = await _eveMapperRoutePlannerHelper.DeleteRoute(result!.Id);
         Assert.True(result2);
