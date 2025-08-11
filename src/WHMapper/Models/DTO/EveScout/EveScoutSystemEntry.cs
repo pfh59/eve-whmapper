@@ -3,56 +3,98 @@ using System.Text.Json.Serialization;
 
 namespace WHMapper.Models.DTO.EveScout;
 
-public enum ShipSize 
+using System.Runtime.Serialization;
+
+public enum ShipSize
 {
-    Unknown,
+    [EnumMember(Value = "small")]
     Small,
+    [EnumMember(Value = "medium")]
     Medium,
+    [EnumMember(Value = "large")]
     Large,
-    XLarge,
-    Capital
+    [EnumMember(Value = "xlarge")]
+    Xlarge,
+    [EnumMember(Value = "capital")]
+    Capital,
+    [EnumMember(Value = "unknown")]
+    Unknown
 }
 
 public enum SignatureType
 {
-    Unknown,
-    Cole
+    [EnumMember(Value = "combat")]
+    Combat,
+    [EnumMember(Value = "data")]
+    Data,
+    [EnumMember(Value = "gas")]
+    Gas,
+    [EnumMember(Value = "relic")]
+    Relic,
+    [EnumMember(Value = "wormhole")]
+    Wormhole,
+    [EnumMember(Value = "unknown")]
+    Unknown
 }
+
 
 public enum SystemClass
 {
-    Unknown,
+    [EnumMember(Value = "c1")]
     C1,
+    [EnumMember(Value = "c2")]
     C2,
+    [EnumMember(Value = "c3")]
     C3,
+    [EnumMember(Value = "c4")]
     C4,
+    [EnumMember(Value = "c5")]
     C5,
+    [EnumMember(Value = "c6")]
     C6,
+    [EnumMember(Value = "c10")]
     C10,
+    [EnumMember(Value = "c11")]
     C11,
+    [EnumMember(Value = "c12")]
     C12,
+    [EnumMember(Value = "c13")]
     C13,
+    [EnumMember(Value = "c14")]
     C14,
+    [EnumMember(Value = "c15")]
     C15,
+    [EnumMember(Value = "c16")]
     C16,
+    [EnumMember(Value = "c17")]
     C17,
+    [EnumMember(Value = "c18")]
     C18,
+    [EnumMember(Value = "c25")]
     C25,
+    [EnumMember(Value = "drone")]
     Drone,
+    [EnumMember(Value = "exit")]
     Exit,
-    HS,
+    [EnumMember(Value = "hs")]
+    Hs,
+    [EnumMember(Value = "jove")]
     Jove,
-    LS,
-    NS
+    [EnumMember(Value = "ls")]
+    Ls,
+    [EnumMember(Value = "ns")]
+    Ns,
+    [EnumMember(Value = "unknown")]
+    Unknown
 }
 
 public class EveScoutSystemEntry
 {
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
+    [JsonPropertyName("id")]    
+    public int Id { get; set; } 
 
     [JsonPropertyName("created_at")]
-    public string CreatedAt { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 
     [JsonPropertyName("created_by_id")]
     public int CreatedById { get; set; }
@@ -61,7 +103,7 @@ public class EveScoutSystemEntry
     public string CreatedByName { get; set; } = string.Empty;
 
     [JsonPropertyName("updated_at")]
-    public string? UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     [JsonPropertyName("updated_by_id")]
     public int? UpdatedById { get; set; }
@@ -70,7 +112,7 @@ public class EveScoutSystemEntry
     public string? UpdatedByName { get; set; }
 
     [JsonPropertyName("completed_at")]
-    public string? CompletedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 
     [JsonPropertyName("completed_by_id")]
     public int? CompletedById { get; set; }
@@ -92,7 +134,7 @@ public class EveScoutSystemEntry
     public ShipSize MaxShipSize { get; set; } = ShipSize.Unknown;
 
     [JsonPropertyName("expires_at")]
-    public string ExpiresAt { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
 
     [JsonPropertyName("remaining_hours")]
     public int? RemainingHours { get; set; }
@@ -131,6 +173,4 @@ public class EveScoutSystemEntry
 
     [JsonPropertyName("comment")]
     public string? Comment { get; set; }
-
-
 }

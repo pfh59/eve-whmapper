@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using WHMapper.Models.DTO.EveScout;
 
 namespace WHMapper.Services.EveScoutAPI;
@@ -8,11 +9,16 @@ namespace WHMapper.Services.EveScoutAPI;
 public class EveScoutAPIServices : IEveScoutAPIServices
 {
     private readonly HttpClient _httpClient;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public EveScoutAPIServices(HttpClient httpClient)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
 
+        _jsonSerializerOptions = new JsonSerializerOptions
+        {
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
         _httpClient = httpClient;
 
         // Check if httpClient the base URL is set correctly
@@ -42,7 +48,7 @@ public class EveScoutAPIServices : IEveScoutAPIServices
             if (string.IsNullOrEmpty(result))
                 return default(T);
             else
-                return JsonSerializer.Deserialize<T>(result);
+                return JsonSerializer.Deserialize<T>(result, _jsonSerializerOptions);
         }
         else
             return default(T);
