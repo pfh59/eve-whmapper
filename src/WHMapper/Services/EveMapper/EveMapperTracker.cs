@@ -133,39 +133,37 @@ public class EveMapperTracker : IEveMapperTracker
     }
 
 
-    private async void HandleTrackPositionAsync(CancellationToken cancellationToken, int accountID)
+    private async Task HandleTrackPositionAsync(CancellationToken cancellationToken, int accountID)
     {
-        UserToken? userToken = null;
         _logger.LogInformation("HandleTrackPositionAsync started for account {accountID}", accountID);
 
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_HIT_IN_MS));
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_HIT_IN_MS));
 
         try
         {
             while (!cancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync(cancellationToken))
             {
-                userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
+                var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
                 if (userToken == null)
                 {
-                    _logger.LogError("HandleTrackPositionAsync,Failed to retrieve token for account {accountID}.", accountID);
-                    return; // Exit early if the token is not found
+                    _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
+                    break;
                 }
 
-                await UpdateCurrentShip(userToken,accountID);
-                await UpdateCurrentLocation(userToken,accountID);
+                await UpdateCurrentShip(userToken, accountID);
+                await UpdateCurrentLocation(userToken, accountID);
             }
         }
-        catch (OperationCanceledException oce)
+        catch (OperationCanceledException ex)
         {
-            _logger.LogInformation(oce, "Operation canceled");
+            _logger.LogInformation(ex, "Tracking operation canceled for account {accountID}", accountID);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in HandleTrackPositionAsync");
+            _logger.LogError(ex, "Error in HandleTrackPositionAsync for account {accountID}", accountID);
         }
     }
-
-
+    
     private async Task UpdateCurrentShip(UserToken token,int accountID)
     {
         Ship? ship = null;
