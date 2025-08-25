@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using System;
-using System.Security.Cryptography;
-
 namespace WHMapper.Services.BrowserClientIdProvider;
 
 public class BrowserClientIdProvider : IBrowserClientIdProvider

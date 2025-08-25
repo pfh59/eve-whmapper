@@ -20,7 +20,7 @@ namespace WHMapper.Tests.WHHelper;
 public class EveWHAccessHelperTest
 {
     private int EVE_CHARACTERE_ID = 2113720458;
-    private int EVE_CHARACTERE_ID2 = 2113932209;
+    private int EVE_CHARACTERE_ID2 = 153110579;
 
     private int EVE_CORPO_ID = 1344654522;
     private int EVE_ALLIANCE_ID = 1354830081;

@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
-using WHMapper.Models.DTO;
 using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Services.EveOAuthProvider.Validators;
 

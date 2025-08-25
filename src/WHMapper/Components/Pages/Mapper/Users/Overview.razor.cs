@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Mono.TextTemplating;
-using System;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.EveMapper;
@@ -21,30 +19,52 @@ public partial class Overview : IAsyncDisposable
     [Inject]
     private IEveMapperTracker TrackerServices { get; set; } = null!;
 
+    [Inject]
+    private ILogger<Overview> Logger { get; set; } = null!;
+
     public IEnumerable<WHMapperUser> Accounts { get; private set; } = new List<WHMapperUser>();
+
+    private CancellationTokenSource _cts = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
     }
-    
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
+        Logger.LogInformation("User Overview component OnParametersSetAsync");
+        if (_cts.IsCancellationRequested)
         {
-            if(EveMapperUserManagementService != null && UID !=null && !String.IsNullOrEmpty(UID.ClientId))
-            {
-                Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
-                foreach (var account in Accounts)
-                {
-                    await EveMapperRealTime.Start(account.Id);
-                }
-            }
-
-            StateHasChanged();
+            _cts.Dispose();
+            _cts = new CancellationTokenSource();
         }
-        await base.OnAfterRenderAsync(firstRender);
+
+        _ = Task.Run(async () => await LoadAccountsAsync(_cts.Token));
+        Logger.LogInformation("User Overview component OnParametersSetAsync done");
+
+        await base.OnParametersSetAsync();
+
+    }
+
+    private async Task<bool> LoadAccountsAsync(CancellationToken cancellationToken)
+    {
+        if(cancellationToken.IsCancellationRequested)
+        {
+            Logger.LogWarning("LoadAccountsAsync cancelled");
+            return false;
+        }
+
+        if (EveMapperUserManagementService != null && UID != null && !String.IsNullOrEmpty(UID.ClientId))
+        {
+            Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
+            foreach (var account in Accounts)
+            {
+                await EveMapperRealTime.Start(account.Id);
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+        return true;
     }
 
     private async Task ToggleTracking(int accountId)
@@ -64,7 +84,7 @@ public partial class Overview : IAsyncDisposable
         {
             await TrackerServices.StopTracking(account.Id);
         }
-        
+
         StateHasChanged();
         return;
     }
@@ -81,6 +101,12 @@ public partial class Overview : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_cts != null && !_cts.IsCancellationRequested)
+        {
+            _cts.Cancel();
+        }
+        _cts?.Dispose();
+
         foreach (var account in Accounts)
         {
             await EveMapperRealTime.Stop(account.Id);

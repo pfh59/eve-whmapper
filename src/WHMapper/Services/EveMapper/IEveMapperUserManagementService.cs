@@ -1,6 +1,4 @@
-using System;
 using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveMapper;
 
 namespace WHMapper.Services.EveMapper;

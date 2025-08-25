@@ -1,11 +1,8 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using System;
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.SSO;
 

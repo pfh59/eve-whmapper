@@ -1,11 +1,7 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Collections.Concurrent;
-using System.Security.Claims;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Models.DTO;
 using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveMapper;

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace WHMapper.Services.EveOAuthProvider
 {

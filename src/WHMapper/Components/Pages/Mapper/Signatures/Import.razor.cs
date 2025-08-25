@@ -7,7 +7,6 @@ using WHMapper.Services.WHSignature;
 using Microsoft.AspNetCore.Authorization;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.WHColor;
-using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Services.EveMapper;
 
 namespace WHMapper.Components.Pages.Mapper.Signatures;
