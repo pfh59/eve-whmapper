@@ -1,6 +1,6 @@
 ﻿using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Location;
-using WHMapper.Services.EveOAuthProvider.Services;
+
 
 namespace WHMapper.Services.EveAPI.Locations
 {

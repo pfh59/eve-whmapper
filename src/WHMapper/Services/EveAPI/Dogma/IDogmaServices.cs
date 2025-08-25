@@ -1,5 +1,4 @@
-﻿using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.Dogma;
+﻿using WHMapper.Models.DTO.EveAPI.Dogma;
 
 namespace WHMapper.Services.EveAPI.Dogma
 {

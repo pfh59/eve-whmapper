@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOAuthProvider;
 
 namespace Microsoft.AspNetCore.Routing;
 

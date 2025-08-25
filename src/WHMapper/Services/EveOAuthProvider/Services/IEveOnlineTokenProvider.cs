@@ -1,4 +1,3 @@
-using System;
 using WHMapper.Models.DTO;
 
 namespace WHMapper.Services.EveOAuthProvider.Services;

@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Mono.TextTemplating;
-using System;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.EveMapper;

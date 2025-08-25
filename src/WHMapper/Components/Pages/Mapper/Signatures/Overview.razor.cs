@@ -6,7 +6,6 @@ using MudBlazor;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
 

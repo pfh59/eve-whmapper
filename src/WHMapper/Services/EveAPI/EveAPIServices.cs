@@ -9,7 +9,7 @@ using WHMapper.Services.EveAPI.Routes;
 using WHMapper.Services.EveAPI.Search;
 using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;
-using WHMapper.Services.EveOAuthProvider.Services;
+
 
 namespace WHMapper.Services.EveAPI
 {

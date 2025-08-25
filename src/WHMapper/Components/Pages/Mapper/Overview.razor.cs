@@ -4,12 +4,9 @@ using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.Db;
 using MudBlazor;
 using Microsoft.AspNetCore.Authorization;
-using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using WHMapper.Services.EveMapper;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper;
-using WHMapper.Services.EveOAuthProvider.Services;
-using WHMapper.Services.BrowserClientIdProvider;
 
 namespace WHMapper.Components.Pages.Mapper;
 

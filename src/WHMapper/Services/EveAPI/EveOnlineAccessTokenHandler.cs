@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using WHMapper.Services.EveOAuthProvider.Services;

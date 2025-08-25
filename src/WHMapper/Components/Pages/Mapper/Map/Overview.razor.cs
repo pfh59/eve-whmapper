@@ -22,9 +22,6 @@ using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO;
 using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Components.Pages.Mapper.CustomNode;
-using Mono.TextTemplating;
-using Humanizer;
-using Serilog;
 
 namespace WHMapper.Components.Pages.Mapper.Map;
 
