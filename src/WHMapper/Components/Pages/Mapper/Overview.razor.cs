@@ -148,18 +148,18 @@ public partial class Overview : IAsyncDisposable
 
         }
 
-        if(RealTimeService!=null)
+        if (RealTimeService != null)
         {
-            
+
             RealTimeService.MapAdded -= OnMapAdded;
             RealTimeService.MapRemoved -= OnMapRemoved;
             RealTimeService.MapNameChanged -= OnMapNameChanged;
             RealTimeService.AllMapsRemoved -= OnAllMapsRemoved;
-            RealTimeService.MapAccessesAdded-=OnMapAccessesAdded;
-            RealTimeService.MapAccessRemoved-=OnMapAccessRemoved;
-            RealTimeService.MapAllAccessesRemoved-=OnMapAllAccessesRemoved;
+            RealTimeService.MapAccessesAdded -= OnMapAccessesAdded;
+            RealTimeService.MapAccessRemoved -= OnMapAccessRemoved;
+            RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
             await RealTimeService.DisposeAsync();
-            
+
         }
     }
 

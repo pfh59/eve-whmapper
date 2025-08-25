@@ -63,8 +63,7 @@ public partial class Overview : ComponentBase,IDisposable
 
     private bool _isEditingSignature = false;
 
-    private PeriodicTimer? _timer;
-    private CancellationTokenSource? _cts;
+    private CancellationTokenSource _cts = new();
     private DateTime _currentDateTime;
 
     private MudTable<WHSignature?> _signatureTable { get; set; } =null!;
@@ -82,7 +81,14 @@ public partial class Overview : ComponentBase,IDisposable
 
     protected override Task OnParametersSetAsync()
     {
-        Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync()), Task.Run(() => LoadCurrentUserNameAsync()));
+        if (_cts.IsCancellationRequested)
+        {
+            _cts.Dispose();
+            _cts = new CancellationTokenSource();
+        }
+
+
+        Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync(_cts.Token)), Task.Run(() => LoadCurrentUserNameAsync()));
         return base.OnParametersSetAsync();
     }
     private async Task LoadCurrentUserNameAsync()
@@ -108,41 +114,27 @@ public partial class Overview : ComponentBase,IDisposable
             Logger.LogError(ex, "Error while retrieving character name for user ID {UserId}.", CurrentPrimaryUserId.Value);
         }
     }
-    private async Task HandleTimerAsync()
+    private async Task HandleTimerAsync(CancellationToken token)
     {
-
-        if (_timer == null)
+        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000));
+        _currentDateTime = DateTime.UtcNow;
+        try
         {
-
-            _cts = new CancellationTokenSource();
-            _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000));
-            _currentDateTime = DateTime.UtcNow;
-            try
+            while (!token.IsCancellationRequested && await timer.WaitForNextTickAsync(token))
             {
-                while (await _timer.WaitForNextTickAsync(_cts.Token))
-                {
-                    _currentDateTime = DateTime.UtcNow;
-                    await InvokeAsync(() => {
-                        StateHasChanged();
-                    });
-                }
+                _currentDateTime = DateTime.UtcNow;
+                await InvokeAsync(() => {
+                    StateHasChanged();
+                });
             }
-            catch (OperationCanceledException oce)
-            {
-                Logger.LogInformation(oce,"Operation canceled");
-            }
-            catch (ObjectDisposedException odex)
-            {
-                Logger.LogInformation(odex, "Object disposed");
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error in timer");
-            }
-            finally
-            {
-                Dispose(true);
-            }
+        }
+        catch (OperationCanceledException oce)
+        {
+            Logger.LogInformation(oce,"Operation canceled");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in timer");
         }
     }
 
@@ -382,8 +374,11 @@ public partial class Overview : ComponentBase,IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        this._timer?.Dispose();
-        this._cts?.Dispose();
+        if(!_cts.IsCancellationRequested)
+        {
+            _cts.Cancel();
+        }
+        _cts.Dispose();
     }
 }
 
