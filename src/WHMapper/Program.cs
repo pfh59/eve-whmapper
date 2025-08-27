@@ -152,8 +152,10 @@ builder.Services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.Authenti
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Trust All Proxies
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 
