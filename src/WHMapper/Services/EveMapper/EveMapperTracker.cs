@@ -84,7 +84,7 @@ public class EveMapperTracker : IEveMapperTracker
 
 
         await ClearTracking(accountID);
-        await Task.Run(() => HandleTrackPositionAsync(cts!.Token, accountID));
+        _= Task.Run(() => HandleTrackPositionAsync(cts!.Token, accountID));
 
         _logger.LogInformation("Tracking started for account {accountID}", accountID);
     }

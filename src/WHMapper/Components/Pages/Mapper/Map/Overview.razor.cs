@@ -269,7 +269,6 @@ public partial class Overview : IAsyncDisposable
             }
         }
         _loading = false;
-        //StateHasChanged();
     }
 
     

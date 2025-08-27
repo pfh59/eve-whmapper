@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.17" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.*" />
     <PackageReference Include="MudBlazor" Version="8.6.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
@@ -22,20 +22,20 @@
     <PackageReference Include="Z.Blazor.Diagrams" Version="3.0.2" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <PackageReference Include="FluentValidation" Version="12.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.12.1" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.17" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.14.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.*" />
     <PackageReference Include="FibonacciHeap" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.17" />
-    <PackageReference Include="Npgsql" Version="8.0.7" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.17" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.*" />
+    <PackageReference Include="Npgsql" Version="8.*" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.12.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.17" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="8.0.17" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.17" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.17" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="8.0.17" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.14.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.*" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="8.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.*" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="8.*" />
     <PackageReference Include="Microsoft.AspNetCore.ResponseCompression" Version="2.3.0" />
     <PackageReference Include="Z.Blazor.Diagrams.Algorithms" Version="3.0.2" />
   </ItemGroup>
