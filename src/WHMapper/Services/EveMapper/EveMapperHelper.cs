@@ -99,6 +99,7 @@ namespace WHMapper.Services.EveMapper
 
             _magnetarEffects.Add(EveSystemType.C4, new List<EveSystemEffect>(6)
             {
+                new EveSystemEffect("Damage", 72),
                 new EveSystemEffect("Missile exp. radius", 36),
                 new EveSystemEffect("Drone tracking", -36),
                 new EveSystemEffect("Targeting range", -36),
