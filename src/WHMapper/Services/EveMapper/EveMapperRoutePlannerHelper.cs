@@ -3,6 +3,7 @@ using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Models.DTO.RoutePlanner;
 using WHMapper.Models.DTO.SDE;
 using WHMapper.Services.EveOAuthProvider.Services;
+using WHMapper.Services.EveScoutAPI;
 using WHMapper.Services.SDE;
 
 namespace WHMapper;
@@ -14,13 +15,15 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly IEveUserInfosServices?  _eveUserInfosServices;
     private readonly ISDEService _sdeServices;
     private IEnumerable<SolarSystemJump> _solarSystemJumpConnections = null!;
+    private IEveScoutAPIServices _eveScoutAPIService = null!;
 
-    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger, IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEService sdeServices)
+    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger, IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEService sdeServices, IEveScoutAPIServices eveScoutAPIServices)
     {
         _routeRepository = routeRepository;
         _logger = logger;
         _eveUserInfosServices = eveUserInfosServices;
         _sdeServices = sdeServices;
+        _eveScoutAPIService = eveScoutAPIServices;
     }
 
     public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
@@ -45,7 +48,16 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         return await GetRoutes(mapId,fromSolarSystemId, routeType, extraConnections, true);
     }
 
-    private async Task<IEnumerable<EveRoute>?> GetRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections, bool global)
+    public async Task<IEnumerable<EveRoute>?> GetTheraRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
+    {
+        return await GetEveScoutRoutes(mapId,fromSolarSystemId, routeType, extraConnections, true);
+    }
+    public async Task<IEnumerable<EveRoute>?> GetTurnurRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
+    {
+        return await GetEveScoutRoutes(mapId,fromSolarSystemId, routeType, extraConnections, false);
+    }
+    
+    private async Task<IEnumerable<EveRoute>?> GetRoutes(int mapId, int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections, bool global)
     {
         IList<EveRoute> routes = new List<EveRoute>();
         IEnumerable<WHRoute> whRoutes;
@@ -57,7 +69,7 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         else
         {
             var characterId = await _eveUserInfosServices.GetCharactedID();
-            whRoutes = await _routeRepository.GetRoutesByEveEntityId(mapId,characterId);
+            whRoutes = await _routeRepository.GetRoutesByEveEntityId(mapId, characterId);
         }
 
         foreach (var whRoute in whRoutes)
@@ -70,6 +82,36 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 
         return routes;
     }
+
+    private async Task<IEnumerable<EveRoute>?> GetEveScoutRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null,bool thera = true)
+    {
+        IEnumerable<Models.DTO.EveScout.EveScoutSystemEntry>? eveScoutSystemEntries = null;
+        IList<EveRoute> routes = new List<EveRoute>();
+        IEnumerable<EveRoute>? eveScoutRoutes = null;
+
+        if (thera)
+            eveScoutSystemEntries = await _eveScoutAPIService.GetTheraSystemsAsync();
+        else
+            eveScoutSystemEntries = await _eveScoutAPIService.GetTurnurSystemsAsync();
+
+        if (eveScoutSystemEntries == null || eveScoutSystemEntries.Count() == 0)
+        {
+            _logger.LogWarning("No EveScout system found");
+            return routes;
+        }
+
+        foreach (var eveScoutSystemEntry in eveScoutSystemEntries!)
+        {
+            if (!eveScoutSystemEntry.InSystemId.HasValue || String.IsNullOrEmpty(eveScoutSystemEntry.InSystemName))
+                continue;
+            
+            
+            var route = await CalculateRoute(fromSolarSystemId, eveScoutSystemEntry.InSystemId.Value, routeType, extraConnections);
+            routes.Add(new EveRoute(-1, eveScoutSystemEntry.InSystemName, route));
+        }
+        return routes;
+    }
+
 
     /// <summary>
     /// Theory : https://www.cs.princeton.edu/courses/archive/spring13/cos423/lectures/FibonacciHeaps-2x2.pdf

@@ -20,6 +20,11 @@ public partial class Overview : ComponentBase
     private IEnumerable<EveRoute>? _myRoutes = null;
     private IEnumerable<EveRoute>? _globalRoutes = null;
 
+    private IEnumerable<EveRoute>? _theraRoutes = null;
+    private IEnumerable<EveRoute>? _turnurRoutes = null;
+
+
+
     private EveRoute? _showedRoute = null!;
 
     private RouteType _routeType = RouteType.Shortest;
@@ -79,62 +84,82 @@ public partial class Overview : ComponentBase
         {
             var currentSystem = CurrentSystemNode;
             var currentLinks = CurrentLinks;
-            if (currentSystem != null && currentLinks!=null && CurrentMapId.HasValue)
+
+
+            if (currentSystem != null && currentLinks != null && CurrentMapId.HasValue)
             {
-                _loading=true;
-                await InvokeAsync(() => {
+                _loading = true;
+                await InvokeAsync(() =>
+                {
                     StateHasChanged();
                 });
                 FrozenSet<RouteConnection> mapConnections = null!;
-                if(currentLinks.Count() > 0)
+                if (currentLinks.Count() > 0)
                 {
-                    var  mapConnectionsSens1 = currentLinks.Select(x=> new RouteConnection(
-                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId,((EveSystemNodeModel)x.Source!.Model!).SecurityStatus,
-                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId,((EveSystemNodeModel)x.Target!.Model!).SecurityStatus
+                    var mapConnectionsSens1 = currentLinks.Select(x => new RouteConnection(
+                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Source!.Model!).SecurityStatus,
+                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Target!.Model!).SecurityStatus
                         )).ToList();
 
-                    var  mapConnectionsSens2 = currentLinks.Select(x=> new RouteConnection(
-                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId,((EveSystemNodeModel)x.Target!.Model!).SecurityStatus,
-                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId,((EveSystemNodeModel)x.Source!.Model!).SecurityStatus
-                            
+                    var mapConnectionsSens2 = currentLinks.Select(x => new RouteConnection(
+                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Target!.Model!).SecurityStatus,
+                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Source!.Model!).SecurityStatus
+
                     )).ToList();
-                    
-                    mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToFrozenSet();
+
+
+                    mapConnections = mapConnectionsSens1.Concat(mapConnectionsSens2).ToFrozenSet();
                 }
 
 
                 _logger.LogInformation("Restore routes from {0}", currentSystem.Name);
-                var globalRouteTmp= await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentMapId.Value,currentSystem.SolarSystemId,RType,mapConnections);
-                var myRoutesTmp= await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentMapId.Value,currentSystem.SolarSystemId,RType,mapConnections);
+                IEnumerable<EveRoute>? globalRouteTmp = await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
+                IEnumerable<EveRoute>? myRoutesTmp = await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
+                IEnumerable<EveRoute>? theraSystemsTmp = await EveMapperRoutePlannerHelper.GetTheraRoutes(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
+                IEnumerable<EveRoute>? turnurSystemsTmp = await EveMapperRoutePlannerHelper.GetTurnurRoutes(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
 
-                if(_showedRoute!=null)
+
+                if (_showedRoute != null)
                 {
-                    var globalRouteShowed = globalRouteTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
-                    var myRouteShowed = myRoutesTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
+                    var globalRouteShowed = globalRouteTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
+                    var myRouteShowed = myRoutesTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
+                    var theraRouteShowed = theraSystemsTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
+                    var turnurRouteShowed = turnurSystemsTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
 
-                    await ShowRoute(_showedRoute,false);
-                    
+                    await ShowRoute(_showedRoute, false);
+
                     _globalRoutes = globalRouteTmp;
                     _myRoutes = myRoutesTmp;
-                
+                    _theraRoutes = theraSystemsTmp;
+                    _turnurRoutes = turnurSystemsTmp;
 
-                    if(globalRouteShowed!=null && globalRouteShowed.IsAvailable)
-                        await ShowRoute(globalRouteShowed,true);
-                    
 
-                    if(myRouteShowed!=null && myRouteShowed.IsAvailable)
-                        await ShowRoute(myRouteShowed,true);
-                    
+                    if (globalRouteShowed != null && globalRouteShowed.IsAvailable)
+                        await ShowRoute(globalRouteShowed, true);
+
+
+                    if (myRouteShowed != null && myRouteShowed.IsAvailable)
+                        await ShowRoute(myRouteShowed, true);
+
+                    if (theraRouteShowed != null && theraRouteShowed.IsAvailable)
+                        await ShowRoute(theraRouteShowed, true);
+
+                    if (turnurRouteShowed != null && turnurRouteShowed.IsAvailable)
+                        await ShowRoute(turnurRouteShowed, true);
+
                 }
                 else
                 {
                     _globalRoutes = globalRouteTmp;
                     _myRoutes = myRoutesTmp;
+                    _theraRoutes = theraSystemsTmp;
+                    _turnurRoutes = turnurSystemsTmp;
                 }
 
 
-                await InvokeAsync(() => {
-                    _loading=false;
+                await InvokeAsync(() =>
+                {
+                    _loading = false;
                     StateHasChanged();
                 });
             }

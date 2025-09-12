@@ -40,6 +40,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using WHMapper.Components;
 using Serilog;
 using WHMapper.Services.BrowserClientIdProvider.Extension;
+using WHMapper.Services.EveScoutAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -213,6 +214,10 @@ builder.Services.AddHttpClient<ICharacterServices, CharacterServices>(client =>
     client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
 });//.AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
 
+builder.Services.AddHttpClient<IEveScoutAPIServices, EveScoutAPIServices>(client =>
+{
+    client.BaseAddress = new Uri(EveScoutAPIServiceConstants.EveScoutUrl);
+});
 
 builder.Services.AddScoped<IAnoikDataSupplier>(sp =>
 {
