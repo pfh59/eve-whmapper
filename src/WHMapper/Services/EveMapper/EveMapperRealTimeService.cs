@@ -12,6 +12,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     private readonly ILogger<EveMapperRealTimeService> _logger;
     private readonly NavigationManager _navigation;
     private readonly IEveOnlineTokenProvider _tokenProvider;
+    private readonly IConfiguration _configuration;
 
     public event Func<int, Task>? UserConnected;
     public event Func<int, Task>? UserDisconnected;
@@ -38,11 +39,12 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, Task>? UserOnMapDisconnected;
 
 
-    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, IEveOnlineTokenProvider tokenProvider)
+    public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, IEveOnlineTokenProvider tokenProvider, IConfiguration configuration)
     {
         _logger = logger;
         _navigation = navigation;
         _tokenProvider = tokenProvider;
+        _configuration = configuration;
     }
     public async Task<bool> Start(int accountID)
     {
@@ -60,6 +62,17 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                     .WithUrl(_navigation.ToAbsoluteUri("/whmappernotificationhub"), options =>
                     {
                         options.AccessTokenProvider = async () => token.AccessToken;
+                        if (_configuration.GetValue<bool>("DisableSignalRCertificateValidation"))
+                        { 
+                            options.HttpMessageHandlerFactory = (message) =>
+                            {
+                                if (message is HttpClientHandler clientHandler)
+                                    // bypass SSL certificate
+                                    clientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                                return message;
+                            };
+                        }
+                                    
                     })
                     .WithAutomaticReconnect()
                     .Build();
