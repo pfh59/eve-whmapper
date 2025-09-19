@@ -102,9 +102,9 @@ if (-not $DBPASSWORD) {
 
         # Confirm password
         $DBPASSWORD2 = Read-Host -AsSecureString "Confirm your root db password [Required]"
-        $plainDbPassword1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($DBPASSWORD))
-        $plainDbPassword2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($DBPASSWORD2))
-        
+        $plainDbPassword1 = ConvertFrom-SecureString -SecureString $DBPASSWORD -AsPlainText
+        $plainDbPassword2 = ConvertFrom-SecureString -SecureString $DBPASSWORD2 -AsPlainText
+
         if ($plainDbPassword1 -ne $plainDbPassword2) {
             Write-Host "Error: Passwords do not match. Please try again." -ForegroundColor Red
         }
@@ -131,8 +131,8 @@ if (-not $SSOSECRET) {
         } else {
             # Confirm secret
             $SSOSECRET2 = Read-Host -AsSecureString "Confirm CCP SSO Secret [Required]"
-            $plainSSOSECRET1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SSOSECRET))
-            $plainSSOSECRET2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SSOSECRET2))
+            $plainSSOSECRET1 = ConvertFrom-SecureString -SecureString $SSOSECRET -AsPlainText
+            $plainSSOSECRET2 = ConvertFrom-SecureString -SecureString $SSOSECRET2 -AsPlainText
 
             if ($plainSSOSECRET1 -ne $plainSSOSECRET2) {
                 Write-Host "Error: Secrets do not match. Please try again." -ForegroundColor Red
@@ -160,12 +160,12 @@ foreach ($file in $requiredFiles) {
     }
 }
 
-$plainDbPassword = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($DBPASSWORD))
+$plainDbPassword = ConvertFrom-SecureString -SecureString $DBPASSWORD -AsPlainText
 $defaultDbPwd1 = "POSTGRES_PASSWORD:-secret"
 $defaultDbPwd2 = "Password=secret"
 $defaultSSOClientId = "EveSSO__ClientId=xxxxxxxxx"
 $defaultSSOSecret = "EveSSO__Secret=xxxxxxxxx"
-$plainSSOSECRET = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SSOSECRET))
+$plainSSOSECRET = ConvertFrom-SecureString -SecureString $SSOSECRET -AsPlainText
 
 
 if($IsWindows) {
