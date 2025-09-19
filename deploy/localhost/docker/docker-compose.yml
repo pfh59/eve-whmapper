@@ -30,9 +30,11 @@ services:
      - Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore.Database.Command=Warning
      - DisableSignalRCertificateValidation=true
     links:
-      - db     
+      - db    
+      - redis
     depends_on:
-      - db 
+      - db
+      - redis
     networks:
      - net
     volumes:
