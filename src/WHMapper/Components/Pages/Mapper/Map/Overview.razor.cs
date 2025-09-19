@@ -184,6 +184,9 @@ public partial class Overview : IAsyncDisposable
     private async Task LoadMapAsync(CancellationToken cancellationToken)
     {
         _loading = true;
+        await InvokeAsync(() => {
+            StateHasChanged();
+        });
         if (MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value != MapId.Value))
         {
             if (await Restore(MapId.Value, cancellationToken))
@@ -269,6 +272,9 @@ public partial class Overview : IAsyncDisposable
             }
         }
         _loading = false;
+        await InvokeAsync(() => {
+            StateHasChanged();
+        });
     }
 
     
