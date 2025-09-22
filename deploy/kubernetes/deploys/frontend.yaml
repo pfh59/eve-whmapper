@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: evemapper-app
-          image: ghcr.io/pfh59/eve-whmapper:1.1
+          image: ghcr.io/pfh59/eve-whmapper:latest
           envFrom:
           - configMapRef:
               name: evemapper-config-map

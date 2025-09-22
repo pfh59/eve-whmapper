@@ -16,9 +16,6 @@ Clear-Host
 # change script directory as working directory
 Set-Location -Path $PSScriptRoot
 
-
-
-
 # Clear console
 Write-Host "#------------------------------------------------------------#"
 Write-Host "EVE WHMAPPER DEPLOYMENT SCRIPT"
@@ -60,6 +57,10 @@ if (-not $dockerCompose) {
 
 #Check is mkcert is installed
 $mkcert = Get-Command -Name "mkcert" -ErrorAction SilentlyContinue
+if (-not $mkcert -and (Test-Path ".\mkcert.exe")) {
+    $mkcert = ".\mkcert.exe"
+}
+
 if (-not $mkcert) {
     Write-Host "Error: mkcert is not installed. Please install mkcert from https://github.com/FiloSottile/mkcert" -ForegroundColor Red
     exit 1
@@ -102,8 +103,14 @@ if (-not $DBPASSWORD) {
 
         # Confirm password
         $DBPASSWORD2 = Read-Host -AsSecureString "Confirm your root db password [Required]"
-        $plainDbPassword1 = ConvertFrom-SecureString -SecureString $DBPASSWORD -AsPlainText
-        $plainDbPassword2 = ConvertFrom-SecureString -SecureString $DBPASSWORD2 -AsPlainText
+        if ($PSVersionTable.PSEdition -eq "Desktop") {
+            $plainDbPassword1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($DBPASSWORD))
+            $plainDbPassword2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($DBPASSWORD2))
+        } elseif ($PSVersionTable.PSEdition -eq "Core") {
+            $plainDbPassword1 = ConvertFrom-SecureString -SecureString $DBPASSWORD -AsPlainText
+            $plainDbPassword2 = ConvertFrom-SecureString -SecureString $DBPASSWORD2 -AsPlainText
+        }
+
 
         if ($plainDbPassword1 -ne $plainDbPassword2) {
             Write-Host "Error: Passwords do not match. Please try again." -ForegroundColor Red
@@ -131,8 +138,14 @@ if (-not $SSOSECRET) {
         } else {
             # Confirm secret
             $SSOSECRET2 = Read-Host -AsSecureString "Confirm CCP SSO Secret [Required]"
-            $plainSSOSECRET1 = ConvertFrom-SecureString -SecureString $SSOSECRET -AsPlainText
-            $plainSSOSECRET2 = ConvertFrom-SecureString -SecureString $SSOSECRET2 -AsPlainText
+
+            if ($PSVersionTable.PSEdition -eq "Desktop") {
+                $plainSSOSECRET1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SSOSECRET))
+                $plainSSOSECRET2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SSOSECRET2))
+            } elseif ($PSVersionTable.PSEdition -eq "Core") {
+                $plainSSOSECRET1 = ConvertFrom-SecureString -SecureString $SSOSECRET -AsPlainText
+                $plainSSOSECRET2 = ConvertFrom-SecureString -SecureString $SSOSECRET2 -AsPlainText
+            }
 
             if ($plainSSOSECRET1 -ne $plainSSOSECRET2) {
                 Write-Host "Error: Secrets do not match. Please try again." -ForegroundColor Red
@@ -160,12 +173,25 @@ foreach ($file in $requiredFiles) {
     }
 }
 
-$plainDbPassword = ConvertFrom-SecureString -SecureString $DBPASSWORD -AsPlainText
+
+
+if ($PSVersionTable.PSEdition -eq "Desktop") {
+    $plainDbPassword = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($DBPASSWORD))
+} elseif ($PSVersionTable.PSEdition -eq "Core") {
+    $plainDbPassword = ConvertFrom-SecureString -SecureString $DBPASSWORD -AsPlainText
+}
+
 $defaultDbPwd1 = "POSTGRES_PASSWORD:-secret"
 $defaultDbPwd2 = "Password=secret"
 $defaultSSOClientId = "EveSSO__ClientId=xxxxxxxxx"
 $defaultSSOSecret = "EveSSO__Secret=xxxxxxxxx"
-$plainSSOSECRET = ConvertFrom-SecureString -SecureString $SSOSECRET -AsPlainText
+
+if ($PSVersionTable.PSEdition -eq "Desktop") {
+    $plainSSOSECRET = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($SSOSECRET))
+} elseif ($PSVersionTable.PSEdition -eq "Core") {
+    $plainSSOSECRET = ConvertFrom-SecureString -SecureString $SSOSECRET -AsPlainText
+}
+
 
 
 if($IsWindows) {
@@ -199,4 +225,3 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Error: Docker compose failed to prepare containers" -ForegroundColor Red
     exit 1
 }
-
