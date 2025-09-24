@@ -2,19 +2,25 @@
 @using WHMapper.Models.DTO.EveAPI.Route.Enums;
 
 
-<MudPaper Class="d-flex flex-column pa-2" hidden="@(CurrentSystemNode == null)" Outlined="true" MinWidth="240px" Height="325px">
-<MudText Class="pointer-events-none" Typo="Typo.subtitle1">Routes To :</MudText>
+<MudPaper Class="d-flex flex-column pa-2" hidden="@(CurrentSystemNode == null)" Outlined="true" MinWidth="300px" Height="325px">
     <MudRadioGroup Class="flex-none d-flex" @bind-Value="SelectedRoutePlannerTab">
         <MudRadio Class="ma-0"  Value="0" Color="Color.Primary" Size="Size.Small">Custom</MudRadio>
         <MudRadio Class="ma-0"  Value="1" Color="Color.Secondary" Size="Size.Small">Thera</MudRadio>
         <MudRadio Class="ma-0"  Value="2" Color="Color.Dark" Size="Size.Small">Turnur</MudRadio>
     </MudRadioGroup>
-
+    <MudDivider DividerType="DividerType.Middle" Class="my-1"/>
+    <MudRadioGroup Class="flex-none d-flex" @bind-Value="RType">
+        <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Secure" Color="Color.Success" Size="Size.Small">Safer</MudRadio>
+        <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Shortest"  Color="Color.Warning" Size="Size.Small">Shorter</MudRadio>
+        <!--<MudRadio Class="ma-0" T="RouteType" Value="RouteType.Insecure"  Color="Color.Error" Size="Size.Small">Riskly</MudRadio>-->
+    </MudRadioGroup>
+    <MudDivider DividerType="DividerType.Middle" Class="my-1"/>
     @if(_selectedRoutePlannerTab==0)
     {
         <MudStack Class="flex-none d-flex" Row="true" Justify="Justify.FlexStart" Spacing="1" >
             <AuthorizeView Policy="Admin" Context="adminContext">
                 <Authorized>
+                    <MudText Class="pointer-events-none" Typo="Typo.subtitle1">Route :</MudText>
                     <MudTooltip Text="Add a global new route">
                         <MudIconButton Icon="@Icons.Material.Filled.AddCircle" Color="Color.Info" Size="Size.Small" OnClick="@((e) => AddRoute(true))" Disabled="@(_isEditable || _loading)"/>
                     </MudTooltip>
@@ -31,11 +37,11 @@
                 </NotAuthorized>
             </AuthorizeView>
         </MudStack>
-        <MudRadioGroup Class="flex-none d-flex" @bind-Value="RType">
-            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Secure" Color="Color.Success" Size="Size.Small">Safer</MudRadio>
-            <MudRadio Class="ma-0" T="RouteType" Value="RouteType.Shortest"  Color="Color.Warning" Size="Size.Small">Shorter</MudRadio>
-            <!--<MudRadio Class="ma-0" T="RouteType" Value="RouteType.Insecure"  Color="Color.Error" Size="Size.Small">Riskly</MudRadio>-->
-        </MudRadioGroup>
+
+    }
+    else
+    {
+        <MudText Class="pointer-events-none" Typo="Typo.subtitle1">Route :</MudText>
     }
 
     @if(_loading)

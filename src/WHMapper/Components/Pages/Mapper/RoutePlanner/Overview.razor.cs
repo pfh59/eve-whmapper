@@ -58,8 +58,6 @@ public partial class Overview : ComponentBase
         }
     }
     
-
-
     private bool _isEditable = false;
 
     [Inject]
@@ -218,7 +216,6 @@ public partial class Overview : ComponentBase
             });
         }
     }
-
     private async Task AddRoute(bool global)
     {
         if(!CurrentMapId.HasValue)
@@ -266,7 +263,6 @@ public partial class Overview : ComponentBase
             }
         }
     }
-
     private async Task DelRoute(EveRoute route)
     {
         var parameters = new DialogParameters();
@@ -285,14 +281,11 @@ public partial class Overview : ComponentBase
         StateHasChanged();
         
     }
-
     private async Task Edit()
     {
         _isEditable = !_isEditable;
         await Task.CompletedTask;
     }
-
-
     private async Task ToggleShowRoute(EveRoute route)
     {
         //search if route already showed
