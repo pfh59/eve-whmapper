@@ -241,10 +241,14 @@ public class EveWHMapperRoutePlannerHelperTest
 
         var result = await _eveMapperRoutePlannerHelper.GetTheraRoutes(_defaultMAp.Id, SOLAR_SYSTEM_JITA_ID, RouteType.Shortest, null);
         Assert.NotNull(result);
+
+        //clean whmap
+        Assert.NotNull(_whMapRepository);
+        await _whMapRepository.DeleteById(_defaultMAp.Id);
     }
 
     [Fact, Priority(4)]
-    public async Task Get_Turnurn_Route()
+    public async Task Get_Turnur_Route()
     {
         if (_defaultMAp == null)
         {
@@ -255,6 +259,10 @@ public class EveWHMapperRoutePlannerHelperTest
 
         var result = await _eveMapperRoutePlannerHelper.GetTurnurRoutes(_defaultMAp.Id, SOLAR_SYSTEM_JITA_ID, RouteType.Shortest, null);
         Assert.NotNull(result);
+
+        //clean whmap
+        Assert.NotNull(_whMapRepository);
+        await _whMapRepository.DeleteById(_defaultMAp.Id);
     }
 
 }
