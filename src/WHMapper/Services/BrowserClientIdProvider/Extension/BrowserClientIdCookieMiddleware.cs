@@ -1,5 +1,3 @@
-using System;
-
 namespace WHMapper.Services.BrowserClientIdProvider.Extension;
 
 public class BrowserClientIdCookieMiddleware

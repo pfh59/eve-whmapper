@@ -4,12 +4,9 @@ using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.Db;
 using MudBlazor;
 using Microsoft.AspNetCore.Authorization;
-using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 using WHMapper.Services.EveMapper;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper;
-using WHMapper.Services.EveOAuthProvider.Services;
-using WHMapper.Services.BrowserClientIdProvider;
 
 namespace WHMapper.Components.Pages.Mapper;
 
@@ -148,18 +145,18 @@ public partial class Overview : IAsyncDisposable
 
         }
 
-        if(RealTimeService!=null)
+        if (RealTimeService != null)
         {
-            
+
             RealTimeService.MapAdded -= OnMapAdded;
             RealTimeService.MapRemoved -= OnMapRemoved;
             RealTimeService.MapNameChanged -= OnMapNameChanged;
             RealTimeService.AllMapsRemoved -= OnAllMapsRemoved;
-            RealTimeService.MapAccessesAdded-=OnMapAccessesAdded;
-            RealTimeService.MapAccessRemoved-=OnMapAccessRemoved;
-            RealTimeService.MapAllAccessesRemoved-=OnMapAllAccessesRemoved;
+            RealTimeService.MapAccessesAdded -= OnMapAccessesAdded;
+            RealTimeService.MapAccessRemoved -= OnMapAccessRemoved;
+            RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
             await RealTimeService.DisposeAsync();
-            
+
         }
     }
 

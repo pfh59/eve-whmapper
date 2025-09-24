@@ -1,29 +1,21 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Options;
-using System;
-using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
-using WHMapper.Models.DTO;
-using WHMapper.Models.DTO.EveAPI.SSO;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.DTO; 
 using WHMapper.Services.BrowserClientIdProvider;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.EveOAuthProvider;
 using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveCookieExtensions;
 
-internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientIdProvider, IEveOnlineTokenProvider tokenProvider,IEveMapperUserManagementService eveMapperUserManagement)
-{        
+internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientIdProvider, IEveOnlineTokenProvider tokenProvider, IEveMapperUserManagementService eveMapperUserManagement)
+{
     public async Task ValidateOrRefreshCookieAsync(CookieValidatePrincipalContext validateContext, string scheme)
     {
         var clientId = await browserClientIdProvider.GetClientIdAsync();
-        
+
         if (string.IsNullOrEmpty(clientId))
         {
             validateContext?.RejectPrincipal();
@@ -31,7 +23,7 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
         }
         var accountId = validateContext?.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if(string.IsNullOrEmpty(accountId))
+        if (string.IsNullOrEmpty(accountId))
         {
             await eveMapperUserManagement.RemoveAuthenticateWHMapperUser(clientId);
             validateContext?.RejectPrincipal();
@@ -39,7 +31,7 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
         }
 
         var access_token = validateContext?.Properties.GetTokenValue("access_token");
-        var refresh_token  = validateContext?.Properties.GetTokenValue("refresh_token");
+        var refresh_token = validateContext?.Properties.GetTokenValue("refresh_token");
         var accessTokenExpirationText = validateContext?.Properties.GetTokenValue("expires_at");
         if (!DateTimeOffset.TryParse(accessTokenExpirationText, out var accessTokenExpiration))
         {
@@ -58,11 +50,11 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
             });
         }
 
-        if(!await tokenProvider.IsTokenExpire(accountId))
+        if (!await tokenProvider.IsTokenExpire(accountId))
         {
             return;
         }
-  
+
         try
         {
             await tokenProvider.RefreshAccessToken(accountId);
@@ -74,7 +66,7 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
             {
                 await tokenProvider.RefreshAccessToken(account.Id.ToString());
             }
-      
+
         }
         catch (Exception)
         {
@@ -95,7 +87,7 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
         {
             validateContext.ShouldRenew = true;
         }
-        
+
         if (token.AccessToken == null || token.RefreshToken == null)
         {
             await eveMapperUserManagement.RemoveAuthenticateWHMapperUser(clientId);
@@ -104,7 +96,7 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
         }
 
 
-       // validateContex?.ReplacePrincipal(new ClaimsPrincipal(validationResult.ClaimsIdentity));
+        // validateContex?.ReplacePrincipal(new ClaimsPrincipal(validationResult.ClaimsIdentity));
         validateContext?.Properties.StoreTokens(new[]
         {
             new AuthenticationToken { Name = "access_token", Value = token.AccessToken },
@@ -112,6 +104,6 @@ internal sealed class CookieEveRefresher(IBrowserClientIdProvider browserClientI
             new AuthenticationToken { Name = "expires_at", Value = token.Expiry.ToString("o", CultureInfo.InvariantCulture) }
         });
 
-         await eveMapperUserManagement.AddAuthenticateWHMapperUser(clientId, accountId, token);
+        await eveMapperUserManagement.AddAuthenticateWHMapperUser(clientId, accountId, token);
     }
 }

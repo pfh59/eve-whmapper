@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using System;
 using System.Security.Claims;
 
 namespace WHMapper.Services.EveMapper.AuthorizationPolicies;

@@ -153,8 +153,10 @@ builder.Services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.Authenti
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Trust All Proxies
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 
@@ -352,7 +354,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+
+//check if applicationUrls contains https
+var applicationUrls = builder.Configuration["Kestrel:Endpoints:Https:Url"];
+if ((!string.IsNullOrEmpty(applicationUrls) && app.Environment.IsProduction()) || app.Environment.IsDevelopment())
+{
+    Log.Information("Using HTTPS redirection");
+    app.UseHttpsRedirection();
+}
+else
+{
+    Log.Warning("HTTPS redirection is not enabled. Please ensure that the application is behind a reverse proxy that handles HTTPS.");
+}
 
 app.UseStaticFiles();
 app.UseAntiforgery();
@@ -361,7 +374,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");//signalR     
+app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");
 app.MapGroup("/authentication").MapLoginAndLogout();
 
 app.Run();

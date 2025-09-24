@@ -1,5 +1,3 @@
-using System;
-
 namespace WHMapper.Services.EveOAuthProvider.Validators;
 
 public interface IEveOnlineAccessTokenValidator

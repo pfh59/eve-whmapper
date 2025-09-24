@@ -1,6 +1,5 @@
 ﻿using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Search;
-using WHMapper.Services.EveOAuthProvider.Services;
 
 namespace WHMapper.Services.EveAPI.Search
 {

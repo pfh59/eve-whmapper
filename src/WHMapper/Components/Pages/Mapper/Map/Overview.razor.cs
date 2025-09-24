@@ -22,8 +22,6 @@ using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO;
 using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Components.Pages.Mapper.CustomNode;
-using Mono.TextTemplating;
-using Humanizer;
 
 namespace WHMapper.Components.Pages.Mapper.Map;
 
@@ -124,6 +122,8 @@ public partial class Overview : IAsyncDisposable
     [Parameter]
     public int? MapId { get; set; } = null!;
 
+    private CancellationTokenSource _cts = new();
+
 
     private async Task<WHMapperUser[]?> GetAccountsAsync()
     {
@@ -165,92 +165,127 @@ public partial class Overview : IAsyncDisposable
         await base.OnInitializedAsync();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
+        Logger.LogInformation("OnParametersSetAsync called with MapId: {MapId}", MapId);
+        if (_cts.IsCancellationRequested)
         {
-            _loading = true;
-            if (MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value != MapId.Value))
-            {
-
-                if (await Restore(MapId.Value))
-                {
-
-                    //get all user account authorized on map
-                    WHMapperUser[]? accounts = await GetAccountsAsync();
-                    if (accounts != null)
-                    {
-                        foreach (var account in accounts)
-                        {
-                            IDictionary<int, KeyValuePair<int, int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition(account.Id);
-                            try
-                            {
-                                var tasks = usersPosition
-                                    .Where(item => item.Value.HasValue && item.Value.Value.Key == MapId.Value)
-                                    .Select(async item =>
-                                    {
-                                        var systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == (item.Value?.Value ?? 0));
-                                        if (systemToAddUser != null)
-                                        {
-                                            CharactereEntity? user = await eveMapperService.GetCharacter(item.Key);
-                                            if (user != null)
-                                            {
-                                                await systemToAddUser.AddConnectedUser(user.Name);
-                                                systemToAddUser.Refresh();
-                                            }
-                                        }
-                                    });
-
-                                await Task.WhenAll(tasks);
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.LogError(ex, "On NotifyUserPosition error");
-                            }
-
-                            await EveMapperRealTime.NotifyUserOnMapConnected(account.Id, MapId.Value);
-                            if (account.Tracking)
-                                await TrackerServices.StartTracking(account.Id);
-                        }
-
-                        await InitBlazorDiagramEvents();
-                    }
-
-                    TrackerServices.SystemChanged += OnSystemChanged;
-                    TrackerServices.ShipChanged += OnShipChanged;
-
-
-                    EveMapperRealTime.UserDisconnected += OnUserDisconnected;
-                    EveMapperRealTime.UserOnMapConnected += OnUserOnMapConnected;
-                    EveMapperRealTime.UserOnMapDisconnected += OnUserOnMapDisconnected;
-
-                    EveMapperRealTime.UserPosition += OnUserPositionChanged;
-
-                    EveMapperRealTime.WormholeAdded += OnWormholeAdded;
-                    EveMapperRealTime.WormholeRemoved += OnWormholeRemoved;
-                    EveMapperRealTime.WormholeMoved += OnWormholeMoved;
-                    EveMapperRealTime.WormholeLockChanged += OnWormholeLockChanged;
-                    EveMapperRealTime.WormholeSystemStatusChanged += OnWormholeSystemStatusChanged;
-                    EveMapperRealTime.WormholeNameExtensionChanged += OnWormholeNameExtensionChanged;
-                    EveMapperRealTime.WormholeAlternateNameChanged += OnWormholeAlternateNameChanged;
-
-                    EveMapperRealTime.LinkAdded += OnLinkAdded;
-                    EveMapperRealTime.LinkRemoved += OnLinkRemoved;
-                    EveMapperRealTime.LinkChanged += OnLinkChanged;
-                }
-                else
-                {
-                    Snackbar?.Add("Map Restore error", Severity.Error);
-                }
-            }
-            _loading = false;
-            StateHasChanged();
+            _cts.Dispose();
+            _cts = new CancellationTokenSource();
         }
-        await base.OnAfterRenderAsync(firstRender);
+
+        _ = Task.Run(() => LoadMapAsync(_cts.Token));
+
+        Logger.LogInformation("OnParametersSetAsync completed with MapId: {MapId}", MapId);
+
+        await base.OnParametersSetAsync();
     }
 
+    private async Task LoadMapAsync(CancellationToken cancellationToken)
+    {
+        _loading = true;
+        await InvokeAsync(() => {
+            StateHasChanged();
+        });
+        if (MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value != MapId.Value))
+        {
+            if (await Restore(MapId.Value, cancellationToken))
+            {
+                WHMapperUser[]? accounts = await GetAccountsAsync();
+                if (accounts != null)
+                {
+                    foreach (var account in accounts)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            Logger.LogWarning("LoadMapAsync cancelled, during account loading");
+                            return;
+                        }
+
+                        IDictionary<int, KeyValuePair<int, int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition(account.Id);
+                        try
+                        {
+                            var tasks = usersPosition
+                                .Where(item => item.Value.HasValue && item.Value.Value.Key == MapId.Value)
+                                .Select(async item =>
+                                {
+                                    if (cancellationToken.IsCancellationRequested)
+                                    {
+                                        Logger.LogWarning("LoadMapAsync cancelled, during user position loading");
+                                        return;
+                                    }
+
+                                    var systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == (item.Value?.Value ?? 0));
+                                    if (systemToAddUser != null)
+                                    {
+                                        CharactereEntity? user = await eveMapperService.GetCharacter(item.Key);
+                                        if (user != null)
+                                        {
+                                            await systemToAddUser.AddConnectedUser(user.Name);
+                                            systemToAddUser.Refresh();
+                                        }
+                                    }
+                                });
+
+                            await Task.WhenAll(tasks);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "On NotifyUserPosition error");
+                        }
+
+                        await EveMapperRealTime.NotifyUserOnMapConnected(account.Id, MapId.Value);
+                        if (account.Tracking)
+                        {
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                Logger.LogWarning("LoadMapAsync cancelled, before starting tracking");
+                                return;
+                            }
+                            await TrackerServices.StartTracking(account.Id);
+                        }
+                    }
+
+                    await InitBlazorDiagramEvents();
+                }
+
+                TrackerServices.SystemChanged += OnSystemChanged;
+                TrackerServices.ShipChanged += OnShipChanged;
+
+                EveMapperRealTime.UserDisconnected += OnUserDisconnected;
+                EveMapperRealTime.UserOnMapConnected += OnUserOnMapConnected;
+                EveMapperRealTime.UserOnMapDisconnected += OnUserOnMapDisconnected;
+
+                EveMapperRealTime.UserPosition += OnUserPositionChanged;
+
+                EveMapperRealTime.WormholeAdded += OnWormholeAdded;
+                EveMapperRealTime.WormholeRemoved += OnWormholeRemoved;
+                EveMapperRealTime.WormholeMoved += OnWormholeMoved;
+                EveMapperRealTime.WormholeLockChanged += OnWormholeLockChanged;
+                EveMapperRealTime.WormholeSystemStatusChanged += OnWormholeSystemStatusChanged;
+                EveMapperRealTime.WormholeNameExtensionChanged += OnWormholeNameExtensionChanged;
+                EveMapperRealTime.WormholeAlternateNameChanged += OnWormholeAlternateNameChanged;
+
+                EveMapperRealTime.LinkAdded += OnLinkAdded;
+                EveMapperRealTime.LinkRemoved += OnLinkRemoved;
+                EveMapperRealTime.LinkChanged += OnLinkChanged;
+            }
+        }
+        _loading = false;
+        await InvokeAsync(() => {
+            StateHasChanged();
+        });
+    }
+
+    
     public async ValueTask DisposeAsync()
     {
+        if(!_cts.IsCancellationRequested)
+        {
+            _cts.Cancel();
+        }
+        _cts.Dispose();
+
         if (TrackerServices != null)
         {
             TrackerServices.SystemChanged -= OnSystemChanged;
@@ -292,10 +327,15 @@ public partial class Overview : IAsyncDisposable
         GC.SuppressFinalize(this);
     }
 
-    private async Task<bool> Restore(int mapId)
+    private async Task<bool> Restore(int mapId, CancellationToken cancellationToken)
     {
         try
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Logger.LogInformation("Restore cancelled");
+                return false;
+            }
 
             WHMap? selectedWHMap = null;
             Logger.LogInformation("Beginning Restore Map");
