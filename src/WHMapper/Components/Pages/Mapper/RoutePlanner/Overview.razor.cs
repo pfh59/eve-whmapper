@@ -19,6 +19,11 @@ public partial class Overview : ComponentBase
     private bool _loading =true;
     private IEnumerable<EveRoute>? _myRoutes = null;
     private IEnumerable<EveRoute>? _globalRoutes = null;
+    private IEnumerable<EveRoute>? _theraRoutes = null;
+    private IEnumerable<EveRoute>? _turnurRoutes = null;
+
+    
+
 
     private EveRoute? _showedRoute = null!;
 
@@ -30,13 +35,29 @@ public partial class Overview : ComponentBase
         }
         set
         {
-            _routeType=value;
-            Task.Run(() => Restore());
+            if (_routeType != value)
+            {
+                _routeType = value;
+                Task.Run(() => Restore());
+            }
+        }
+    }
+
+    private int _selectedRoutePlannerTab = 0;
+
+    private int SelectedRoutePlannerTab
+    {
+        get { return _selectedRoutePlannerTab; }
+        set
+        {
+            if (_selectedRoutePlannerTab != value)
+            {
+                _selectedRoutePlannerTab = value;
+                Task.Run(() => Restore());
+            }
         }
     }
     
-
-
     private bool _isEditable = false;
 
     [Inject]
@@ -75,80 +96,126 @@ public partial class Overview : ComponentBase
 
     private async Task Restore()
     {
+        IEnumerable<EveRoute>? globalRouteTmp = null;
+        IEnumerable<EveRoute>? myRoutesTmp = null;
+        IEnumerable<EveRoute>? theraSystemsTmp = null;
+        IEnumerable<EveRoute>? turnurSystemsTmp = null;
         try
         {
             var currentSystem = CurrentSystemNode;
             var currentLinks = CurrentLinks;
-            if (currentSystem != null && currentLinks!=null && CurrentMapId.HasValue)
+
+
+            if (currentSystem != null && currentLinks != null && CurrentMapId.HasValue)
             {
-                _loading=true;
-                await InvokeAsync(() => {
+                _loading = true;
+                await InvokeAsync(() =>
+                {
                     StateHasChanged();
                 });
                 FrozenSet<RouteConnection> mapConnections = null!;
-                if(currentLinks.Count() > 0)
+                if (currentLinks.Count() > 0)
                 {
-                    var  mapConnectionsSens1 = currentLinks.Select(x=> new RouteConnection(
-                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId,((EveSystemNodeModel)x.Source!.Model!).SecurityStatus,
-                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId,((EveSystemNodeModel)x.Target!.Model!).SecurityStatus
+                    var mapConnectionsSens1 = currentLinks.Select(x => new RouteConnection(
+                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Source!.Model!).SecurityStatus,
+                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Target!.Model!).SecurityStatus
                         )).ToList();
 
-                    var  mapConnectionsSens2 = currentLinks.Select(x=> new RouteConnection(
-                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId,((EveSystemNodeModel)x.Target!.Model!).SecurityStatus,
-                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId,((EveSystemNodeModel)x.Source!.Model!).SecurityStatus
-                            
+                    var mapConnectionsSens2 = currentLinks.Select(x => new RouteConnection(
+                            ((EveSystemNodeModel)x.Target!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Target!.Model!).SecurityStatus,
+                            ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId, ((EveSystemNodeModel)x.Source!.Model!).SecurityStatus
+
                     )).ToList();
-                    
-                    mapConnections= mapConnectionsSens1.Concat(mapConnectionsSens2).ToFrozenSet();
+
+
+                    mapConnections = mapConnectionsSens1.Concat(mapConnectionsSens2).ToFrozenSet();
                 }
 
 
                 _logger.LogInformation("Restore routes from {0}", currentSystem.Name);
-                var globalRouteTmp= await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentMapId.Value,currentSystem.SolarSystemId,RType,mapConnections);
-                var myRoutesTmp= await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentMapId.Value,currentSystem.SolarSystemId,RType,mapConnections);
-
-                if(_showedRoute!=null)
+                switch (SelectedRoutePlannerTab)
                 {
-                    var globalRouteShowed = globalRouteTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
-                    var myRouteShowed = myRoutesTmp?.Where(x=>x.Id==_showedRoute.Id).FirstOrDefault();
+                    case 0:
+                        globalRouteTmp = await EveMapperRoutePlannerHelper.GetRoutesForAll(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
+                        myRoutesTmp = await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
+                        break;
+                    case 1:
+                        theraSystemsTmp = await EveMapperRoutePlannerHelper.GetTheraRoutes(currentSystem.SolarSystemId, RType, mapConnections);
+                        break;
+                    case 2:
+                        turnurSystemsTmp = await EveMapperRoutePlannerHelper.GetTurnurRoutes(currentSystem.SolarSystemId, RType, mapConnections);
+                        break;
 
-                    await ShowRoute(_showedRoute,false);
-                    
-                    _globalRoutes = globalRouteTmp;
-                    _myRoutes = myRoutesTmp;
-                
+                }
 
-                    if(globalRouteShowed!=null && globalRouteShowed.IsAvailable)
-                        await ShowRoute(globalRouteShowed,true);
-                    
+                if (_showedRoute != null)
+                {
+                    switch (SelectedRoutePlannerTab)
+                    {
+                        case 0:
+                            var globalRouteShowed = globalRouteTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
+                            var myRouteShowed = myRoutesTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
+                            await ShowRoute(_showedRoute, false);
+                            _globalRoutes = globalRouteTmp;
+                            _myRoutes = myRoutesTmp;
 
-                    if(myRouteShowed!=null && myRouteShowed.IsAvailable)
-                        await ShowRoute(myRouteShowed,true);
-                    
+                            if (globalRouteShowed != null && globalRouteShowed.IsAvailable)
+                                await ShowRoute(globalRouteShowed, true);
+
+
+                            if (myRouteShowed != null && myRouteShowed.IsAvailable)
+                                await ShowRoute(myRouteShowed, true);
+                            break;
+                        case 1:
+                            var theraRouteShowed = theraSystemsTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
+                            await ShowRoute(_showedRoute, false);
+                            _theraRoutes = theraSystemsTmp;
+                            if (theraRouteShowed != null && theraRouteShowed.IsAvailable)
+                                await ShowRoute(theraRouteShowed, true);
+                            break;
+                        case 2:
+                            var turnurRouteShowed = turnurSystemsTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
+                            await ShowRoute(_showedRoute, false);
+                            _turnurRoutes = turnurSystemsTmp;
+                            if (turnurRouteShowed != null && turnurRouteShowed.IsAvailable)
+                                await ShowRoute(turnurRouteShowed, true);
+                            break;
+                    }
                 }
                 else
                 {
-                    _globalRoutes = globalRouteTmp;
-                    _myRoutes = myRoutesTmp;
+                    switch (SelectedRoutePlannerTab)
+                    {
+                        case 0:
+                            _globalRoutes = globalRouteTmp;
+                            _myRoutes = myRoutesTmp;
+                            break;
+                        case 1:
+                            _theraRoutes = theraSystemsTmp;
+                            break;
+                        case 2:
+                            _turnurRoutes = turnurSystemsTmp;
+                            break;
+                    }
                 }
-
-
-                await InvokeAsync(() => {
-                    _loading=false;
-                    StateHasChanged();
-                });
+                    
+                await InvokeAsync(() =>
+                    {
+                        _loading = false;
+                        StateHasChanged();
+                    });
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            _logger.LogError(ex,"Error on restore routes");
-                await InvokeAsync(() => {
-                _loading=false;
+            _logger.LogError(ex, "Error on restore routes");
+            await InvokeAsync(() =>
+            {
+                _loading = false;
                 StateHasChanged();
             });
         }
     }
-
     private async Task AddRoute(bool global)
     {
         if(!CurrentMapId.HasValue)
@@ -196,7 +263,6 @@ public partial class Overview : ComponentBase
             }
         }
     }
-
     private async Task DelRoute(EveRoute route)
     {
         var parameters = new DialogParameters();
@@ -215,14 +281,11 @@ public partial class Overview : ComponentBase
         StateHasChanged();
         
     }
-
     private async Task Edit()
     {
         _isEditable = !_isEditable;
         await Task.CompletedTask;
     }
-
-
     private async Task ToggleShowRoute(EveRoute route)
     {
         //search if route already showed
