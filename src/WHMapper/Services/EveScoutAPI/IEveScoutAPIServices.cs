@@ -16,6 +16,6 @@ public interface IEveScoutAPIServices
     /// Fetches all Turnur system entries.
     /// </summary>
     /// <returns>A list of Turnur system entries.</returns>
-    Task<IEnumerable<EveScoutSystemEntry>> GetTurnurSystemsAsync();
+    Task<IEnumerable<EveScoutSystemEntry>?> GetTurnurSystemsAsync();
 
 }

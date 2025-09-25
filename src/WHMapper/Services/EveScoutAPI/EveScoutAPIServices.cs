@@ -52,6 +52,5 @@ public class EveScoutAPIServices : IEveScoutAPIServices
         }
         else
             return default(T);
-            //throw new Exception($"Request failed with status code: {response.StatusCode}");
     }
 }

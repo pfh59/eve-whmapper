@@ -140,10 +140,10 @@ public partial class Overview : ComponentBase
                         myRoutesTmp = await EveMapperRoutePlannerHelper.GetMyRoutes(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
                         break;
                     case 1:
-                        theraSystemsTmp = await EveMapperRoutePlannerHelper.GetTheraRoutes(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
+                        theraSystemsTmp = await EveMapperRoutePlannerHelper.GetTheraRoutes(currentSystem.SolarSystemId, RType, mapConnections);
                         break;
                     case 2:
-                        turnurSystemsTmp = await EveMapperRoutePlannerHelper.GetTurnurRoutes(CurrentMapId.Value, currentSystem.SolarSystemId, RType, mapConnections);
+                        turnurSystemsTmp = await EveMapperRoutePlannerHelper.GetTurnurRoutes(currentSystem.SolarSystemId, RType, mapConnections);
                         break;
 
                 }
@@ -153,8 +153,8 @@ public partial class Overview : ComponentBase
                     switch (SelectedRoutePlannerTab)
                     {
                         case 0:
-                            var globalRouteShowed = globalRouteTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
-                            var myRouteShowed = myRoutesTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
+                            var globalRouteShowed = globalRouteTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
+                            var myRouteShowed = myRoutesTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
                             await ShowRoute(_showedRoute, false);
                             _globalRoutes = globalRouteTmp;
                             _myRoutes = myRoutesTmp;
@@ -167,14 +167,14 @@ public partial class Overview : ComponentBase
                                 await ShowRoute(myRouteShowed, true);
                             break;
                         case 1:
-                            var theraRouteShowed = theraSystemsTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
+                            var theraRouteShowed = theraSystemsTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
                             await ShowRoute(_showedRoute, false);
                             _theraRoutes = theraSystemsTmp;
                             if (theraRouteShowed != null && theraRouteShowed.IsAvailable)
                                 await ShowRoute(theraRouteShowed, true);
                             break;
                         case 2:
-                            var turnurRouteShowed = turnurSystemsTmp?.Where(x => x.Id == _showedRoute.Id).FirstOrDefault();
+                            var turnurRouteShowed = turnurSystemsTmp?.FirstOrDefault(x => x.Id == _showedRoute.Id);
                             await ShowRoute(_showedRoute, false);
                             _turnurRoutes = turnurSystemsTmp;
                             if (turnurRouteShowed != null && turnurRouteShowed.IsAvailable)

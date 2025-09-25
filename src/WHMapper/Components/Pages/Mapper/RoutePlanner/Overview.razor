@@ -55,9 +55,9 @@
         <MudPaper Class="flex-1 d-flex flex-column flex-column overflow-auto pt-1" Width="100%" Elevation="0">
         @if(_selectedRoutePlannerTab==0)
         {
-            @if(_globalRoutes!=null && _globalRoutes.Count() > 0)
+            if(_globalRoutes!=null && _globalRoutes.Count() > 0)
             {      
-                @foreach (var route in _globalRoutes)
+                foreach (var route in _globalRoutes)
                 {
                     <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="1">
                         <MudStack Row="true" Spacing="1">
@@ -66,7 +66,7 @@
                         </MudStack>
                         <MudIconButton Class="mt-n1" Icon="@(route.IsShowed ? Icons.Material.Filled.GpsOff : @Icons.Material.Filled.GpsFixed)" Color="@(route.IsShowed ? Color.Error : Color.Success)" Size="Size.Small" Disabled="@(route.IsAvailable==false)" OnClick="@((e)=>ToggleShowRoute(route))"/>
                         <AuthorizeView Policy="Admin" Context="adminContext">
-                        @if(_isEditable)
+                        if(_isEditable)
                         {
                             <MudIconButton Class="mt-n1" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@((e) => DelRoute(route))"/>
                         }  
@@ -75,9 +75,9 @@
                 }
             }
 
-            @if(_myRoutes!=null && _myRoutes.Count() > 0)
+            if(_myRoutes!=null && _myRoutes.Count() > 0)
             {
-                @foreach (var route in _myRoutes)
+                foreach (var route in _myRoutes)
                 {
                     <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="1">
                         <MudStack Row="true" Spacing="1">
@@ -85,7 +85,7 @@
                             <MudChip T="int" Class="mt-n1" Color="@(route.IsAvailable==true ? Color.Dark : Color.Error )" Size="Size.Small">@route.JumpLength</MudChip> 
                         </MudStack>
                         <MudIconButton Class="mt-n1" Icon="@(route.IsShowed ? Icons.Material.Filled.GpsOff : @Icons.Material.Filled.GpsFixed)" Color="@(route.IsShowed ? Color.Error : Color.Success)" Size="Size.Small" Disabled="@(route.IsAvailable==false)" OnClick="@((e)=>ToggleShowRoute(route))"/>
-                        @if(_isEditable)
+                        if(_isEditable)
                         {
                             <MudIconButton Class="mt-n1" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@((e) => DelRoute(route))"/>
                         }           
@@ -95,9 +95,9 @@
         }
         else if(_selectedRoutePlannerTab==1)
         {
-            @if(_theraRoutes!=null && _theraRoutes.Count() > 0)
+            if(_theraRoutes!=null && _theraRoutes.Count() > 0)
             {
-                @foreach (var route in _theraRoutes)
+                foreach (var route in _theraRoutes)
                 {
                     <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="1">
                         <MudStack Row="true" Spacing="1">
@@ -111,9 +111,9 @@
         }
         else if(_selectedRoutePlannerTab==2)
         {
-            @if(_turnurRoutes!=null && _turnurRoutes.Count() > 0)
+            if(_turnurRoutes!=null && _turnurRoutes.Count() > 0)
             {
-                @foreach (var route in _turnurRoutes)
+                foreach (var route in _turnurRoutes)
                 {
                     <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="1">
                         <MudStack Row="true" Spacing="1">

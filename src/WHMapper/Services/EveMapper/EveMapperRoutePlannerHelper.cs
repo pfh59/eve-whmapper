@@ -14,8 +14,9 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
     private readonly ILogger<EveMapperRoutePlannerHelper> _logger;
     private readonly IEveUserInfosServices?  _eveUserInfosServices;
     private readonly ISDEService _sdeServices;
+    private readonly IEveScoutAPIServices _eveScoutAPIService;
     private IEnumerable<SolarSystemJump> _solarSystemJumpConnections = null!;
-    private IEveScoutAPIServices _eveScoutAPIService = null!;
+
 
     public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger, IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEService sdeServices, IEveScoutAPIServices eveScoutAPIServices)
     {
@@ -48,18 +49,18 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         return await GetRoutes(mapId,fromSolarSystemId, routeType, extraConnections, true);
     }
 
-    public async Task<IEnumerable<EveRoute>?> GetTheraRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
+    public async Task<IEnumerable<EveRoute>?> GetTheraRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections)
     {
-        return await GetEveScoutRoutes(mapId,fromSolarSystemId, routeType, extraConnections, true);
+        return await GetEveScoutRoutes(fromSolarSystemId, routeType, extraConnections, true);
     }
-    public async Task<IEnumerable<EveRoute>?> GetTurnurRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
+    public async Task<IEnumerable<EveRoute>?> GetTurnurRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections)
     {
-        return await GetEveScoutRoutes(mapId,fromSolarSystemId, routeType, extraConnections, false);
+        return await GetEveScoutRoutes(fromSolarSystemId, routeType, extraConnections, false);
     }
     
     private async Task<IEnumerable<EveRoute>?> GetRoutes(int mapId, int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections, bool global)
     {
-        IList<EveRoute> routes = new List<EveRoute>();
+        List<EveRoute> routes = new List<EveRoute>();
         IEnumerable<WHRoute> whRoutes;
 
         if (global)
@@ -83,18 +84,17 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         return routes;
     }
 
-    private async Task<IEnumerable<EveRoute>?> GetEveScoutRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null,bool thera = true)
+    private async Task<IEnumerable<EveRoute>?> GetEveScoutRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null,bool thera = true)
     {
         IEnumerable<Models.DTO.EveScout.EveScoutSystemEntry>? eveScoutSystemEntries = null;
-        IList<EveRoute> routes = new List<EveRoute>();
-        IEnumerable<EveRoute>? eveScoutRoutes = null;
+        List<WHMapper.EveRoute> routes = new List<EveRoute>();
 
         if (thera)
             eveScoutSystemEntries = await _eveScoutAPIService.GetTheraSystemsAsync();
         else
             eveScoutSystemEntries = await _eveScoutAPIService.GetTurnurSystemsAsync();
 
-        if (eveScoutSystemEntries == null || eveScoutSystemEntries.Count() == 0)
+        if (eveScoutSystemEntries == null || !eveScoutSystemEntries.Any())
         {
             _logger.LogWarning("No EveScout system found");
             return routes;

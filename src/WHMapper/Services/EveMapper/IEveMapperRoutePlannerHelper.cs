@@ -26,22 +26,20 @@ namespace WHMapper
         /// <summary>
         /// Get Thera routes from selected system
         /// </summary>
-        /// <param name="mapId"></param>
         /// <param name="fromSolarSystemId"></param>
         /// <param name="routeType"></param>
         /// <param name="extraConnections"></param>
         /// <returns></returns>
-        Task<IEnumerable<EveRoute>?> GetTheraRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections);
+        Task<IEnumerable<EveRoute>?> GetTheraRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections);
 
         /// <summary>
         /// Get Turnur routes from selected system
         /// </summary>
-        /// <param name="mapId"></param>
         /// <param name="fromSolarSystemId"></param>
         /// <param name="routeType"></param>
         /// <param name="extraConnections"></param>
         /// <returns></returns>
-        Task<IEnumerable<EveRoute>?> GetTurnurRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections);
+        Task<IEnumerable<EveRoute>?> GetTurnurRoutes(int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections);
 
 
 
