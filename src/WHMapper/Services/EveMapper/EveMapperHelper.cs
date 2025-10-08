@@ -15,15 +15,20 @@ namespace WHMapper.Services.EveMapper
 {
     public class EveMapperHelper : IEveMapperHelper
     {
-        private const string WH_VALIDATION_REGEX = "J[0-9]{6}|Thera|J1226-0";
+        private const string WH_VALIDATION_REGEX = "J[0-9]{6}|Thera|J1226-0|Sentinel MZ|Liberated Barbican|Sanctified Vidette|Conflux Eyrie|Azdaja Redoubt";
         private const string REGION_POCHVVEN_NAME = "Pochven";
 
         private const int GROUPE_WORMHOLE_ID = 988;
         private const string C14_NAME = "J055520";
+        private const string C14_ALTERNATE_NAME = "Sentinel MZ";
         private const string C15_NAME = "J110145";
+        private const string C15_ALTERNATE_NAME = "Liberated Barbican";
         private const string C16_NAME = "J164710";
+        private const string C16_ALTERNATE_NAME = "Sanctified Vidette";
         private const string C17_NAME = "J200727";
+        private const string C17_ALTERNATE_NAME = "Conflux Eyrie";
         private const string C18_NAME = "J174618";
+        private const string C18_ALTERNATE_NAME = "Azdaja Redoubt";
 
         private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _magnetarEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(7);
         private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _redGiantEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(7);
@@ -603,6 +608,11 @@ namespace WHMapper.Services.EveMapper
             C16_NAME => EveSystemType.C16,
             C17_NAME => EveSystemType.C17,
             C18_NAME => EveSystemType.C18,
+            C14_ALTERNATE_NAME => EveSystemType.C14,
+            C15_ALTERNATE_NAME => EveSystemType.C15,
+            C16_ALTERNATE_NAME => EveSystemType.C16,
+            C17_ALTERNATE_NAME => EveSystemType.C17,
+            C18_ALTERNATE_NAME => EveSystemType.C18,
             _ => EveSystemType.None,
         };
     }

@@ -75,11 +75,18 @@ public class EveWHMapperHelperTest
     private const string SOLAR_SYSTEM_WH_POCHVEN_NAME = "Archee";
 
     private const string REGION_SPECIAL = "K-R00033";
+
     private const string C14_NAME = "J055520";
+    private const string C14_ALTERNATE_NAME = "Sentinel MZ";
     private const string C15_NAME = "J110145";
+    private const string C15_ALTERNATE_NAME = "Liberated Barbican";
     private const string C16_NAME = "J164710";
+    private const string C16_ALTERNATE_NAME = "Sanctified Vidette";
     private const string C17_NAME = "J200727";
+    private const string C17_ALTERNATE_NAME = "Conflux Eyrie";
     private const string C18_NAME = "J174618";
+    private const string C18_ALTERNATE_NAME = "Azdaja Redoubt";
+
 
     //https://github.com/pfh59/eve-whmapper/issues/207
     private const string C4_NAME_BUG_207 = "J1226-0";
@@ -207,18 +214,29 @@ public class EveWHMapperHelperTest
 
         var result_C14 = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C14_NAME, -1.0f);
         Assert.Equal(EveSystemType.C14, result_C14);
+        var result_C14_ALTERNATE = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C14_ALTERNATE_NAME, -1.0f);
+        Assert.Equal(EveSystemType.C14, result_C14_ALTERNATE);
 
         var result_C15 = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C15_NAME, -1.0f);
         Assert.Equal(EveSystemType.C15, result_C15);
+        var result_C15_ALTERNATE = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C15_ALTERNATE_NAME, -1.0f);
+        Assert.Equal(EveSystemType.C15, result_C15_ALTERNATE);
 
         var result_C16 = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C16_NAME, -1.0f);
         Assert.Equal(EveSystemType.C16, result_C16);
+        var result_C16_ALTERNATE = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C16_ALTERNATE_NAME, -1.0f);
+        Assert.Equal(EveSystemType.C16, result_C16_ALTERNATE);
 
         var result_C17 = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C17_NAME, -1.0f);
         Assert.Equal(EveSystemType.C17, result_C17);
+        var result_C17_ALTERNATE = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C17_ALTERNATE_NAME, -1.0f);
+        Assert.Equal(EveSystemType.C17, result_C17_ALTERNATE);
 
         var result_C18 = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C18_NAME, -1.0f);
         Assert.Equal(EveSystemType.C18, result_C18);
+    
+        var result_C18_ALTERNATE = await _whEveMapper.GetWHClass(REGION_SPECIAL, "UNUSED", C18_ALTERNATE_NAME, -1.0f);
+        Assert.Equal(EveSystemType.C18, result_C18_ALTERNATE);
 
         var result_POCHVEN = await _whEveMapper.GetWHClass(REGION_WH_POCHVEN_NAME, "UNUSED", SOLAR_SYSTEM_WH_POCHVEN_NAME, -1.0f);
         Assert.Equal(EveSystemType.Pochven, result_POCHVEN);
