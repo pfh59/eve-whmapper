@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Services.EveJwkExtensions;
+using WHMapper.Services.Metrics;
 
 namespace WHMapper.Hubs;
 
 [Authorize(AuthenticationSchemes = EveOnlineJwkDefaults.AuthenticationScheme)]
-public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
+public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMapperNotificationHub>
 {
     private readonly static ConnectionMapping<int> _connections = new ConnectionMapping<int>();
     private readonly static ConcurrentDictionary<int, KeyValuePair<int,int>?> _connectedUserPosition = new ConcurrentDictionary<int, KeyValuePair<int,int>?>();
@@ -45,7 +46,9 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         if(!_connectedUserPosition.ContainsKey(accountID))
         {
             while (!_connectedUserPosition.TryAdd(accountID, null))
-                    await Task.Delay(1);
+                await Task.Delay(1);
+                    
+            meters.ConnectUser();
         }
         await base.OnConnectedAsync();
         await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(accountID);
@@ -62,6 +65,7 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
             while (!_connectedUserPosition.TryRemove(accountID, out _))
                 await Task.Delay(1);
 
+            meters.DisconnectUser();
             await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(accountID);
         }
 
@@ -90,6 +94,7 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            meters.AddSystem();
             await Clients.AllExcept(Context.ConnectionId).NotifyWormoleAdded(accountID, mapId, wowrmholeId);
         }
         
@@ -100,6 +105,7 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            meters.DeleteSystem();
             await Clients.AllExcept(Context.ConnectionId).NotifyWormholeRemoved(accountID, mapId, wowrmholeId);
         }
     }
@@ -109,6 +115,7 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            meters.AddLink();
             await Clients.AllExcept(Context.ConnectionId).NotifyLinkAdded(accountID, mapId, linkId);
         }
     }
@@ -118,6 +125,7 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            meters.DeleteLink();
             await Clients.AllExcept(Context.ConnectionId).NotifyLinkRemoved(accountID, mapId, linkId);
         }
     }
@@ -197,6 +205,7 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            meters.CreateMap();
             await Clients.All.NotifyMapAdded(accountID, mapId);
         }
     }
@@ -206,6 +215,7 @@ public class WHMapperNotificationHub : Hub<IWHMapperNotificationHub>
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            meters.DeleteMap();
             await Clients.All.NotifyMapRemoved(accountID, mapId);
         }
     }

@@ -80,6 +80,14 @@ namespace WHMapper.Repositories.WHAdmins
                 }
             }
         }
+
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHAdmins.CountAsync();
+            }
+        }
     }
 }
 
