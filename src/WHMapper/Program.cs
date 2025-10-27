@@ -305,8 +305,10 @@ builder.Services.AddOpenTelemetry().WithMetrics(opts => opts
     .AddProcessInstrumentation()
     .AddOtlpExporter(options =>
     {
-        options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"] 
+
+        options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]
                         ?? throw new InvalidOperationException());
+        options.Protocol = OtlpExportProtocol.Grpc;
     })
 );  
 
