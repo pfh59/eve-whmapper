@@ -78,9 +78,17 @@ namespace WHMapper.Repositories.WHSystemLinks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Impossible to update WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom,item.IdWHSystemTo);
+                    _logger.LogError(ex, "Impossible to update WHSystemLink From/To : {IdWHSystemFrom}/{IdWHSystemTo}", item.IdWHSystemFrom, item.IdWHSystemTo);
                     return null;
                 }
+            }
+        }
+
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHSystemLinks.CountAsync();
             }
         }
     }

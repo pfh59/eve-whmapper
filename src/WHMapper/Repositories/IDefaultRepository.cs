@@ -7,5 +7,6 @@
         Task<T?> Create(T item);
         Task<T?> Update(U id, T item);
         Task<bool> DeleteById(U id);
+        Task<int> GetCountAsync();
     }
 }

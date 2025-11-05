@@ -4,6 +4,6 @@ namespace WHMapper.Repositories.WHSystemLinks
 {
     public interface IWHSystemLinkRepository : IDefaultRepository<WHSystemLink, int>
     {
-	}
+    }
 }
 

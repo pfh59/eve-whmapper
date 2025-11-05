@@ -58,10 +58,10 @@ namespace WHMapper.Repositories.WHJumpLogs
             }
         }
 
-        protected override async Task<WHJumpLog?> AUpdate(int id,WHJumpLog item)
+        protected override async Task<WHJumpLog?> AUpdate(int id, WHJumpLog item)
         {
 
-            if(item==null)
+            if (item == null)
             {
                 _logger.LogError("Impossible to update WHJumpLog, item is null");
                 return null;
@@ -83,9 +83,17 @@ namespace WHMapper.Repositories.WHJumpLogs
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,"Impossible to update WHJumpLog : {Id}", item.Id);
+                    _logger.LogError(ex, "Impossible to update WHJumpLog : {Id}", item.Id);
                     return null;
                 }
+            }
+        }
+        
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHJumpLogs.CountAsync();
             }
         }
     }

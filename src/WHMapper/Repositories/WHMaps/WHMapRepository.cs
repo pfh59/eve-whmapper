@@ -130,6 +130,14 @@ namespace WHMapper.Repositories.WHMaps
             }
         }
 
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHMaps.CountAsync();
+            }
+        }
+
         public async Task<IEnumerable<WHAccess>?> GetMapAccesses(int id)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
@@ -195,8 +203,6 @@ namespace WHMapper.Repositories.WHMaps
             }
         }
 
-
-        
     }
 }
 

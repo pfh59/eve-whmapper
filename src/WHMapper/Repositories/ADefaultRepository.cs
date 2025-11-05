@@ -19,6 +19,7 @@ namespace WHMapper.Repositories
         protected abstract Task<T?> ACreate(T item);
         protected abstract Task<T?> AUpdate(U id, T item);
         protected abstract Task<bool> ADeleteById(U id);
+        protected abstract Task<int> AGetCountAsync();
 
         protected ADefaultRepository(ILogger logger,IDbContextFactory<C> dbContext)
         {
@@ -51,6 +52,11 @@ namespace WHMapper.Repositories
         public async Task<T?> Update(U id, T item)
         {
             return await AUpdate(id, item);
+        }
+
+        public async Task<int> GetCountAsync()
+        {
+            return await AGetCountAsync();
         }
 
         

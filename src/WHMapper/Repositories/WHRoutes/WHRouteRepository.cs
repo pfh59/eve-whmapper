@@ -87,7 +87,7 @@ namespace WHMapper
                 return null;
             }
 
-            if(item.Id!=id)
+            if (item.Id != id)
             {
                 _logger.LogError("Impossible to update WHRoute, item.Id is not equal to id");
                 return null;
@@ -107,6 +107,14 @@ namespace WHMapper
                     _logger.LogError(ex, "Impossible to update WHRoute : {SolarSystemId}", item.SolarSystemId);
                     return null;
                 }
+            }
+        }
+        
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHRoutes.CountAsync();
             }
         }
     }
