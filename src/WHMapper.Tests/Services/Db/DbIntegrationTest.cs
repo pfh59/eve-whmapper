@@ -348,6 +348,10 @@ public class DbIntegrationTest
         Assert.Equal(SystemLinkMassStatus.Normal, link2.MassStatus);
         Assert.Equal(SystemLinkSize.Large, link2.Size);
 
+        //GetCountAsync
+        var countLinks = await repo.GetCountAsync();
+        Assert.Equal(2, countLinks);
+
         //add duplicate link
         var linkDuplicate = await repo.Create(new WHSystemLink(map.Id, whSys1.Id, whSys2.Id));
         Assert.Null(linkDuplicate);
