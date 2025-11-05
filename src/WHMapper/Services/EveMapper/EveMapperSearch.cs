@@ -81,14 +81,15 @@ namespace WHMapper.Services.EveMapper
                     if (typeof(T) == typeof(CharactereEntity))
                     {
                         BlockingCollection<CharactereEntity> eveEntityResults = new BlockingCollection<CharactereEntity>();
-                        SearchCharacterResults? characterResults = await _eveAPIServices.SearchServices.SearchCharacter(value,strict);
-                        if (characterResults != null && characterResults.Characters != null)
+                        Result<SearchCharacterResults> characterResults = await _eveAPIServices.SearchServices.SearchCharacter(value, strict);
+
+                        if (characterResults.IsSuccess && characterResults.Data != null && characterResults.Data.Characters != null)
                         {
-                            await Parallel.ForEachAsync(characterResults.Characters, options, async (characterId, token) =>
+                            await Parallel.ForEachAsync(characterResults.Data.Characters, options, async (characterId, token) =>
                             {
-                                Character? character = await _eveAPIServices.CharacterServices.GetCharacter(characterId);
-                                if (character != null)
-                                    while (!eveEntityResults.TryAdd(new CharactereEntity(characterId, character), 100, token))
+                                Result<Character> characterResult = await _eveAPIServices.CharacterServices.GetCharacter(characterId);
+                                if (characterResult.IsSuccess && characterResult.Data != null)
+                                    while (!eveEntityResults.TryAdd(new CharactereEntity(characterId, characterResult.Data), 100, token))
                                         await Task.Delay(1);
 
                                 await Task.Yield();
@@ -100,14 +101,14 @@ namespace WHMapper.Services.EveMapper
                     else if (typeof(T) == typeof(CorporationEntity))
                     {
                         BlockingCollection<CorporationEntity> eveEntityResults = new BlockingCollection<CorporationEntity>();
-                        SearchCoporationResults? coporationResults = await _eveAPIServices.SearchServices.SearchCorporation(value,strict);
-                        if (coporationResults != null && coporationResults.Corporations != null)
+                        Result<SearchCoporationResults> corporationResults = await _eveAPIServices.SearchServices.SearchCorporation(value,strict);
+                        if (corporationResults.IsSuccess && corporationResults.Data != null && corporationResults.Data.Corporations != null)
                         {
-                            await Parallel.ForEachAsync(coporationResults.Corporations, options, async (corpoId, token) =>
+                            await Parallel.ForEachAsync(corporationResults.Data.Corporations, options, async (corpoId, token) =>
                             {
-                                Corporation? corpo = await _eveAPIServices.CorporationServices.GetCorporation(corpoId);
-                                if (corpo != null)
-                                    while (!eveEntityResults.TryAdd(new CorporationEntity(corpoId, corpo), 100, token))
+                                Result<Corporation> corpo = await _eveAPIServices.CorporationServices.GetCorporation(corpoId);
+                                if (corpo.IsSuccess && corpo.Data != null)
+                                    while (!eveEntityResults.TryAdd(new CorporationEntity(corpoId, corpo.Data), 100, token))
                                         await Task.Delay(1);
 
                                 await Task.Yield();
@@ -118,14 +119,14 @@ namespace WHMapper.Services.EveMapper
                     else if (typeof(T) == typeof(AllianceEntity))
                     {
                         BlockingCollection<AllianceEntity> eveEntityResults = new BlockingCollection<AllianceEntity>();
-                        SearchAllianceResults? allianceResults = await _eveAPIServices.SearchServices.SearchAlliance(value,strict);
-                        if (allianceResults != null && allianceResults.Alliances != null)
+                        Result<SearchAllianceResults> allianceResults = await _eveAPIServices.SearchServices.SearchAlliance(value,strict);
+                        if (allianceResults.IsSuccess && allianceResults.Data != null && allianceResults.Data.Alliances != null)
                         {
-                            await Parallel.ForEachAsync(allianceResults.Alliances, options, async (allianceId, token) =>
+                            await Parallel.ForEachAsync(allianceResults.Data.Alliances, options, async (allianceId, token) =>
                             {
-                                Alliance? alliance = await _eveAPIServices.AllianceServices.GetAlliance(allianceId);
-                                if (alliance != null)
-                                    while (!eveEntityResults.TryAdd(new AllianceEntity(allianceId, alliance), 100, token))
+                                Result<Alliance> alliance = await _eveAPIServices.AllianceServices.GetAlliance(allianceId);
+                                if (alliance.IsSuccess && alliance.Data != null)
+                                    while (!eveEntityResults.TryAdd(new AllianceEntity(allianceId, alliance.Data), 100, token))
                                         await Task.Delay(1);
 
                                 await Task.Yield();

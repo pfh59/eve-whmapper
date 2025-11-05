@@ -1,9 +1,10 @@
-﻿using WHMapper.Models.DTO.EveAPI.Corporation;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Corporation;
 
 namespace WHMapper.Services.EveAPI.Corporations
 {
     public interface ICorporationServices
     {
-        Task<Corporation?> GetCorporation(int corporation_id);
+        Task<Result<Corporation>> GetCorporation(int corporation_id);
     }
 }

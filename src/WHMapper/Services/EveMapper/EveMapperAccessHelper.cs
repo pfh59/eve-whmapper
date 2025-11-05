@@ -32,9 +32,10 @@ namespace WHMapper.Services.EveMapper
             }
             else
             {
-                var character = await _characterServices.GetCharacter(eveCharacterId);
-                if (character == null)
+                var characterResult = await _characterServices.GetCharacter(eveCharacterId);
+                if (!characterResult.IsSuccess || characterResult.Data == null)
                     return false;
+                var character = characterResult.Data;
 
                 var result = userAccesses?.FirstOrDefault(x => 
                 (x.EveEntityId == eveCharacterId && x.EveEntity == WHAccessEntity.Character) || 
@@ -79,9 +80,10 @@ namespace WHMapper.Services.EveMapper
             }
             else
             {
-                var character = await _characterServices.GetCharacter(eveCharacterId);
-                if (character == null)
+                var characterResult = await _characterServices.GetCharacter(eveCharacterId);
+                if (!characterResult.IsSuccess || characterResult.Data == null)
                     return false;
+                var character = characterResult.Data;
 
                 var mapAccess = await _mapRepo.GetMapAccesses(mapId);
                 

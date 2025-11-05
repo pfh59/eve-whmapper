@@ -1,11 +1,12 @@
-﻿using WHMapper.Models.DTO.EveAPI.Search;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Search;
 
 namespace WHMapper.Services.EveAPI.Search
 {
     public interface ISearchServices
     {
-        Task<SearchAllianceResults?> SearchAlliance(string searchValue, bool isStrict = false);
-        Task<SearchCoporationResults?> SearchCorporation(string searchValue, bool isStrict = false);
-        Task<SearchCharacterResults?> SearchCharacter(string searchValue, bool isStrict = false);
+        Task<Result<SearchAllianceResults>> SearchAlliance(string searchValue, bool isStrict = false);
+        Task<Result<SearchCoporationResults>> SearchCorporation(string searchValue, bool isStrict = false);
+        Task<Result<SearchCharacterResults>> SearchCharacter(string searchValue, bool isStrict = false);
     }
 }

@@ -9,7 +9,7 @@ namespace WHMapper.Services.EveMapper;
 
 public class EveMapperTracker : IEveMapperTracker
 {
-    private const int TRACK_HIT_IN_MS = 1000;
+    private const int TRACK_HIT_IN_MS = 500;
     private readonly ILogger<EveMapperTracker> _logger;
     private readonly IEveAPIServices _eveAPIServices;
     private readonly IEveOnlineTokenProvider _tokenProvider;
@@ -173,7 +173,12 @@ public class EveMapperTracker : IEveMapperTracker
         try
         {
             await _eveAPIServices.SetEveCharacterAuthenticatication(token);
-            ship = await _eveAPIServices.LocationServices.GetCurrentShip();
+            Result<Ship> shipResult = await _eveAPIServices.LocationServices.GetCurrentShip();
+            if (shipResult.IsSuccess)
+            {
+                ship = shipResult.Data;
+            }
+
         }
         finally
         {
@@ -221,7 +226,11 @@ public class EveMapperTracker : IEveMapperTracker
         try
         {
             await _eveAPIServices.SetEveCharacterAuthenticatication(token);
-            newLocation = await _eveAPIServices.LocationServices.GetLocation();
+            Result<EveLocation> newLocationResult = await _eveAPIServices.LocationServices.GetLocation();
+            if (newLocationResult.IsSuccess)
+            {
+                newLocation = newLocationResult.Data;
+            }
         }
         finally
         {
