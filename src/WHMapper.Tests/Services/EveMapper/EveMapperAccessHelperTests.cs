@@ -1,6 +1,7 @@
 ﻿using AutoFixture.Xunit2;
 using Moq;
 using WHMapper.Models.Db;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHAdmins;
@@ -40,21 +41,7 @@ namespace WHMapper.Tests.Services.EveMapper
             var accessRepositoryReturn = Task.FromResult(new List<WHAccess>() { wHAccess } as IEnumerable<WHAccess>);
             accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
 
-            Character? characterReturn = null!;
-            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>())).Returns(Task.FromResult<Character?>(characterReturn));
-
-            Assert.False(await sut.IsEveMapperUserAccessAuthorized(1));
-        }
-
-        [Theory, AutoDomainData]
-        public async Task IfWHAccessExistsAndCharacterNotExists_WhenGettingAccess_ReturnsFalse(
-            WHAccess wHAccess,
-            [Frozen] Mock<IWHAccessRepository> accessRepository,
-            EveMapperAccessHelper sut
-            )
-        {
-            var accessRepositoryReturn = Task.FromResult(new List<WHAccess>() { wHAccess } as IEnumerable<WHAccess>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>())).Returns(Task.FromResult(Result<Character>.Failure("Character not found")));
 
             Assert.False(await sut.IsEveMapperUserAccessAuthorized(1));
         }
@@ -63,12 +50,19 @@ namespace WHMapper.Tests.Services.EveMapper
         public async Task IfWHAccessExistsAndCharacterExists_WhenGettingAccess_ReturnsTrue(
             WHAccess wHAccess,
             [Frozen] Mock<IWHAccessRepository> accessRepository,
+            [Frozen] Mock<ICharacterServices> characterServices,
             EveMapperAccessHelper sut
             )
         {
             wHAccess.EveEntityId = 2;
             var accessRepositoryReturn = Task.FromResult(new List<WHAccess>() { wHAccess } as IEnumerable<WHAccess>);
             accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+            var character = new Character()
+            {
+                CorporationId = 3,
+                AllianceId = 4
+            };
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>())).Returns(Task.FromResult(Result<Character>.Success(character)));
 
             Assert.True(await sut.IsEveMapperUserAccessAuthorized(2));
         }
