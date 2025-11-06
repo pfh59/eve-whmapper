@@ -36,7 +36,7 @@ public class EveMapperService : IEveMapperService
 
             // Get from api if cache is empty
             var apiResult = await getEveApiEntityAction.Invoke(_eveApiService);
-            if (apiResult == null)
+            if (EqualityComparer<TEveApiEntity>.Default.Equals(apiResult, default(TEveApiEntity)))
             {
                 _logger.LogWarning("{entityname} with Id {key} not found", typeof(TEntity).Name, key);
                 return null;
