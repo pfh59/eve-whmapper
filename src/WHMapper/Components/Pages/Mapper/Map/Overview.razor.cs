@@ -251,6 +251,8 @@ public partial class Overview : IAsyncDisposable
 
                 TrackerServices.SystemChanged += OnSystemChanged;
                 TrackerServices.ShipChanged += OnShipChanged;
+                TrackerServices.TrackingLocationRetryRequested += OnTrackingLocationRetryRequested;
+                TrackerServices.TrackingShipRetryRequested += OnTrackingShipRetryRequested;
 
                 EveMapperRealTime.UserDisconnected += OnUserDisconnected;
                 EveMapperRealTime.UserOnMapConnected += OnUserOnMapConnected;
@@ -290,6 +292,8 @@ public partial class Overview : IAsyncDisposable
         {
             TrackerServices.SystemChanged -= OnSystemChanged;
             TrackerServices.ShipChanged -= OnShipChanged;
+            TrackerServices.TrackingLocationRetryRequested -= OnTrackingLocationRetryRequested;
+            TrackerServices.TrackingShipRetryRequested -= OnTrackingShipRetryRequested;
             await TrackerServices.DisposeAsync();
         }
 
@@ -310,15 +314,6 @@ public partial class Overview : IAsyncDisposable
             EveMapperRealTime.LinkAdded -= OnLinkAdded;
             EveMapperRealTime.LinkRemoved -= OnLinkRemoved;
             EveMapperRealTime.LinkChanged -= OnLinkChanged;
-
-
-
-            /*
-                        if (MapId.HasValue && EveMapperRealTime.IsConnected()
-                        {
-
-                            await EveMapperRealTime.NotifyUserOnMapDisconnected(MapId.Value);
-                        }*/
         }
 
         _currentShips.Clear();
@@ -1362,6 +1357,17 @@ public partial class Overview : IAsyncDisposable
         {
             _semaphoreSlim.Release();
         }
+    }
+
+
+    private async Task OnTrackingLocationRetryRequested(int accountID)
+    {
+        Snackbar.Add("Location tracking are impacted, retrying in progress...", Severity.Warning);
+    }
+
+    private async Task OnTrackingShipRetryRequested(int accountID)
+    {
+        Snackbar.Add("Ship tracking are impacted, retrying in progress...", Severity.Warning);
     }
 
     #endregion

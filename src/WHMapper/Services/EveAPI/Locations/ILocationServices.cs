@@ -1,10 +1,11 @@
-﻿using WHMapper.Models.DTO.EveAPI.Location;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Location;
 
 namespace WHMapper.Services.EveAPI.Locations
 {
     public interface ILocationServices
     {
-        Task<EveLocation?> GetLocation();
-        Task<Ship?> GetCurrentShip();
+        Task<Result<EveLocation>> GetLocation();
+        Task<Result<Ship>> GetCurrentShip();
     }
 }

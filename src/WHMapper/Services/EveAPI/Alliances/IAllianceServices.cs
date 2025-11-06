@@ -1,10 +1,11 @@
-﻿using WHMapper.Models.DTO.EveAPI.Alliance;
+﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Alliance;
 
 namespace WHMapper.Services.EveAPI.Alliances
 {
     public interface IAllianceServices
     {
-        Task<int[]?> GetAlliances();
-        Task<Alliance?> GetAlliance(int alliance_id);
+        Task<Result<int[]>> GetAlliances();
+        Task<Result<Alliance>> GetAlliance(int alliance_id);
     }
 }

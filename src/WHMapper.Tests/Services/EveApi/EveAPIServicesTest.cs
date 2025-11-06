@@ -14,7 +14,7 @@ using WHMapper.Services.EveAPI.Universe;
 using WHMapper.Services.EveAPI.UserInterface;
 using WHMapper.Services.EveOAuthProvider.Services;
 
-namespace WHMapper.Tests.Services.EveApi;
+namespace WHMapper.Tests.Services.EveAPI;
 
 
 public class EveAPIServicesTest

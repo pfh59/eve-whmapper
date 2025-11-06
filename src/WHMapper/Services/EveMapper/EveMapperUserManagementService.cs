@@ -41,7 +41,14 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
             throw new ArgumentException("AccountId must be a valid integer", nameof(accountId));
         }
 
-        Portrait? portrait = await _characterServices.GetCharacterPortrait(id);
+        Result<Portrait> portraitResult = await _characterServices.GetCharacterPortrait(id);
+
+        Portrait? portrait = null;
+        if (portraitResult != null && portraitResult.IsSuccess)
+        {
+            portrait = portraitResult.Data;
+        }   
+
         var user = new WHMapperUser(id, portrait?.Picture64x64 ?? string.Empty);
 
 

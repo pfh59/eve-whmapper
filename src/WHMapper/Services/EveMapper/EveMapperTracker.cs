@@ -3,19 +3,28 @@ using WHMapper.Services.EveAPI;
 using System.Collections.Concurrent;
 using WHMapper.Services.EveOAuthProvider.Services;
 using WHMapper.Models.DTO;
+using System.Net;
 
 
 namespace WHMapper.Services.EveMapper;
 
 public class EveMapperTracker : IEveMapperTracker
 {
-    private const int TRACK_HIT_IN_MS = 1000;
+    #region Constant Tracking Intervals
+    //With this configuration will use 1170 tokens per 15minutes for the group Location. 
+    //See more about ESI rate limits here: https://developers.eveonline.com/docs/services/esi/rate-limiting/
+    private const int TRACK_LOCATION_HIT_IN_MS = 2000;
+    private const int TRACK_SHIP_HIT_IN_MS = 10000;
+    #endregion
     private readonly ILogger<EveMapperTracker> _logger;
     private readonly IEveAPIServices _eveAPIServices;
     private readonly IEveOnlineTokenProvider _tokenProvider;
 
     public event Func<int,EveLocation?,EveLocation, Task>? SystemChanged;
-    public event Func<int,Ship?, Ship,Task>? ShipChanged;
+    public event Func<int, Ship?, Ship, Task>? ShipChanged;
+
+    public event Func<int, Task>? TrackingLocationRetryRequested;
+    public event Func<int, Task>? TrackingShipRetryRequested;
 
     private readonly ConcurrentDictionary<int, EveLocation> _currentLocations;
     private readonly ConcurrentDictionary<int, Ship> _currentShips;
@@ -84,7 +93,8 @@ public class EveMapperTracker : IEveMapperTracker
 
 
         await ClearTracking(accountID);
-        _= Task.Run(() => HandleTrackPositionAsync(cts!.Token, accountID));
+        _ = Task.Run(() => HandleTrackLocationAsync(cts!.Token, accountID));
+        _ = Task.Run(() => HandleTrackShipAsync(cts!.Token, accountID));
 
         _logger.LogInformation("Tracking started for account {accountID}", accountID);
     }
@@ -132,12 +142,40 @@ public class EveMapperTracker : IEveMapperTracker
         return Task.CompletedTask;
     }
 
-
-    private async Task HandleTrackPositionAsync(CancellationToken cancellationToken, int accountID)
+    private async Task HandleTrackLocationAsync(CancellationToken cancellationToken, int accountID)
     {
-        _logger.LogInformation("HandleTrackPositionAsync started for account {accountID}", accountID);
+        _logger.LogInformation("HandleTrackLocationAsync started for account {accountID}", accountID);
 
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_HIT_IN_MS));
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_LOCATION_HIT_IN_MS));
+
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
+                if (userToken == null)
+                {
+                    _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
+                    break;
+                }
+
+                await UpdateCurrentLocation(userToken, accountID);
+            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            _logger.LogInformation(ex, "HandleTrackLocationAsync operation canceled for account {accountID}", accountID);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in HandleTrackLocationAsync for account {accountID}", accountID);
+        }
+    } 
+    private async Task HandleTrackShipAsync(CancellationToken cancellationToken, int accountID)
+    {
+        _logger.LogInformation("HandleTrackShipAsync started for account {accountID}", accountID);
+
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_SHIP_HIT_IN_MS));
 
         try
         {
@@ -151,16 +189,15 @@ public class EveMapperTracker : IEveMapperTracker
                 }
 
                 await UpdateCurrentShip(userToken, accountID);
-                await UpdateCurrentLocation(userToken, accountID);
             }
         }
         catch (OperationCanceledException ex)
         {
-            _logger.LogInformation(ex, "Tracking operation canceled for account {accountID}", accountID);
+            _logger.LogInformation(ex, "HandleTrackShipAsync operation canceled for account {accountID}", accountID);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in HandleTrackPositionAsync for account {accountID}", accountID);
+            _logger.LogError(ex, "Error in HandleTrackShipAsync for account {accountID}", accountID);
         }
     }
     
@@ -173,7 +210,18 @@ public class EveMapperTracker : IEveMapperTracker
         try
         {
             await _eveAPIServices.SetEveCharacterAuthenticatication(token);
-            ship = await _eveAPIServices.LocationServices.GetCurrentShip();
+            Result<Ship> shipResult = await _eveAPIServices.LocationServices.GetCurrentShip();
+            if (shipResult.IsSuccess)
+            {
+                ship = shipResult.Data;
+            }
+            else if(shipResult.StatusCode == (int)HttpStatusCode.TooManyRequests) // Rate limited
+            {
+                _logger.LogWarning("Rate limited when fetching ship for account {accountID}", accountID);
+                _ = TrackingShipRetryRequested?.Invoke(accountID);
+                await Task.Delay(shipResult.RetryAfter ?? TimeSpan.FromSeconds(1));
+                return;
+            }
         }
         finally
         {
@@ -205,10 +253,7 @@ public class EveMapperTracker : IEveMapperTracker
 
         if (ship != null)
         {
-            if (ShipChanged != null)
-            {
-                _= ShipChanged.Invoke(accountID, oldShip,ship);
-            }
+          _= ShipChanged?.Invoke(accountID, oldShip,ship);
         }
     }
 
@@ -221,7 +266,18 @@ public class EveMapperTracker : IEveMapperTracker
         try
         {
             await _eveAPIServices.SetEveCharacterAuthenticatication(token);
-            newLocation = await _eveAPIServices.LocationServices.GetLocation();
+            Result<EveLocation> newLocationResult = await _eveAPIServices.LocationServices.GetLocation();
+            if (newLocationResult.IsSuccess)
+            {
+                newLocation = newLocationResult.Data;
+            }
+            else if(newLocationResult.StatusCode == (int)HttpStatusCode.TooManyRequests) // Rate limited
+            {
+                _logger.LogWarning("Rate limited when fetching location for account {accountID}", accountID);
+                _ = TrackingLocationRetryRequested?.Invoke(accountID);
+                await Task.Delay(newLocationResult.RetryAfter ?? TimeSpan.FromSeconds(1));
+                return;
+            }
         }
         finally
         {
@@ -253,10 +309,7 @@ public class EveMapperTracker : IEveMapperTracker
 
         if (newLocation != null)
         {
-            if (SystemChanged != null)
-            {
-                _= SystemChanged.Invoke(accountID,oldLocation, newLocation);
-            }
-        } 
+            _= SystemChanged?.Invoke(accountID,oldLocation, newLocation);
+        }
     }
 }
