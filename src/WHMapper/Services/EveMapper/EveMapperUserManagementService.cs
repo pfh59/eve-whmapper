@@ -44,7 +44,7 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         Result<Portrait> portraitResult = await _characterServices.GetCharacterPortrait(id);
 
         Portrait? portrait = null;
-        if (portraitResult.IsSuccess)
+        if (portraitResult != null && portraitResult.IsSuccess)
         {
             portrait = portraitResult.Data;
         }   

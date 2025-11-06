@@ -12,31 +12,34 @@ namespace WHMapper.Models.DTO
         public int? StatusCode { get; private set; }
         public Exception? Exception { get; private set; }
 
-        private Result(bool isSuccess, T? data, string? errorMessage, int? statusCode, Exception? exception)
+        public TimeSpan? RetryAfter { get; private set; }
+
+        private Result(bool isSuccess, T? data, string? errorMessage, int? statusCode, Exception? exception, TimeSpan? retryAfter)
         {
             IsSuccess = isSuccess;
             Data = data;
             ErrorMessage = errorMessage;
             StatusCode = statusCode;
             Exception = exception;
+            RetryAfter = retryAfter;
         }
 
         /// <summary>
         /// Creates a successful result with data
         /// </summary>
-        public static Result<T> Success(T data) => new(true, data, null, null, null);
-        
+        public static Result<T> Success(T data) => new(true, data, null, null, null, null);
+
         /// <summary>
         /// Creates a failed result with error message and optional status code
         /// </summary>
-        public static Result<T> Failure(string errorMessage, int? statusCode = null, Exception? exception = null) 
-            => new(false, default, errorMessage, statusCode, exception);
+        public static Result<T> Failure(string errorMessage, int? statusCode = null, Exception? exception = null, TimeSpan? retryAfter = null) 
+            => new(false, default, errorMessage, statusCode, exception, retryAfter);
 
         /// <summary>
         /// Creates a failed result from an exception
         /// </summary>
-        public static Result<T> Failure(Exception exception, int? statusCode = null) 
-            => new(false, default, exception.Message, statusCode, exception);
+        public static Result<T> Failure(Exception exception, int? statusCode = null, TimeSpan? retryAfter = null) 
+            => new(false, default, exception.Message, statusCode, exception, retryAfter);
 
         /// <summary>
         /// Implicitly converts a successful value to a Result
@@ -53,30 +56,32 @@ namespace WHMapper.Models.DTO
         public string? ErrorMessage { get; private set; }
         public int? StatusCode { get; private set; }
         public Exception? Exception { get; private set; }
+        public TimeSpan? RetryAfter { get; private set; }
 
-        private Result(bool isSuccess, string? errorMessage, int? statusCode, Exception? exception)
+        private Result(bool isSuccess, string? errorMessage, int? statusCode, Exception? exception, TimeSpan? retryAfter)
         {
             IsSuccess = isSuccess;
             ErrorMessage = errorMessage;
             StatusCode = statusCode;
             Exception = exception;
+            RetryAfter = retryAfter;
         }
 
         /// <summary>
         /// Creates a successful result
         /// </summary>
-        public static Result Success() => new(true, null, null, null);
+        public static Result Success() => new(true, null, null, null, null);
         
         /// <summary>
         /// Creates a failed result with error message and optional status code
         /// </summary>
-        public static Result Failure(string errorMessage, int? statusCode = null, Exception? exception = null) 
-            => new(false, errorMessage, statusCode, exception);
+        public static Result Failure(string errorMessage, int? statusCode = null, Exception? exception = null, TimeSpan? retryAfter = null) 
+            => new(false, errorMessage, statusCode, exception, retryAfter);
 
         /// <summary>
         /// Creates a failed result from an exception
         /// </summary>
-        public static Result Failure(Exception exception, int? statusCode = null) 
-            => new(false, exception.Message, statusCode, exception);
+        public static Result Failure(Exception exception, int? statusCode = null, TimeSpan? retryAfter = null) 
+            => new(false, exception.Message, statusCode, exception, retryAfter);
     }
 }

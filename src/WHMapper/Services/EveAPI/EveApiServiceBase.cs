@@ -73,7 +73,8 @@ namespace WHMapper.Services.EveAPI
                     {
                         retryAfter = values.First();
                     }
-                    return Result<T>.Failure($"Rate limit exceeded. Retry after {retryAfter} seconds.", (int)response.StatusCode);
+                    return Result<T>.Failure($"Rate limit exceeded. Retry after {retryAfter} seconds.", (int)response.StatusCode, null,
+                        TimeSpan.FromSeconds(double.TryParse(retryAfter, out var seconds) ? seconds : 0));
                 }
 
                 // Handle successful responses

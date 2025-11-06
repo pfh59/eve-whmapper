@@ -13,12 +13,12 @@ namespace WHMapper.Services.EveMapper
         private readonly ICharacterServices _characterServices;
         private readonly IWHMapRepository _mapRepo;
 
-        public EveMapperAccessHelper(IWHAccessRepository accessRepo, IWHAdminRepository adminRepo,IWHMapRepository mapRepo, ICharacterServices eveCharacterServices)
+        public EveMapperAccessHelper(IWHAccessRepository accessRepo, IWHAdminRepository adminRepo,IWHMapRepository mapRepo, ICharacterServices characterServices)
         {
             _accessRepo = accessRepo;
             _adminRepo = adminRepo;
             _mapRepo = mapRepo;
-            _characterServices = eveCharacterServices;
+            _characterServices = characterServices;
         }
 
         public async Task<bool> IsEveMapperUserAccessAuthorized(int eveCharacterId)

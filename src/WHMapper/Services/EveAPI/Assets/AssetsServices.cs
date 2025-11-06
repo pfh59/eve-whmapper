@@ -1,4 +1,5 @@
-﻿using WHMapper.Models.DTO;
+﻿using System.Net;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Assets;
 
 namespace WHMapper.Services.EveAPI.Assets
@@ -22,7 +23,7 @@ namespace WHMapper.Services.EveAPI.Assets
                 int character_id = Int32.Parse(UserToken.AccountId);
                 return await GetCharacterAssets(character_id, page);
             }
-            return Result<ICollection<Asset>>.Failure("UserToken is required for authenticated requests", 401);
+            return Result<ICollection<Asset>>.Failure("UserToken is required for authenticated requests", (int)HttpStatusCode.Unauthorized);
         }
     }
 }

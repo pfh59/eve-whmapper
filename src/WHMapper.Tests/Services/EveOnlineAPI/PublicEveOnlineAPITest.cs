@@ -108,58 +108,68 @@ public class PublicEveOnlineAPITest
     {
         Assert.NotNull(_eveUniverseApi);
         //getsystems
-        int[]? systems = await _eveUniverseApi.GetSystems();
+        var systemsResult = await _eveUniverseApi.GetSystems();
+        int[]? systems = systemsResult?.Data;
         Assert.NotNull(systems);
         Assert.NotEmpty(systems);
         Assert.Contains(systems, item => SOLAR_SYSTEM_JITA_ID==item);
 
         //constellations
-        int[]? constellations = await _eveUniverseApi.GetContellations();
+        var constellationsResult = await _eveUniverseApi.GetContellations();
+        int[]? constellations = constellationsResult?.Data;
         Assert.NotNull(constellations);
         Assert.NotEmpty(constellations);
         Assert.Contains(constellations, item => CONSTELLATION_ID == item);
 
         //regions
-        int[]? regions = await _eveUniverseApi.GetRegions();
+        var regionsResult = await _eveUniverseApi.GetRegions();
+        int[]? regions = regionsResult?.Data;
         Assert.NotNull(regions);
         Assert.NotEmpty(regions);
         Assert.Contains(regions, item => REGION_ID == item);
 
 
         //test Jita
-        var jita = await _eveUniverseApi.GetSystem(SOLAR_SYSTEM_JITA_ID);
+        var jitaResult = await _eveUniverseApi.GetSystem(SOLAR_SYSTEM_JITA_ID);
+        var jita = jitaResult?.Data;
         Assert.NotNull(jita);
         Assert.Equal(SOLAR_SYSTEM_JITA_NAME, jita.Name);
         Assert.NotNull(jita.Stargates);
 
-        var jita_constellation = await _eveUniverseApi.GetConstellation(jita.ConstellationId);
+        var jita_constellationResult = await _eveUniverseApi.GetConstellation(jita.ConstellationId);
+        var jita_constellation = jita_constellationResult?.Data;
         Assert.NotNull(jita_constellation);
         Assert.Equal(CONSTELLATION_NAME, jita_constellation.Name);
 
-        var jita_region= await _eveUniverseApi.GetRegion(jita_constellation.RegionId);
+        var jita_regionResult = await _eveUniverseApi.GetRegion(jita_constellation.RegionId);
+        var jita_region = jita_regionResult?.Data;
         Assert.NotNull(jita_region);
         Assert.Equal(jita_region.Name, jita_region.Name);
 
         //test Jita star
-        var jitaStar = await _eveUniverseApi.GetStar(jita.StarId);
+        var jitaStarResult = await _eveUniverseApi.GetStar(jita.StarId);
+        var jitaStar = jitaStarResult?.Data;
         Assert.NotNull(jitaStar);
         Assert.Contains(SOLAR_SYSTEM_JITA_NAME, jitaStar.Name);
 
         //test Jita Stargate
-        var jitaStargate = await _eveUniverseApi.GetStargate(jita.Stargates[0]);
+        var jitaStargateResult = await _eveUniverseApi.GetStargate(jita.Stargates[0]);
+        var jitaStargate = jitaStargateResult?.Data;
         Assert.NotNull(jitaStargate);
         Assert.Equal(SOLAR_SYSTEM_JITA_ID, jitaStargate.SystemId);
 
 
 
         //test wh
-        var wh = await _eveUniverseApi.GetSystem(SOLAR_SYSTEM_WH_ID);
+        var whResult = await _eveUniverseApi.GetSystem(SOLAR_SYSTEM_WH_ID);
+        var wh = whResult?.Data;
         Assert.NotNull(wh);
         Assert.Equal(SOLAR_SYSTEM_WH_NAME, wh.Name);
         Assert.Null(wh.Stargates);
 
         //test wh star
-        var whStar = await _eveUniverseApi.GetStar(wh.StarId);
+        var whStarResult = await _eveUniverseApi.GetStar(wh.StarId);
+        var whStar = whStarResult?.Data;
         Assert.NotNull(whStar);
         Assert.Contains(SOLAR_SYSTEM_WH_NAME, whStar.Name);
     }
@@ -169,12 +179,14 @@ public class PublicEveOnlineAPITest
     public async Task Get_Universe_Categories_And_Category()
     {
         Assert.NotNull(_eveUniverseApi);
-        int[]? categories = await _eveUniverseApi.GetCategories();
+        var categoriesResult = await _eveUniverseApi.GetCategories();
+        int[]? categories = categoriesResult?.Data;
         Assert.NotNull(categories);
 
         //Test Celestial
         Assert.Contains<int>(CATEGORY_CELESTIAL_ID, categories);
-        var celestialCategory = await _eveUniverseApi.GetCategory(CATEGORY_CELESTIAL_ID);
+        var celestialCategoryResult = await _eveUniverseApi.GetCategory(CATEGORY_CELESTIAL_ID);
+        var celestialCategory = celestialCategoryResult?.Data;
         Assert.NotNull(celestialCategory);
         Assert.Equal(CELESTIAL_GATEGORY_NAME, celestialCategory.Name);
     }
@@ -184,25 +196,29 @@ public class PublicEveOnlineAPITest
     public async Task Get_Universe_Groups_And_Group()
     {
         Assert.NotNull(_eveUniverseApi);
-        int[]? groups = await _eveUniverseApi.GetGroups();
+        var groupsResult = await _eveUniverseApi.GetGroups();
+        int[]? groups = groupsResult?.Data;
         Assert.NotNull(groups);
 
         //test sun
         Assert.Contains<int>(GROUP_STAR_ID, groups);
-        var sunGroups = await _eveUniverseApi.GetGroup(GROUP_STAR_ID);
+        var sunGroupsResult = await _eveUniverseApi.GetGroup(GROUP_STAR_ID);
+        var sunGroups = sunGroupsResult?.Data;
         Assert.NotNull(sunGroups);
         Assert.Equal(SUN_GROUP_NAME, sunGroups.Name);
 
         //planet
         Assert.Contains<int>(GROUP_PLANET_ID, groups);
-        var planetGroups = await _eveUniverseApi.GetGroup(GROUP_PLANET_ID);
+        var planetGroupsResult = await _eveUniverseApi.GetGroup(GROUP_PLANET_ID);
+        var planetGroups = planetGroupsResult?.Data;
         Assert.NotNull(planetGroups);
         Assert.Equal(PLANET_GROUP_NAME, planetGroups.Name);
 
         //wormhole
         //has been removed ??? but always accessible if you get group with GROUP_WORMHOLE_ID
         // Assert.Contains<int>(GROUP_WORMHOLE_ID, groups);
-        var whGroups = await _eveUniverseApi.GetGroup(GROUP_WORMHOLE_ID);
+        var whGroupsResult = await _eveUniverseApi.GetGroup(GROUP_WORMHOLE_ID);
+        var whGroups = whGroupsResult?.Data;
         Assert.NotNull(whGroups);
         Assert.Equal(WORMHOLE_GROUP_NAME, whGroups.Name);
     }
@@ -211,14 +227,17 @@ public class PublicEveOnlineAPITest
     public async Task Get_Universe_Types_And_Type()
     {
         Assert.NotNull(_eveUniverseApi);
-        int[]? types = await _eveUniverseApi.GetTypes();
+        var typesResult = await _eveUniverseApi.GetTypes();
+        int[]? types = typesResult?.Data;
         Assert.NotNull(types);
 
-        var res = await _eveUniverseApi.GetType(TYPE_F135_ID);
+        var resResult = await _eveUniverseApi.GetType(TYPE_F135_ID);
+        var res = resResult?.Data;
         Assert.NotNull(res);
         Assert.Equal(TYPE_F135_NAME, res.Name);
 
-        var res2 = await _eveUniverseApi.GetType(TYPE_Skybreaker_ID);
+        var res2Result = await _eveUniverseApi.GetType(TYPE_Skybreaker_ID);
+        var res2 = res2Result?.Data;
         Assert.NotNull(res2);
         Assert.Equal("Skybreaker", res2.Name);
         
@@ -241,12 +260,14 @@ public class PublicEveOnlineAPITest
     public async Task Get_Alliances_And_Alliance()
     {
         Assert.NotNull(_eveAllianceApi);
-        int[]? alliances = await _eveAllianceApi.GetAlliances();
+        var alliancesResult = await _eveAllianceApi.GetAlliances();
+        int[]? alliances = alliancesResult?.Data;
         Assert.NotNull(alliances);
         Assert.NotEmpty(alliances);
         Assert.Contains<int>(ALLIANCE_GOONS_ID, alliances);
 
-        var goonsAlliance = await _eveAllianceApi.GetAlliance(ALLIANCE_GOONS_ID);
+        var goonsAllianceResult = await _eveAllianceApi.GetAlliance(ALLIANCE_GOONS_ID);
+        var goonsAlliance = goonsAllianceResult?.Data;
         Assert.NotNull(goonsAlliance);
         Assert.Equal(ALLIANCE_GOONS_NAME, goonsAlliance.Name);
     }
@@ -255,7 +276,9 @@ public class PublicEveOnlineAPITest
     public async Task Get_Corporation()
     {
         Assert.NotNull(_eveCorpoApi);
-        var corpo = await _eveCorpoApi.GetCorporation(CORPORATION_GOONS_ID);
+        var corpoResult = await _eveCorpoApi.GetCorporation(CORPORATION_GOONS_ID);
+        Assert.NotNull(corpoResult);
+        var corpo = corpoResult.Data;
         Assert.NotNull(corpo);
         Assert.Equal(ALLIANCE_GOONS_ID, corpo.AllianceId);
         Assert.Equal(CORPORATION_GOONS_NAME, corpo.Name);
@@ -266,7 +289,9 @@ public class PublicEveOnlineAPITest
     public async Task Get_Character()
     {
         Assert.NotNull(_eveCharacterApi);
-        var character = await _eveCharacterApi.GetCharacter(CHARACTER_GOONS_ID);
+        var characterResult = await _eveCharacterApi.GetCharacter(CHARACTER_GOONS_ID);
+        Assert.NotNull(characterResult);
+        var character = characterResult.Data;
         Assert.NotNull(character);
         Assert.Equal(ALLIANCE_GOONS_ID, character.AllianceId);
         Assert.Equal(CORPORATION_GOONS_ID, character.CorporationId);
@@ -277,7 +302,9 @@ public class PublicEveOnlineAPITest
     public async Task Get_Charchter_Portrait()
     {
         Assert.NotNull(_eveCharacterApi);
-        var portrait = await _eveCharacterApi.GetCharacterPortrait(CHARACTER_GOONS_ID);
+        var portraitResult = await _eveCharacterApi.GetCharacterPortrait(CHARACTER_GOONS_ID);
+        Assert.NotNull(portraitResult);
+        var portrait = portraitResult.Data;
         Assert.NotNull(portrait);
         Assert.NotNull(portrait.Picture512x512);
         Assert.NotNull(portrait.Picture256x256);
@@ -290,22 +317,24 @@ public class PublicEveOnlineAPITest
     {
         //simple route in HS to HS via shortest path
         Assert.NotNull(_routeServices);
-        var route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID);
-        Assert.NotNull(route);
+        var routeResult = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID);
+        Assert.NotNull(routeResult?.Data);
+        var route = routeResult.Data;
         Assert.NotEmpty(route);
         Assert.Equal(12, route.Length);
         Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[0]);
         Assert.Equal(SOLAR_SYSTEM_AMARR_ID, route[11]);
 
         //WH route to Jita without connections
-        route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID);
-        Assert.Null(route);
+        var routeResult2 = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID);
+        Assert.Null(routeResult2?.Data);
 
         //WH route to Jita with connections by amarr
         var connections = new int[][] { new int[] { SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_AMARR_ID } };
 
-        route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID, connections);
-        Assert.NotNull(route);
+        var routeResult3 = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID, connections);
+        Assert.NotNull(routeResult3?.Data);
+        route = routeResult3.Data;
         Assert.NotEmpty(route);
         Assert.Equal(13, route.Length);
         Assert.Equal(SOLAR_SYSTEM_WH_ID, route[0]);
@@ -314,8 +343,9 @@ public class PublicEveOnlineAPITest
 
         //wh route from jita to amarr with avoid Ahbazon
         var avoid = new int[] { SOLAR_SYSTEM_AHBAZON_ID };
-        route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, avoid);
-        Assert.NotNull(route);
+        var routeResult4 = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, avoid);
+        Assert.NotNull(routeResult4?.Data);
+        route = routeResult4.Data;
         Assert.NotEmpty(route);
         Assert.Equal(24, route.Length);
         Assert.Equal(SOLAR_SYSTEM_JITA_ID, route[0]);
@@ -323,21 +353,24 @@ public class PublicEveOnlineAPITest
         Assert.DoesNotContain(SOLAR_SYSTEM_AHBAZON_ID, route);
 
         //WH route to Jita with connections by amarr and avoid Ahbazon
-        route = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, avoid,connections);
-        Assert.NotNull(route);
+        var routeResult5 = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID,RouteType.Shortest, avoid,connections);
+        Assert.NotNull(routeResult5?.Data);
+        route = routeResult5.Data;
         Assert.NotEmpty(route);
 
 
         //wh route from jita to amarr safer
-        route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Secure,null,null);
-        Assert.NotNull(route);
+        var routeResult6 = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Secure,null,null);
+        Assert.NotNull(routeResult6?.Data);
+        route = routeResult6.Data;
         Assert.NotEmpty(route);
         Assert.Equal(46, route.Length);
 
 
         //wh route from jita to amarr safer
-        route = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Insecure,null,null);
-        Assert.NotNull(route);
+        var routeResult7 = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Insecure,null,null);
+        Assert.NotNull(routeResult7?.Data);
+        route = routeResult7.Data;
         Assert.NotEmpty(route);
         Assert.Equal(41, route.Length);
 
