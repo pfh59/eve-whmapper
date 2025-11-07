@@ -1722,7 +1722,7 @@ public partial class Overview : IAsyncDisposable
             if (user == null)
                 throw new NullReferenceException("User not found");
 
-            Snackbar?.Add($"{user.Name} are connected", Severity.Info);
+            Snackbar?.Add($"{user.Name} is connected", Severity.Info);
         }
     }
 
@@ -1734,7 +1734,7 @@ public partial class Overview : IAsyncDisposable
             if (user == null)
                 throw new NullReferenceException("User not found");
 
-            Snackbar?.Add($"{user.Name} are disconnected", Severity.Info);
+            Snackbar?.Add($"{user.Name} is disconnected", Severity.Info);
             await OnUserDisconnected(accountID);
         }
     }
