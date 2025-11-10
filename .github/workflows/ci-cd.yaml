@@ -69,8 +69,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-          cache: true
-          cache-dependency-path: '**/packages.lock.json'
 
       # External PR (fork) - basic build/test without SonarCloud
       - name: Build for external PR 🚀
