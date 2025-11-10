@@ -4,16 +4,14 @@ on:
   release:
     types: [published]
 
-    
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '9.0.x'
   REGISTRY: ghcr.io
   REGISTRY_DOCKERHUB: docker.io
   IMAGE_NAME: ${{ github.repository }}
 
-
 jobs:
-  release_artefacts:
+  release_artifacts:
     permissions:
       id-token: write
       contents: write
@@ -22,63 +20,55 @@ jobs:
     runs-on: ubuntu-latest
    
     steps:
-      - name: Setup .NET8 🦴
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: ${{env.DOTNET_VERSION}}
-
-      - name: 📄 Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v5
         with:
           lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+
+      - name: Setup .NET 9 🦴
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
 
       - name: Extract version
         run: |
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-      - name: 📦 Generate Package (linux x64/arm, Windows x64)
+      - name: Generate packages (linux x64/arm, Windows x64)
         run: |
             dotnet restore src
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64 /p:Version=${{ env.VERSION }}
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm /p:Version=${{ env.VERSION }}
-            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64 /p:Version=${{ env.VERSION }}
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --no-self-contained --nologo -o ./release/linux-x64 /p:Version=${{ env.VERSION }}
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --no-self-contained --nologo -o ./release/linux-arm /p:Version=${{ env.VERSION }}
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --no-self-contained --nologo -o ./release/win-x64 /p:Version=${{ env.VERSION }}
 
-      - name: Attest Linux x64 Package
+      - name: Attest packages
         uses: actions/attest@v1
         with:
-          subject-path: ./release/linux-x64
-          predicate-type: 'https://example.com/predicate/v1.1.0'
-          predicate: '{}'
-        
-      - name: Attest Linux arm Package
-        uses: actions/attest@v1
-        with:
-          subject-path: ./release/linux-arm
-          predicate-type: 'https://example.com/predicate/v1.1.0'
-          predicate: '{}'
-        
-      - name: Attest Windows x64 Package
-        uses: actions/attest@v1
-        with:
-          subject-path: ./release/win-x64
-          predicate-type: 'https://example.com/predicate/v1.1.0'
+          subject-path: |
+            ./release/linux-x64
+            ./release/linux-arm
+            ./release/win-x64
+          predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{}'
       
-      - name: Compress and upload
+      - name: Compress and upload to release
         run: |
             zip -r WHMapper.linux-x64.zip ./release/linux-x64 -j
             zip -r WHMapper.linux-arm.zip ./release/linux-arm -j
             zip -r WHMapper.win-x64.zip ./release/win-x64 -j
-            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-x64.zip
-            gh release upload ${{github.event.release.tag_name}} WHMapper.linux-arm.zip
-            gh release upload ${{github.event.release.tag_name}} WHMapper.win-x64.zip
+            gh release upload ${{ github.event.release.tag_name }} \
+              WHMapper.linux-x64.zip \
+              WHMapper.linux-arm.zip \
+              WHMapper.win-x64.zip \
+              --clobber
         env:
-          GITHUB_TOKEN: ${{ github.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
 
-  prepare_release_docker_image_docker_io:
+  prepare_release_docker_image_ghcr:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -92,22 +82,20 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
+          
     steps:
-      - name: Prepare
+      - name: Prepare platform variables
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV 
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
       
-          # Add support for more platforms with QEMU (optional)
-      # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
           
@@ -121,26 +109,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for ${{ env.REGISTRY }}
+      - name: Extract metadata for ${{ env.REGISTRY }}
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
             org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.version=${{ env.VERSION }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
           flavor: |
             latest=false
 
       - name: Build and push to ${{ env.REGISTRY }} by digest
         id: build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./src/WHMapper/
           platforms: ${{ matrix.platform }}
@@ -148,6 +135,8 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
           build-args: |
             VERSION=${{ env.VERSION }}
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
             
       - name: Export digest
         run: |
@@ -158,7 +147,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ env.PLATFORM_PAIR }}
+          name: digests-ghcr-${{ env.PLATFORM_PAIR }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -168,35 +157,40 @@ jobs:
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
-          predicate-type: 'https://ghcr.io/attestation/release/v0.1'
+          predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{"purl":"pkg:oci/..."}'
           push-to-registry: true
 
-  merge_release_docker_image_docker_io:
-    needs: [prepare_release_docker_image_docker_io]
+  merge_release_docker_image_ghcr:
+    needs: [prepare_release_docker_image_ghcr]
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+      
     runs-on: ubuntu-latest
+    
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: digests-ghcr-*
           merge-multiple: true
+          
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Docker meta
+        
+      - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
           flavor: |
             latest=false
       
@@ -206,13 +200,13 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Create manifest list and push
+          
+      - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)          
-      -
-        name: Inspect image
+            
+      - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}          
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}

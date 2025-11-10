@@ -10,17 +10,13 @@ on:
     paths-ignore: ['**.md', '.vscode/**','docs/**','deploy/**']
   
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '9.0.x'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  # Use docker.io for Docker Hub if empty
   REGISTRY_DOCKERHUB: docker.io
   SHA: ${{ github.event.pull_request.head.sha || github.event.after }}
-  # Use `latest` as the tag to compare to if empty, assuming that it's already pushed
   COMPARE_TAG: latest
-    # Base for the PR
   BASE_REPO: ${{ github.event.pull_request.base.repo.clone_url }}
-  # Repository of PR
   PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.clone_url }}
 
 jobs:
@@ -31,19 +27,13 @@ jobs:
       contents: read
       attestations: write
 
-# Service containers to run with `runner-job`
     services:
-      # posgres db service
       postgres:
-        # Docker Hub image
-        image: postgres:15-alpine
-        # Provide the password for postgres
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: postgres
-          #POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_DB: whmappertest 
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -52,45 +42,52 @@ jobs:
         ports:
           - 5432:5432
 
-      # redis service
       redis:
-        image: redis:7-alpine
+        image: redis:8-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           - 6379:6379
+          
     steps:
-      - name: Setup JDK 17 🦴
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'oracle'
-          java-version: 17
-
-      - name: Setup .NET8 🦴
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{env.DOTNET_VERSION}}
-
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
 
-      # if external PR
-      - name: Build For external PR🚀
-        if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
-        run: dotnet build src/WHMapper -c Release
+      - name: Setup JDK 22 🦴
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'oracle'
+          java-version: 22
 
-      - name: Test For external PR🧪
+      - name: Setup .NET 9 🦴
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      # External PR (fork) - basic build/test without SonarCloud
+      - name: Build for external PR 🚀
+        if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
+        run: dotnet build src/WHMapper -c Release --no-restore
+
+      - name: Test for external PR 🧪
         if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
         env:
           ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
           ConnectionStrings__RedisConnection: "localhost:6379"
-        run: dotnet test src/WHMapper.Tests -c Release
+        run: dotnet test src/WHMapper.Tests -c Release --no-build --verbosity normal
            
+      # Internal PR/Push - full analysis with SonarCloud
       - name: Cache SonarCloud data
         if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar-${{ hashFiles('**/*.csproj') }}
@@ -106,24 +103,25 @@ jobs:
       - name: SonarCloud Build and Analyze 🚀 🧪
         if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
           ConnectionStrings__RedisConnection: "localhost:6379"
         run: |
           dotnet sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.verbose=false
           dotnet build src/WHMapper -c Release
-          dotnet coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
+          dotnet coverage collect "dotnet test src/WHMapper.Tests -c Release --no-build" -f xml -o "coverage.xml"
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
-      - name: Generate Artifact
+      # Artifact generation (only on push to main)
+      - name: Generate artifacts
         if: github.event_name != 'pull_request'
         run: | 
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --nologo --output ./release/linux-x64
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --nologo --output ./release/linux-arm
-          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --nologo --output ./release/win-x64
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --no-self-contained --nologo -o ./release/linux-x64
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --no-self-contained --nologo -o ./release/linux-arm
+          dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --no-self-contained --nologo -o ./release/win-x64
           
-      - name: Attest Artifact
+      - name: Attest artifacts
         if: github.event_name != 'pull_request'
         uses: actions/attest@v1
         with:
@@ -134,39 +132,44 @@ jobs:
           predicate-type: 'https://example.com/predicate/v1.1.0'
           predicate: '{}'
 
-      - name: Upload Linux x64 Artifact
+      - name: Upload Linux x64 artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: WHMapper.linux-x64
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/linux-x64/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux-x64/*.pdb
+            release/linux-x64/
+            !release/linux-x64/*.pdb
           if-no-files-found: error
+          retention-days: 90
+          compression-level: 9
 
-      - name: Upload Linux arm Artifact
+      - name: Upload Linux ARM artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: WHMapper.linux-arm
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/linux-arm/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/linux-arm/*.pdb
+            release/linux-arm/
+            !release/linux-arm/*.pdb
           if-no-files-found: error
+          retention-days: 90
+          compression-level: 9
 
-      - name: Upload Windows x64 Artifact
+      - name: Upload Windows x64 artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: WHMapper.windows-x64
           path: |
-            /home/runner/work/eve-whmapper/eve-whmapper/release/win-x64/
-            !/home/runner/work/eve-whmapper/eve-whmapper/release/win-x64/*.pdb
+            release/win-x64/
+            !release/win-x64/*.pdb
           if-no-files-found: error
+          retention-days: 90
+          compression-level: 9
 
   build_test_docker_image:
     if: github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url
-    #https://docs.docker.com/scout/integrations/ci/gha/
     runs-on: ubuntu-latest
     needs: [build_test_package]
     permissions:
@@ -176,17 +179,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ env.SHA }}
           lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
-      # Extract metadata (tags, labels) for Docker
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -206,11 +207,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./src/WHMapper/
           sbom: ${{ github.event_name != 'pull_request' }}
@@ -222,7 +221,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
-      - name: Docker Scout
+      - name: Docker Scout analysis
         id: docker-scout
         if: ${{ github.event_name == 'pull_request' }}
         uses: docker/scout-action@v1
@@ -233,12 +232,11 @@ jobs:
           ignore-unchanged: true
           only-severities: critical,high
           write-comment: true
-          github-token: ${{ secrets.GITHUB_TOKEN }} # to be able to write the comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-
-  prepare_docker_image_docker_io:
-    if: github.event_name != 'pull_request' #PUSH only on merging
-    needs: [build_test_package,build_test_docker_image]
+  prepare_docker_image_ghcr:
+    if: github.event_name != 'pull_request'
+    needs: [build_test_package, build_test_docker_image]
     permissions:
       id-token: write
       packages: write
@@ -252,21 +250,19 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
+          
     steps:
-      - name: Prepare
+      - name: Prepare platform variables
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV   
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
       
-          # Add support for more platforms with QEMU (optional)
-      # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
          
@@ -280,7 +276,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for ${{ env.REGISTRY }}
+      - name: Extract metadata for ${{ env.REGISTRY }}
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -293,20 +289,21 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && !startsWith(github.ref, 'refs/tags/') }}
           flavor: |
             latest=false
 
       - name: Build and push to ${{ env.REGISTRY }} by digest
         id: build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./src/WHMapper/
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
-        
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
     
       - name: Export digest
         run: |
@@ -331,27 +328,28 @@ jobs:
           predicate: '{"purl":"pkg:oci/..."}'
           push-to-registry: true
 
-  merge_docker_image_docker_io:
-    if: github.event_name != 'pull_request' #PUSH only on merging
-    needs: [prepare_docker_image_docker_io]
+  merge_docker_image_ghcr:
+    if: github.event_name != 'pull_request'
+    needs: [prepare_docker_image_ghcr]
     permissions:
       id-token: write
       packages: write
       contents: read
+      
     runs-on: ubuntu-latest
+    
     steps:
-      -
-        name: Download digests
+      - name: Download digests
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
           pattern: digests-*
           merge-multiple: true
-      -
-        name: Set up Docker Buildx
+          
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Docker meta
+        
+      - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -364,8 +362,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && !startsWith(github.ref, 'refs/tags/') }}
           flavor: |
             latest=false
       
@@ -375,36 +373,37 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Create manifest list and push
+          
+      - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)          
-      -
-        name: Inspect image
+            
+      - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}          
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
 
-
-
-  release_docker_image_docker_hub:
-    if: github.event_name != 'pull_request' #PUSH only on merging
-    needs: [build_test_package,build_test_docker_image]
+  release_docker_image_dockerhub:
+    if: github.event_name != 'pull_request'
+    needs: [build_test_package, build_test_docker_image]
     permissions:
       id-token: write
       packages: write
       contents: read
 
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: true
-          # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
       
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
@@ -415,7 +414,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}    
 
-      - name: Extract metadata (tags, labels) for ${{ env.REGISTRY_DOCKERHUB }}
+      - name: Extract metadata for ${{ env.REGISTRY_DOCKERHUB }}
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -428,19 +427,21 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && !startsWith(github.ref, 'refs/tags/') }}
           flavor: |
             latest=false
 
       - name: Build and push to ${{ env.REGISTRY_DOCKERHUB }}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         id: push
         with:
           context: ./src/WHMapper/
+          platforms: linux/amd64,linux/arm64
           sbom: true
+          provenance: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-      
-      
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
