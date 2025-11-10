@@ -73,7 +73,7 @@ jobs:
       # External PR (fork) - basic build/test without SonarCloud
       - name: Build for external PR 🚀
         if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
-        run: dotnet build src/WHMapper -c Release --no-restore
+        run: dotnet build src/WHMapper -c Release
 
       - name: Test for external PR 🧪
         if: ${{ env.BASE_REPO != env.PR_HEAD_REPO }}
@@ -294,15 +294,15 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
             org.opencontainers.image.authors=${{ github.actor }}
-          tags: |
+              tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && !startsWith(github.ref, 'refs/tags/') }}
-          flavor: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+              flavor: |
             latest=false
 
       - name: Build and push to ${{ env.REGISTRY }} by digest
@@ -438,8 +438,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && !startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
           flavor: |
             latest=false
 

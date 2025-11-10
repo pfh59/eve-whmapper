@@ -45,21 +45,21 @@ jobs:
             dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --no-self-contained --nologo -o ./release/win-x64 /p:Version=${{ env.VERSION }}
 
       - name: Attest packages
-        uses: actions/attest@v1
+        uses: actions/attest@v3
         with:
           subject-path: './release/linux-x64'
           predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{}'
           
       - name: Attest packages (linux-arm)
-        uses: actions/attest@v1
+        uses: actions/attest@v3
         with:
           subject-path: './release/linux-arm'
           predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{}'
           
       - name: Attest packages (win-x64)
-        uses: actions/attest@v1
+        uses: actions/attest@v3
         with:
           subject-path: './release/win-x64'
           predicate-type: 'https://slsa.dev/provenance/v1'
