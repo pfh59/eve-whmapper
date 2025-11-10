@@ -47,10 +47,21 @@ jobs:
       - name: Attest packages
         uses: actions/attest@v1
         with:
-          subject-path: |
-            ./release/linux-x64
-            ./release/linux-arm
-            ./release/win-x64
+          subject-path: './release/linux-x64'
+          predicate-type: 'https://slsa.dev/provenance/v1'
+          predicate: '{}'
+          
+      - name: Attest packages (linux-arm)
+        uses: actions/attest@v1
+        with:
+          subject-path: './release/linux-arm'
+          predicate-type: 'https://slsa.dev/provenance/v1'
+          predicate: '{}'
+          
+      - name: Attest packages (win-x64)
+        uses: actions/attest@v1
+        with:
+          subject-path: './release/win-x64'
           predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{}'
       
@@ -153,13 +164,12 @@ jobs:
           retention-days: 1
 
       - name: Attest the image
-        uses: actions/attest@v1
+        uses: actions/attest@v3
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
           predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{"purl":"pkg:oci/..."}'
-          push-to-registry: true
+          predicate: '{}'
 
   merge_release_docker_image_ghcr:
     needs: [prepare_release_docker_image_ghcr]
