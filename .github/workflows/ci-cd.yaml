@@ -15,7 +15,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   REGISTRY_DOCKERHUB: docker.io
   SHA: ${{ github.event.pull_request.head.sha || github.event.after }}
-  COMPARE_TAG: latest
+  COMPARE_TAG: dev
   BASE_REPO: ${{ github.event.pull_request.base.repo.clone_url }}
   PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.clone_url }}
 
