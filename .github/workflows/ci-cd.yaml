@@ -207,7 +207,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v6.18.0
         with:
           context: ./src/WHMapper/
           sbom: ${{ github.event_name != 'pull_request' }}
@@ -262,7 +262,7 @@ jobs:
           fetch-depth: 0
       
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v3.7.0
          
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
@@ -294,7 +294,7 @@ jobs:
 
       - name: Build and push to ${{ env.REGISTRY }} by digest
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v6.18.0
         with:
           context: ./src/WHMapper/
           platforms: ${{ matrix.platform }}
@@ -400,7 +400,7 @@ jobs:
           fetch-depth: 0
       
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v3.7.0
         
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
@@ -431,7 +431,7 @@ jobs:
             latest=false
 
       - name: Build and push to ${{ env.REGISTRY_DOCKERHUB }}
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v6.18.0
         id: push
         with:
           context: ./src/WHMapper/
