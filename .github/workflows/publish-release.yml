@@ -45,25 +45,19 @@ jobs:
             dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --no-self-contained --nologo -o ./release/win-x64 /p:Version=${{ env.VERSION }}
 
       - name: Attest packages
-        uses: actions/attest@v3
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: './release/linux-x64'
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
-          
+  
       - name: Attest packages (linux-arm)
-        uses: actions/attest@v3
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: './release/linux-arm'
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
           
       - name: Attest packages (win-x64)
-        uses: actions/attest@v3
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: './release/win-x64'
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
       
       - name: Compress and upload to release
         run: |
@@ -164,12 +158,10 @@ jobs:
           retention-days: 1
 
       - name: Attest the image
-        uses: actions/attest@v3
+        uses: attest-build-provenance@v3
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
 
   merge_release_docker_image_ghcr:
     needs: [prepare_release_docker_image_ghcr]
