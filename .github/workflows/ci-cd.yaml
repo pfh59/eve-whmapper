@@ -327,7 +327,6 @@ jobs:
       - name: Attest the image
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
