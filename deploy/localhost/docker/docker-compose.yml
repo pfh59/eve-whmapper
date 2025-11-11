@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -13,7 +13,7 @@ services:
      - net
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: always
     networks:
      - net
