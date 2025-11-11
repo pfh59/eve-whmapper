@@ -142,6 +142,13 @@ jobs:
             VERSION=${{ env.VERSION }}
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+      
+      - name: Attest the image
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
             
       - name: Export digest
         run: |
@@ -156,11 +163,6 @@ jobs:
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
-
-      - name: Attest the image
-        uses: actions/attest-build-provenance@v3
-        with:
-          subject-digest: ${{ steps.build.outputs.digest }}
 
   merge_release_docker_image_ghcr:
     needs: [prepare_release_docker_image_ghcr]
