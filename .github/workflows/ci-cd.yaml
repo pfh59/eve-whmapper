@@ -123,7 +123,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest@v3
         with:
-          subject-path: ./release/linux-x64
+          subject-path: release/linux-x64/**
           predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{}'
 
@@ -131,7 +131,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest@v3
         with:
-          subject-path: ./release/linux-arm
+          subject-path: release/linux-arm/**
           predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{}'
 
@@ -139,7 +139,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest@v3
         with:
-          subject-path: ./release/win-x64
+          subject-path: release/win-x64/**
           predicate-type: 'https://slsa.dev/provenance/v1'
           predicate: '{}'
 
