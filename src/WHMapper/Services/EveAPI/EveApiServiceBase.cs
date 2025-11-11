@@ -18,7 +18,6 @@ namespace WHMapper.Services.EveAPI
             UserToken = userToken;
         }
 
-
         /// <summary>
         /// Executes an HTTP request and returns a Result with success/error information
         /// </summary>
@@ -26,91 +25,14 @@ namespace WHMapper.Services.EveAPI
         {
             try
             {
-                // Add bearer token for authenticated requests
-                if (security == RequestSecurity.Authenticated)
-                {
-                    if (UserToken == null)
-                        return Result<T>.Failure("UserToken is required for authenticated requests", 401);
-
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", UserToken.AccessToken);
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Clear();
-                }
-
-                // Serialize post body data
-                HttpContent? postBody = null;
-                if (body != null)
-                    postBody = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-
-                // Execute HTTP request based on method
-                HttpResponseMessage? response = null;
-                switch (method)
-                {
-                    case RequestMethod.Delete:
-                        response = await _httpClient.DeleteAsync(uri).ConfigureAwait(false);
-                        break;
-                    case RequestMethod.Get:
-                        response = await _httpClient.GetAsync(uri).ConfigureAwait(false);
-                        break;
-                    case RequestMethod.Post:
-                        response = await _httpClient.PostAsync(uri, postBody).ConfigureAwait(false);
-                        break;
-                    case RequestMethod.Put:
-                        response = await _httpClient.PutAsync(uri, postBody).ConfigureAwait(false);
-                        break;
-                }
+                ConfigureHeaders(security);
+                HttpContent? postBody = SerializeBody(body);
+                HttpResponseMessage? response = await ExecuteHttpRequest(method, uri, postBody).ConfigureAwait(false);
 
                 if (response == null)
                     return Result<T>.Failure("No response received from server");
 
-                // Handle rate limiting specifically
-                if (response.StatusCode == HttpStatusCode.TooManyRequests)
-                {
-                    var retryAfter = "unknown";
-                    if (response.Headers.TryGetValues("Retry-After", out var values))
-                    {
-                        retryAfter = values.First();
-                    }
-                    return Result<T>.Failure($"Rate limit exceeded. Retry after {retryAfter} seconds.", (int)response.StatusCode, null,
-                        TimeSpan.FromSeconds(double.TryParse(retryAfter, out var seconds) ? seconds : 0));
-                }
-
-                // Handle successful responses
-                if (response.StatusCode == HttpStatusCode.NoContent)
-                {
-                    // For NoContent responses, return success with default value
-                    return Result<T>.Success(default(T)!);
-                }
-
-                if (response.StatusCode == HttpStatusCode.OK ||
-                    response.StatusCode == HttpStatusCode.Created ||
-                    response.StatusCode == HttpStatusCode.Accepted)
-                {
-                    string responseContent = await response.Content.ReadAsStringAsync();
-
-                    if (string.IsNullOrEmpty(responseContent))
-                        return Result<T>.Success(default(T)!);
-
-                    try
-                    {
-                        var deserializedResult = JsonSerializer.Deserialize<T>(responseContent);
-                        return Result<T>.Success(deserializedResult!);
-                    }
-                    catch (JsonException jsonEx)
-                    {
-                        return Result<T>.Failure($"Failed to deserialize response: {jsonEx.Message}", (int)response.StatusCode, jsonEx);
-                    }
-                }
-
-                // Handle error responses
-                var errorContent = await response.Content.ReadAsStringAsync();
-                var errorMessage = string.IsNullOrEmpty(errorContent)
-                    ? $"Request failed with status: {response.StatusCode} ({response.ReasonPhrase})"
-                    : $"Request failed ({response.StatusCode}): {errorContent}";
-
-                return Result<T>.Failure(errorMessage, (int)response.StatusCode);
+                return await HandleResponse<T>(response);
             }
             catch (HttpRequestException httpEx)
             {
@@ -128,6 +50,95 @@ namespace WHMapper.Services.EveAPI
             {
                 return Result<T>.Failure($"Unexpected error occurred: {ex.Message}", exception: ex);
             }
+        }
+
+        private void ConfigureHeaders(RequestSecurity security)
+        {
+            if (security == RequestSecurity.Authenticated)
+            {
+                if (UserToken == null)
+                    throw new InvalidOperationException("UserToken is required for authenticated requests");
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", UserToken.AccessToken);
+            }
+            else
+            {
+                _httpClient.DefaultRequestHeaders.Clear();
+            }
+        }
+
+        private HttpContent? SerializeBody(object? body)
+        {
+            return body == null ? null : new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+        }
+
+        private async Task<HttpResponseMessage?> ExecuteHttpRequest(RequestMethod method, string uri, HttpContent? postBody)
+        {
+            return method switch
+            {
+                RequestMethod.Delete => await _httpClient.DeleteAsync(uri).ConfigureAwait(false),
+                RequestMethod.Get => await _httpClient.GetAsync(uri).ConfigureAwait(false),
+                RequestMethod.Post => await _httpClient.PostAsync(uri, postBody).ConfigureAwait(false),
+                RequestMethod.Put => await _httpClient.PutAsync(uri, postBody).ConfigureAwait(false),
+                _ => null,
+            };
+        }
+
+        private async Task<Result<T>> HandleResponse<T>(HttpResponseMessage response)
+        {
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                return HandleRateLimit<T>(response);
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+                return Result<T>.Success(default(T)!);
+
+            if (IsSuccessStatusCode(response.StatusCode))
+                return await HandleSuccessResponse<T>(response);
+
+            return await HandleErrorResponse<T>(response);
+        }
+
+        private Result<T> HandleRateLimit<T>(HttpResponseMessage response)
+        {
+            var retryAfter = "unknown";
+            if (response.Headers.TryGetValues("Retry-After", out var values))
+                retryAfter = values.First();
+
+            var retrySeconds = double.TryParse(retryAfter, out var seconds) ? seconds : 0;
+            return Result<T>.Failure($"Rate limit exceeded. Retry after {retryAfter} seconds.", (int)response.StatusCode, null, TimeSpan.FromSeconds(retrySeconds));
+        }
+
+        private bool IsSuccessStatusCode(HttpStatusCode statusCode)
+        {
+            return statusCode == HttpStatusCode.OK || statusCode == HttpStatusCode.Created || statusCode == HttpStatusCode.Accepted;
+        }
+
+        private async Task<Result<T>> HandleSuccessResponse<T>(HttpResponseMessage response)
+        {
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrEmpty(responseContent))
+                return Result<T>.Success(default(T)!);
+
+            try
+            {
+                var deserializedResult = JsonSerializer.Deserialize<T>(responseContent);
+                return Result<T>.Success(deserializedResult!);
+            }
+            catch (JsonException jsonEx)
+            {
+                return Result<T>.Failure($"Failed to deserialize response: {jsonEx.Message}", (int)response.StatusCode, jsonEx);
+            }
+        }
+
+        private async Task<Result<T>> HandleErrorResponse<T>(HttpResponseMessage response)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            var errorMessage = string.IsNullOrEmpty(errorContent)
+                ? $"Request failed with status: {response.StatusCode} ({response.ReasonPhrase})"
+                : $"Request failed ({response.StatusCode}): {errorContent}";
+
+            return Result<T>.Failure(errorMessage, (int)response.StatusCode);
         }
     }
 }
