@@ -325,12 +325,10 @@ jobs:
           retention-days: 1
 
       - name: Attest the image
-        uses: actions/attest@v3
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
           push-to-registry: true
 
   merge_docker_image_ghcr:
