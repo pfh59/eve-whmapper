@@ -121,27 +121,21 @@ jobs:
           
       - name: Attest Linux x64 artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/attest@v3
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: release/linux-x64/**
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
 
       - name: Attest Linux ARM artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/attest@v3
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: release/linux-arm/**
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
 
       - name: Attest Windows x64 artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/attest@v3
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: release/win-x64/**
-          predicate-type: 'https://slsa.dev/provenance/v1'
-          predicate: '{}'
 
       - name: Upload Linux x64 artifact
         if: github.event_name != 'pull_request'
