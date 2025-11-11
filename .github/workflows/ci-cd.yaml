@@ -309,6 +309,13 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+
+      - name: Attest the image
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
     
       - name: Export digest
         run: |
@@ -324,11 +331,6 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Attest the image
-        uses: actions/attest-build-provenance@v3
-        with:
-          subject-digest: ${{ steps.build.outputs.digest }}
-          push-to-registry: true
 
   merge_docker_image_ghcr:
     if: github.event_name != 'pull_request'
