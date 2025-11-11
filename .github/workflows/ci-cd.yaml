@@ -108,7 +108,7 @@ jobs:
         run: |
           dotnet sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.verbose=false
           dotnet build src/WHMapper -c Release
-          dotnet coverage collect "dotnet test src/WHMapper.Tests -c Release --no-build" -f xml -o "coverage.xml"
+          dotnet coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       # Artifact generation (only on push to main)
