@@ -158,9 +158,8 @@ jobs:
           retention-days: 1
 
       - name: Attest the image
-        uses: attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v3
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
 
   merge_release_docker_image_ghcr:
