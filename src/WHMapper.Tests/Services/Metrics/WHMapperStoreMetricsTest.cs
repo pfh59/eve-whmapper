@@ -64,6 +64,7 @@ public class WHMapperStoreMetricsTest : IDisposable
     public void Dispose()
     {
         _meterListener?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -79,7 +80,7 @@ public class WHMapperStoreMetricsTest : IDisposable
     public void Constructor_ShouldThrowException_WhenMeterNameIsNull()
     {
         var meterFactory = new TestMeterFactory();
-        _configurationMock.Setup(c => c["WHMapperStoreMeterName"]).Returns((string)null);
+        _configurationMock.Setup(c => c["WHMapperStoreMeterName"]).Returns((string?)null);
 
         Assert.Throws<NullReferenceException>(() =>
             new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object));
@@ -123,9 +124,15 @@ public class WHMapperStoreMetricsTest : IDisposable
         var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
         var mapRepoMock = new Mock<IWHMapRepository>();
+        var systemRepoMock = new Mock<IWHSystemRepository>();
+        var linkRepoMock = new Mock<IWHSystemLinkRepository>();
+        var signatureRepoMock = new Mock<IWHSignatureRepository>();
+        var noteRepoMock = new Mock<IWHNoteRepository>();
+        var jumpLogRepoMock = new Mock<IWHJumpLogRepository>();
+
         mapRepoMock.Setup(r => r.GetCountAsync()).ThrowsAsync(new Exception("Test exception"));
 
-        await metrics.InitializeTotalsAsync(mapRepoMock.Object, null, null, null, null, null);
+        await metrics.InitializeTotalsAsync(mapRepoMock.Object, systemRepoMock.Object, linkRepoMock.Object, signatureRepoMock.Object, noteRepoMock.Object, jumpLogRepoMock.Object);
 
         _loggerMock.Verify(
             x => x.Log(
@@ -133,7 +140,7 @@ public class WHMapperStoreMetricsTest : IDisposable
                 It.IsAny<EventId>(),
                 It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 

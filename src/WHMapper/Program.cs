@@ -298,7 +298,7 @@ builder.Services.AddOpenTelemetry().WithMetrics(opts => opts
     .ConfigureResource(resource => resource
         .AddService(serviceName: builder.Environment.ApplicationName)
     )
-    .AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName"))
+    .AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName") ?? throw new InvalidOperationException("WHMapperStoreMeterName is not configured."))
     .AddAspNetCoreInstrumentation()
     .AddHttpClientInstrumentation()
     .AddRuntimeInstrumentation()

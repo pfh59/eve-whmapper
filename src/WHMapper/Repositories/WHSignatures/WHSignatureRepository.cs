@@ -62,7 +62,6 @@ namespace WHMapper.Repositories.WHSignatures
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHSignatures.SingleOrDefaultAsync(x => x.Id == id);
-                ;
             }
         }
 

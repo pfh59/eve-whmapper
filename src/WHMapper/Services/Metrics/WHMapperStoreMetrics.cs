@@ -58,7 +58,7 @@ public class WHMapperStoreMetrics
         _logger = logger;
 
         var meter = meterFactory.Create(configuration["WHMapperStoreMeterName"] ??
-                                        throw new NullReferenceException("WHMapperStore meter missing a name"));
+                                        throw new ArgumentNullException(nameof(configuration), "WHMapperStore meter missing a name"));
                                         
         UsersConnectedCounter = meter.CreateCounter<int>("users-connected", "User", "Amount authenticated users connected");
         UsersDisconnectedCounter = meter.CreateCounter<int>("users-disconnected", "User", "Amount authenticated users disconnected");
