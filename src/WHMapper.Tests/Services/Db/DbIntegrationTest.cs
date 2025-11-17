@@ -105,6 +105,10 @@ public class DbIntegrationTest
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR2, result2?.Name);
 
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
         //ADD test duplicate
         var resultDuplicate = await repo.Create(new WHMap(FOOBAR));
         Assert.Null(resultDuplicate);
@@ -210,7 +214,11 @@ public class DbIntegrationTest
         Assert.Equal(1, result2?.SecurityStatus);
         Assert.False(result2?.Locked);
 
-        //add dupkicate
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
+        //add duplicate
         var resultDuplicate = await repo.Create(new WHSystem(map.Id, FOOBAR_SYSTEM_ID2, FOOBAR2, 1));
         Assert.Null(resultDuplicate);
 
@@ -301,6 +309,10 @@ public class DbIntegrationTest
         Assert.Equal(Convert.ToByte('A'), whSys2.NameExtension);
         Assert.False(whSys2.Locked);
 
+        //GetCountAsync
+        var count = await repoWH.GetCountAsync();
+        Assert.Equal(2, count);
+
         var whSys3 = await repoWH.Create(new WHSystem(map.Id, FOOBAR_SYSTEM_ID3, FOOBAR_SHORT_UPDATED, 'B', 1));
         Assert.NotNull(whSys3);
         Assert.Equal(FOOBAR_SYSTEM_ID3, whSys3.SoloarSystemId);
@@ -335,6 +347,10 @@ public class DbIntegrationTest
         Assert.False(link2.IsEndOfLifeConnection);
         Assert.Equal(SystemLinkMassStatus.Normal, link2.MassStatus);
         Assert.Equal(SystemLinkSize.Large, link2.Size);
+
+        //GetCountAsync
+        var countLinks = await repo.GetCountAsync();
+        Assert.Equal(2, countLinks);
 
         //add duplicate link
         var linkDuplicate = await repo.Create(new WHSystemLink(map.Id, whSys1.Id, whSys2.Id));
@@ -431,6 +447,10 @@ public class DbIntegrationTest
         Assert.Equal(whSys1.Id, result2.WHId);
         Assert.Equal(FOOBAR2, result2?.Name);
         Assert.Equal(WHSignatureGroup.Unknow, result2?.Group);
+
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
 
         var resDuplicate = await repo.Create(new WHSignature(whSys1.Id, FOOBAR2));
         Assert.Null(resDuplicate);
@@ -556,6 +576,10 @@ public class DbIntegrationTest
         Assert.Equal(EVE_CHARACTERE_ID2, result2.EveCharacterId);
         Assert.Equal(EVE_CHARACTERE_NAME2, result2.EveCharacterName);
 
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
         //add duplicate
         var resultDuplicate= await repo.Create(new WHAdmin(EVE_CHARACTERE_ID2, EVE_CHARACTERE_NAME2));
         Assert.Null(resultDuplicate);
@@ -634,7 +658,11 @@ public class DbIntegrationTest
         Assert.Equal(EVE_CORPO_NAME2, result2.EveEntityName);
         Assert.Equal(WHAccessEntity.Corporation, result2.EveEntity);
 
-        //ADD Access dupkicate
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
+        //ADD Access duplicate
         var resultDuplicate = await repo.Create(new WHAccess(EVE_CORPO_ID2, EVE_CORPO_NAME2, WHAccessEntity.Corporation));
         Assert.Null(resultDuplicate);
 
@@ -746,9 +774,13 @@ public class DbIntegrationTest
         Assert.NotNull(result2);
         Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SoloarSystemId);
         Assert.Equal(string.Empty, result2.Comment);
-        Assert.Equal(WHSystemStatus.Hostile,result2.SystemStatus);
+        Assert.Equal(WHSystemStatus.Hostile, result2.SystemStatus);
+        
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
 
-        //ADD Access dupkicate
+        //ADD Access duplicate
         var resultDuplicate = await repo.Create(new WHNote(map.Id,FOOBAR_SYSTEM_ID2, FOOBAR));
         Assert.Null(resultDuplicate);
 
@@ -844,8 +876,11 @@ public class DbIntegrationTest
         Assert.Equal(FOOBAR_SYSTEM_ID2, result2.SolarSystemId);
         Assert.Equal(EVE_CORPO_ID, result2.EveEntityId);
 
-    
-        //ADD Route dupLicate
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
+        //ADD Route duplicate
         var resultDuplicate = await repo.Create(new WHRoute(map.Id,FOOBAR_SYSTEM_ID2, EVE_CORPO_ID));
         Assert.Null(resultDuplicate);
 
@@ -962,6 +997,10 @@ public class DbIntegrationTest
         Assert.Equal(1037556721774, result2.ShipItemId);
         Assert.Equal(300000000, result2.ShipMass);
 
+        //GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
         //GetALL
         var results = await repo.GetAll();
         Assert.NotNull(results);
@@ -1006,20 +1045,5 @@ public class DbIntegrationTest
 
         //clean map
         var mapDeleted = await repoMap.DeleteById(map.Id);
-    }
-
-    [Fact, Priority(12)]
-    public async Task CRUD_WHJumpMassLog()
-    {
-        Assert.NotNull(_contextFactory);
-
-        //init MAP
-        //Create IWHMapRepository
-        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
-
-        //ADD WHMAP
-        var map = await repoMap.Create(new WHMap(FOOBAR));
-        Assert.NotNull(map);
-        Assert.Equal(FOOBAR, map?.Name);
     }
 }

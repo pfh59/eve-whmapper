@@ -8,8 +8,8 @@ namespace WHMapper.Repositories.WHSignatures
 
     public class WHSignatureRepository : ADefaultRepository<WHMapperContext, WHSignature, int>, IWHSignatureRepository
     {
-        public WHSignatureRepository(ILogger<WHSignatureRepository> logger,IDbContextFactory<WHMapperContext> context)
-            : base(logger,context)
+        public WHSignatureRepository(ILogger<WHSignatureRepository> logger, IDbContextFactory<WHMapperContext> context)
+            : base(logger, context)
         {
         }
 
@@ -61,7 +61,7 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHSignatures.SingleOrDefaultAsync(x => x.Id == id);;
+                return await context.DbWHSignatures.SingleOrDefaultAsync(x => x.Id == id);
             }
         }
 
@@ -111,7 +111,7 @@ namespace WHMapper.Repositories.WHSignatures
 
                     return whSignatures;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError(ex, "Impossible to update multiple WHSignatures");
                     return null;
@@ -165,7 +165,14 @@ namespace WHMapper.Repositories.WHSignatures
                 }
             }
         }
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHSignatures.CountAsync();
+            }
+
+        }
     }
-    
 }
 

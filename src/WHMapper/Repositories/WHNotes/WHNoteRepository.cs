@@ -62,7 +62,7 @@ namespace WHMapper.Repositories.WHNotes
 
         protected override async Task<WHNote?> AUpdate(int id, WHNote item)
         {
-            if(item==null)
+            if (item == null)
             {
                 _logger.LogError("Impossible to update WHNote, item is null");
                 return null;
@@ -90,7 +90,15 @@ namespace WHMapper.Repositories.WHNotes
             }
         }
 
-        public async Task<WHNote?> Get(int mapid,int solardSystemId)
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHNotes.CountAsync();
+            }
+        }
+
+        public async Task<WHNote?> Get(int mapid, int solardSystemId)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {

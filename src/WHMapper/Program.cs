@@ -41,6 +41,17 @@ using WHMapper.Components;
 using Serilog;
 using WHMapper.Services.BrowserClientIdProvider.Extension;
 using WHMapper.Services.EveScoutAPI;
+using OpenTelemetry.Extensions.Hosting;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Instrumentation.Runtime;
+using OpenTelemetry.Instrumentation.Process;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Exporter;
+using WHMapper.Services.Metrics;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -279,6 +290,28 @@ builder.Services.AddScoped<IAuthorizationHandler, EveMapperAccessHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, EveMapperAdminHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
 
+builder.Services.AddSingleton<WHMapperStoreMetrics>();
+
+
+builder.Services.AddOpenTelemetry().WithMetrics(opts => opts
+    // Configure OpenTelemetry Resources with the application name
+    .ConfigureResource(resource => resource
+        .AddService(serviceName: builder.Environment.ApplicationName)
+    )
+    .AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName") ?? throw new InvalidOperationException("WHMapperStoreMeterName is not configured."))
+    .AddAspNetCoreInstrumentation()
+    .AddHttpClientInstrumentation()
+    .AddRuntimeInstrumentation()
+    .AddProcessInstrumentation()
+    .AddOtlpExporter(options =>
+    {
+
+        options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]
+                        ?? throw new InvalidOperationException());
+        options.Protocol = OtlpExportProtocol.Grpc;
+    })
+);  
+
 
 //signalR  compression
 builder.Services.AddResponseCompression(opts =>
@@ -317,7 +350,7 @@ using (var scope = app.Services.CreateScope())
     }
 
 
-    if(dbContext.Database.GetPendingMigrations().Any())
+    if (dbContext.Database.GetPendingMigrations().Any())
     {
         logger.LogInformation("Migrating database...");
         try
@@ -329,6 +362,27 @@ using (var scope = app.Services.CreateScope())
         {
             logger.LogError(ex, "An error occurred while migrating the database.");
         }
+    }
+    
+
+    try
+    {
+        var metricsService = scope.ServiceProvider.GetRequiredService<WHMapperStoreMetrics>();
+
+        await metricsService.InitializeTotalsAsync(
+            scope.ServiceProvider.GetRequiredService<IWHMapRepository>(),
+            scope.ServiceProvider.GetRequiredService<IWHSystemRepository>(),
+            scope.ServiceProvider.GetRequiredService<IWHSystemLinkRepository>(),
+            scope.ServiceProvider.GetRequiredService<IWHSignatureRepository>(),
+            scope.ServiceProvider.GetRequiredService<IWHNoteRepository>(),
+            scope.ServiceProvider.GetRequiredService<IWHJumpLogRepository>()
+        );
+
+        logger.LogInformation("Metrics initialized successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Failed to initialize metrics, but application will continue.");
     }
 }
 

@@ -82,6 +82,14 @@ namespace WHMapper.Repositories.WHAccesses
                 }
             }
         }
+
+        protected override async Task<int> AGetCountAsync()
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                return await context.DbWHAccesses.CountAsync();
+            }
+        }
     }
 
 }
