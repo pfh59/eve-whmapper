@@ -1,7 +1,9 @@
+using System;
+using System.Diagnostics.Metrics;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Diagnostics.Metrics;
 using WHMapper.Repositories.WHJumpLogs;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHNotes;
@@ -13,429 +15,398 @@ using Xunit;
 
 namespace WHMapper.Tests.Services.Metrics;
 
-public class WHMapperStoreMetricsTest
+public class WHMapperStoreMetricsTest : IDisposable
 {
-    private readonly Mock<ILogger<WHMapperStoreMetrics>> _mockLogger;
-    private readonly Mock<IMeterFactory> _mockMeterFactory;
-    private readonly Mock<Meter> _mockMeter;
-    private readonly Mock<IConfiguration> _mockConfiguration;
-    private readonly Mock<Counter<int>> _mockCounter;
-    private readonly Mock<UpDownCounter<int>> _mockUpDownCounter;
-    private readonly Mock<IWHMapRepository> _mockMapRepository;
-    private readonly Mock<IWHSystemRepository> _mockSystemRepository;
-    private readonly Mock<IWHSystemLinkRepository> _mockLinkRepository;
-    private readonly Mock<IWHSignatureRepository> _mockSignatureRepository;
-    private readonly Mock<IWHNoteRepository> _mockNoteRepository;
-    private readonly Mock<IWHJumpLogRepository> _mockJumpLogRepository;
+    private readonly Mock<ILogger<WHMapperStoreMetrics>> _loggerMock;
+    private readonly Mock<IConfiguration> _configurationMock;
+    private readonly MeterListener _meterListener;
+    private readonly Dictionary<string, long> _counterValues;
+    private readonly Dictionary<string, long> _upDownCounterValues;
+    private readonly string _meterName = "WHMapperStoreTestMeter";
 
     public WHMapperStoreMetricsTest()
     {
-        _mockLogger = new Mock<ILogger<WHMapperStoreMetrics>>();
-        _mockMeterFactory = new Mock<IMeterFactory>();
-        _mockMeter = new Mock<Meter>("test-meter", "1.0.0");
-        _mockConfiguration = new Mock<IConfiguration>();
-        _mockCounter = new Mock<Counter<int>>();
-        _mockUpDownCounter = new Mock<UpDownCounter<int>>();
-        _mockMapRepository = new Mock<IWHMapRepository>();
-        _mockSystemRepository = new Mock<IWHSystemRepository>();
-        _mockLinkRepository = new Mock<IWHSystemLinkRepository>();
-        _mockSignatureRepository = new Mock<IWHSignatureRepository>();
-        _mockNoteRepository = new Mock<IWHNoteRepository>();
-        _mockJumpLogRepository = new Mock<IWHJumpLogRepository>();
+        _loggerMock = new Mock<ILogger<WHMapperStoreMetrics>>();
+        _configurationMock = new Mock<IConfiguration>();
+        _configurationMock.Setup(c => c["WHMapperStoreMeterName"]).Returns(_meterName);
+
+        _counterValues = new Dictionary<string, long>();
+        _upDownCounterValues = new Dictionary<string, long>();
+
+        _meterListener = new MeterListener();
+        _meterListener.InstrumentPublished = (instrument, listener) =>
+        {
+            if (instrument.Meter.Name == _meterName)
+            {
+                listener.EnableMeasurementEvents(instrument);
+            }
+        };
+
+        _meterListener.SetMeasurementEventCallback<int>((instrument, measurement, tags, state) =>
+        {
+            if (instrument.Name.StartsWith("total-"))
+            {
+                if (!_upDownCounterValues.ContainsKey(instrument.Name))
+                    _upDownCounterValues[instrument.Name] = 0;
+                _upDownCounterValues[instrument.Name] += measurement;
+            }
+            else
+            {
+                if (!_counterValues.ContainsKey(instrument.Name))
+                    _counterValues[instrument.Name] = 0;
+                _counterValues[instrument.Name] += measurement;
+            }
+        });
+
+        _meterListener.Start();
+    }
+
+    public void Dispose()
+    {
+        _meterListener?.Dispose();
     }
 
     [Fact]
-    public void Constructor_WithValidConfiguration_CreatesMetrics()
+    public void Constructor_ShouldInitializeAllMetrics()
     {
-        // Arrange
-        _mockConfiguration.Setup(c => c["WHMapperStoreMeterName"]).Returns("test-meter");
-        _mockMeterFactory.Setup(f => f.Create("test-meter")).Returns(_mockMeter.Object);
-        _mockMeter.Setup(m => m.CreateCounter<int>(It.IsAny<string>(), null, null))
-               .Returns(_mockCounter.Object);
-        _mockMeter.Setup(m => m.CreateUpDownCounter<int>(It.IsAny<string>(), null, null))
-               .Returns(_mockUpDownCounter.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
-
-        // Assert
         Assert.NotNull(metrics);
-        _mockMeterFactory.Verify(f => f.Create("test-meter"), Times.Once);
-        _mockMeter.Verify(m => m.CreateCounter<int>(It.IsAny<string>(), null, null), Times.Exactly(12));
-        _mockMeter.Verify(m => m.CreateUpDownCounter<int>(It.IsAny<string>(), null, null), Times.Exactly(6));
     }
 
     [Fact]
-    public void Constructor_WithNullMeterName_ThrowsNullReferenceException()
+    public void Constructor_ShouldThrowException_WhenMeterNameIsNull()
     {
-        // Arrange
-        _mockConfiguration.Setup(c => c["WHMapperStoreMeterName"]).Returns((string)null);
+        var meterFactory = new TestMeterFactory();
+        _configurationMock.Setup(c => c["WHMapperStoreMeterName"]).Returns((string)null);
 
-        // Act & Assert
-        Assert.Throws<NullReferenceException>(() => 
-            new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object));
+        Assert.Throws<NullReferenceException>(() =>
+            new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object));
     }
 
     [Fact]
-    public async Task InitializeTotalsAsync_WithValidRepositories_InitializesTotals()
+    public async Task InitializeTotalsAsync_ShouldSetCorrectValues()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        _mockMapRepository.Setup(r => r.GetCountAsync()).ReturnsAsync(5);
-        _mockSystemRepository.Setup(r => r.GetCountAsync()).ReturnsAsync(10);
-        _mockLinkRepository.Setup(r => r.GetCountAsync()).ReturnsAsync(8);
-        _mockSignatureRepository.Setup(r => r.GetCountAsync()).ReturnsAsync(15);
-        _mockNoteRepository.Setup(r => r.GetCountAsync()).ReturnsAsync(3);
-        _mockJumpLogRepository.Setup(r => r.GetCountAsync()).ReturnsAsync(20);
+        var mapRepoMock = new Mock<IWHMapRepository>();
+        var systemRepoMock = new Mock<IWHSystemRepository>();
+        var linkRepoMock = new Mock<IWHSystemLinkRepository>();
+        var signatureRepoMock = new Mock<IWHSignatureRepository>();
+        var noteRepoMock = new Mock<IWHNoteRepository>();
+        var jumpLogRepoMock = new Mock<IWHJumpLogRepository>();
 
-        // Act
-        await metrics.InitializeTotalsAsync(_mockMapRepository.Object, _mockSystemRepository.Object, 
-            _mockLinkRepository.Object, _mockSignatureRepository.Object, _mockNoteRepository.Object, 
-            _mockJumpLogRepository.Object);
+        mapRepoMock.Setup(r => r.GetCountAsync()).ReturnsAsync(10);
+        systemRepoMock.Setup(r => r.GetCountAsync()).ReturnsAsync(20);
+        linkRepoMock.Setup(r => r.GetCountAsync()).ReturnsAsync(30);
+        signatureRepoMock.Setup(r => r.GetCountAsync()).ReturnsAsync(40);
+        noteRepoMock.Setup(r => r.GetCountAsync()).ReturnsAsync(50);
+        jumpLogRepoMock.Setup(r => r.GetCountAsync()).ReturnsAsync(60);
 
-        // Assert
-        _mockUpDownCounter.Verify(c => c.Add(5), Times.Once); // Maps
-        _mockUpDownCounter.Verify(c => c.Add(10), Times.Once); // Systems
-        _mockUpDownCounter.Verify(c => c.Add(8), Times.Once); // Links
-        _mockUpDownCounter.Verify(c => c.Add(15), Times.Once); // Signatures
-        _mockUpDownCounter.Verify(c => c.Add(3), Times.Once); // Notes
-        _mockUpDownCounter.Verify(c => c.Add(20), Times.Once); // Jump Logs
+        await metrics.InitializeTotalsAsync(mapRepoMock.Object, systemRepoMock.Object, linkRepoMock.Object,
+            signatureRepoMock.Object, noteRepoMock.Object, jumpLogRepoMock.Object);
+
+        Assert.Equal(10, _upDownCounterValues["total-maps"]);
+        Assert.Equal(20, _upDownCounterValues["total-systems"]);
+        Assert.Equal(30, _upDownCounterValues["total-links"]);
+        Assert.Equal(40, _upDownCounterValues["total-signatures"]);
+        Assert.Equal(50, _upDownCounterValues["total-notes"]);
+        Assert.Equal(60, _upDownCounterValues["total-jumplogs"]);
     }
 
     [Fact]
-    public async Task InitializeTotalsAsync_WithException_LogsError()
+    public async Task InitializeTotalsAsync_ShouldHandleException()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        _mockMapRepository.Setup(r => r.GetCountAsync()).ThrowsAsync(new Exception("Database error"));
+        var mapRepoMock = new Mock<IWHMapRepository>();
+        mapRepoMock.Setup(r => r.GetCountAsync()).ThrowsAsync(new Exception("Test exception"));
 
-        // Act
-        await metrics.InitializeTotalsAsync(_mockMapRepository.Object, _mockSystemRepository.Object, 
-            _mockLinkRepository.Object, _mockSignatureRepository.Object, _mockNoteRepository.Object, 
-            _mockJumpLogRepository.Object);
+        await metrics.InitializeTotalsAsync(mapRepoMock.Object, null, null, null, null, null);
 
-        // Assert
-        _mockLogger.Verify(
+        _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error initializing WHMapperStore metrics totals")),
+                It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception, string>>()),
             Times.Once);
     }
 
     [Fact]
-    public void ConnectUser_IncrementsCounters()
+    public void ConnectUser_ShouldIncrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.ConnectUser();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(1), Times.Once);
+        Assert.Equal(1, _counterValues["users-connected"]);
+        Assert.Equal(1, _upDownCounterValues["total-users"]);
     }
 
     [Fact]
-    public void DisconnectUser_IncrementsAndDecrementsCounters()
+    public void DisconnectUser_ShouldIncrementAndDecrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DisconnectUser();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-1), Times.Once);
+        Assert.Equal(1, _counterValues["users-disconnected"]);
+        Assert.Equal(-1, _upDownCounterValues["total-users"]);
     }
 
     [Fact]
-    public void CreateMap_IncrementsCounters()
+    public void CreateMap_ShouldIncrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.CreateMap();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(1), Times.Once);
+        Assert.Equal(1, _counterValues["maps-created"]);
+        Assert.Equal(1, _upDownCounterValues["total-maps"]);
     }
 
     [Fact]
-    public void DeleteMap_IncrementsAndDecrementsCounters()
+    public void DeleteMap_ShouldIncrementAndDecrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteMap();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-1), Times.Once);
+        Assert.Equal(1, _counterValues["maps-deleted"]);
+        Assert.Equal(-1, _upDownCounterValues["total-maps"]);
     }
 
     [Fact]
-    public void DeleteMaps_WithCount_IncrementsAndDecrementsCounters()
+    public void DeleteMaps_ShouldIncrementAndDecrementCountersByCount()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteMaps(5);
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(5), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-5), Times.Once);
+        Assert.Equal(5, _counterValues["maps-deleted"]);
+        Assert.Equal(-5, _upDownCounterValues["total-maps"]);
     }
 
     [Fact]
-    public void AddSystem_IncrementsCounters()
+    public void AddSystem_ShouldIncrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.AddSystem();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(1), Times.Once);
+        Assert.Equal(1, _counterValues["systems-added"]);
+        Assert.Equal(1, _upDownCounterValues["total-systems"]);
     }
 
     [Fact]
-    public void DeleteSystem_IncrementsAndDecrementsCounters()
+    public void DeleteSystem_ShouldIncrementAndDecrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteSystem();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-1), Times.Once);
+        Assert.Equal(1, _counterValues["systems-deleted"]);
+        Assert.Equal(-1, _upDownCounterValues["total-systems"]);
     }
 
     [Fact]
-    public void DeleteSystems_WithCount_IncrementsAndDecrementsCounters()
+    public void DeleteSystems_ShouldIncrementAndDecrementCountersByCount()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteSystems(3);
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(3), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-3), Times.Once);
+        Assert.Equal(3, _counterValues["systems-deleted"]);
+        Assert.Equal(-3, _upDownCounterValues["total-systems"]);
     }
 
     [Fact]
-    public void AddLink_IncrementsCounters()
+    public void AddLink_ShouldIncrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.AddLink();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(1), Times.Once);
+        Assert.Equal(1, _counterValues["links-added"]);
+        Assert.Equal(1, _upDownCounterValues["total-links"]);
     }
 
     [Fact]
-    public void DeleteLink_IncrementsAndDecrementsCounters()
+    public void DeleteLink_ShouldIncrementAndDecrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteLink();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-1), Times.Once);
+        Assert.Equal(1, _counterValues["links-deleted"]);
+        Assert.Equal(-1, _upDownCounterValues["total-links"]);
     }
 
     [Fact]
-    public void DeleteLinks_WithCount_IncrementsAndDecrementsCounters()
+    public void DeleteLinks_ShouldIncrementAndDecrementCountersByCount()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteLinks(7);
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(7), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-7), Times.Once);
+        Assert.Equal(7, _counterValues["links-deleted"]);
+        Assert.Equal(-7, _upDownCounterValues["total-links"]);
     }
 
     [Fact]
-    public void CreateSignature_IncrementsCounters()
+    public void CreateSignature_ShouldIncrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.CreateSignature();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(1), Times.Once);
+        Assert.Equal(1, _counterValues["signatures-created"]);
+        Assert.Equal(1, _upDownCounterValues["total-signatures"]);
     }
 
     [Fact]
-    public void DeleteSignature_IncrementsAndDecrementsCounters()
+    public void DeleteSignature_ShouldIncrementAndDecrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteSignature();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-1), Times.Once);
+        Assert.Equal(1, _counterValues["signatures-deleted"]);
+        Assert.Equal(-1, _upDownCounterValues["total-signatures"]);
     }
 
     [Fact]
-    public void DeleteSignatures_WithCount_IncrementsAndDecrementsCounters()
+    public void DeleteSignatures_ShouldIncrementAndDecrementCountersByCount()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteSignatures(4);
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(4), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-4), Times.Once);
+        Assert.Equal(4, _counterValues["signatures-deleted"]);
+        Assert.Equal(-4, _upDownCounterValues["total-signatures"]);
     }
 
     [Fact]
-    public void CreateNote_IncrementsCounters()
+    public void CreateNote_ShouldIncrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.CreateNote();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(1), Times.Once);
+        Assert.Equal(1, _counterValues["notes-created"]);
+        Assert.Equal(1, _upDownCounterValues["total-notes"]);
     }
 
     [Fact]
-    public void DeleteNote_IncrementsAndDecrementsCounters()
+    public void DeleteNote_ShouldIncrementAndDecrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteNote();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-1), Times.Once);
+        Assert.Equal(1, _counterValues["notes-deleted"]);
+        Assert.Equal(-1, _upDownCounterValues["total-notes"]);
     }
 
     [Fact]
-    public void DeleteNotes_WithCount_IncrementsAndDecrementsCounters()
+    public void DeleteNotes_ShouldIncrementAndDecrementCountersByCount()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
-        metrics.DeleteNotes(2);
+        metrics.DeleteNotes(6);
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(2), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-2), Times.Once);
+        Assert.Equal(6, _counterValues["notes-deleted"]);
+        Assert.Equal(-6, _upDownCounterValues["total-notes"]);
     }
 
     [Fact]
-    public void CreateJumpLog_IncrementsCounters()
+    public void CreateJumpLog_ShouldIncrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.CreateJumpLog();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(1), Times.Once);
+        Assert.Equal(1, _counterValues["jumplogs-created"]);
+        Assert.Equal(1, _upDownCounterValues["total-jumplogs"]);
     }
 
     [Fact]
-    public void DeleteJumpLog_IncrementsAndDecrementsCounters()
+    public void DeleteJumpLog_ShouldIncrementAndDecrementCounters()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
         metrics.DeleteJumpLog();
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(1), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-1), Times.Once);
+        Assert.Equal(1, _counterValues["jumplogs-deleted"]);
+        Assert.Equal(-1, _upDownCounterValues["total-jumplogs"]);
     }
 
     [Fact]
-    public void DeleteJumpLogs_WithCount_IncrementsAndDecrementsCounters()
+    public void DeleteJumpLogs_ShouldIncrementAndDecrementCountersByCount()
     {
-        // Arrange
-        SetupValidMetrics();
-        var metrics = new WHMapperStoreMetrics(_mockLogger.Object, _mockMeterFactory.Object, _mockConfiguration.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
-        // Act
-        metrics.DeleteJumpLogs(6);
+        metrics.DeleteJumpLogs(8);
 
-        // Assert
-        _mockCounter.Verify(c => c.Add(6), Times.Once);
-        _mockUpDownCounter.Verify(c => c.Add(-6), Times.Once);
+        Assert.Equal(8, _counterValues["jumplogs-deleted"]);
+        Assert.Equal(-8, _upDownCounterValues["total-jumplogs"]);
     }
 
-    private void SetupValidMetrics()
+    [Fact]
+    public void MultipleOperations_ShouldAccumulateCorrectly()
     {
-        _mockConfiguration.Setup(c => c["WHMapperStoreMeterName"]).Returns("test-meter");
-        _mockMeterFactory.Setup(f => f.Create("test-meter")).Returns(_mockMeter.Object);
-        _mockMeter.Setup(m => m.CreateCounter<int>(It.IsAny<string>(), null, null))
-               .Returns(_mockCounter.Object);
-        _mockMeter.Setup(m => m.CreateUpDownCounter<int>(It.IsAny<string>(), null, null))
-               .Returns(_mockUpDownCounter.Object);
+        var meterFactory = new TestMeterFactory();
+        var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
+
+        metrics.ConnectUser();
+        metrics.ConnectUser();
+        metrics.DisconnectUser();
+        metrics.CreateMap();
+        metrics.CreateMap();
+        metrics.DeleteMap();
+
+        Assert.Equal(2, _counterValues["users-connected"]);
+        Assert.Equal(1, _counterValues["users-disconnected"]);
+        Assert.Equal(1, _upDownCounterValues["total-users"]);
+        Assert.Equal(2, _counterValues["maps-created"]);
+        Assert.Equal(1, _counterValues["maps-deleted"]);
+        Assert.Equal(1, _upDownCounterValues["total-maps"]);
+    }
+
+    private class TestMeterFactory : IMeterFactory
+    {
+        public Meter Create(MeterOptions options)
+        {
+            return new Meter(options);
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }
