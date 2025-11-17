@@ -82,7 +82,7 @@ public class WHMapperStoreMetricsTest : IDisposable
         var meterFactory = new TestMeterFactory();
         _configurationMock.Setup(c => c["WHMapperStoreMeterName"]).Returns((string?)null);
 
-        Assert.Throws<NullReferenceException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object));
     }
 
