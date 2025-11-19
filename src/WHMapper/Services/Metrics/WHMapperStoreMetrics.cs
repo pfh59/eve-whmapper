@@ -19,38 +19,38 @@ public class WHMapperStoreMetrics
     // Users Metrics
     private Counter<int> UsersConnectedCounter { get; }
     private Counter<int> UsersDisconnectedCounter { get; }
-    private UpDownCounter<int> TotalUsersUpDownCounter { get; }
+    private int _totalUsers = 0;
 
     //Systems Metrics
     private Counter<int> SystemsAddedCounter { get; }
     private Counter<int> SystemsDeletedCounter { get; }
-    private UpDownCounter<int> TotalSystemsUpDownCounter  { get; }
+    private int _totalSystems = 0;
 
 
     //Links Metrics
     private Counter<int> LinksAddedCounter { get; }
     private Counter<int> LinksDeletedCounter { get; }
-    private UpDownCounter<int> TotalLinksUpDownCounter { get; }
+    private int _totalLinks = 0;
 
     //Maps Metrics
     private Counter<int> MapsCreatedCounter { get; }
     private Counter<int> MapsDeletedCounter { get; }
-    private UpDownCounter<int> TotalMapsUpDownCounter { get; }
+    private int _totalMaps = 0;
 
     //Signatures Metrics
     private Counter<int> SignaturesCreatedCounter { get; }
     private Counter<int> SignaturesDeletedCounter { get; }
-    private UpDownCounter<int> TotalSignaturesUpDownCounter { get; }
+    private int _totalSignatures = 0;
 
     //Notes Metrics
     private Counter<int> NotesCreatedCounter { get; }
     private Counter<int> NotesDeletedCounter { get; }
-    private UpDownCounter<int> TotalNotesUpDownCounter { get; }
+    private int _totalNotes = 0;
 
     //Jump Logs Metrics
     private Counter<int> JumpLogsCreatedCounter { get; }
     private Counter<int> JumpLogsDeletedCounter { get; }
-    private UpDownCounter<int> TotalJumpLogsUpDownCounter { get; }
+    private int _totalJumpLogs = 0;
 
 
     public WHMapperStoreMetrics(ILogger<WHMapperStoreMetrics> logger, IMeterFactory meterFactory, IConfiguration configuration)
@@ -62,31 +62,31 @@ public class WHMapperStoreMetrics
                                         
         UsersConnectedCounter = meter.CreateCounter<int>("users-connected", "User", "Amount authenticated users connected");
         UsersDisconnectedCounter = meter.CreateCounter<int>("users-disconnected", "User", "Amount authenticated users disconnected");
-        TotalUsersUpDownCounter = meter.CreateUpDownCounter<int>("total-users", "User", "Total amount of authenticated users");
+        meter.CreateObservableGauge("total-users", () => _totalUsers, "User", "Total amount of authenticated users");
 
         SystemsAddedCounter = meter.CreateCounter<int>("systems-added", "System", "Amount of systems added");
         SystemsDeletedCounter = meter.CreateCounter<int>("systems-deleted", "System", "Amount of systems deleted");
-        TotalSystemsUpDownCounter = meter.CreateUpDownCounter<int>("total-systems", "System", "Total amount of systems in WHMapper");
+        meter.CreateObservableGauge("total-systems", () => _totalSystems, "System", "Total amount of systems in WHMapper");
 
         LinksAddedCounter = meter.CreateCounter<int>("links-added", "Link", "Amount of links added");
         LinksDeletedCounter = meter.CreateCounter<int>("links-deleted", "Link", "Amount of links deleted");
-        TotalLinksUpDownCounter = meter.CreateUpDownCounter<int>("total-links", "Link", "Total amount of links in WHMapper");
+        meter.CreateObservableGauge("total-links", () => _totalLinks, "Link", "Total amount of links in WHMapper");
 
         MapsCreatedCounter = meter.CreateCounter<int>("maps-created", "Map", "Amount of maps created");
         MapsDeletedCounter = meter.CreateCounter<int>("maps-deleted", "Map", "Amount of maps deleted");
-        TotalMapsUpDownCounter = meter.CreateUpDownCounter<int>("total-maps", "Map", "Total amount of maps in WHMapper");
+        meter.CreateObservableGauge("total-maps", () => _totalMaps, "Map", "Total amount of maps in WHMapper");
 
         SignaturesCreatedCounter = meter.CreateCounter<int>("signatures-created", "Signature", "Amount of signatures created");
         SignaturesDeletedCounter = meter.CreateCounter<int>("signatures-deleted", "Signature", "Amount of signatures deleted");
-        TotalSignaturesUpDownCounter = meter.CreateUpDownCounter<int>("total-signatures", "Signature", "Total amount of signatures in WHMapper");
+        meter.CreateObservableGauge("total-signatures", () => _totalSignatures, "Signature", "Total amount of signatures in WHMapper");
 
         NotesCreatedCounter = meter.CreateCounter<int>("notes-created", "Note", "Amount of notes created");
         NotesDeletedCounter = meter.CreateCounter<int>("notes-deleted", "Note", "Amount of notes deleted");
-        TotalNotesUpDownCounter = meter.CreateUpDownCounter<int>("total-notes", "Note", "Total amount of notes in WHMapper");
+        meter.CreateObservableGauge("total-notes", () => _totalNotes, "Note", "Total amount of notes in WHMapper");
 
         JumpLogsCreatedCounter = meter.CreateCounter<int>("jumplogs-created", "JumpLog", "Amount of jump logs created");
         JumpLogsDeletedCounter = meter.CreateCounter<int>("jumplogs-deleted", "JumpLog", "Amount of jump logs deleted");
-        TotalJumpLogsUpDownCounter = meter.CreateUpDownCounter<int>("total-jumplogs", "JumpLog", "Total amount of jump logs in WHMapper");
+        meter.CreateObservableGauge("total-jumplogs", () => _totalJumpLogs, "JumpLog", "Total amount of jump logs in WHMapper");
     }
 
     public async Task InitializeTotalsAsync(IWHMapRepository mapRepository, IWHSystemRepository systemRepository, IWHSystemLinkRepository linkRepository, IWHSignatureRepository signatureRepository, IWHNoteRepository noteRepository,IWHJumpLogRepository jumpLogRepository)
@@ -94,21 +94,14 @@ public class WHMapperStoreMetrics
         try
         {
             _logger.LogInformation("Initializing WHMapperStore metrics totals");
-            int totalMaps = await mapRepository.GetCountAsync();
-            int totalSystems = await systemRepository.GetCountAsync();
-            int totalLinks = await linkRepository.GetCountAsync();
-            int totalSignatures = await signatureRepository.GetCountAsync();
-            int totalNotes = await noteRepository.GetCountAsync();
-            int totalJumpLogs = await jumpLogRepository.GetCountAsync();
+            _totalMaps = await mapRepository.GetCountAsync();
+            _totalSystems = await systemRepository.GetCountAsync();
+            _totalLinks = await linkRepository.GetCountAsync();
+            _totalSignatures = await signatureRepository.GetCountAsync();
+            _totalNotes = await noteRepository.GetCountAsync();
+            _totalJumpLogs = await jumpLogRepository.GetCountAsync();
 
-            TotalMapsUpDownCounter.Add(totalMaps);
-            TotalSystemsUpDownCounter.Add(totalSystems);
-            TotalLinksUpDownCounter.Add(totalLinks);
-            TotalSignaturesUpDownCounter.Add(totalSignatures);
-            TotalNotesUpDownCounter.Add(totalNotes);
-            TotalJumpLogsUpDownCounter.Add(totalJumpLogs);
-
-            _logger.LogInformation("WHMapperStore metrics totals initialized : {Systems} systems, {Maps} maps, {Links} links, {Signatures} signatures, {Notes} notes", totalSystems, totalMaps, totalLinks, totalSignatures, totalNotes);
+            _logger.LogInformation("WHMapperStore metrics totals initialized : {Systems} systems, {Maps} maps, {Links} links, {Signatures} signatures, {Notes} notes, {JumpLogs} jump logs", _totalSystems, _totalMaps, _totalLinks, _totalSignatures, _totalNotes, _totalJumpLogs);
         }
         catch (Exception ex)
         {
@@ -120,114 +113,114 @@ public class WHMapperStoreMetrics
     public void ConnectUser()
     {
         UsersConnectedCounter.Add(1);
-        TotalUsersUpDownCounter.Add(1);
+        Interlocked.Increment(ref _totalUsers);
     }
     public void DisconnectUser()
     {
         UsersDisconnectedCounter.Add(1);
-        TotalUsersUpDownCounter.Add(-1);
+        Interlocked.Decrement(ref _totalUsers);
     }
     
     //Maps Metrics
     public void CreateMap()
     {
         MapsCreatedCounter.Add(1);
-        TotalMapsUpDownCounter.Add(1);
+        Interlocked.Increment(ref _totalMaps);
     }
     public void DeleteMap()
     {
         MapsDeletedCounter.Add(1);
-        TotalMapsUpDownCounter.Add(-1);
+        Interlocked.Decrement(ref _totalMaps);
     }
     public void DeleteMaps(int delCount)
     {
         MapsDeletedCounter.Add(delCount);
-        TotalMapsUpDownCounter.Add(-delCount);
+        Interlocked.Add(ref _totalMaps, -delCount);
     }
 
     //Systems Metrics
     public void AddSystem()
     {
         SystemsAddedCounter.Add(1);
-        TotalSystemsUpDownCounter.Add(1);
+        Interlocked.Increment(ref _totalSystems);
     }
     public void DeleteSystem()
     {
         SystemsDeletedCounter.Add(1);
-        TotalSystemsUpDownCounter.Add(-1);
+        Interlocked.Decrement(ref _totalSystems);
     }
     public void DeleteSystems(int delCount)
     {
         SystemsDeletedCounter.Add(delCount);
-        TotalSystemsUpDownCounter.Add(-delCount);
+        Interlocked.Add(ref _totalSystems, -delCount);
     }
 
     //Links Metrics
     public void AddLink()
     {
         LinksAddedCounter.Add(1);
-        TotalLinksUpDownCounter.Add(1);
+        Interlocked.Increment(ref _totalLinks);
     }
     public void DeleteLink()
     {
         LinksDeletedCounter.Add(1);
-        TotalLinksUpDownCounter.Add(-1);
+        Interlocked.Decrement(ref _totalLinks);
     }
 
     public void DeleteLinks(int delCount)
     {
         LinksDeletedCounter.Add(delCount);
-        TotalLinksUpDownCounter.Add(-delCount);
+        Interlocked.Add(ref _totalLinks, -delCount);
     }
 
     //Signatures Metrics
     public void CreateSignature()
     {
         SignaturesCreatedCounter.Add(1);
-        TotalSignaturesUpDownCounter.Add(1);
+        Interlocked.Increment(ref _totalSignatures);
     }
     public void DeleteSignature()
     {
         SignaturesDeletedCounter.Add(1);
-        TotalSignaturesUpDownCounter.Add(-1);
+        Interlocked.Decrement(ref _totalSignatures);
     }
     public void DeleteSignatures(int delCount)
     {
         SignaturesDeletedCounter.Add(delCount);
-        TotalSignaturesUpDownCounter.Add(-delCount);
+        Interlocked.Add(ref _totalSignatures, -delCount);
     }
 
     //Notes Metrics
     public void CreateNote()
     {
         NotesCreatedCounter.Add(1);
-        TotalNotesUpDownCounter.Add(1);
+        Interlocked.Increment(ref _totalNotes);
     }
     public void DeleteNote()
     {
         NotesDeletedCounter.Add(1);
-        TotalNotesUpDownCounter.Add(-1);
+        Interlocked.Decrement(ref _totalNotes);
     }
     public void DeleteNotes(int delCount)
     {
         NotesDeletedCounter.Add(delCount);
-        TotalNotesUpDownCounter.Add(-delCount);
+        Interlocked.Add(ref _totalNotes, -delCount);
     }
 
     //Jump Logs Metrics
     public void CreateJumpLog()
     {
         JumpLogsCreatedCounter.Add(1);
-        TotalJumpLogsUpDownCounter.Add(1);
+        Interlocked.Increment(ref _totalJumpLogs);
     }
     public void DeleteJumpLog()
     {
         JumpLogsDeletedCounter.Add(1);
-        TotalJumpLogsUpDownCounter.Add(-1);
+        Interlocked.Decrement(ref _totalJumpLogs);
     }
     public void DeleteJumpLogs(int delCount)
     {
         JumpLogsDeletedCounter.Add(delCount);
-        TotalJumpLogsUpDownCounter.Add(-delCount);
+        Interlocked.Add(ref _totalJumpLogs, -delCount);
     }
 }

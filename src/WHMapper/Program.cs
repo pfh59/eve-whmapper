@@ -293,7 +293,7 @@ builder.Services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
 builder.Services.AddSingleton<WHMapperStoreMetrics>();
 
 
-builder.Services.AddOpenTelemetry().WithMetrics(opts => opts
+builder.Services.AddOpenTelemetry().WithMetrics(metrics => metrics
     // Configure OpenTelemetry Resources with the application name
     .ConfigureResource(resource => resource
         .AddService(serviceName: builder.Environment.ApplicationName)
@@ -303,12 +303,19 @@ builder.Services.AddOpenTelemetry().WithMetrics(opts => opts
     .AddHttpClientInstrumentation()
     .AddRuntimeInstrumentation()
     .AddProcessInstrumentation()
-    .AddOtlpExporter(options =>
+    .AddOtlpExporter((exporterOptions, metricReaderOptions) =>
     {
-
-        options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]
+        exporterOptions.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]
                         ?? throw new InvalidOperationException());
-        options.Protocol = OtlpExportProtocol.Grpc;
+        exporterOptions.Protocol = OtlpExportProtocol.Grpc;
+        
+        // Configuration pour les métriques - contrôle la fréquence de collecte ET d'export
+        var exportInterval = builder.Configuration.GetValue<int>("Otlp:MetricsExportIntervalMilliseconds", 10000);
+        metricReaderOptions.PeriodicExportingMetricReaderOptions = new OpenTelemetry.Metrics.PeriodicExportingMetricReaderOptions
+        {
+            ExportIntervalMilliseconds = exportInterval,
+            ExportTimeoutMilliseconds = builder.Configuration.GetValue<int>("Otlp:MetricsExportTimeoutMilliseconds", 10000)
+        };
     })
 );  
 
