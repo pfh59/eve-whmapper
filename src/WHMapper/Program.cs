@@ -292,32 +292,50 @@ builder.Services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
 
 builder.Services.AddSingleton<WHMapperStoreMetrics>();
 
+// Configure OpenTelemetry with WHMapper metrics always enabled
+// System instrumentation (AspNetCore, HttpClient, Runtime, Process) is optional
+var otlpEnabled = builder.Configuration.GetValue<bool>("Otlp:Enabled", false);
+var enableSystemInstrumentation = builder.Configuration.GetValue<bool>("Otlp:EnableSystemInstrumentation", false);
 
-builder.Services.AddOpenTelemetry().WithMetrics(metrics => metrics
-    // Configure OpenTelemetry Resources with the application name
-    .ConfigureResource(resource => resource
-        .AddService(serviceName: builder.Environment.ApplicationName)
-    )
-    .AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName") ?? throw new InvalidOperationException("WHMapperStoreMeterName is not configured."))
-    .AddAspNetCoreInstrumentation()
-    .AddHttpClientInstrumentation()
-    .AddRuntimeInstrumentation()
-    .AddProcessInstrumentation()
-    .AddOtlpExporter((exporterOptions, metricReaderOptions) =>
+if (otlpEnabled)
+{
+    var metricsBuilder = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
     {
-        exporterOptions.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]
-                        ?? throw new InvalidOperationException());
-        exporterOptions.Protocol = OtlpExportProtocol.Grpc;
-        
-        // Configuration pour les métriques - contrôle la fréquence de collecte ET d'export
-        var exportInterval = builder.Configuration.GetValue<int>("Otlp:MetricsExportIntervalMilliseconds", 10000);
-        metricReaderOptions.PeriodicExportingMetricReaderOptions = new OpenTelemetry.Metrics.PeriodicExportingMetricReaderOptions
+        // Configure OpenTelemetry Resources with the application name
+        metrics.ConfigureResource(resource => resource
+            .AddService(serviceName: builder.Environment.ApplicationName)
+        );
+
+        // WHMapper custom metrics - always enabled
+        metrics.AddMeter(builder.Configuration.GetValue<string>("WHMapperStoreMeterName") 
+            ?? throw new InvalidOperationException("WHMapperStoreMeterName is not configured."));
+
+        // System instrumentation - optional based on configuration
+        if (enableSystemInstrumentation)
         {
-            ExportIntervalMilliseconds = exportInterval,
-            ExportTimeoutMilliseconds = builder.Configuration.GetValue<int>("Otlp:MetricsExportTimeoutMilliseconds", 10000)
-        };
-    })
-);  
+            metrics.AddAspNetCoreInstrumentation()
+                   .AddHttpClientInstrumentation()
+                   .AddRuntimeInstrumentation()
+                   .AddProcessInstrumentation();
+        }
+
+        // OTLP Exporter configuration
+        metrics.AddOtlpExporter((exporterOptions, metricReaderOptions) =>
+        {
+            exporterOptions.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]
+                            ?? throw new InvalidOperationException("Otlp:Endpoint is not configured."));
+            exporterOptions.Protocol = OtlpExportProtocol.Grpc;
+            
+            // Configuration pour les métriques - contrôle la fréquence de collecte ET d'export
+            var exportInterval = builder.Configuration.GetValue<int>("Otlp:MetricsExportIntervalMilliseconds", 10000);
+            metricReaderOptions.PeriodicExportingMetricReaderOptions = new OpenTelemetry.Metrics.PeriodicExportingMetricReaderOptions
+            {
+                ExportIntervalMilliseconds = exportInterval,
+                ExportTimeoutMilliseconds = builder.Configuration.GetValue<int>("Otlp:MetricsExportTimeoutMilliseconds", 10000)
+            };
+        });
+    });
+}  
 
 
 //signalR  compression
