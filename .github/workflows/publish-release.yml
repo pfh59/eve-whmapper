@@ -38,7 +38,7 @@ jobs:
       - name: Generate packages (linux x64/arm, Windows x64)
         run: |
             dotnet restore src
-						dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --no-self-contained --nologo -o ./release/linux-x64 /p:Version=${{ env.VERSION }}
+            dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-x64 --no-self-contained --nologo -o ./release/linux-x64 /p:Version=${{ env.VERSION }}
             dotnet publish src/WHMapper/WHMapper.csproj -c Release -r linux-arm --no-self-contained --nologo -o ./release/linux-arm /p:Version=${{ env.VERSION }}
             dotnet publish src/WHMapper/WHMapper.csproj -c Release -r win-x64 --no-self-contained --nologo -o ./release/win-x64 /p:Version=${{ env.VERSION }}
 
