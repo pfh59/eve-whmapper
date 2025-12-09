@@ -88,6 +88,7 @@ namespace WHMapper.Services.EveOAuthProvider.Services
 
             _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
             var response = await _options.Backchannel.PostAsync(_options.TokenEndpoint, content);
+            _options.Backchannel.DefaultRequestHeaders.Authorization=null;
 
             response.EnsureSuccessStatusCode();
 
@@ -105,7 +106,7 @@ namespace WHMapper.Services.EveOAuthProvider.Services
 
             await SaveToken(token);
 
-            _options.Backchannel.DefaultRequestHeaders.Authorization=null;
+            
         }
 
         public async Task RevokeToken(string accountId)
@@ -121,8 +122,8 @@ namespace WHMapper.Services.EveOAuthProvider.Services
 
             _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
             var response = await _options.Backchannel.PostAsync(_options.RevokeTokenEndpoint, content);
-
             _options.Backchannel.DefaultRequestHeaders.Authorization=null;
+            
             if (!response.IsSuccessStatusCode)
             {
                 var error = JsonSerializer.Deserialize<ErrorResponse>(await response.Content.ReadAsStringAsync());
