@@ -22,7 +22,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, int, Task>? LinkAdded;
     public event Func<int, int, int, Task>? LinkRemoved;
     public event Func<int, int, int, double, double, Task>? WormholeMoved;
-    public event Func<int, int, int, bool, SystemLinkSize, SystemLinkMassStatus, Task>? LinkChanged;
+    public event Func<int, int, int, SystemLinkEOLStatus, SystemLinkSize, SystemLinkMassStatus, Task>? LinkChanged;
     public event Func<int, int, int, char?, Task>? WormholeNameExtensionChanged;
     public event Func<int, int, int,string?, Task>? WormholeAlternateNameChanged;
     public event Func<int, int, int, Task>? WormholeSignaturesChanged;
@@ -134,11 +134,13 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                         await WormholeMoved.Invoke(accountID, mapId, wormholeId, posX, posY);
                     }
                 });
-                hubConnection.On<int, int, int, bool, SystemLinkSize, SystemLinkMassStatus>("NotifyLinkChanged", async (accountID, mapId, linkId, eol, size, mass) => 
+                hubConnection.On<int, int, int, int, SystemLinkSize, int>("NotifyLinkChanged", async (accountID, mapId, linkId, eolStatusInt, size, massInt) => 
                 {
                     if (LinkChanged != null)
                     {
-                        await LinkChanged.Invoke(accountID, mapId, linkId, eol, size, mass);
+                        var eolStatus = (SystemLinkEOLStatus)eolStatusInt;
+                        var mass = (SystemLinkMassStatus)massInt;
+                        await LinkChanged.Invoke(accountID, mapId, linkId, eolStatus, size, mass);
                     }
                 });
                 hubConnection.On<int, int, int, char?>("NotifyWormholeNameExtensionChanged", async (accountID, mapId, wormholeId, extension) => 
@@ -350,12 +352,12 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    public async Task NotifyLinkChanged(int accountID,int mapId, int linkId, bool eol, SystemLinkSize size, SystemLinkMassStatus mass)
+    public async Task NotifyLinkChanged(int accountID,int mapId, int linkId, SystemLinkEOLStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus mass)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendLinkChanged", mapId, linkId, eol, size, mass);
+            await hubConnection.SendAsync("SendLinkChanged", mapId, linkId, (int)eolStatus, size, (int)mass);
         }
     }
 

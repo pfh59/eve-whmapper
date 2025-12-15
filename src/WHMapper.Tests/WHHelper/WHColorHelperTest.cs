@@ -70,7 +70,9 @@ public class WHColorHelperTest
     private const string WH_CLASS_00_COLOR = SECUTIRTY_STATUS_00_COLOR;
     private const string WH_CLASS_POCHVEN_COLOR = "#b10c0c";
 
-    private const string WH_IS_EOL_COLOR = "#d747d6";
+    private const string WH_EOL_NORMAL_COLOR = "#3C3F41";
+    private const string WH_EOL_4H_COLOR = "#d747d6";
+    private const string WH_EOL_1H_COLOR = "#d747d6";
     private const string WH_MASS_NORMAL_COLOR = "#3C3F41";
     private const string WH_MASS_CRITICAL_COLOR = "#e28a0d";
     private const string WH_MASS_VERGE_COLOR = "#a52521";
@@ -150,7 +152,9 @@ public class WHColorHelperTest
     [Fact]
     public void Get_Link_EOL_Color()
     {
-        Assert.Equal(WH_IS_EOL_COLOR, _whHelper.GetLinkEOLColor());
+        Assert.Equal(WH_EOL_NORMAL_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEOLStatus.Normal));
+        Assert.Equal(WH_EOL_4H_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEOLStatus.EOL4h));
+        Assert.Equal(WH_EOL_1H_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEOLStatus.EOL1h));
     }
 
     [Fact]

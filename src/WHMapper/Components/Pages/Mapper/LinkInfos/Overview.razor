@@ -18,9 +18,9 @@
                 {
                     <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"font-weight:bold;color:{((CurrentSystemLink==null) ? IWHColorHelper.DEFAULT_COLOR : WHColorHelper?.GetLinkStatusColor(CurrentSystemLink.MassStatus))};")">@CurrentSystemLink?.MassStatus</MudText>
                 }
-                @if(CurrentSystemLink?.IsEoL==true)
+                @if(CurrentSystemLink!=null && CurrentSystemLink.EndOfLifeStatus != SystemLinkEOLStatus.Normal)
                 {
-                    <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"font-weight:bold;color:{WHColorHelper?.GetLinkEOLColor()}")" Color="Color.Error">End Of Life</MudText>
+                    <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"font-weight:bold;color:{WHColorHelper?.GetLinkEOLColor(CurrentSystemLink.EndOfLifeStatus)}")" Color="Color.Error">@GetEOLStatusLabel(CurrentSystemLink.EndOfLifeStatus)</MudText>
                 }  
             </MudStack> 
                            

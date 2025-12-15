@@ -82,10 +82,10 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="accountID">The accountID of the user who changed the link.</param>
     /// <param name="mapId">The ID of the map where the link was changed.</param>
     /// <param name="linkId">The ID of the changed link.</param>
-    /// <param name="eol">Indicates if the link is at the end of its life.</param>
+    /// <param name="eolStatus">The end-of-life status of the link.</param>
     /// <param name="size">The size of the link.</param>
     /// <param name="mass">The mass status of the link.</param>
-    event Func<int, int, int, bool, SystemLinkSize, SystemLinkMassStatus, Task> LinkChanged;
+    event Func<int, int, int, SystemLinkEOLStatus, SystemLinkSize, SystemLinkMassStatus, Task> LinkChanged;
 
     /// <summary>
     /// Triggered when a wormhole name extension is changed.
@@ -265,12 +265,12 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// </summary>
     /// <param name="accountID">The ID of the account.</param>
     /// <param name="mapId">The ID of the map where the link was changed.</param>
-    /// <param name="linkId">The ID of the changed link.</param>
-    /// <param name="eol">Indicates if the link is at the end of its life.</param>
-    /// <param name="size">The size of the link.</param>
-    /// <param name="mass">The mass status of the link.</param>
+    /// <param name="linkId">The ID of the link that changed.</param>
+    /// <param name="eolStatus">The end-of-life status of the link.</param>
+    /// <param name="size">The new size of the link.</param>
+    /// <param name="mass">The new mass status of the link.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task NotifyLinkChanged(int accountID, int mapId, int linkId, bool eol, SystemLinkSize size, SystemLinkMassStatus mass);
+    Task NotifyLinkChanged(int accountID, int mapId, int linkId, SystemLinkEOLStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus mass);
 
     /// <summary>
     /// Notifies the server that a wormhole name extension has been changed.

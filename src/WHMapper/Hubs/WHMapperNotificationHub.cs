@@ -140,12 +140,12 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     }
 
 
-    public async Task SendLinkChanged(int mapId, int linkId, bool eol, SystemLinkSize size, SystemLinkMassStatus mass)
+    public async Task SendLinkChanged(int mapId, int linkId, int eolStatus, SystemLinkSize size, int mass)
     {
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyLinkChanged(accountID, mapId, linkId, eol, size, mass);
+            await Clients.AllExcept(Context.ConnectionId).NotifyLinkChanged(accountID, mapId, linkId, eolStatus, size, mass);
         }
     }
 
