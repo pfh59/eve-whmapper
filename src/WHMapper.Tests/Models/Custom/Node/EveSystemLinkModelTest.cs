@@ -9,19 +9,21 @@ namespace WHMapper.Tests.Models.Custom.Node
 {
     public class EveSystemLinkModelTest
     {
-        private WHSystemLink CreateWHSystemLink(int id = 1, SystemLinkSize size = SystemLinkSize.Large, 
+        private static WHSystemLink CreateWHSystemLink(int id = 1, SystemLinkSize size = SystemLinkSize.Large, 
             SystemLinkMassStatus massStatus = SystemLinkMassStatus.Normal, 
-            SystemLinkEOLStatus eolStatus = SystemLinkEOLStatus.Normal)
+            SystemLinkEolStatus eolStatus = SystemLinkEolStatus.Normal)
         {
-            var whLink = new WHSystemLink(1,2,3);
-            whLink.Id = id;
-            whLink.Size = size;
-            whLink.MassStatus = massStatus;
-            whLink.EndOfLifeStatus = eolStatus;
+            var whLink = new WHSystemLink(1, 2, 3)
+            {
+                Id = id,
+                Size = size,
+                MassStatus = massStatus,
+                EndOfLifeStatus = eolStatus
+            };
             return whLink;
         }
 
-        private EveSystemNodeModel CreateNodeModel()
+        private static EveSystemNodeModel CreateNodeModel()
         {
             var whSystem = new WHSystem(1, 1, "Test System", 0.5f, 0.0, 0.0);
             return new EveSystemNodeModel(whSystem, null, string.Empty, string.Empty);
@@ -61,10 +63,10 @@ namespace WHMapper.Tests.Models.Custom.Node
         }
 
         [Theory]
-        [InlineData(SystemLinkEOLStatus.Normal)]
-        [InlineData(SystemLinkEOLStatus.EOL4h)]
-        [InlineData(SystemLinkEOLStatus.EOL1h)]
-        public void EndOfLifeStatus_GetSet_ShouldWork(SystemLinkEOLStatus status)
+        [InlineData(SystemLinkEolStatus.Normal)]
+        [InlineData(SystemLinkEolStatus.EOL4h)]
+        [InlineData(SystemLinkEolStatus.EOL1h)]
+        public void EndOfLifeStatus_GetSet_ShouldWork(SystemLinkEolStatus status)
         {
             // Arrange
             var whLink = CreateWHSystemLink();
@@ -83,7 +85,7 @@ namespace WHMapper.Tests.Models.Custom.Node
         public void IsEoL_Get_ShouldReturnFalse_WhenStatusIsNormal()
         {
             // Arrange
-            var whLink = CreateWHSystemLink(eolStatus: SystemLinkEOLStatus.Normal);
+            var whLink = CreateWHSystemLink(eolStatus: SystemLinkEolStatus.Normal);
             var sourceNode = CreateNodeModel();
             var targetNode = CreateNodeModel();
             var linkModel = new EveSystemLinkModel(whLink, sourceNode, targetNode);
@@ -93,9 +95,9 @@ namespace WHMapper.Tests.Models.Custom.Node
         }
 
         [Theory]
-        [InlineData(SystemLinkEOLStatus.EOL4h)]
-        [InlineData(SystemLinkEOLStatus.EOL1h)]
-        public void IsEoL_Get_ShouldReturnTrue_WhenStatusIsNotNormal(SystemLinkEOLStatus status)
+        [InlineData(SystemLinkEolStatus.EOL4h)]
+        [InlineData(SystemLinkEolStatus.EOL1h)]
+        public void IsEoL_Get_ShouldReturnTrue_WhenStatusIsNotNormal(SystemLinkEolStatus status)
         {
             // Arrange
             var whLink = CreateWHSystemLink(eolStatus: status);
@@ -111,7 +113,7 @@ namespace WHMapper.Tests.Models.Custom.Node
         public void IsEoL_Set_True_ShouldSetStatusToEOL4h()
         {
             // Arrange
-            var whLink = CreateWHSystemLink(eolStatus: SystemLinkEOLStatus.Normal);
+            var whLink = CreateWHSystemLink(eolStatus: SystemLinkEolStatus.Normal);
             var sourceNode = CreateNodeModel();
             var targetNode = CreateNodeModel();
             var linkModel = new EveSystemLinkModel(whLink, sourceNode, targetNode);
@@ -120,14 +122,14 @@ namespace WHMapper.Tests.Models.Custom.Node
             linkModel.IsEoL = true;
 
             // Assert
-            Assert.Equal(SystemLinkEOLStatus.EOL4h, linkModel.EndOfLifeStatus);
+            Assert.Equal(SystemLinkEolStatus.EOL4h, linkModel.EndOfLifeStatus);
         }
 
         [Fact]
         public void IsEoL_Set_False_ShouldSetStatusToNormal()
         {
             // Arrange
-            var whLink = CreateWHSystemLink(eolStatus: SystemLinkEOLStatus.EOL4h);
+            var whLink = CreateWHSystemLink(eolStatus: SystemLinkEolStatus.EOL4h);
             var sourceNode = CreateNodeModel();
             var targetNode = CreateNodeModel();
             var linkModel = new EveSystemLinkModel(whLink, sourceNode, targetNode);
@@ -136,7 +138,7 @@ namespace WHMapper.Tests.Models.Custom.Node
             linkModel.IsEoL = false;
 
             // Assert
-            Assert.Equal(SystemLinkEOLStatus.Normal, linkModel.EndOfLifeStatus);
+            Assert.Equal(SystemLinkEolStatus.Normal, linkModel.EndOfLifeStatus);
         }
 
         [Fact]

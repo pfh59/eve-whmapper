@@ -152,9 +152,9 @@ public class WHColorHelperTest
     [Fact]
     public void Get_Link_EOL_Color()
     {
-        Assert.Equal(WH_EOL_NORMAL_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEOLStatus.Normal));
-        Assert.Equal(WH_EOL_4H_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEOLStatus.EOL4h));
-        Assert.Equal(WH_EOL_1H_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEOLStatus.EOL1h));
+        Assert.Equal(WH_EOL_NORMAL_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEolStatus.Normal));
+        Assert.Equal(WH_EOL_4H_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEolStatus.EOL4h));
+        Assert.Equal(WH_EOL_1H_COLOR, _whHelper.GetLinkEOLColor(SystemLinkEolStatus.EOL1h));
     }
 
     [Fact]

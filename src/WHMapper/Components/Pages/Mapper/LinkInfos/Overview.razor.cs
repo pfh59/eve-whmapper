@@ -142,13 +142,13 @@ public partial class Overview
                 return shipInfos.Name;
         }
 
-        private string GetEOLStatusLabel(SystemLinkEOLStatus status)
+        private static string GetEOLStatusLabel(SystemLinkEolStatus status)
         {
                 return status switch
                 {
-                        SystemLinkEOLStatus.Normal => "Normal",
-                        SystemLinkEOLStatus.EOL4h => "EOL -4h",
-                        SystemLinkEOLStatus.EOL1h => "EOL -1h",
+                        SystemLinkEolStatus.Normal => "Normal",
+                        SystemLinkEolStatus.EOL4h => "EOL -4h",
+                        SystemLinkEolStatus.EOL1h => "EOL -1h",
                         _ => "Unknown"
                 };
         }

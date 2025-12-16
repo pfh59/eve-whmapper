@@ -27,7 +27,7 @@
 
     @if (Link.IsEoL)
     {
-        if(Link.EndOfLifeStatus == SystemLinkEOLStatus.EOL4h)
+        if(Link.EndOfLifeStatus == SystemLinkEolStatus.EOL4h)
         {
             <path d="@d" fill="none" stroke-width="8" stroke="@WHColorHelper?.GetLinkEOLColor(Link.EndOfLifeStatus)" stroke-dasharray="4" stroke-opacity="0.8"/>
         }

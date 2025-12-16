@@ -202,15 +202,15 @@ namespace WHMapper.Services.WHColor
 
 
         #region System Link Color
-        public string GetLinkEOLColor(SystemLinkEOLStatus status)
+        public string GetLinkEOLColor(SystemLinkEolStatus status)
         {
             switch (status)
             {
-                case SystemLinkEOLStatus.Normal:
+                case SystemLinkEolStatus.Normal:
                     return WH_EOL_NORMAL_COLOR;
-                case SystemLinkEOLStatus.EOL4h:
+                case SystemLinkEolStatus.EOL4h:
                     return WH_EOL_4H_COLOR;
-                case SystemLinkEOLStatus.EOL1h:
+                case SystemLinkEolStatus.EOL1h:
                     return WH_EOL_1H_COLOR;
             }
 

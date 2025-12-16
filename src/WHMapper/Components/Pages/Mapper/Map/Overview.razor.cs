@@ -1508,7 +1508,7 @@ public partial class Overview : IAsyncDisposable
         }
     }
     #endregion
-    private async Task<bool> SetSelectedSystemLinkEOLStatus(SystemLinkEOLStatus eolStatus)
+    private async Task<bool> SetSelectedSystemLinkEOLStatus(SystemLinkEolStatus eolStatus)
     {
         if (!MapId.HasValue || SelectedSystemLink == null)
         {
@@ -1976,7 +1976,7 @@ public partial class Overview : IAsyncDisposable
         }
     }
 
-    private async Task OnLinkChanged(int accountID, int mapId, int linkId, SystemLinkEOLStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus massStatus)
+    private async Task OnLinkChanged(int accountID, int mapId, int linkId, SystemLinkEolStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus massStatus)
     {
         await _semaphoreSlim2.WaitAsync();
         try

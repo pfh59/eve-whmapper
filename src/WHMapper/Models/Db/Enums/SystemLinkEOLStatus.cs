@@ -1,6 +1,6 @@
 namespace WHMapper.Models.Db.Enums
 {
-    public enum SystemLinkEOLStatus : int
+    public enum SystemLinkEolStatus
     {
         Normal = 0,
         EOL4h = 1,

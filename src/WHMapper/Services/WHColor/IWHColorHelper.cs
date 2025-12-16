@@ -10,7 +10,7 @@ namespace WHMapper.Services.WHColor
         string GetSecurityStatusColor(float secStatus);
         string GetSystemTypeColor(EveSystemType systemType);
         string GetEffectColor(WHEffect effect);
-        string GetLinkEOLColor(SystemLinkEOLStatus status);
+        string GetLinkEOLColor(SystemLinkEolStatus status);
         string GetLinkStatusColor(SystemLinkMassStatus status);
         string GetLinkSelectedColor();
         string GetNodeStatusColor(WHSystemStatus status);

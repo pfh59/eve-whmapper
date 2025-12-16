@@ -19,7 +19,7 @@ namespace WHMapper.Models.Custom.Node
         }
 
 
-        public SystemLinkEOLStatus EndOfLifeStatus
+        public SystemLinkEolStatus EndOfLifeStatus
         {
             get
             {
@@ -35,12 +35,12 @@ namespace WHMapper.Models.Custom.Node
         {
             get
             {
-                return _whLink.EndOfLifeStatus != SystemLinkEOLStatus.Normal;
+                return _whLink.EndOfLifeStatus != SystemLinkEolStatus.Normal;
             }
             set
             {
                 // Legacy support: convert bool to enum
-                _whLink.EndOfLifeStatus = value ? SystemLinkEOLStatus.EOL4h : SystemLinkEOLStatus.Normal;
+                _whLink.EndOfLifeStatus = value ? SystemLinkEolStatus.EOL4h : SystemLinkEolStatus.Normal;
             }
         }
 

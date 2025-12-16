@@ -85,7 +85,7 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="eolStatus">The end-of-life status of the link.</param>
     /// <param name="size">The size of the link.</param>
     /// <param name="mass">The mass status of the link.</param>
-    event Func<int, int, int, SystemLinkEOLStatus, SystemLinkSize, SystemLinkMassStatus, Task> LinkChanged;
+    event Func<int, int, int, SystemLinkEolStatus, SystemLinkSize, SystemLinkMassStatus, Task> LinkChanged;
 
     /// <summary>
     /// Triggered when a wormhole name extension is changed.
@@ -270,7 +270,7 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="size">The new size of the link.</param>
     /// <param name="mass">The new mass status of the link.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task NotifyLinkChanged(int accountID, int mapId, int linkId, SystemLinkEOLStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus mass);
+    Task NotifyLinkChanged(int accountID, int mapId, int linkId, SystemLinkEolStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus mass);
 
     /// <summary>
     /// Notifies the server that a wormhole name extension has been changed.
