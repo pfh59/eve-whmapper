@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using WHMapper.Models.Custom.Node;
+using WHMapper.Models.Db.Enums;
 using WHMapper.Services.WHColor;
 
 namespace WHMapper.Components.Pages.Mapper.CustomNode;
@@ -21,7 +22,7 @@ public partial class EveSystemLink
     {
         if (Link != null)
         {
-            _eolColor = WHColorHelper?.GetLinkEOLColor();
+            _eolColor = WHColorHelper?.GetLinkEOLColor(Link.EndOfLifeStatus);
         }
         return base.OnParametersSetAsync();
     }       

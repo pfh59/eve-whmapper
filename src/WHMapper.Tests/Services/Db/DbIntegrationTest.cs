@@ -335,7 +335,7 @@ public class DbIntegrationTest
         Assert.NotNull(link1);
         Assert.Equal(whSys1.Id, link1.IdWHSystemFrom);
         Assert.Equal(whSys2.Id, link1.IdWHSystemTo);
-        Assert.False(link1.IsEndOfLifeConnection);
+        Assert.Equal(SystemLinkEolStatus.Normal, link1.EndOfLifeStatus);
         Assert.Equal(SystemLinkMassStatus.Normal, link1.MassStatus);
         Assert.Equal(SystemLinkSize.Large, link1.Size);
 
@@ -344,7 +344,7 @@ public class DbIntegrationTest
         Assert.NotNull(link2);
         Assert.Equal(whSys1.Id, link2.IdWHSystemFrom);
         Assert.Equal(whSys3.Id, link2.IdWHSystemTo);
-        Assert.False(link2.IsEndOfLifeConnection);
+        Assert.Equal(SystemLinkEolStatus.Normal, link2.EndOfLifeStatus);
         Assert.Equal(SystemLinkMassStatus.Normal, link2.MassStatus);
         Assert.Equal(SystemLinkSize.Large, link2.Size);
 
@@ -369,13 +369,13 @@ public class DbIntegrationTest
         Assert.Null(linkBadById);
 
         //update link1
-        link1.IsEndOfLifeConnection = true;
+        link1.EndOfLifeStatus = SystemLinkEolStatus.EOL4h;
         link1.MassStatus = SystemLinkMassStatus.Verge;
         var linkUpdate1 = await repo.Update(link1.Id, link1);
         Assert.NotNull(linkUpdate1);
         Assert.Equal(whSys1.Id, linkUpdate1.IdWHSystemFrom);
         Assert.Equal(whSys2.Id, linkUpdate1.IdWHSystemTo);
-        Assert.True(linkUpdate1.IsEndOfLifeConnection);
+        Assert.Equal(SystemLinkEolStatus.EOL4h, linkUpdate1.EndOfLifeStatus);
         Assert.Equal(SystemLinkMassStatus.Verge, linkUpdate1.MassStatus);
         Assert.Equal(SystemLinkSize.Large, linkUpdate1.Size);
 

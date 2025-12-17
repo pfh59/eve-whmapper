@@ -469,6 +469,7 @@ public class WHMapperStoreMetricsTest
         var metrics = new WHMapperStoreMetrics(_loggerMock.Object, meterFactory, _configurationMock.Object);
 
         var tasks = new List<Task>();
+
         
         for (int i = 0; i < 10; i++)
         {

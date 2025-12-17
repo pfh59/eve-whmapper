@@ -19,16 +19,28 @@ namespace WHMapper.Models.Custom.Node
         }
 
 
+        public SystemLinkEolStatus EndOfLifeStatus
+        {
+            get
+            {
+                return _whLink.EndOfLifeStatus;
+            }
+            set
+            {
+                _whLink.EndOfLifeStatus = value;
+            }
+        }
+
         public bool IsEoL
         {
             get
             {
-                return _whLink.IsEndOfLifeConnection;
+                return _whLink.EndOfLifeStatus != SystemLinkEolStatus.Normal;
             }
             set
             {
-
-                _whLink.IsEndOfLifeConnection = value;
+                // Legacy support: convert bool to enum
+                _whLink.EndOfLifeStatus = value ? SystemLinkEolStatus.EOL4h : SystemLinkEolStatus.Normal;
             }
         }
 

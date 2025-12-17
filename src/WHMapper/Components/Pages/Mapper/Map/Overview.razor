@@ -51,7 +51,11 @@
 
                 @if (SelectedSystemLink != null)
                 {
-                    <MudMenuItem Label="Toggle EOL" OnClick="@(() => ToggleSelectedSystemLinkEOL())"/>
+                    <MudMenu Label="EOL Status">
+                        <MudMenuItem Label="Normal" OnClick="@(() => SetSelectedSystemLinkEOLStatus(SystemLinkEolStatus.Normal))"/>  
+                        <MudMenuItem Label="EOL -4h" OnClick="@(() => SetSelectedSystemLinkEOLStatus(SystemLinkEolStatus.EOL4h))"/> 
+                        <MudMenuItem Label="EOL -1h" OnClick="@(() => SetSelectedSystemLinkEOLStatus(SystemLinkEolStatus.EOL1h))"/> 
+                    </MudMenu>
                     <MudMenu Label="Status">
                         <MudMenuItem Label="Normal" OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Normal))"/>  
                         <MudMenuItem Label="Critical" OnClick="@(() => SetSelectedSystemLinkStatus(SystemLinkMassStatus.Critical))"/> 

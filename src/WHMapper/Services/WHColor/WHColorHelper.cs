@@ -58,7 +58,9 @@ namespace WHMapper.Services.WHColor
         private const string WH_CLASS_00_COLOR = SECUTIRTY_STATUS_00_COLOR;
         private const string WH_CLASS_POCHVEN_COLOR = "#b10c0c";
 
-        private const string WH_IS_EOL_COLOR = "#d747d6";
+        private const string WH_EOL_NORMAL_COLOR = "#3C3F41";
+        private const string WH_EOL_4H_COLOR = "#d747d6";
+        private const string WH_EOL_1H_COLOR = "#d747d6";
         private const string WH_MASS_NORMAL_COLOR = "#3C3F41";
         private const string WH_MASS_CRITICAL_COLOR = "#e28a0d";
         private const string WH_MASS_VERGE_COLOR = "#a52521";
@@ -200,9 +202,19 @@ namespace WHMapper.Services.WHColor
 
 
         #region System Link Color
-        public string GetLinkEOLColor()
+        public string GetLinkEOLColor(SystemLinkEolStatus status)
         {
-            return WH_IS_EOL_COLOR;
+            switch (status)
+            {
+                case SystemLinkEolStatus.Normal:
+                    return WH_EOL_NORMAL_COLOR;
+                case SystemLinkEolStatus.EOL4h:
+                    return WH_EOL_4H_COLOR;
+                case SystemLinkEolStatus.EOL1h:
+                    return WH_EOL_1H_COLOR;
+            }
+
+            return WH_EOL_NORMAL_COLOR;
         }
 
 

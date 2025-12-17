@@ -1508,11 +1508,11 @@ public partial class Overview : IAsyncDisposable
         }
     }
     #endregion
-    private async Task<bool> ToggleSelectedSystemLinkEOL()
+    private async Task<bool> SetSelectedSystemLinkEOLStatus(SystemLinkEolStatus eolStatus)
     {
         if (!MapId.HasValue || SelectedSystemLink == null)
         {
-            Logger.LogError("Toggle system link EOL failed: MapId or SelectedSystemLink is null");
+            Logger.LogError("Set system link EOL status failed: MapId or SelectedSystemLink is null");
             return false;
         }
 
@@ -1521,26 +1521,26 @@ public partial class Overview : IAsyncDisposable
             var link = await DbWHSystemLinks.GetById(SelectedSystemLink.Id);
             if (link == null)
             {
-                Logger.LogError("Toggle system link EOL failed: Link not found in database");
+                Logger.LogError("Set system link EOL status failed: Link not found in database");
                 return false;
             }
 
-            link.IsEndOfLifeConnection = !link.IsEndOfLifeConnection;
+            link.EndOfLifeStatus = eolStatus;
             var updatedLink = await DbWHSystemLinks.Update(SelectedSystemLink.Id, link);
 
             if (updatedLink == null)
             {
-                Logger.LogError("Toggle system link EOL failed: Database update error");
+                Logger.LogError("Set system link EOL status failed: Database update error");
                 return false;
             }
 
-            SelectedSystemLink.IsEoL = updatedLink.IsEndOfLifeConnection;
+            SelectedSystemLink.EndOfLifeStatus = updatedLink.EndOfLifeStatus;
             SelectedSystemLink.Refresh();
 
             var primaryAccount = await GetPrimaryAccountAsync();
             if (primaryAccount == null)
             {
-                Logger.LogError("Toggle system link EOL failed: Unable to find primary account");
+                Logger.LogError("Set system link EOL status failed: Unable to find primary account");
                 return false;
             }
 
@@ -1548,7 +1548,7 @@ public partial class Overview : IAsyncDisposable
                 primaryAccount.Id,
                 MapId.Value,
                 updatedLink.Id,
-                updatedLink.IsEndOfLifeConnection,
+                updatedLink.EndOfLifeStatus,
                 updatedLink.Size,
                 updatedLink.MassStatus
             );
@@ -1557,7 +1557,7 @@ public partial class Overview : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Toggle system link EOL error");
+            Logger.LogError(ex, "Set system link EOL status error");
             return false;
         }
     }
@@ -1602,7 +1602,7 @@ public partial class Overview : IAsyncDisposable
                 primaryAccount.Id,
                 MapId.Value,
                 updatedLink.Id,
-                updatedLink.IsEndOfLifeConnection,
+                updatedLink.EndOfLifeStatus,
                 updatedLink.Size,
                 updatedLink.MassStatus
             );
@@ -1635,7 +1635,7 @@ public partial class Overview : IAsyncDisposable
                         WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
                         if (primaryAccount != null)
                         {
-                            await EveMapperRealTime.NotifyLinkChanged(primaryAccount.Id, MapId.Value, link.Id, link.IsEndOfLifeConnection, link.Size, link.MassStatus);
+                            await EveMapperRealTime.NotifyLinkChanged(primaryAccount.Id, MapId.Value, link.Id, link.EndOfLifeStatus, link.Size, link.MassStatus);
                             return true;
                         }
                         else
@@ -1976,7 +1976,7 @@ public partial class Overview : IAsyncDisposable
         }
     }
 
-    private async Task OnLinkChanged(int accountID, int mapId, int linkId, bool isEoL, SystemLinkSize size, SystemLinkMassStatus massStatus)
+    private async Task OnLinkChanged(int accountID, int mapId, int linkId, SystemLinkEolStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus massStatus)
     {
         await _semaphoreSlim2.WaitAsync();
         try
@@ -1990,10 +1990,10 @@ public partial class Overview : IAsyncDisposable
                 {
                     EveSystemLinkModel? linkToChange = _blazorDiagram?.Links?.FirstOrDefault(x => ((EveSystemLinkModel)x).Id == linkId) as EveSystemLinkModel;
                     if (linkToChange != null
-                        && (linkToChange.IsEoL != isEoL || linkToChange.Size != size || linkToChange.MassStatus != massStatus) // Check if any property has changed
+                        && (linkToChange.EndOfLifeStatus != eolStatus || linkToChange.Size != size || linkToChange.MassStatus != massStatus) // Check if any property has changed
                     )
                     {
-                        linkToChange.IsEoL = isEoL;
+                        linkToChange.EndOfLifeStatus = eolStatus;
                         linkToChange.Size = size;
                         linkToChange.MassStatus = massStatus;
                         linkToChange.Refresh();

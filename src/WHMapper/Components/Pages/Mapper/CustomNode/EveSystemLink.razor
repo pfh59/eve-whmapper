@@ -1,5 +1,6 @@
 ﻿@using Blazor.Diagrams.Components.Renderers
 @using System.Globalization
+@using WHMapper.Models.Db.Enums
 
 @{
     var result = Link.PathGeneratorResult;
@@ -26,7 +27,14 @@
 
     @if (Link.IsEoL)
     {
-        <path d="@d" fill="none" stroke-width="8" stroke="@WHColorHelper?.GetLinkEOLColor()"></path>
+        if(Link.EndOfLifeStatus == SystemLinkEolStatus.EOL4h)
+        {
+            <path d="@d" fill="none" stroke-width="8" stroke="@WHColorHelper?.GetLinkEOLColor(Link.EndOfLifeStatus)" stroke-dasharray="4" stroke-opacity="0.8"/>
+        }
+        else
+        {
+            <path d="@d" fill="none" stroke-width="8" stroke="@WHColorHelper?.GetLinkEOLColor(Link.EndOfLifeStatus)"/>
+        }
     }
     else
     {

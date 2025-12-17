@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
+using WHMapper.Models.Db.Enums;
 using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.WHColor;
@@ -98,7 +99,6 @@ public partial class Overview
                 }
         }
 
-
         private async Task<string> GetJumpLogCharacterName(WHJumpLog jumplog)
         {
                 if (jumplog == null)
@@ -140,6 +140,17 @@ public partial class Overview
                 }
 
                 return shipInfos.Name;
+        }
+
+        private static string GetEOLStatusLabel(SystemLinkEolStatus status)
+        {
+                return status switch
+                {
+                        SystemLinkEolStatus.Normal => "Normal",
+                        SystemLinkEolStatus.EOL4h => "EOL -4h",
+                        SystemLinkEolStatus.EOL1h => "EOL -1h",
+                        _ => "Unknown"
+                };
         }
 }
 

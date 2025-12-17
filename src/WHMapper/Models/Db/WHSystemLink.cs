@@ -18,7 +18,7 @@ namespace WHMapper.Models.Db
         public int IdWHSystemTo  { get; set; }
 
         [Required]
-        public bool IsEndOfLifeConnection { get; set; } = false;
+        public SystemLinkEolStatus EndOfLifeStatus { get; set; } = SystemLinkEolStatus.Normal;
 
         [Required]
         public SystemLinkSize Size { get; set; } = SystemLinkSize.Large;
