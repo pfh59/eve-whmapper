@@ -10,35 +10,30 @@ namespace WHMapper.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "IsEndOfLifeConnection",
-                table: "SystemLinks",
-                newName: "EndOfLifeStatus");
-
-            migrationBuilder.AlterColumn<int>(
-                name: "EndOfLifeStatus",
-                table: "SystemLinks",
-                type: "integer",
-                nullable: false,
-                oldClrType: typeof(bool),
-                oldType: "boolean");
+            // PostgreSQL cannot automatically cast boolean to integer,
+            // so we use raw SQL with explicit USING clause.
+            // false (not EOL) -> 0 (Normal)
+            // true (EOL) -> 1 (EOL4h)
+            migrationBuilder.Sql(
+                @"ALTER TABLE ""SystemLinks"" 
+                  RENAME COLUMN ""IsEndOfLifeConnection"" TO ""EndOfLifeStatus"";
+                  
+                  ALTER TABLE ""SystemLinks"" 
+                  ALTER COLUMN ""EndOfLifeStatus"" TYPE integer 
+                  USING CASE WHEN ""EndOfLifeStatus""::boolean THEN 1 ELSE 0 END;");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "EndOfLifeStatus",
-                table: "SystemLinks",
-                newName: "IsEndOfLifeConnection");
-
-            migrationBuilder.AlterColumn<bool>(
-                name: "IsEndOfLifeConnection",
-                table: "SystemLinks",
-                type: "boolean",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer");
+            // Convert back: 0 (Normal) -> false, anything else -> true
+            migrationBuilder.Sql(
+                @"ALTER TABLE ""SystemLinks"" 
+                  ALTER COLUMN ""EndOfLifeStatus"" TYPE boolean 
+                  USING (""EndOfLifeStatus"" <> 0);
+                  
+                  ALTER TABLE ""SystemLinks"" 
+                  RENAME COLUMN ""EndOfLifeStatus"" TO ""IsEndOfLifeConnection"";");
         }
     }
 }
