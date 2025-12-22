@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using WHMapper.Models.Db;
+using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.MapAdmin;
 using Xunit;
 
@@ -15,7 +16,7 @@ public class MapAdminTests
         // Arrange
         var whMap = new WHMap("Test Map");
         whMap.Id = 1;
-        whMap.WHAccesses.Add(new WHAccess(1,"Test Access"));
+        whMap.WHMapAccesses.Add(new WHMapAccess(1, 12345, "Test Access", WHAccessEntity.Character));
 
         // Act
         var mapAdmin = new MapAdmin(whMap);

@@ -319,14 +319,14 @@ public partial class Overview : IAsyncDisposable
                 {
                     foreach (var accessIdToAdd in accessId)
                     {
-                        var accessToAdd = mapWithAccessUpdated.WHAccesses.FirstOrDefault(a => a.Id == accessIdToAdd);
+                        var accessToAdd = mapWithAccessUpdated.WHMapAccesses.FirstOrDefault(a => a.Id == accessIdToAdd);
                         if (accessToAdd != null)
                         {
-                            if(map.WHAccesses.Any(a => a.Id == accessIdToAdd))
+                            if(map.WHMapAccesses.Any(a => a.Id == accessIdToAdd))
                             {
                                 continue;
                             }
-                            map.WHAccesses.Add(accessToAdd);
+                            map.WHMapAccesses.Add(accessToAdd);
                         }
                     }
                 }
@@ -360,10 +360,10 @@ public partial class Overview : IAsyncDisposable
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
             if (map != null)
             {
-                var accessToRemove = map.WHAccesses.FirstOrDefault(a => a.Id == accessId);
+                var accessToRemove = map.WHMapAccesses.FirstOrDefault(a => a.Id == accessId);
                 if (accessToRemove != null)
                 {
-                    map.WHAccesses.Remove(accessToRemove);
+                    map.WHMapAccesses.Remove(accessToRemove);
 
                     var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
     
@@ -396,7 +396,7 @@ public partial class Overview : IAsyncDisposable
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
             if (map != null)
             {
-                map.WHAccesses.Clear();
+                map.WHMapAccesses.Clear();
                 var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
     
                 var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");

@@ -1,0 +1,65 @@
+@using WHMapper.Models.DTO.EveMapper.EveEntity
+@using WHMapper.Models.DTO.EveMapper.Enums
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Security" Class="mr-2" />
+            Add Access
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_formIsValid">
+            <MudText Typo="Typo.body2" Class="mb-4">
+                Search for a character, corporation, or alliance to grant access to this instance.
+            </MudText>
+            
+            <MudAutocomplete T="AEveEntity" 
+                             Label="Search Character/Corporation/Alliance" 
+                             @bind-Value="_selectedEntity"
+                             SearchFunc="SearchEntity"
+                             ToStringFunc="@(e => e?.Name ?? string.Empty)"
+                             Required="true"
+                             RequiredError="Please select an entity"
+                             Dense="true"
+                             Class="mb-4">
+                <ItemTemplate Context="item">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        @switch (item.EntityType)
+                        {
+                            case EveEntityEnums.Character:
+                                <MudAvatar Size="Size.Small">
+                                    <MudImage Src="@($"https://images.evetech.net/characters/{item.Id}/portrait?size=64")" />
+                                </MudAvatar>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info">Character</MudChip>
+                                break;
+                            case EveEntityEnums.Corporation:
+                                <MudAvatar Size="Size.Small">
+                                    <MudImage Src="@($"https://images.evetech.net/corporations/{item.Id}/logo?size=64")" />
+                                </MudAvatar>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success">Corporation</MudChip>
+                                break;
+                            case EveEntityEnums.Alliance:
+                                <MudAvatar Size="Size.Small">
+                                    <MudImage Src="@($"https://images.evetech.net/alliances/{item.Id}/logo?size=64")" />
+                                </MudAvatar>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning">Alliance</MudChip>
+                                break;
+                        }
+                        <MudText>@item.Name</MudText>
+                    </MudStack>
+                </ItemTemplate>
+            </MudAutocomplete>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Add" Disabled="@(_selectedEntity == null || _adding)">
+            @if (_adding)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Grant Access
+        </MudButton>
+    </DialogActions>
+</MudDialog>

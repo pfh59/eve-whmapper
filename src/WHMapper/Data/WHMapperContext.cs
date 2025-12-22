@@ -5,8 +5,7 @@ namespace WHMapper.Data
 {
     public class WHMapperContext : DbContext
 	{
-        public DbSet<WHAccess> DbWHAccesses { get; set; } = null!;
-        public DbSet<WHAdmin> DbWHAdmins { get; set; } = null!;
+        // Core tables
         public DbSet<WHMap> DbWHMaps { get; set; } = null!;
 		public DbSet<WHSystem> DbWHSystems { get; set; } = null!;
         public DbSet<WHSystemLink> DbWHSystemLinks { get; set; } = null!;
@@ -15,6 +14,12 @@ namespace WHMapper.Data
         public DbSet<WHRoute> DbWHRoutes { get; set; } = null!;
         public DbSet<WHJumpLog> DbWHJumpLogs { get; set; } = null!;
 
+        // Multi-tenant instance tables
+        public DbSet<WHInstance> DbWHInstances { get; set; } = null!;
+        public DbSet<WHInstanceAdmin> DbWHInstanceAdmins { get; set; } = null!;
+        public DbSet<WHInstanceAccess> DbWHInstanceAccesses { get; set; } = null!;
+        public DbSet<WHMapAccess> DbWHMapAccesses { get; set; } = null!;
+
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
 
@@ -22,11 +27,30 @@ namespace WHMapper.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Instance configuration
+            modelBuilder.Entity<WHInstance>().ToTable("Instances");
+            modelBuilder.Entity<WHInstance>().HasIndex(x => new { x.OwnerEveEntityId, x.OwnerType }).IsUnique(true);
+            modelBuilder.Entity<WHInstance>().HasMany(x => x.WHMaps).WithOne().HasForeignKey(x => x.WHInstanceId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHInstance>().HasMany(x => x.Administrators).WithOne().HasForeignKey(x => x.WHInstanceId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<WHInstance>().HasMany(x => x.InstanceAccesses).WithOne().HasForeignKey(x => x.WHInstanceId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+
+            // Instance Admin configuration
+            modelBuilder.Entity<WHInstanceAdmin>().ToTable("InstanceAdmins");
+            modelBuilder.Entity<WHInstanceAdmin>().HasIndex(x => new { x.WHInstanceId, x.EveCharacterId }).IsUnique(true);
+
+            // Instance Access configuration
+            modelBuilder.Entity<WHInstanceAccess>().ToTable("InstanceAccesses");
+            modelBuilder.Entity<WHInstanceAccess>().HasIndex(x => new { x.WHInstanceId, x.EveEntityId, x.EveEntity }).IsUnique(true);
+
             modelBuilder.Entity<WHMap>().ToTable("Maps");
             modelBuilder.Entity<WHMap>().HasIndex(x => new { x.Name }).IsUnique(true);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystems).WithOne().HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystemLinks).WithOne().HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<WHMap>().HasMany(x => x.WHAccesses).WithMany();
+            modelBuilder.Entity<WHMap>().HasMany(x => x.WHMapAccesses).WithOne(x => x.WHMap).HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+
+            // Map Access configuration
+            modelBuilder.Entity<WHMapAccess>().ToTable("MapAccesses");
+            modelBuilder.Entity<WHMapAccess>().HasIndex(x => new { x.WHMapId, x.EveEntityId, x.EveEntity }).IsUnique(true);
 
             modelBuilder.Entity<WHSystem>().ToTable("Systems");
             modelBuilder.Entity<WHSystem>().HasIndex(x => new { x.WHMapId,x.SoloarSystemId }).IsUnique(true);
@@ -54,12 +78,6 @@ namespace WHMapper.Data
 
             modelBuilder.Entity<WHJumpLog>().ToTable("JumpLogs");
             modelBuilder.Entity<WHJumpLog>().HasIndex(x => new { x.CharacterId, x.JumpDate }).IsUnique(true);
-
-            modelBuilder.Entity<WHAccess>().ToTable("Accesses");
-            modelBuilder.Entity<WHAccess>().HasIndex(x => new { x.EveEntityId,x.EveEntity }).IsUnique(true);
-
-            modelBuilder.Entity<WHAdmin>().ToTable("Admins");
-            modelBuilder.Entity<WHAdmin>().HasIndex(x => new { x.EveCharacterId }).IsUnique(true);
         }
     }
 }

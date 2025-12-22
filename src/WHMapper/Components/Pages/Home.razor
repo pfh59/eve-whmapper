@@ -7,7 +7,44 @@
         </MudText>
     </Authorizing>
     <Authorized>
-        <WHMapper.Components.Pages.Mapper.Overview/>
+        <AuthorizeView Policy="Access" Context="accessContext">
+            <Authorized>
+                <WHMapper.Components.Pages.Mapper.Overview/>
+            </Authorized>
+            <NotAuthorized>
+                @* User is authenticated but has no instance access *@
+                <MudPaper Class="d-flex align-center justify-center" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" Width="100%">
+                    <MudCard Outlined="true" Class="pa-4" Style="max-width: 500px;">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5" Align="Align.Center">Welcome to EVE WHMapper</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">
+                                You don't have access to any instance yet.
+                            </MudText>
+                            <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-4">
+                                To use WHMapper, you need to either:
+                            </MudText>
+                            <MudList T="string" Dense="true">
+                                <MudListItem Icon="@Icons.Material.Filled.Add">
+                                    Create your own instance for yourself, your corporation, or alliance
+                                </MudListItem>
+                                <MudListItem Icon="@Icons.Material.Filled.People">
+                                    Ask an instance administrator to grant you access
+                                </MudListItem>
+                            </MudList>
+                        </MudCardContent>
+                        <MudCardActions Class="d-flex justify-center">
+                            <MudButton Variant="Variant.Filled" Href="/register" StartIcon="@Icons.Material.Filled.AppRegistration" Style="background-color: #1976d2; color: white;">
+                                Create an Instance
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudPaper>
+            </NotAuthorized>
+        </AuthorizeView>
     </Authorized>
     <NotAuthorized>
         @if(_loading)

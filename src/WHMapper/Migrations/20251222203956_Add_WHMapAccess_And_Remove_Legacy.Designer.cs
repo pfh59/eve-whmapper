@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WHMapper.Data;
@@ -11,9 +12,11 @@ using WHMapper.Data;
 namespace WHMapper.Migrations
 {
     [DbContext(typeof(WHMapperContext))]
-    partial class WHMapperContextModelSnapshot : ModelSnapshot
+    [Migration("20251222203956_Add_WHMapAccess_And_Remove_Legacy")]
+    partial class Add_WHMapAccess_And_Remove_Legacy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

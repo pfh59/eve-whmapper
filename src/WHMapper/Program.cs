@@ -15,8 +15,6 @@ using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.SDE;
-using WHMapper.Repositories.WHAdmins;
-using WHMapper.Repositories.WHAccesses;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Repositories.WHSignatures;
@@ -24,6 +22,8 @@ using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHNotes;
 using WHMapper;
 using WHMapper.Repositories.WHJumpLogs;
+using WHMapper.Repositories.WHInstances;
+using WHMapper.Repositories.WHMapAccesses;
 using WHMapper.Models.DTO;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.WHSignature;
@@ -256,8 +256,6 @@ builder.Services.AddHttpClient<ISDEDataSupplier, SdeDataSupplier>(client =>
 
 
 #region DB Acess Repo
-builder.Services.AddScoped<IWHAdminRepository, WHAdminRepository>();
-builder.Services.AddScoped<IWHAccessRepository, WHAccessRepository>();
 builder.Services.AddScoped<IWHMapRepository, WHMapRepository>();
 builder.Services.AddScoped<IWHSystemRepository, WHSystemRepository>();
 builder.Services.AddScoped<IWHSignatureRepository, WHSignatureRepository>();
@@ -265,6 +263,8 @@ builder.Services.AddScoped<IWHSystemLinkRepository, WHSystemLinkRepository>();
 builder.Services.AddScoped<IWHNoteRepository, WHNoteRepository>();
 builder.Services.AddScoped<IWHRouteRepository, WHRouteRepository>();
 builder.Services.AddScoped<IWHJumpLogRepository,WHJumpLogRepository>();
+builder.Services.AddScoped<IWHInstanceRepository, WHInstanceRepository>();
+builder.Services.AddScoped<IWHMapAccessRepository, WHMapAccessRepository>();
 #endregion
 
 #region WH HELPER
@@ -275,6 +275,7 @@ builder.Services.AddSingleton<IEveMapperUserManagementService,EveMapperUserManag
 builder.Services.AddScoped<IEveMapperService, EveMapperService>();
 builder.Services.AddScoped<IEveMapperCacheService, EveMapperCacheService>();
 builder.Services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
+builder.Services.AddScoped<IWHInstanceService, WHInstanceService>();
 builder.Services.AddScoped<IEveMapperTracker, EveMapperTracker>();
 builder.Services.AddScoped<IEveMapperSearch, EveMapperSearch>();
 builder.Services.AddScoped<IEveMapperHelper, EveMapperHelper>();

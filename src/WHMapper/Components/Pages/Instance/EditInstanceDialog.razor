@@ -1,0 +1,33 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2" />
+            Edit Instance
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_formIsValid">
+            <MudTextField @bind-Value="_name" 
+                          Label="Instance Name" 
+                          Required="true" 
+                          RequiredError="Name is required"
+                          MaxLength="255"
+                          Class="mb-4" />
+            
+            <MudTextField @bind-Value="_description" 
+                          Label="Description" 
+                          Lines="3"
+                          MaxLength="1000" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="@(!_formIsValid || _saving)">
+            @if (_saving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>

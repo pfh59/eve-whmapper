@@ -1,0 +1,116 @@
+@page "/register"
+@using WHMapper.Models.Db.Enums
+@using WHMapper.Services.EveMapper
+@using WHMapper.Services.EveAPI.Characters
+@using System.Security.Claims
+
+<PageTitle>WHMapper - Register Instance</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-8">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-6">
+            <MudIcon Icon="@Icons.Material.Filled.AppRegistration" Class="mr-2" />
+            Register Your WHMapper Instance
+        </MudText>
+
+        @if (_loading)
+        {
+            <MudProgressCircular Indeterminate="true" Class="d-block mx-auto" />
+        }
+        else if (_alreadyHasInstance)
+        {
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                <MudText>You already have an instance registered. Go to your <MudLink Href="@($"/instance/{_existingInstanceId}/admin")">Instance Administration</MudLink> to manage it.</MudText>
+            </MudAlert>
+        }
+        else if (!_isAuthenticated)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                <MudText>Please log in with EVE Online to register your instance.</MudText>
+            </MudAlert>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/authentication/login" FullWidth="true">
+                Login with EVE Online
+            </MudButton>
+        }
+        else
+        {
+            <MudForm @ref="_form" @bind-IsValid="_formIsValid">
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    Create your own WHMapper instance for your character, corporation, or alliance. 
+                    As the creator, you will be the administrator of this instance.
+                </MudText>
+
+                <MudTextField @bind-Value="_instanceName" 
+                              Label="Instance Name" 
+                              Required="true" 
+                              RequiredError="Instance name is required"
+                              MaxLength="255"
+                              HelperText="A friendly name for your instance (e.g., 'My Corp Mapper')"
+                              Class="mb-4" />
+
+                <MudTextField @bind-Value="_description" 
+                              Label="Description (optional)" 
+                              Lines="3"
+                              MaxLength="1000"
+                              HelperText="Optional description of your instance"
+                              Class="mb-4" />
+
+                <MudSelect @bind-Value="_ownerType" 
+                           Label="Instance Access Type" 
+                           Required="true"
+                           HelperText="Who should have access to this instance by default?"
+                           Class="mb-4">
+                    <MudSelectItem Value="WHAccessEntity.Character">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" /> Personal (Just me)
+                    </MudSelectItem>
+                    @if (_characterInfo?.CorporationId > 0)
+                    {
+                        <MudSelectItem Value="WHAccessEntity.Corporation">
+                            <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" /> Corporation (@_corporationName)
+                        </MudSelectItem>
+                    }
+                    @if (_characterInfo?.AllianceId > 0)
+                    {
+                        <MudSelectItem Value="WHAccessEntity.Alliance">
+                            <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-2" /> Alliance (@_allianceName)
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudDivider Class="my-4" />
+
+                <MudText Typo="Typo.subtitle2" Class="mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Class="mr-1" />
+                    What you get:
+                </MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem Icon="@Icons.Material.Filled.Check">Your own isolated mapping environment</MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.Check">Full admin control over maps and access</MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.Check">Ability to add other administrators</MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.Check">Control who can access your instance</MudListItem>
+                </MudList>
+
+                <MudDivider Class="my-4" />
+
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Tertiary" 
+                           OnClick="RegisterInstance" 
+                           Disabled="@(!_formIsValid || _registering)"
+                           FullWidth="true"
+                           Style="background-color: #1976d2; color: white;"
+                           Class="mt-4">
+                    @if (_registering)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <span>Creating Instance...</span>
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
+                        <span>Create Instance</span>
+                    }
+                </MudButton>
+            </MudForm>
+        }
+    </MudPaper>
+</MudContainer>
