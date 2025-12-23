@@ -15,6 +15,7 @@ public partial class Overview : IAsyncDisposable
 {
     private List<WHMap> WHMaps { get; set; } = new List<WHMap>();
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+    private bool _disposed = false;
 
     private int _selectedWHMapIndex = 0;
     private int SelectedWHMapIndex
@@ -205,28 +206,46 @@ public partial class Overview : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
+        
         // Unsubscribe from primary account changes
         UserManagement.PrimaryAccountChanged -= OnPrimaryAccountChanged;
         
-        if (TrackerServices != null)
+        try
         {
-            await TrackerServices.DisposeAsync();
-
+            if (TrackerServices != null)
+            {
+                await TrackerServices.DisposeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error disposing TrackerServices");
         }
 
-        if (RealTimeService != null)
+        try
         {
-
-            RealTimeService.MapAdded -= OnMapAdded;
-            RealTimeService.MapRemoved -= OnMapRemoved;
-            RealTimeService.MapNameChanged -= OnMapNameChanged;
-            RealTimeService.AllMapsRemoved -= OnAllMapsRemoved;
-            RealTimeService.MapAccessesAdded -= OnMapAccessesAdded;
-            RealTimeService.MapAccessRemoved -= OnMapAccessRemoved;
-            RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
-            await RealTimeService.DisposeAsync();
-
+            if (RealTimeService != null)
+            {
+                RealTimeService.MapAdded -= OnMapAdded;
+                RealTimeService.MapRemoved -= OnMapRemoved;
+                RealTimeService.MapNameChanged -= OnMapNameChanged;
+                RealTimeService.AllMapsRemoved -= OnAllMapsRemoved;
+                RealTimeService.MapAccessesAdded -= OnMapAccessesAdded;
+                RealTimeService.MapAccessRemoved -= OnMapAccessRemoved;
+                RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
+                await RealTimeService.DisposeAsync();
+            }
         }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error disposing RealTimeService");
+        }
+        
+        _semaphoreSlim.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private async Task<bool> InitRealTimeService()

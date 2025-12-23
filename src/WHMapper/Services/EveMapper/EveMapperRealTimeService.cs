@@ -13,6 +13,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     private readonly NavigationManager _navigation;
     private readonly IEveOnlineTokenProvider _tokenProvider;
     private readonly IConfiguration _configuration;
+    private bool _disposed = false;
 
     public event Func<int, Task>? UserConnected;
     public event Func<int, Task>? UserDisconnected;
@@ -501,22 +502,38 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
+        
+        _logger.LogInformation("EveMapperRealTimeService disposing...");
+        
         if (_hubConnection != null)
         {
-            foreach (var connection in _hubConnection.Values)
+            foreach (var kvp in _hubConnection)
             {
                 try
                 {
-                    await connection.StopAsync();
+                    _logger.LogInformation("Stopping hub connection for account {AccountId}", kvp.Key);
+                    await kvp.Value.StopAsync();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to stop the real-time service.");
+                    _logger.LogWarning(ex, "Error stopping hub connection for account {AccountId}", kvp.Key);
+                }
+                
+                try
+                {
+                    await kvp.Value.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error disposing hub connection for account {AccountId}", kvp.Key);
                 }
             }
             _hubConnection.Clear();
 
-            //ckear the events
+            // Clear all event handlers
             UserConnected = null;
             UserDisconnected = null;
             UserPosition = null;
@@ -527,6 +544,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             WormholeMoved = null;
             LinkChanged = null;
             WormholeNameExtensionChanged = null;
+            WormholeAlternateNameChanged = null;
             WormholeSignaturesChanged = null;
             WormholeLockChanged = null;
             WormholeSystemStatusChanged = null;
@@ -540,6 +558,9 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             UserOnMapConnected = null;
             UserOnMapDisconnected = null;
         }
+        
+        _logger.LogInformation("EveMapperRealTimeService disposed");
+        GC.SuppressFinalize(this);
     }
 
     public async Task<bool> IsConnected(int accountID)

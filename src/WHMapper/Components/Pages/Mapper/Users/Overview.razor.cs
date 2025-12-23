@@ -31,6 +31,7 @@ public partial class Overview : IAsyncDisposable
     public IEnumerable<WHMapperUser> Accounts { get; private set; } = new List<WHMapperUser>();
 
     private CancellationTokenSource _cts = new();
+    private bool _disposed = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,11 +106,10 @@ public partial class Overview : IAsyncDisposable
             return;
         }
 
-        // Prevent enabling tracking for accounts without map access or current map access
-        if (!account.Tracking && (!account.HasMapAccess || !account.HasCurrentMapAccess))
+        // Prevent enabling tracking for accounts without access to the current map
+        if (!account.Tracking && !account.HasCurrentMapAccess)
         {
-            Logger.LogWarning("Cannot enable tracking for account {AccountId} - no map access (HasMapAccess: {HasMapAccess}, HasCurrentMapAccess: {HasCurrentMapAccess})", 
-                accountId, account.HasMapAccess, account.HasCurrentMapAccess);
+            Logger.LogWarning("Cannot enable tracking for account {AccountId} - no access to current map", accountId);
             return;
         }
 
@@ -216,10 +216,24 @@ public partial class Overview : IAsyncDisposable
         // Manage tracking based on current map access
         foreach (var account in Accounts)
         {
-            if (!account.HasCurrentMapAccess && account.Tracking)
+            if (account.HasCurrentMapAccess)
             {
-                Logger.LogInformation("Disabling tracking for account {AccountId} - no access to map {MapId}", account.Id, mapId);
-                account.Tracking = false;
+                // Enable tracking for accounts with access to the current map
+                if (!account.Tracking)
+                {
+                    Logger.LogInformation("Enabling tracking for account {AccountId} - has access to map {MapId}", account.Id, mapId);
+                    account.Tracking = true;
+                }
+                await TrackerServices.StartTracking(account.Id);
+            }
+            else
+            {
+                // Disable tracking for accounts without access to the current map
+                if (account.Tracking)
+                {
+                    Logger.LogInformation("Disabling tracking for account {AccountId} - no access to map {MapId}", account.Id, mapId);
+                    account.Tracking = false;
+                }
                 await TrackerServices.StopTracking(account.Id);
             }
         }
@@ -229,20 +243,43 @@ public partial class Overview : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
+        
         // Unsubscribe from events
         EveMapperUserManagementService.PrimaryAccountChanged -= OnPrimaryAccountChangedHandler;
         EveMapperUserManagementService.CurrentMapChanged -= OnCurrentMapChangedHandler;
         
+        // Cancel pending operations
         if (_cts != null && !_cts.IsCancellationRequested)
         {
             _cts.Cancel();
         }
         _cts?.Dispose();
 
+        // Stop services for all accounts
         foreach (var account in Accounts)
         {
-            await EveMapperRealTime.Stop(account.Id);
-            await TrackerServices.StopTracking(account.Id);
+            try
+            {
+                await EveMapperRealTime.Stop(account.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Error stopping RealTimeService for account {AccountId}", account.Id);
+            }
+            
+            try
+            {
+                await TrackerServices.StopTracking(account.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Error stopping tracking for account {AccountId}", account.Id);
+            }
         }
+        
+        GC.SuppressFinalize(this);
     }
 }

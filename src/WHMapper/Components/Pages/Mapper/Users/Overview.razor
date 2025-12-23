@@ -1,10 +1,12 @@
 ﻿@foreach(var account in Accounts)
 {
     var badgeColor = account.Tracking ? Color.Success : Color.Error;
+    var hasAccess = account.HasCurrentMapAccess;
     var avatarStyle = account.IsPrimary 
         ? "border-color: white;border-width: 1px;border-style: solid;" 
-        : (!account.HasMapAccess ? "opacity: 0.5;" : null);
-    <MudTooltip Text="@(account.HasMapAccess ? null : "No access to primary account's maps")">
+        : (!hasAccess ? "opacity: 0.5;" : null);
+    var tooltipText = hasAccess ? null : "No access to current map - Tracking disabled";
+    <MudTooltip Text="@tooltipText">
         <MudBadge Color="@badgeColor" Overlap="true" Bordered="true" Dot="true">
             <MudMenu ActivationEvent="@MouseEvent.RightClick">
                 <ActivatorContent>
@@ -21,17 +23,17 @@
                     {
                         <MudMenuItem OnClick="@(() => SetPrimaryAccount(account.Id))">Set as Primary</MudMenuItem>
                     }
-                    @if(account.Tracking)
+                    @if(!hasAccess)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.Block" Disabled="true">No Map Access</MudMenuItem>
+                    }
+                    else if(account.Tracking)
                     {
                         <MudMenuItem Icon="@Icons.Material.Filled.GpsOff" OnClick="@(() => ToggleTracking(account.Id))">UnTrack</MudMenuItem>
                     }
                     else
                     {
-                        <MudMenuItem Icon="@Icons.Material.Filled.GpsFixed" 
-                                     OnClick="@(() => ToggleTracking(account.Id))" 
-                                     Disabled="@(!account.HasMapAccess)">
-                            @(account.HasMapAccess ? "Track" : "Track (No Access)")
-                        </MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.GpsFixed" OnClick="@(() => ToggleTracking(account.Id))">Track</MudMenuItem>
                     }
                 </ChildContent>
             </MudMenu>

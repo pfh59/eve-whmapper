@@ -68,6 +68,7 @@ public partial class Overview : IAsyncDisposable
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
     private readonly SemaphoreSlim _semaphoreSlim2 = new SemaphoreSlim(1, 1);
     private ConcurrentDictionary<int, Ship> _currentShips = new ConcurrentDictionary<int, Ship>();
+    private bool _disposed = false;
 
     [Inject]
     private ILogger<Overview> Logger { get; set; } = null!;
@@ -297,27 +298,40 @@ public partial class Overview : IAsyncDisposable
     
     public async ValueTask DisposeAsync()
     {
-        if(!_cts.IsCancellationRequested)
+        if (_disposed)
+            return;
+        _disposed = true;
+        
+        // Cancel pending operations
+        if (!_cts.IsCancellationRequested)
         {
             _cts.Cancel();
         }
         _cts.Dispose();
 
-        if (TrackerServices != null)
+        // Unsubscribe from TrackerServices events
+        try
         {
-            TrackerServices.SystemChanged -= OnSystemChanged;
-            TrackerServices.ShipChanged -= OnShipChanged;
-            TrackerServices.TrackingLocationRetryRequested -= OnTrackingLocationRetryRequested;
-            TrackerServices.TrackingShipRetryRequested -= OnTrackingShipRetryRequested;
-            await TrackerServices.DisposeAsync();
+            if (TrackerServices != null)
+            {
+                TrackerServices.SystemChanged -= OnSystemChanged;
+                TrackerServices.ShipChanged -= OnShipChanged;
+                TrackerServices.TrackingLocationRetryRequested -= OnTrackingLocationRetryRequested;
+                TrackerServices.TrackingShipRetryRequested -= OnTrackingShipRetryRequested;
+                await TrackerServices.DisposeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error disposing TrackerServices");
         }
 
+        // Unsubscribe from EveMapperRealTime events
         if (EveMapperRealTime != null)
         {
             EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
             EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
             EveMapperRealTime.UserOnMapDisconnected -= OnUserOnMapDisconnected;
-
             EveMapperRealTime.UserPosition -= OnUserPositionChanged;
             EveMapperRealTime.WormholeAdded -= OnWormholeAdded;
             EveMapperRealTime.WormholeRemoved -= OnWormholeRemoved;
@@ -333,7 +347,17 @@ public partial class Overview : IAsyncDisposable
 
         _currentShips.Clear();
 
-        await ClearDiagram();
+        try
+        {
+            await ClearDiagram();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error clearing diagram during dispose");
+        }
+        
+        _semaphoreSlim.Dispose();
+        _semaphoreSlim2.Dispose();
         GC.SuppressFinalize(this);
     }
 

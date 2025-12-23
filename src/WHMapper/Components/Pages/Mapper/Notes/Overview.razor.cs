@@ -28,6 +28,7 @@ public partial class Overview : IDisposable
     private CancellationTokenSource? _cts;
 
     private string _previousValue = string.Empty;
+    private bool _disposed = false;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -198,10 +199,19 @@ public partial class Overview : IDisposable
             }
             finally
             {
-                Dispose(true);
+                // Reset timer for next use, but don't fully dispose
+                ResetTimer();
                 _previousValue = string.Empty;
             }
         }
+    }
+
+    private void ResetTimer()
+    {
+        _timer?.Dispose();
+        _timer = null;
+        _cts?.Dispose();
+        _cts = null;
     }
 
     public void Dispose()
@@ -212,10 +222,17 @@ public partial class Overview : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        this._timer?.Dispose();
-        this._cts?.Dispose();
-        this._timer = null;
-        this._cts = null;
+        if (_disposed)
+            return;
+        _disposed = true;
+        
+        if (disposing)
+        {
+            _timer?.Dispose();
+            _cts?.Dispose();
+            _timer = null;
+            _cts = null;
+        }
     }
 }
 
