@@ -191,6 +191,9 @@ public partial class Overview : IAsyncDisposable
         {
             if (await Restore(MapId.Value, cancellationToken))
             {
+                // Update current map access for all accounts
+                await UserManagement.UpdateAccountsCurrentMapAccessAsync(UID.ClientId, MapId.Value);
+                
                 WHMapperUser[]? accounts = await GetAccountsAsync();
                 if (accounts != null)
                 {
@@ -200,6 +203,18 @@ public partial class Overview : IAsyncDisposable
                         {
                             Logger.LogWarning("LoadMapAsync cancelled, during account loading");
                             return;
+                        }
+
+                        // Check if account has access to this specific map
+                        if (!account.HasCurrentMapAccess)
+                        {
+                            Logger.LogInformation("Account {AccountId} does not have access to map {MapId}, disabling tracking", account.Id, MapId.Value);
+                            if (account.Tracking)
+                            {
+                                account.Tracking = false;
+                                await TrackerServices.StopTracking(account.Id);
+                            }
+                            continue; // Skip this account for user position and tracking
                         }
 
                         IDictionary<int, KeyValuePair<int, int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition(account.Id);

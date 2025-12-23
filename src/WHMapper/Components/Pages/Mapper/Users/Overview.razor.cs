@@ -22,12 +22,22 @@ public partial class Overview : IAsyncDisposable
     [Inject]
     private ILogger<Overview> Logger { get; set; } = null!;
 
+    /// <summary>
+    /// Event triggered when the primary account changes, to notify parent components to reload maps.
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnPrimaryAccountChanged { get; set; }
+
     public IEnumerable<WHMapperUser> Accounts { get; private set; } = new List<WHMapperUser>();
 
     private CancellationTokenSource _cts = new();
 
     protected override async Task OnInitializedAsync()
     {
+        // Subscribe to primary account changes
+        EveMapperUserManagementService.PrimaryAccountChanged += OnPrimaryAccountChangedHandler;
+        // Subscribe to current map changes
+        EveMapperUserManagementService.CurrentMapChanged += OnCurrentMapChangedHandler;
         await base.OnInitializedAsync();
     }
 
@@ -57,10 +67,30 @@ public partial class Overview : IAsyncDisposable
 
         if (EveMapperUserManagementService != null && UID != null && !String.IsNullOrEmpty(UID.ClientId))
         {
+            // Update map access status for all accounts based on primary account's maps
+            await EveMapperUserManagementService.UpdateAccountsMapAccessAsync(UID.ClientId);
+            
             Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
             foreach (var account in Accounts)
             {
                 await EveMapperRealTime.Start(account.Id);
+                
+                if (account.IsPrimary)
+                {
+                    // Primary account always has map access - ensure tracking is enabled
+                    if (!account.Tracking)
+                    {
+                        Logger.LogInformation("Enabling tracking for primary account {AccountId}", account.Id);
+                        account.Tracking = true;
+                    }
+                }
+                else if (!account.HasMapAccess && account.Tracking)
+                {
+                    // Auto-disable tracking for secondary accounts without map access
+                    Logger.LogInformation("Disabling tracking for account {AccountId} - no map access", account.Id);
+                    account.Tracking = false;
+                    await TrackerServices.StopTracking(account.Id);
+                }
             }
         }
         await InvokeAsync(StateHasChanged);
@@ -72,6 +102,14 @@ public partial class Overview : IAsyncDisposable
         var account = Accounts.FirstOrDefault(a => a.Id == accountId);
         if (account == null)
         {
+            return;
+        }
+
+        // Prevent enabling tracking for accounts without map access or current map access
+        if (!account.Tracking && (!account.HasMapAccess || !account.HasCurrentMapAccess))
+        {
+            Logger.LogWarning("Cannot enable tracking for account {AccountId} - no map access (HasMapAccess: {HasMapAccess}, HasCurrentMapAccess: {HasCurrentMapAccess})", 
+                accountId, account.HasMapAccess, account.HasCurrentMapAccess);
             return;
         }
 
@@ -93,14 +131,108 @@ public partial class Overview : IAsyncDisposable
     {
         if (!string.IsNullOrEmpty(UID.ClientId))
         {
+            Logger.LogInformation("Setting primary account to {AccountId}", accountId);
+            
+            // Stop tracking for all accounts before switching primary
+            foreach (var account in Accounts)
+            {
+                if (account.Tracking)
+                {
+                    Logger.LogInformation("Stopping tracking for account {AccountId} before primary switch", account.Id);
+                    await TrackerServices.StopTracking(account.Id);
+                }
+            }
+            
+            // Set the new primary account - this will trigger OnPrimaryAccountChangedHandler
+            // which will reload maps and manage tracking based on map access
             await EveMapperUserManagementService.SetPrimaryAccountAsync(UID.ClientId, accountId.ToString());
             StateHasChanged();
         }
     }
 
+    private async Task OnPrimaryAccountChangedHandler(string clientId, int newPrimaryAccountId)
+    {
+        if (clientId != UID.ClientId)
+        {
+            return;
+        }
+
+        Logger.LogInformation("Primary account changed to {AccountId}, updating tracking status", newPrimaryAccountId);
+        
+        // Reload accounts to get updated HasMapAccess status
+        Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
+        
+        // Manage tracking based on map access
+        foreach (var account in Accounts)
+        {
+            if (account.IsPrimary)
+            {
+                // Primary account always has map access - ensure tracking is enabled
+                if (!account.Tracking)
+                {
+                    Logger.LogInformation("Enabling tracking for primary account {AccountId}", account.Id);
+                    account.Tracking = true;
+                }
+                await TrackerServices.StartTracking(account.Id);
+            }
+            else if (!account.HasMapAccess)
+            {
+                // Disable tracking for accounts without map access
+                if (account.Tracking)
+                {
+                    Logger.LogInformation("Disabling tracking for account {AccountId} - no map access after primary change", account.Id);
+                    account.Tracking = false;
+                }
+                await TrackerServices.StopTracking(account.Id);
+            }
+            else if (account.HasMapAccess && account.Tracking)
+            {
+                // Restart tracking for secondary accounts with access
+                await TrackerServices.StartTracking(account.Id);
+            }
+        }
+        
+        await InvokeAsync(StateHasChanged);
+        
+        // Notify parent to reload maps
+        if (OnPrimaryAccountChanged.HasDelegate)
+        {
+            await OnPrimaryAccountChanged.InvokeAsync(newPrimaryAccountId);
+        }
+    }
+
+    private async Task OnCurrentMapChangedHandler(string clientId, int mapId)
+    {
+        if (clientId != UID.ClientId)
+        {
+            return;
+        }
+
+        Logger.LogInformation("Current map changed to {MapId}, updating tracking status based on map access", mapId);
+        
+        // Reload accounts to get updated HasCurrentMapAccess status
+        Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
+        
+        // Manage tracking based on current map access
+        foreach (var account in Accounts)
+        {
+            if (!account.HasCurrentMapAccess && account.Tracking)
+            {
+                Logger.LogInformation("Disabling tracking for account {AccountId} - no access to map {MapId}", account.Id, mapId);
+                account.Tracking = false;
+                await TrackerServices.StopTracking(account.Id);
+            }
+        }
+        
+        await InvokeAsync(StateHasChanged);
+    }
 
     public async ValueTask DisposeAsync()
     {
+        // Unsubscribe from events
+        EveMapperUserManagementService.PrimaryAccountChanged -= OnPrimaryAccountChangedHandler;
+        EveMapperUserManagementService.CurrentMapChanged -= OnCurrentMapChangedHandler;
+        
         if (_cts != null && !_cts.IsCancellationRequested)
         {
             _cts.Cancel();
@@ -114,4 +246,3 @@ public partial class Overview : IAsyncDisposable
         }
     }
 }
-

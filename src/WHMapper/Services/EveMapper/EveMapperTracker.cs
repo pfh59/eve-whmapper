@@ -93,8 +93,8 @@ public class EveMapperTracker : IEveMapperTracker
 
 
         await ClearTracking(accountID);
-        _ = Task.Run(() => HandleTrackLocationAsync(cts!.Token, accountID));
-        _ = Task.Run(() => HandleTrackShipAsync(cts!.Token, accountID));
+        _ = Task.Run(() => HandleTrackLocationAsync(accountID, cts!.Token));
+        _ = Task.Run(() => HandleTrackShipAsync(accountID, cts!.Token));
 
         _logger.LogInformation("Tracking started for account {accountID}", accountID);
     }
@@ -142,36 +142,36 @@ public class EveMapperTracker : IEveMapperTracker
         return Task.CompletedTask;
     }
 
-    private async Task HandleTrackLocationAsync(CancellationToken cancellationToken, int accountID)
+private async Task HandleTrackLocationAsync(int accountID, CancellationToken cancellationToken)
+{
+    _logger.LogInformation("HandleTrackLocationAsync started for account {accountID}", accountID);
+
+    using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_LOCATION_HIT_IN_MS));
+
+    try
     {
-        _logger.LogInformation("HandleTrackLocationAsync started for account {accountID}", accountID);
-
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_LOCATION_HIT_IN_MS));
-
-        try
+        while (!cancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync(cancellationToken))
         {
-            while (!cancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync(cancellationToken))
+            var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
+            if (userToken == null)
             {
-                var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
-                if (userToken == null)
-                {
-                    _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
-                    break;
-                }
-
-                await UpdateCurrentLocation(userToken, accountID);
+                _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
+                break;
             }
+
+            await UpdateCurrentLocation(userToken, accountID);
         }
-        catch (OperationCanceledException ex)
-        {
-            _logger.LogInformation(ex, "HandleTrackLocationAsync operation canceled for account {accountID}", accountID);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in HandleTrackLocationAsync for account {accountID}", accountID);
-        }
-    } 
-    private async Task HandleTrackShipAsync(CancellationToken cancellationToken, int accountID)
+    }
+    catch (OperationCanceledException)
+    {
+        _logger.LogInformation("HandleTrackLocationAsync operation canceled for account {accountID}", accountID);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error in HandleTrackLocationAsync for account {accountID}", accountID);
+    }
+}
+    private async Task HandleTrackShipAsync(int accountID, CancellationToken cancellationToken)
     {
         _logger.LogInformation("HandleTrackShipAsync started for account {accountID}", accountID);
 
@@ -191,9 +191,9 @@ public class EveMapperTracker : IEveMapperTracker
                 await UpdateCurrentShip(userToken, accountID);
             }
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
-            _logger.LogInformation(ex, "HandleTrackShipAsync operation canceled for account {accountID}", accountID);
+            _logger.LogInformation("HandleTrackShipAsync operation canceled for account {accountID}", accountID);
         }
         catch (Exception ex)
         {
