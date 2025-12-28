@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using System.Security.Claims;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.EveMapper;
 
@@ -37,7 +36,10 @@ public partial class Admin : ComponentBase
     private IDialogService DialogService { get; set; } = null!;
 
     [Inject]
-    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
 
     [Inject]
     private IWHInstanceService InstanceService { get; set; } = null!;
@@ -57,15 +59,20 @@ public partial class Admin : ComponentBase
 
         try
         {
-            // Get current user
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var characterIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (!int.TryParse(characterIdClaim, out _characterId))
+            // Get current user from primary account
+            if (string.IsNullOrEmpty(UID.ClientId))
             {
-                Logger.LogWarning("Could not parse character ID from claims");
+                Logger.LogWarning("ClientId is null");
                 return;
             }
+
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount == null)
+            {
+                Logger.LogWarning("Could not get primary account");
+                return;
+            }
+            _characterId = primaryAccount.Id;
 
             // Load instance
             _instance = await InstanceService.GetInstanceAsync(InstanceId);

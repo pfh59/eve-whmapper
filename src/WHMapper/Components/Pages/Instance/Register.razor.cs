@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using System.Security.Claims;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
@@ -40,7 +39,10 @@ public partial class Register : ComponentBase
     private NavigationManager Navigation { get; set; } = null!;
 
     [Inject]
-    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
 
     [Inject]
     private ICharacterServices CharacterServices { get; set; } = null!;
@@ -63,24 +65,20 @@ public partial class Register : ComponentBase
 
         try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            if (user.Identity?.IsAuthenticated == true)
+            if (!string.IsNullOrEmpty(UID.ClientId))
             {
-                _isAuthenticated = true;
-                var characterIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
-
-                if (int.TryParse(characterIdClaim, out _characterId) && !string.IsNullOrEmpty(nameClaim))
+                var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+                if (primaryAccount != null)
                 {
-                    _characterName = nameClaim;
+                    _isAuthenticated = true;
+                    _characterId = primaryAccount.Id;
 
                     // Get character info from ESI
                     var characterResult = await CharacterServices.GetCharacter(_characterId);
                     if (characterResult.IsSuccess && characterResult.Data != null)
                     {
                         _characterInfo = characterResult.Data;
+                        _characterName = _characterInfo.Name ?? string.Empty;
 
                         // Get corporation name
                         if (_characterInfo.CorporationId > 0)

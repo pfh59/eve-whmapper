@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using System.Security.Claims;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper.EveEntity;
 using WHMapper.Services.EveMapper;
 
@@ -32,13 +31,21 @@ public partial class AddAdminDialog : ComponentBase
     private ISnackbar Snackbar { get; set; } = null!;
 
     [Inject]
-    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var characterIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        int.TryParse(characterIdClaim, out _characterId);
+        if (!string.IsNullOrEmpty(UID.ClientId))
+        {
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount != null)
+            {
+                _characterId = primaryAccount.Id;
+            }
+        }
     }
 
     private void Cancel() => MudDialog.Cancel();

@@ -88,11 +88,6 @@ namespace WHMapper.Services.EveMapper
             if (!hasInstanceAccess)
                 return false;
 
-            // Instance admins always have access to all maps
-            var isInstanceAdmin = await _instanceRepo.IsInstanceAdminAsync(map.WHInstanceId.Value, eveCharacterId);
-            if (isInstanceAdmin)
-                return true;
-
             // Check map-level access
             // If no restrictions exist on the map, all instance members can access it
             // If restrictions exist, check if user has explicit access

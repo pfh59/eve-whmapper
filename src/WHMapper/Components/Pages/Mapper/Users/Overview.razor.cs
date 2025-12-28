@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.EveMapper;
@@ -22,6 +23,9 @@ public partial class Overview : IAsyncDisposable
     [Inject]
     private ILogger<Overview> Logger { get; set; } = null!;
 
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
+
     /// <summary>
     /// Event triggered when the primary account changes, to notify parent components to reload maps.
     /// </summary>
@@ -29,6 +33,16 @@ public partial class Overview : IAsyncDisposable
     public EventCallback<int> OnPrimaryAccountChanged { get; set; }
 
     public IEnumerable<WHMapperUser> Accounts { get; private set; } = new List<WHMapperUser>();
+
+    /// <summary>
+    /// Indicates if we are on the instances page - disables primary selection and tracking
+    /// </summary>
+    public bool IsOnInstancesPage { get; private set; } = false;
+
+    /// <summary>
+    /// Stores tracking state before pausing when navigating to instances page
+    /// </summary>
+    private Dictionary<int, bool> _savedTrackingState = new();
 
     private CancellationTokenSource _cts = new();
     private bool _disposed = false;
@@ -39,6 +53,12 @@ public partial class Overview : IAsyncDisposable
         EveMapperUserManagementService.PrimaryAccountChanged += OnPrimaryAccountChangedHandler;
         // Subscribe to current map changes
         EveMapperUserManagementService.CurrentMapChanged += OnCurrentMapChangedHandler;
+        // Subscribe to navigation changes
+        Navigation.LocationChanged += OnLocationChanged;
+        
+        // Check initial location
+        UpdateInstancesPageState(Navigation.Uri);
+        
         await base.OnInitializedAsync();
     }
 
@@ -213,6 +233,13 @@ public partial class Overview : IAsyncDisposable
         // Reload accounts to get updated HasCurrentMapAccess status
         Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
         
+        // Don't manage tracking if we're on instances page
+        if (IsOnInstancesPage)
+        {
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+        
         // Manage tracking based on current map access
         foreach (var account in Accounts)
         {
@@ -241,6 +268,74 @@ public partial class Overview : IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        var wasOnInstancesPage = IsOnInstancesPage;
+        UpdateInstancesPageState(e.Location);
+        
+        if (wasOnInstancesPage != IsOnInstancesPage)
+        {
+            if (IsOnInstancesPage)
+            {
+                await PauseTrackingForInstancesPage();
+            }
+            else
+            {
+                await ResumeTrackingFromInstancesPage();
+            }
+        }
+        
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateInstancesPageState(string uri)
+    {
+        var relativeUri = new Uri(uri).PathAndQuery;
+        IsOnInstancesPage = relativeUri.StartsWith("/instances", StringComparison.OrdinalIgnoreCase) ||
+                           relativeUri.StartsWith("/instance/", StringComparison.OrdinalIgnoreCase) ||
+                           relativeUri.StartsWith("/register", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task PauseTrackingForInstancesPage()
+    {
+        Logger.LogInformation("Navigating to instances page - pausing tracking for all accounts");
+        
+        // Save current tracking state and stop all tracking
+        _savedTrackingState.Clear();
+        foreach (var account in Accounts)
+        {
+            _savedTrackingState[account.Id] = account.Tracking;
+            if (account.Tracking)
+            {
+                Logger.LogInformation("Stopping tracking for account {AccountId}", account.Id);
+                account.Tracking = false;
+                await TrackerServices.StopTracking(account.Id);
+            }
+        }
+    }
+
+    private async Task ResumeTrackingFromInstancesPage()
+    {
+        Logger.LogInformation("Returning from instances page - restoring tracking state");
+        
+        // Restore tracking state from before navigating to instances
+        foreach (var account in Accounts)
+        {
+            if (_savedTrackingState.TryGetValue(account.Id, out var wasTracking) && wasTracking)
+            {
+                // Only restore tracking if account still has map access
+                if (account.HasCurrentMapAccess)
+                {
+                    Logger.LogInformation("Restoring tracking for account {AccountId}", account.Id);
+                    account.Tracking = true;
+                    await TrackerServices.StartTracking(account.Id);
+                }
+            }
+        }
+        
+        _savedTrackingState.Clear();
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -250,6 +345,7 @@ public partial class Overview : IAsyncDisposable
         // Unsubscribe from events
         EveMapperUserManagementService.PrimaryAccountChanged -= OnPrimaryAccountChangedHandler;
         EveMapperUserManagementService.CurrentMapChanged -= OnCurrentMapChangedHandler;
+        Navigation.LocationChanged -= OnLocationChanged;
         
         // Cancel pending operations
         if (_cts != null && !_cts.IsCancellationRequested)

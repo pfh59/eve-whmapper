@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using System.Security.Claims;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
+using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 
@@ -22,7 +21,10 @@ public partial class Overview : ComponentBase
     private ISnackbar Snackbar { get; set; } = null!;
 
     [Inject]
-    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
 
     [Inject]
     private ICharacterServices CharacterServices { get; set; } = null!;
@@ -42,14 +44,19 @@ public partial class Overview : ComponentBase
 
         try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var characterIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (!int.TryParse(characterIdClaim, out _characterId))
+            if (string.IsNullOrEmpty(UID.ClientId))
             {
-                Logger.LogWarning("Could not parse character ID");
+                Logger.LogWarning("ClientId is null");
                 return;
             }
+
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount == null)
+            {
+                Logger.LogWarning("Could not get primary account");
+                return;
+            }
+            _characterId = primaryAccount.Id;
 
             // Get character info for corporation and alliance
             var characterResult = await CharacterServices.GetCharacter(_characterId);
