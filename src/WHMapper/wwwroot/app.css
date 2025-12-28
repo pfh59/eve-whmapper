@@ -55,3 +55,95 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+/* Blazor SignalR reconnect modal - dark theme */
+#components-reconnect-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+#components-reconnect-modal.components-reconnect-show {
+    display: flex;
+}
+
+#components-reconnect-modal.components-reconnect-hide {
+    display: none;
+}
+
+#components-reconnect-modal .reconnect-content {
+    background-color: #27272f;
+    color: rgba(255, 255, 255, 0.87);
+    border: 1px solid #373740;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: 24px 32px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+#components-reconnect-modal h5 {
+    color: rgba(255, 255, 255, 0.87);
+    margin: 0 0 16px 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+#components-reconnect-modal p {
+    color: rgba(255, 255, 255, 0.70);
+    margin: 8px 0;
+    font-size: 0.875rem;
+}
+
+#components-reconnect-modal .reconnect-message {
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+#components-reconnect-modal .reconnect-attempt,
+#components-reconnect-modal .reconnect-countdown {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#components-reconnect-modal .reconnect-retry-btn {
+    display: none;
+    margin-top: 16px;
+    background-color: #258cfb;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+#components-reconnect-modal .reconnect-retry-btn:hover {
+    background-color: #1b6ec2;
+}
+
+#components-reconnect-modal.components-reconnect-failed .reconnect-content {
+    border-color: #f44336;
+}
+
+#components-reconnect-modal.components-reconnect-failed h5 {
+    color: #f44336;
+}
+
+#components-reconnect-modal.components-reconnect-rejected .reconnect-content {
+    border-color: #ff9800;
+}
+
+#components-reconnect-modal.components-reconnect-rejected h5 {
+    color: #ff9800;
+}
