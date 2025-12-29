@@ -1,4 +1,6 @@
-﻿using AutoFixture.Xunit2;
+﻿using AutoFixture;
+using AutoFixture.AutoMoq;
+using AutoFixture.Xunit2;
 using Moq;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO;
@@ -7,9 +9,25 @@ using WHMapper.Repositories.WHInstances;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
+using Xunit;
 
 namespace WHMapper.Tests.Services.EveMapper
 {
+    public class AutoMoqDataAttribute : AutoDataAttribute
+    {
+        public AutoMoqDataAttribute() : base(() => new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true }))
+        {
+        }
+    }
+
+    public class InlineAutoMoqDataAttribute : InlineAutoDataAttribute
+    {
+        public InlineAutoMoqDataAttribute(params object[] values) 
+            : base(new AutoMoqDataAttribute(), values)
+        {
+        }
+    }
+
     public class EveMapperAccessHelperTests
     {
         #region IsEveMapperUserAccessAuthorized()
@@ -20,48 +38,45 @@ namespace WHMapper.Tests.Services.EveMapper
         [InlineAutoMoqData(int.MaxValue)]
         public async Task IfNoInstancesExist_WhenGettingState_ReturnsFalse(
             int characterId,
-            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
             [Frozen] Mock<ICharacterServices> characterServices,
-            EveMapperAccessHelper sut
-            )
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
         {
-            // No instances exist, user should NOT have access
             var character = new Character() { CorporationId = 100, AllianceId = 200 };
             characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
-                .Returns(Task.FromResult(Result<Character>.Success(character)));
+                .ReturnsAsync(Result<Character>.Success(character));
             
             instanceRepository.Setup(x => x.GetAccessibleInstancesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
-                .Returns(Task.FromResult<IEnumerable<WHInstance>?>(new List<WHInstance>()));
+                .ReturnsAsync(new List<WHInstance>());
 
             Assert.False(await sut.IsEveMapperUserAccessAuthorized(characterId));
         }
 
-        [Theory, AutoDomainData]
+        [Theory, AutoMoqData]
         public async Task IfInstanceExistsAndUserHasAccess_WhenGettingAccess_ReturnsTrue(
             WHInstance instance,
-            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
             [Frozen] Mock<ICharacterServices> characterServices,
-            EveMapperAccessHelper sut
-            )
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
         {
             var character = new Character() { CorporationId = 100, AllianceId = 200 };
             characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
-                .Returns(Task.FromResult(Result<Character>.Success(character)));
+                .ReturnsAsync(Result<Character>.Success(character));
             
             instanceRepository.Setup(x => x.GetAccessibleInstancesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
-                .Returns(Task.FromResult<IEnumerable<WHInstance>?>(new List<WHInstance> { instance }));
+                .ReturnsAsync(new List<WHInstance> { instance });
 
             Assert.True(await sut.IsEveMapperUserAccessAuthorized(1));
         }
 
-        [Theory, AutoDomainData]
+        [Theory, AutoMoqData]
         public async Task IfCharacterNotFound_WhenGettingAccess_ReturnsFalse(
             [Frozen] Mock<ICharacterServices> characterServices,
-            EveMapperAccessHelper sut
-            )
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
         {
             characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
-                .Returns(Task.FromResult(Result<Character>.Failure("Character not found")));
+                .ReturnsAsync(Result<Character>.Failure("Character not found"));
 
             Assert.False(await sut.IsEveMapperUserAccessAuthorized(1));
         }
@@ -74,24 +89,22 @@ namespace WHMapper.Tests.Services.EveMapper
         public async Task IfNoAdminInstances_WhenGettingAdminState_ReturnsFalse(
             int characterId,
             [Frozen] Mock<IWHInstanceRepository> instanceRepository,
-            EveMapperAccessHelper sut
-            )
+            EveMapperAccessHelper sut)
         {
             instanceRepository.Setup(x => x.GetInstancesForAdminAsync(It.IsAny<int>()))
-                .Returns(Task.FromResult<IEnumerable<WHInstance>?>(new List<WHInstance>()));
+                .ReturnsAsync(new List<WHInstance>());
 
             Assert.False(await sut.IsEveMapperAdminAccessAuthorized(characterId));
         }
 
-        [Theory, AutoDomainData]
+        [Theory, AutoMoqData]
         public async Task IfUserIsAdmin_WhenGettingAdminState_ReturnsTrue(
             WHInstance instance,
             [Frozen] Mock<IWHInstanceRepository> instanceRepository,
-            EveMapperAccessHelper sut
-            )
+            EveMapperAccessHelper sut)
         {
             instanceRepository.Setup(x => x.GetInstancesForAdminAsync(It.IsAny<int>()))
-                .Returns(Task.FromResult<IEnumerable<WHInstance>?>(new List<WHInstance> { instance }));
+                .ReturnsAsync(new List<WHInstance> { instance });
 
             Assert.True(await sut.IsEveMapperAdminAccessAuthorized(1));
         }
@@ -104,52 +117,48 @@ namespace WHMapper.Tests.Services.EveMapper
             int mapId,
             int characterId,
             [Frozen] Mock<IWHMapRepository> mapRepository,
-            EveMapperAccessHelper sut
-        )
+            EveMapperAccessHelper sut)
         {
             mapRepository.Setup(x => x.GetById(It.IsAny<int>()))
-                .Returns(Task.FromResult<WHMap?>(null));
+                .ReturnsAsync((WHMap?)null);
 
             Assert.False(await sut.IsEveMapperMapAccessAuthorized(characterId, mapId));
         }
 
-        [Theory, AutoDomainData]
+        [Theory, AutoMoqData]
         public async Task IfMapExistsAndUserHasInstanceAccess_WhenGettingMapAccess_ReturnsTrue(
             WHMap map,
+            [Frozen] Mock<ICharacterServices> characterServices,
             [Frozen] Mock<IWHMapRepository> mapRepository,
             [Frozen] Mock<IWHInstanceRepository> instanceRepository,
-            [Frozen] Mock<ICharacterServices> characterServices,
-            EveMapperAccessHelper sut
-        )
+            EveMapperAccessHelper sut)
         {
             map.WHInstanceId = 1;
             mapRepository.Setup(x => x.GetById(It.IsAny<int>()))
-                .Returns(Task.FromResult<WHMap?>(map));
+                .ReturnsAsync(map);
 
             var character = new Character() { CorporationId = 100, AllianceId = 200 };
             characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
-                .Returns(Task.FromResult(Result<Character>.Success(character)));
+                .ReturnsAsync(Result<Character>.Success(character));
 
             instanceRepository.Setup(x => x.HasInstanceAccessAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
-                .Returns(Task.FromResult(true));
+                .ReturnsAsync(true);
 
             Assert.True(await sut.IsEveMapperMapAccessAuthorized(1, map.Id));
         }
 
-        [Theory, AutoDomainData]
+        [Theory, AutoMoqData]
         public async Task IfMapHasNoInstance_WhenGettingMapAccess_ReturnsFalse(
             WHMap map,
             [Frozen] Mock<IWHMapRepository> mapRepository,
-            EveMapperAccessHelper sut
-        )
+            EveMapperAccessHelper sut)
         {
             map.WHInstanceId = null;
             mapRepository.Setup(x => x.GetById(It.IsAny<int>()))
-                .Returns(Task.FromResult<WHMap?>(map));
+                .ReturnsAsync(map);
 
             Assert.False(await sut.IsEveMapperMapAccessAuthorized(1, map.Id));
         }
         #endregion
-
     }
 }

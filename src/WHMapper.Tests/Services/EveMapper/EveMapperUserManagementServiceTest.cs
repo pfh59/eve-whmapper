@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Repositories.WHMaps;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOAuthProvider.Services;
@@ -19,6 +21,11 @@ public class EveMapperUserManagementServiceTest
     private readonly Mock<ICharacterServices> _mockCharacterServices;
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<ILogger<EveMapperUserManagementService>> _mockLogger;
+    private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+    private readonly Mock<IServiceScope> _mockServiceScope;
+    private readonly Mock<IServiceProvider> _mockScopedServiceProvider;
+    private readonly Mock<IWHMapRepository> _mockWHMapRepository;
+    private readonly Mock<IEveMapperAccessHelper> _mockAccessHelper;
     private readonly EveMapperUserManagementService _service;
 
     public EveMapperUserManagementServiceTest()
@@ -27,6 +34,21 @@ public class EveMapperUserManagementServiceTest
         _mockCharacterServices = new Mock<ICharacterServices>();
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockLogger = new Mock<ILogger<EveMapperUserManagementService>>();
+        _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+        _mockServiceScope = new Mock<IServiceScope>();
+        _mockScopedServiceProvider = new Mock<IServiceProvider>();
+        _mockWHMapRepository = new Mock<IWHMapRepository>();
+        _mockAccessHelper = new Mock<IEveMapperAccessHelper>();
+
+        // Setup the scoped service provider to return the IWHMapRepository
+        _mockScopedServiceProvider.Setup(sp => sp.GetService(typeof(IWHMapRepository))).Returns(_mockWHMapRepository.Object);
+        _mockScopedServiceProvider.Setup(sp => sp.GetService(typeof(IEveMapperAccessHelper))).Returns(_mockAccessHelper.Object);
+
+        // Setup the service scope to return the scoped service provider
+        _mockServiceScope.Setup(s => s.ServiceProvider).Returns(_mockScopedServiceProvider.Object);
+        _mockServiceScopeFactory.Setup(f => f.CreateScope()).Returns(_mockServiceScope.Object);
+        _mockServiceProvider.Setup(sp => sp.GetService(typeof(IServiceScopeFactory))).Returns(_mockServiceScopeFactory.Object);
+
         _service = new EveMapperUserManagementService(_mockTokenProvider.Object, _mockCharacterServices.Object, _mockServiceProvider.Object, _mockLogger.Object);
     }
 
