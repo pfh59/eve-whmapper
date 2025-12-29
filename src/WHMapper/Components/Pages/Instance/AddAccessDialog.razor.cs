@@ -36,6 +36,9 @@ public partial class AddAccessDialog : ComponentBase
     private IEveMapperUserManagementService UserManagement { get; set; } = null!;
 
     [Inject]
+    private IEveMapperRealTimeService RealTimeService { get; set; } = null!;
+
+    [Inject]
     private ClientUID UID { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -95,6 +98,10 @@ public partial class AddAccessDialog : ComponentBase
             if (result != null)
             {
                 Snackbar.Add($"Granted access to {_selectedEntity.Name}", Severity.Success);
+                
+                // Notify all connected users about the new instance access
+                await RealTimeService.NotifyInstanceAccessAdded(_characterId, InstanceId, result.Id);
+                
                 MudDialog.Close(DialogResult.Ok(true));
             }
             else

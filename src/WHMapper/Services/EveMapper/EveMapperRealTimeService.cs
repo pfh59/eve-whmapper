@@ -38,6 +38,8 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, Task>? MapAllAccessesRemoved;
     public event Func<int, int, Task>? UserOnMapConnected;
     public event Func<int, int, Task>? UserOnMapDisconnected;
+    public event Func<int, int, int, Task>? InstanceAccessAdded;
+    public event Func<int, int, int, Task>? InstanceAccessRemoved;
 
 
     public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, IEveOnlineTokenProvider tokenProvider, IConfiguration configuration)
@@ -242,6 +244,20 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                     if (UserOnMapDisconnected != null)
                     {
                         await UserOnMapDisconnected.Invoke(accountID, mapId);
+                    }
+                });
+                hubConnection.On<int, int, int>("NotifyInstanceAccessAdded", async (accountID, instanceId, accessId) => 
+                {
+                    if (InstanceAccessAdded != null)
+                    {
+                        await InstanceAccessAdded.Invoke(accountID, instanceId, accessId);
+                    }
+                });
+                hubConnection.On<int, int, int>("NotifyInstanceAccessRemoved", async (accountID, instanceId, accessId) => 
+                {
+                    if (InstanceAccessRemoved != null)
+                    {
+                        await InstanceAccessRemoved.Invoke(accountID, instanceId, accessId);
                     }
                 });
 
@@ -500,6 +516,24 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
+    public async Task NotifyInstanceAccessAdded(int accountID, int instanceId, int accessId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendInstanceAccessAdded", instanceId, accessId);
+        }
+    }
+
+    public async Task NotifyInstanceAccessRemoved(int accountID, int instanceId, int accessId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendInstanceAccessRemoved", instanceId, accessId);
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -557,6 +591,8 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             MapAllAccessesRemoved = null;
             UserOnMapConnected = null;
             UserOnMapDisconnected = null;
+            InstanceAccessAdded = null;
+            InstanceAccessRemoved = null;
         }
         
         _logger.LogInformation("EveMapperRealTimeService disposed");

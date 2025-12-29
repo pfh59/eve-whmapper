@@ -38,6 +38,9 @@ public partial class MapAccessDialog : ComponentBase
     private IEveMapperUserManagementService UserManagement { get; set; } = null!;
 
     [Inject]
+    private IEveMapperRealTimeService RealTimeService { get; set; } = null!;
+
+    [Inject]
     private ClientUID UID { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -88,6 +91,10 @@ public partial class MapAccessDialog : ComponentBase
             if (result != null)
             {
                 Snackbar.Add($"Granted map access to {instanceAccess.EveEntityName}", Severity.Success);
+                
+                // Notify all connected users about the new map access
+                await RealTimeService.NotifyMapAccessesAdded(_characterId, Map.Id, new[] { result.Id });
+                
                 await LoadMapAccessesAsync();
                 StateHasChanged();
             }
@@ -113,10 +120,15 @@ public partial class MapAccessDialog : ComponentBase
         {
             try
             {
-                var success = await InstanceService.RemoveMapAccessAsync(InstanceId, Map.Id, access.Id, _characterId);
+                var accessId = access.Id;
+                var success = await InstanceService.RemoveMapAccessAsync(InstanceId, Map.Id, accessId, _characterId);
                 if (success)
                 {
                     Snackbar.Add("Map access removed successfully", Severity.Success);
+                    
+                    // Notify all connected users about the removed map access
+                    await RealTimeService.NotifyMapAccessRemoved(_characterId, Map.Id, accessId);
+                    
                     await LoadMapAccessesAsync();
                     StateHasChanged();
                 }
@@ -147,6 +159,10 @@ public partial class MapAccessDialog : ComponentBase
                 if (success)
                 {
                     Snackbar.Add("All map access restrictions removed", Severity.Success);
+                    
+                    // Notify all connected users that all map accesses have been removed
+                    await RealTimeService.NotifyMapAllAccessesRemoved(_characterId, Map.Id);
+                    
                     await LoadMapAccessesAsync();
                     StateHasChanged();
                 }

@@ -89,9 +89,10 @@ namespace WHMapper.Services.EveMapper
         Task<WHInstanceAccess?> AddAccessAsync(int instanceId, int eveEntityId, string eveEntityName, WHAccessEntity entityType, int requestingCharacterId);
 
         /// <summary>
-        /// Removes access from an instance
+        /// Removes access from an instance and cascade deletes related map accesses
         /// </summary>
-        Task<bool> RemoveAccessAsync(int instanceId, int accessId, int requestingCharacterId);
+        /// <returns>A tuple containing: success flag, and dictionary of removed map accesses (mapId -> list of accessIds)</returns>
+        Task<(bool Success, IDictionary<int, IEnumerable<int>> RemovedMapAccesses)> RemoveAccessAsync(int instanceId, int accessId, int requestingCharacterId);
 
         /// <summary>
         /// Gets all access entries for an instance

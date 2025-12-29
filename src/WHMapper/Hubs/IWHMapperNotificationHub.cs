@@ -27,6 +27,8 @@ namespace WHMapper.Hubs
         Task NotifyMapAllAccessesRemoved(int accountID, int mapId); 
         Task NotifyUserOnMapConnected(int accountID, int mapId); 
         Task NotifyUserOnMapDisconnected(int accountID, int mapId); 
+        Task NotifyInstanceAccessAdded(int accountID, int instanceId, int accessId);
+        Task NotifyInstanceAccessRemoved(int accountID, int instanceId, int accessId);
     }
 }
 

@@ -191,6 +191,22 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     event Func<int, int, Task> UserOnMapDisconnected;
 
     /// <summary>
+    /// Triggered when an access is added to an instance.
+    /// </summary>
+    /// <param name="accountID">The accountID of the user who added the access.</param>
+    /// <param name="instanceId">The ID of the instance.</param>
+    /// <param name="accessId">The ID of the access that was added.</param>
+    event Func<int, int, int, Task> InstanceAccessAdded;
+
+    /// <summary>
+    /// Triggered when an access is removed from an instance.
+    /// </summary>
+    /// <param name="accountID">The accountID of the user who removed the access.</param>
+    /// <param name="instanceId">The ID of the instance.</param>
+    /// <param name="accessId">The ID of the access that was removed.</param>
+    event Func<int, int, int, Task> InstanceAccessRemoved;
+
+    /// <summary>
     /// Starts the real-time service.
     /// </summary>
     /// <param name="accountID">The ID of the account.</param>
@@ -402,6 +418,24 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="mapId">The ID of the map where the user disconnected.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task NotifyUserOnMapDisconnected(int accountID, int mapId);
+
+    /// <summary>
+    /// Notifies the server that an access has been added to an instance.
+    /// </summary>
+    /// <param name="accountID">The ID of the account.</param>
+    /// <param name="instanceId">The ID of the instance.</param>
+    /// <param name="accessId">The ID of the access that was added.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task NotifyInstanceAccessAdded(int accountID, int instanceId, int accessId);
+
+    /// <summary>
+    /// Notifies the server that an access has been removed from an instance.
+    /// </summary>
+    /// <param name="accountID">The ID of the account.</param>
+    /// <param name="instanceId">The ID of the instance.</param>
+    /// <param name="accessId">The ID of the access that was removed.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task NotifyInstanceAccessRemoved(int accountID, int instanceId, int accessId);
 
     /// <summary>
     /// Checks if the account is connected.

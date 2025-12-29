@@ -173,5 +173,44 @@ namespace WHMapper.Repositories.WHMapAccesses
             using var context = await _contextFactory.CreateDbContextAsync();
             return await context.DbWHMapAccesses.CountAsync(x => x.WHMapId == mapId);
         }
+
+        public async Task<IDictionary<int, IEnumerable<int>>> RemoveMapAccessesByEntityAsync(int instanceId, int eveEntityId, Models.Db.Enums.WHAccessEntity eveEntity)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var result = new Dictionary<int, IEnumerable<int>>();
+            
+            try
+            {
+                // Get all maps for this instance
+                var mapIds = await context.DbWHMaps
+                    .Where(m => m.WHInstanceId == instanceId)
+                    .Select(m => m.Id)
+                    .ToListAsync();
+
+                // Find all map accesses for this entity in these maps
+                var accessesToRemove = await context.DbWHMapAccesses
+                    .Where(a => mapIds.Contains(a.WHMapId) && a.EveEntityId == eveEntityId && a.EveEntity == eveEntity)
+                    .ToListAsync();
+
+                if (accessesToRemove.Any())
+                {
+                    // Group by map ID for the result
+                    result = accessesToRemove
+                        .GroupBy(a => a.WHMapId)
+                        .ToDictionary(g => g.Key, g => g.Select(a => a.Id).AsEnumerable());
+
+                    context.DbWHMapAccesses.RemoveRange(accessesToRemove);
+                    await context.SaveChangesAsync();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing map accesses for entity {EntityId} ({EntityType}) from instance {InstanceId}", 
+                    eveEntityId, eveEntity, instanceId);
+                return result;
+            }
+        }
     }
 }

@@ -38,5 +38,14 @@ namespace WHMapper.Repositories.WHMapAccesses
         /// Gets the count of access entries for a map
         /// </summary>
         Task<int> GetMapAccessCountAsync(int mapId);
+
+        /// <summary>
+        /// Removes all map access entries for a specific entity across all maps of an instance
+        /// </summary>
+        /// <param name="instanceId">The instance ID</param>
+        /// <param name="eveEntityId">The EVE entity ID</param>
+        /// <param name="eveEntity">The type of EVE entity</param>
+        /// <returns>The list of removed access IDs grouped by map ID</returns>
+        Task<IDictionary<int, IEnumerable<int>>> RemoveMapAccessesByEntityAsync(int instanceId, int eveEntityId, Models.Db.Enums.WHAccessEntity eveEntity);
     }
 }

@@ -45,6 +45,9 @@ public partial class Admin : ComponentBase
     private IWHInstanceService InstanceService { get; set; } = null!;
 
     [Inject]
+    private IEveMapperRealTimeService RealTimeService { get; set; } = null!;
+
+    [Inject]
     private IEveMapperSearch EveMapperSearch { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -249,15 +252,29 @@ public partial class Admin : ComponentBase
     {
         var confirm = await DialogService.ShowMessageBox(
             "Remove Access",
-            $"Are you sure you want to remove access for '{access.EveEntityName}'?",
+            $"Are you sure you want to remove access for '{access.EveEntityName}'? This will also remove any map-specific access for this entity.",
             yesText: "Remove", cancelText: "Cancel");
 
         if (confirm == true)
         {
-            var success = await InstanceService.RemoveAccessAsync(InstanceId, access.Id, _characterId);
+            var accessId = access.Id;
+            var (success, removedMapAccesses) = await InstanceService.RemoveAccessAsync(InstanceId, accessId, _characterId);
             if (success)
             {
                 Snackbar.Add("Access removed successfully", Severity.Success);
+                
+                // Notify all connected users about the removed instance access
+                await RealTimeService.NotifyInstanceAccessRemoved(_characterId, InstanceId, accessId);
+                
+                // Notify about removed map accesses
+                foreach (var mapAccess in removedMapAccesses)
+                {
+                    foreach (var removedAccessId in mapAccess.Value)
+                    {
+                        await RealTimeService.NotifyMapAccessRemoved(_characterId, mapAccess.Key, removedAccessId);
+                    }
+                }
+                
                 await LoadDataAsync();
                 StateHasChanged();
             }

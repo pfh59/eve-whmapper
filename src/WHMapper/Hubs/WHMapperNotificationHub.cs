@@ -283,6 +283,24 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         }
     }
 
+    public async Task SendInstanceAccessAdded(int instanceId, int accessId)
+    {
+        int accountID = CurrentAccountId();
+        if(accountID != 0)
+        {
+            await Clients.All.NotifyInstanceAccessAdded(accountID, instanceId, accessId);
+        }
+    }
+
+    public async Task SendInstanceAccessRemoved(int instanceId, int accessId)
+    {
+        int accountID = CurrentAccountId();
+        if(accountID != 0)
+        {
+            await Clients.All.NotifyInstanceAccessRemoved(accountID, instanceId, accessId);
+        }
+    }
+
  
 
 }

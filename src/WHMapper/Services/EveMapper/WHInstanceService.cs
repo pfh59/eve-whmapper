@@ -203,17 +203,43 @@ namespace WHMapper.Services.EveMapper
             return await _instanceRepository.AddInstanceAccessAsync(access);
         }
 
-        public async Task<bool> RemoveAccessAsync(int instanceId, int accessId, int requestingCharacterId)
+        public async Task<(bool Success, IDictionary<int, IEnumerable<int>> RemovedMapAccesses)> RemoveAccessAsync(int instanceId, int accessId, int requestingCharacterId)
         {
+            var emptyResult = new Dictionary<int, IEnumerable<int>>();
+            
             // Only admin can remove access
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to remove access from instance {InstanceId} but is not admin",
                     requestingCharacterId, instanceId);
-                return false;
+                return (false, emptyResult);
             }
 
-            return await _instanceRepository.RemoveInstanceAccessAsync(instanceId, accessId);
+            // Get the access to find the entity details before removing
+            var accesses = await _instanceRepository.GetInstanceAccessesAsync(instanceId);
+            var accessToRemove = accesses?.FirstOrDefault(a => a.Id == accessId);
+            
+            if (accessToRemove == null)
+            {
+                _logger.LogWarning("Instance access {AccessId} not found for instance {InstanceId}", accessId, instanceId);
+                return (false, emptyResult);
+            }
+
+            // First, remove all map accesses for this entity
+            var removedMapAccesses = await _mapAccessRepository.RemoveMapAccessesByEntityAsync(
+                instanceId, 
+                accessToRemove.EveEntityId, 
+                accessToRemove.EveEntity);
+
+            if (removedMapAccesses.Any())
+            {
+                _logger.LogInformation("Removed {Count} map accesses for entity {EntityId} ({EntityType}) when removing instance access",
+                    removedMapAccesses.Sum(x => x.Value.Count()), accessToRemove.EveEntityId, accessToRemove.EveEntity);
+            }
+
+            // Then remove the instance access
+            var success = await _instanceRepository.RemoveInstanceAccessAsync(instanceId, accessId);
+            return (success, removedMapAccesses);
         }
 
         public async Task<IEnumerable<WHInstanceAccess>?> GetAccessesAsync(int instanceId)
