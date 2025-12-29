@@ -30,7 +30,7 @@ public partial class Overview : ComponentBase
     private ICharacterServices CharacterServices { get; set; } = null!;
 
     [Inject]
-    private IWHInstanceService InstanceService { get; set; } = null!;
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {

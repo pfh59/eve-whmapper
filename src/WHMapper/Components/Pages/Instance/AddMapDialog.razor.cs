@@ -21,7 +21,7 @@ public partial class AddMapDialog : ComponentBase
     public int InstanceId { get; set; }
 
     [Inject]
-    private IWHInstanceService InstanceService { get; set; } = null!;
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;

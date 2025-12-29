@@ -9,15 +9,15 @@ namespace WHMapper.Services.EveMapper
     /// <summary>
     /// Service for managing WHMapper instances (multi-tenant registration)
     /// </summary>
-    public class WHInstanceService : IWHInstanceService
+    public class EveMapperInstanceService : IEveMapperInstanceService
     {
-        private readonly ILogger<WHInstanceService> _logger;
+        private readonly ILogger<EveMapperInstanceService> _logger;
         private readonly IWHInstanceRepository _instanceRepository;
         private readonly IWHMapRepository _mapRepository;
         private readonly IWHMapAccessRepository _mapAccessRepository;
 
-        public WHInstanceService(
-            ILogger<WHInstanceService> logger,
+        public EveMapperInstanceService(
+            ILogger<EveMapperInstanceService> logger,
             IWHInstanceRepository instanceRepository,
             IWHMapRepository mapRepository,
             IWHMapAccessRepository mapAccessRepository)

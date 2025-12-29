@@ -26,7 +26,7 @@ public partial class MapAccessDialog : ComponentBase
     public IEnumerable<WHInstanceAccess>? InstanceAccesses { get; set; }
 
     [Inject]
-    private IWHInstanceService InstanceService { get; set; } = null!;
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;

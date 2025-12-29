@@ -6,7 +6,7 @@ namespace WHMapper.Services.EveMapper
     /// <summary>
     /// Service for managing WHMapper instances (multi-tenant registration)
     /// </summary>
-    public interface IWHInstanceService
+    public interface IEveMapperInstanceService
     {
         /// <summary>
         /// Creates a new instance for a character, corporation, or alliance

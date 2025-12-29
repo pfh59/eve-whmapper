@@ -59,6 +59,11 @@ namespace WHMapper.Repositories.WHInstances
                 existing.Name = item.Name;
                 existing.Description = item.Description;
                 existing.IsActive = item.IsActive;
+                existing.OwnerEveEntityId = item.OwnerEveEntityId;
+                existing.OwnerEveEntityName = item.OwnerEveEntityName;
+                existing.OwnerType = item.OwnerType;
+                existing.CreatorCharacterId = item.CreatorCharacterId;
+                existing.CreatorCharacterName = item.CreatorCharacterName;
 
                 await context.SaveChangesAsync();
                 return existing;

@@ -93,5 +93,13 @@ namespace WHMapper.Models.Db
             CreatorCharacterId = creatorCharacterId;
             CreatorCharacterName = creatorCharacterName;
         }
+
+        //add constructor with description
+        public WHInstance(string name, int ownerEveEntityId, string ownerEveEntityName, WHAccessEntity ownerType,
+            int creatorCharacterId, string creatorCharacterName, string? description)
+            : this(name, ownerEveEntityId, ownerEveEntityName, ownerType, creatorCharacterId, creatorCharacterName)
+        {
+            Description = description;
+        }
     }
 }

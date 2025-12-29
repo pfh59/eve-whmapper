@@ -22,7 +22,7 @@ public partial class AddAdminDialog : ComponentBase
     public int InstanceId { get; set; }
 
     [Inject]
-    private IWHInstanceService InstanceService { get; set; } = null!;
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     [Inject]
     private IEveMapperSearch EveMapperSearch { get; set; } = null!;

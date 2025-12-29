@@ -21,7 +21,7 @@ public partial class EditInstanceDialog : ComponentBase
     public WHInstance Instance { get; set; } = null!;
 
     [Inject]
-    private IWHInstanceService InstanceService { get; set; } = null!;
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;

@@ -275,7 +275,7 @@ builder.Services.AddSingleton<IEveMapperUserManagementService,EveMapperUserManag
 builder.Services.AddScoped<IEveMapperService, EveMapperService>();
 builder.Services.AddScoped<IEveMapperCacheService, EveMapperCacheService>();
 builder.Services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
-builder.Services.AddScoped<IWHInstanceService, WHInstanceService>();
+builder.Services.AddScoped<IEveMapperInstanceService, EveMapperInstanceService>();
 builder.Services.AddScoped<IEveMapperTracker, EveMapperTracker>();
 builder.Services.AddScoped<IEveMapperSearch, EveMapperSearch>();
 builder.Services.AddScoped<IEveMapperHelper, EveMapperHelper>();

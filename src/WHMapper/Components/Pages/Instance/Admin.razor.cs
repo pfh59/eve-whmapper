@@ -42,7 +42,7 @@ public partial class Admin : ComponentBase
     private ClientUID UID { get; set; } = null!;
 
     [Inject]
-    private IWHInstanceService InstanceService { get; set; } = null!;
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     [Inject]
     private IEveMapperRealTimeService RealTimeService { get; set; } = null!;

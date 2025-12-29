@@ -51,7 +51,7 @@ public partial class Register : ComponentBase
     private IEveMapperService EveMapperService { get; set; } = null!;
 
     [Inject]
-    private IWHInstanceService InstanceService { get; set; } = null!;
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
