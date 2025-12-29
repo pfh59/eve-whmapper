@@ -17,13 +17,17 @@ public class EveMapperUserManagementServiceTest
 {
     private readonly Mock<IEveOnlineTokenProvider> _mockTokenProvider;
     private readonly Mock<ICharacterServices> _mockCharacterServices;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<ILogger<EveMapperUserManagementService>> _mockLogger;
     private readonly EveMapperUserManagementService _service;
 
     public EveMapperUserManagementServiceTest()
     {
         _mockTokenProvider = new Mock<IEveOnlineTokenProvider>();
         _mockCharacterServices = new Mock<ICharacterServices>();
-        _service = new EveMapperUserManagementService(_mockTokenProvider.Object, _mockCharacterServices.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockLogger = new Mock<ILogger<EveMapperUserManagementService>>();
+        _service = new EveMapperUserManagementService(_mockTokenProvider.Object, _mockCharacterServices.Object, _mockServiceProvider.Object, _mockLogger.Object);
     }
 
     [Fact]
