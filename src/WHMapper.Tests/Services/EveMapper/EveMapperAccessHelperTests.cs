@@ -1,15 +1,33 @@
-﻿using AutoFixture.Xunit2;
+﻿using AutoFixture;
+using AutoFixture.AutoMoq;
+using AutoFixture.Xunit2;
 using Moq;
 using WHMapper.Models.Db;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Character;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHAdmins;
+using WHMapper.Repositories.WHInstances;
+using WHMapper.Repositories.WHMaps;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
+using Xunit;
 
 namespace WHMapper.Tests.Services.EveMapper
 {
+    public class AutoMoqDataAttribute : AutoDataAttribute
+    {
+        public AutoMoqDataAttribute() : base(() => new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true }))
+        {
+        }
+    }
+
+    public class InlineAutoMoqDataAttribute : InlineAutoDataAttribute
+    {
+        public InlineAutoMoqDataAttribute(params object[] values) 
+            : base(new AutoMoqDataAttribute(), values)
+        {
+        }
+    }
+
     public class EveMapperAccessHelperTests
     {
         #region IsEveMapperUserAccessAuthorized()
@@ -18,53 +36,49 @@ namespace WHMapper.Tests.Services.EveMapper
         [InlineAutoMoqData(10000)]
         [InlineAutoMoqData(int.MinValue)]
         [InlineAutoMoqData(int.MaxValue)]
-        public async Task IfAccessRepositoryIsEmpty_WhenGettingState_ReturnsTrue(
+        public async Task IfNoInstancesExist_WhenGettingState_ReturnsFalse(
             int characterId,
-            [Frozen] Mock<IWHAccessRepository> accessRepository,
-            EveMapperAccessHelper sut
-            )
+            [Frozen] Mock<ICharacterServices> characterServices,
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
         {
-            var accessRepositoryReturn = Task.FromResult(new List<WHAccess>() as IEnumerable<WHAccess>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+            var character = new Character() { CorporationId = 100, AllianceId = 200 };
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
+                .ReturnsAsync(Result<Character>.Success(character));
+            
+            instanceRepository.Setup(x => x.GetAccessibleInstancesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
+                .ReturnsAsync(new List<WHInstance>());
 
-            Assert.True(await sut.IsEveMapperUserAccessAuthorized(characterId));
+            Assert.False(await sut.IsEveMapperUserAccessAuthorized(characterId));
         }
 
-        [Theory, AutoDomainData]
-        public async Task IfWHAccessExistsAndCharacterIsNull_WhenGettingAccess_ReturnsFalse(
-            WHAccess wHAccess,
-            [Frozen] Mock<IWHAccessRepository> accessRepository,
+        [Theory, AutoMoqData]
+        public async Task IfInstanceExistsAndUserHasAccess_WhenGettingAccess_ReturnsTrue(
+            WHInstance instance,
             [Frozen] Mock<ICharacterServices> characterServices,
-            EveMapperAccessHelper sut
-            )
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
         {
-            var accessRepositoryReturn = Task.FromResult(new List<WHAccess>() { wHAccess } as IEnumerable<WHAccess>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+            var character = new Character() { CorporationId = 100, AllianceId = 200 };
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
+                .ReturnsAsync(Result<Character>.Success(character));
+            
+            instanceRepository.Setup(x => x.GetAccessibleInstancesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
+                .ReturnsAsync(new List<WHInstance> { instance });
 
-            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>())).Returns(Task.FromResult(Result<Character>.Failure("Character not found")));
+            Assert.True(await sut.IsEveMapperUserAccessAuthorized(1));
+        }
+
+        [Theory, AutoMoqData]
+        public async Task IfCharacterNotFound_WhenGettingAccess_ReturnsFalse(
+            [Frozen] Mock<ICharacterServices> characterServices,
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
+        {
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
+                .ReturnsAsync(Result<Character>.Failure("Character not found"));
 
             Assert.False(await sut.IsEveMapperUserAccessAuthorized(1));
-        }
-
-        [Theory, AutoDomainData]
-        public async Task IfWHAccessExistsAndCharacterExists_WhenGettingAccess_ReturnsTrue(
-            WHAccess wHAccess,
-            [Frozen] Mock<IWHAccessRepository> accessRepository,
-            [Frozen] Mock<ICharacterServices> characterServices,
-            EveMapperAccessHelper sut
-            )
-        {
-            wHAccess.EveEntityId = 2;
-            var accessRepositoryReturn = Task.FromResult(new List<WHAccess>() { wHAccess } as IEnumerable<WHAccess>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
-            var character = new Character()
-            {
-                CorporationId = 3,
-                AllianceId = 4
-            };
-            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>())).Returns(Task.FromResult(Result<Character>.Success(character)));
-
-            Assert.True(await sut.IsEveMapperUserAccessAuthorized(2));
         }
         #endregion
 
@@ -72,86 +86,79 @@ namespace WHMapper.Tests.Services.EveMapper
         [Theory]
         [InlineAutoMoqData(1)]
         [InlineAutoMoqData(10000)]
-        [InlineAutoMoqData(int.MinValue)]
-        [InlineAutoMoqData(int.MaxValue)]
-        public async Task IfAccessRepositoryIsEmpty_WhenGettingAdminState_ReturnsTrue(
+        public async Task IfNoAdminInstances_WhenGettingAdminState_ReturnsFalse(
             int characterId,
-            [Frozen] Mock<IWHAdminRepository> accessRepository,
-            EveMapperAccessHelper sut
-            )
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
         {
-            var accessRepositoryReturn = Task.FromResult(new List<WHAdmin>() as IEnumerable<WHAdmin>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+            instanceRepository.Setup(x => x.GetInstancesForAdminAsync(It.IsAny<int>()))
+                .ReturnsAsync(new List<WHInstance>());
 
-            Assert.True(await sut.IsEveMapperUserAccessAuthorized(characterId));
+            Assert.False(await sut.IsEveMapperAdminAccessAuthorized(characterId));
         }
 
-        [Theory]
-        [InlineAutoMoqData(1)]
-        [InlineAutoMoqData(10000)]
-        [InlineAutoMoqData(int.MinValue)]
-        [InlineAutoMoqData(int.MaxValue)]
-        public async Task IfAccessRepositoryIsPopulatedGettingUnknownCharacterId_WhenGettingAdminState_ReturnsFalse(
-            int characterId,
-            WHAdmin wHAdmin,
-            [Frozen] Mock<IWHAdminRepository> accessRepository,
-            EveMapperAccessHelper sut
-            )
+        [Theory, AutoMoqData]
+        public async Task IfUserIsAdmin_WhenGettingAdminState_ReturnsTrue(
+            WHInstance instance,
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
         {
-            wHAdmin.EveCharacterId = 2;
-            var accessRepositoryReturn = Task.FromResult(new List<WHAdmin>() { wHAdmin } as IEnumerable<WHAdmin>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+            instanceRepository.Setup(x => x.GetInstancesForAdminAsync(It.IsAny<int>()))
+                .ReturnsAsync(new List<WHInstance> { instance });
 
-            Assert.True(await sut.IsEveMapperUserAccessAuthorized(characterId));
-        }
-
-        [Theory]
-        [InlineAutoMoqData(1)]
-        [InlineAutoMoqData(10000)]
-        [InlineAutoMoqData(int.MinValue)]
-        [InlineAutoMoqData(int.MaxValue)]
-        public async Task IfAccessRepositoryIsPopulatedGettingKnownCharacterId_WhenGettingAdminState_ReturnsFalse(
-            int characterId,
-            WHAdmin wHAdmin,
-            [Frozen] Mock<IWHAdminRepository> accessRepository,
-            EveMapperAccessHelper sut
-            )
-        {
-            wHAdmin.EveCharacterId = characterId;
-            var accessRepositoryReturn = Task.FromResult(new List<WHAdmin>() { wHAdmin } as IEnumerable<WHAdmin>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
-
-            Assert.True(await sut.IsEveMapperUserAccessAuthorized(characterId));
+            Assert.True(await sut.IsEveMapperAdminAccessAuthorized(1));
         }
         #endregion
 
         #region IsEveMapperMapAccessAuthorized()
         [Theory]
         [InlineAutoMoqData(1, 1)]
-        [InlineAutoMoqData(10000, 10000)]
-        [InlineAutoMoqData(int.MinValue, int.MinValue)]
-        [InlineAutoMoqData(int.MaxValue, int.MaxValue)]
-        public async Task IfAccessRepositoryIsPopulatedGettingKnownCharacterIdAndMapId_WhenGettingMapAccess_ReturnsExpectedResult(
+        public async Task IfMapDoesNotExist_WhenGettingMapAccess_ReturnsFalse(
             int mapId,
             int characterId,
-            WHAdmin wHAdmin,
-            [Frozen] Mock<IWHAdminRepository> accessRepository,
-            EveMapperAccessHelper sut
-        )
+            [Frozen] Mock<IWHMapRepository> mapRepository,
+            EveMapperAccessHelper sut)
         {
-            // Arrange
-            wHAdmin.EveCharacterId = characterId;
-            var accessRepositoryReturn = Task.FromResult(new List<WHAdmin>() { wHAdmin } as IEnumerable<WHAdmin>);
-            accessRepository.Setup(x => x.GetAll()).Returns(accessRepositoryReturn!);
+            mapRepository.Setup(x => x.GetById(It.IsAny<int>()))
+                .ReturnsAsync((WHMap?)null);
 
-            // Act
-            var result = await sut.IsEveMapperMapAccessAuthorized(mapId, characterId);
-
-            // Assert
-            Assert.True(result);
+            Assert.False(await sut.IsEveMapperMapAccessAuthorized(characterId, mapId));
         }
-        
-        #endregion
 
+        [Theory, AutoMoqData]
+        public async Task IfMapExistsAndUserHasInstanceAccess_WhenGettingMapAccess_ReturnsTrue(
+            WHMap map,
+            [Frozen] Mock<ICharacterServices> characterServices,
+            [Frozen] Mock<IWHMapRepository> mapRepository,
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
+        {
+            map.WHInstanceId = 1;
+            mapRepository.Setup(x => x.GetById(It.IsAny<int>()))
+                .ReturnsAsync(map);
+
+            var character = new Character() { CorporationId = 100, AllianceId = 200 };
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
+                .ReturnsAsync(Result<Character>.Success(character));
+
+            instanceRepository.Setup(x => x.HasInstanceAccessAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
+                .ReturnsAsync(true);
+
+            Assert.True(await sut.IsEveMapperMapAccessAuthorized(1, map.Id));
+        }
+
+        [Theory, AutoMoqData]
+        public async Task IfMapHasNoInstance_WhenGettingMapAccess_ReturnsFalse(
+            WHMap map,
+            [Frozen] Mock<IWHMapRepository> mapRepository,
+            EveMapperAccessHelper sut)
+        {
+            map.WHInstanceId = null;
+            mapRepository.Setup(x => x.GetById(It.IsAny<int>()))
+                .ReturnsAsync(map);
+
+            Assert.False(await sut.IsEveMapperMapAccessAuthorized(1, map.Id));
+        }
+        #endregion
     }
 }

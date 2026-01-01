@@ -7,7 +7,44 @@
         </MudText>
     </Authorizing>
     <Authorized>
-        <WHMapper.Components.Pages.Mapper.Overview/>
+        <AuthorizeView Policy="Access" Context="accessContext">
+            <Authorized>
+                <WHMapper.Components.Pages.Mapper.Overview/>
+            </Authorized>
+            <NotAuthorized>
+                @* User is authenticated but has no instance access *@
+                <MudPaper Class="d-flex align-center justify-center" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" Width="100%">
+                    <MudCard Outlined="true" Class="pa-4" Style="max-width: 500px;">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5" Align="Align.Center">Welcome to EVE WHMapper</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">
+                                You don't have access to any instance yet.
+                            </MudText>
+                            <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-4">
+                                To use WHMapper, you need to either:
+                            </MudText>
+                            <MudList T="string" Dense="true">
+                                <MudListItem Icon="@Icons.Material.Filled.Add">
+                                    Create your own instance for yourself, your corporation, or alliance
+                                </MudListItem>
+                                <MudListItem Icon="@Icons.Material.Filled.People">
+                                    Ask an instance administrator to grant you access
+                                </MudListItem>
+                            </MudList>
+                        </MudCardContent>
+                        <MudCardActions Class="d-flex justify-center">
+                            <MudButton Variant="Variant.Filled" Href="/register" StartIcon="@Icons.Material.Filled.AppRegistration" Style="background-color: #1976d2; color: white;">
+                                Create an Instance
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudPaper>
+            </NotAuthorized>
+        </AuthorizeView>
     </Authorized>
     <NotAuthorized>
         @if(_loading)
@@ -54,102 +91,3 @@
         }
     </NotAuthorized>
 </AuthorizeView>
-
-@code {
-    private bool _loading = true;
-    private string _init_process_msg = string.Empty;
-
-
-    [Inject]
-    private ISnackbar Snackbar {get;set;} =null!;
-
-    [Inject]
-    private Services.SDE.ISDEServiceManager SDEServices {get;set;} =null!;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        if(SDEServices.IsExtractionSuccesful())
-        {
-            _loading = false;
-        }
-
-
-        await base.OnInitializedAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if(firstRender)
-        {
-            if(!SDEServices.IsExtractionSuccesful())
-            {
-                await DownloadExtractImportSDE();
-            }
-        }
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-
-    private async Task SetProcessMessage(string message)
-    {
-        await InvokeAsync(() => {
-            _init_process_msg = message;
-            StateHasChanged();
-        });
-    }
-
-    private async Task SetLoading(bool loading)
-    {
-        await InvokeAsync(() => {
-            _loading = loading;
-            StateHasChanged();
-        });
-    }
-
-    private async Task Cleaning()
-    {
-        await SetProcessMessage("Cleaning ... ");
-        await SDEServices.ClearCache();
-    }
-
-    private async Task DownloadExtractImportSDE()
-    {
-       if(await SDEServices.IsNewSDEAvailable())
-       {
-            await SetProcessMessage("Removing current SDE package (1/4)");
-            if (!await SDEServices.ClearSDEResources())
-            {
-                Snackbar.Add("Removing current SDE package failed", Severity.Error);
-                await Cleaning();
-                return;
-            }
-
-            await SetProcessMessage("Download SDE package (2/4)");
-            if(!await SDEServices.DownloadSDE())
-            {
-                Snackbar.Add("Download SDE package failed.", Severity.Error);
-                await Cleaning();
-                return;
-            }
-            
-            await SetProcessMessage("Extract SDE package (3/4)");
-            if(!await SDEServices.ExtractSDE())
-            {
-                Snackbar.Add("Extract SDE package failed.", Severity.Error);
-                await Cleaning();
-                return;
-            }
-
-            await SetProcessMessage("Initialize SDE cache (4/4)");
-            if(!await SDEServices.BuildCache())
-            {
-                Snackbar.Add("Initialize SDE cache failed.", Severity.Error);
-                await Cleaning();
-                return;
-            }
-        }
-        await SetLoading(false);    
-    }
-
-}

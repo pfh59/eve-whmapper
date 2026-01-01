@@ -32,6 +32,7 @@ public class WHMapperStoreMetricsTest
     {
         private readonly Dictionary<string, long> _counterValues;
         private readonly Dictionary<string, int> _gaugeValues;
+        private readonly object _lock = new object();
 
         public TestMeterFactory(Dictionary<string, long> counterValues, Dictionary<string, int> gaugeValues)
         {
@@ -63,15 +64,18 @@ public class WHMapperStoreMetricsTest
             listener.SetMeasurementEventCallback<int>((instrument, measurement, tags, state) =>
             {
                 var name = instrument.Name;
-                if (instrument is Counter<int>)
+                lock (_lock)
                 {
-                    if (!_counterValues.ContainsKey(name))
-                        _counterValues[name] = 0;
-                    _counterValues[name] += measurement;
-                }
-                else
-                {
-                    _gaugeValues[name] = measurement;
+                    if (instrument is Counter<int>)
+                    {
+                        if (!_counterValues.ContainsKey(name))
+                            _counterValues[name] = 0;
+                        _counterValues[name] += measurement;
+                    }
+                    else
+                    {
+                        _gaugeValues[name] = measurement;
+                    }
                 }
             });
 

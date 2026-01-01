@@ -1,0 +1,98 @@
+@page "/instances"
+@using WHMapper.Models.Db
+@using WHMapper.Models.Db.Enums
+@using WHMapper.Services.EveMapper
+@using WHMapper.Services.EveAPI.Characters
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+<PageTitle>WHMapper - My Instances</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudText Typo="Typo.h4">
+            <MudIcon Icon="@Icons.Material.Filled.Dashboard" Class="mr-2" />
+            My Instances
+        </MudText>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/">
+                <MudIcon Icon="@Icons.Material.Filled.Map" Class="mr-1" />
+                Back to Map
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Info" Href="/register">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" />
+                Create New Instance
+            </MudButton>
+        </MudStack>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressCircular Indeterminate="true" Class="d-block mx-auto my-8" />
+    }
+    else if (_instances?.Any() != true)
+    {
+        <MudPaper Class="pa-8 text-center">
+            <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Secondary" Class="mb-4" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary">No instances found</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                You don't have access to any instances yet. Create one or ask an admin to grant you access.
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Info" Href="/register">
+                Create Your First Instance
+            </MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var instance in _instances)
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <MudCard Elevation="2" Class="h-100">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">@instance.Name</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @GetOwnerTypeIcon(instance.OwnerType) @instance.OwnerEveEntityName
+                                </MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                @if (IsAdmin(instance))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Icon="@Icons.Material.Filled.AdminPanelSettings">
+                                        Admin
+                                    </MudChip>
+                                }
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!string.IsNullOrEmpty(instance.Description))
+                            {
+                                <MudText Typo="Typo.body2" Class="mb-2">@instance.Description</MudText>
+                            }
+                            <MudStack Row="true" Spacing="2" Class="mt-2">
+                                <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Map">
+                                    @(instance.WHMaps?.Count ?? 0) Maps
+                                </MudChip>
+                                <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Person">
+                                    @(instance.Administrators?.Count ?? 0) Admins
+                                </MudChip>
+                            </MudStack>
+                        </MudCardContent>
+                        <MudCardActions>
+                            @if (IsAdmin(instance))
+                            {
+                                <MudButton Variant="Variant.Text" Color="Color.Secondary" Href="@($"/instance/{instance.Id}/admin")">
+                                    Manage
+                                </MudButton>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>

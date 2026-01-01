@@ -1,33 +1,50 @@
 ﻿@foreach(var account in Accounts)
 {
-    var badgeColor = account.Tracking ? Color.Success : Color.Error;
-    <MudBadge Color="@badgeColor" Overlap="true" Bordered="true" Dot="true">
-        <MudMenu ActivationEvent="@MouseEvent.RightClick">
-            <ActivatorContent>
-                <MudAvatar Style="@(account.IsPrimary ? "border-color: white;border-width: 1px;border-style: solid;" : null)">
-                    <MudImage Src="@account.PortraitUrl"/>
-                </MudAvatar>
-            </ActivatorContent>
-            <ChildContent>
-                @if(account.IsPrimary)
-                {
-                    <MudMenuItem Icon="@Icons.Material.Filled.Check" Disabled="true">Primary</MudMenuItem>
-                }
-                else
-                {
-                    <MudMenuItem OnClick="@(() => SetPrimaryAccount(account.Id))">Set as Primary</MudMenuItem>
-                }
-                @if(account.Tracking)
-                {
-                    <MudMenuItem Icon="@Icons.Material.Filled.GpsOff" OnClick="@(() => ToggleTracking(account.Id))">UnTrack</MudMenuItem>
-                }
-                else
-                {
-                    <MudMenuItem Icon="@Icons.Material.Filled.GpsFixed" OnClick="@(() => ToggleTracking(account.Id))">Track</MudMenuItem>
-                }
-            </ChildContent>
-        </MudMenu>
-    </MudBadge>
+    var badgeColor = IsOnInstancesPage ? Color.Default : (account.Tracking ? Color.Success : Color.Error);
+    var hasAccess = account.HasCurrentMapAccess;
+    var avatarStyle = account.IsPrimary 
+        ? "border-color: white;border-width: 1px;border-style: solid;" 
+        : (!hasAccess || IsOnInstancesPage ? "opacity: 0.5;" : null);
+    var tooltipText = IsOnInstancesPage 
+        ? "Tracking disabled on instances page" 
+        : (hasAccess ? null : "No access to current map - Tracking disabled");
+    <MudTooltip Text="@tooltipText">
+        <MudBadge Color="@badgeColor" Overlap="true" Bordered="true" Dot="true">
+            <MudMenu ActivationEvent="@MouseEvent.RightClick">
+                <ActivatorContent>
+                    <MudAvatar Style="@avatarStyle">
+                        <MudImage Src="@account.PortraitUrl"/>
+                    </MudAvatar>
+                </ActivatorContent>
+                <ChildContent>
+                    @if(account.IsPrimary)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.Check" Disabled="true">Primary</MudMenuItem>
+                    }
+                    else
+                    {
+                        <MudMenuItem OnClick="@(() => SetPrimaryAccount(account.Id))" Disabled="@IsOnInstancesPage">Set as Primary</MudMenuItem>
+                    }
+                    @if(IsOnInstancesPage)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.Block" Disabled="true">Tracking paused</MudMenuItem>
+                    }
+                    else if(!hasAccess)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.Block" Disabled="true">No Map Access</MudMenuItem>
+                    }
+                    else if(account.Tracking)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.GpsOff" OnClick="@(() => ToggleTracking(account.Id))">UnTrack</MudMenuItem>
+                    }
+                    else
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.GpsFixed" OnClick="@(() => ToggleTracking(account.Id))">Track</MudMenuItem>
+                    }
+                </ChildContent>
+            </MudMenu>
+        </MudBadge>
+    </MudTooltip>
 }
             
 

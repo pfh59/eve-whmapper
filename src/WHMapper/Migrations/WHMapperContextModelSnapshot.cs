@@ -17,27 +17,60 @@ namespace WHMapper.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.16")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("WHAccessWHMap", b =>
+            modelBuilder.Entity("WHMapper.Models.Db.WHInstance", b =>
                 {
-                    b.Property<int>("WHAccessesId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<int>("WHMapId")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatorCharacterId")
                         .HasColumnType("integer");
 
-                    b.HasKey("WHAccessesId", "WHMapId");
+                    b.Property<string>("CreatorCharacterName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("WHMapId");
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
-                    b.ToTable("WHAccessWHMap");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int>("OwnerEveEntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OwnerEveEntityName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("OwnerType")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerEveEntityId", "OwnerType")
+                        .IsUnique();
+
+                    b.ToTable("Instances", (string)null);
                 });
 
-            modelBuilder.Entity("WHMapper.Models.Db.WHAccess", b =>
+            modelBuilder.Entity("WHMapper.Models.Db.WHInstanceAccess", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -55,21 +88,30 @@ namespace WHMapper.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("WHInstanceId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EveEntityId", "EveEntity")
+                    b.HasIndex("WHInstanceId", "EveEntityId", "EveEntity")
                         .IsUnique();
 
-                    b.ToTable("Accesses", (string)null);
+                    b.ToTable("InstanceAccesses", (string)null);
                 });
 
-            modelBuilder.Entity("WHMapper.Models.Db.WHAdmin", b =>
+            modelBuilder.Entity("WHMapper.Models.Db.WHInstanceAdmin", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("EveCharacterId")
                         .HasColumnType("integer");
@@ -78,12 +120,18 @@ namespace WHMapper.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsOwner")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("WHInstanceId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EveCharacterId")
+                    b.HasIndex("WHInstanceId", "EveCharacterId")
                         .IsUnique();
 
-                    b.ToTable("Admins", (string)null);
+                    b.ToTable("InstanceAdmins", (string)null);
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHJumpLog", b =>
@@ -135,12 +183,50 @@ namespace WHMapper.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<int?>("WHInstanceId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
                         .IsUnique();
 
+                    b.HasIndex("WHInstanceId");
+
                     b.ToTable("Maps", (string)null);
+                });
+
+            modelBuilder.Entity("WHMapper.Models.Db.WHMapAccess", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EveEntity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EveEntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EveEntityName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("WHMapId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WHMapId", "EveEntityId", "EveEntity")
+                        .IsUnique();
+
+                    b.ToTable("MapAccesses", (string)null);
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHNote", b =>
@@ -274,13 +360,13 @@ namespace WHMapper.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("EndOfLifeStatus")
+                        .HasColumnType("integer");
+
                     b.Property<int>("IdWHSystemFrom")
                         .HasColumnType("integer");
 
                     b.Property<int>("IdWHSystemTo")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("EndOfLifeStatus")
                         .HasColumnType("integer");
 
                     b.Property<int>("MassStatus")
@@ -329,17 +415,20 @@ namespace WHMapper.Migrations
                     b.ToTable("Routes", (string)null);
                 });
 
-            modelBuilder.Entity("WHAccessWHMap", b =>
+            modelBuilder.Entity("WHMapper.Models.Db.WHInstanceAccess", b =>
                 {
-                    b.HasOne("WHMapper.Models.Db.WHAccess", null)
-                        .WithMany()
-                        .HasForeignKey("WHAccessesId")
+                    b.HasOne("WHMapper.Models.Db.WHInstance", null)
+                        .WithMany("InstanceAccesses")
+                        .HasForeignKey("WHInstanceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
 
-                    b.HasOne("WHMapper.Models.Db.WHMap", null)
-                        .WithMany()
-                        .HasForeignKey("WHMapId")
+            modelBuilder.Entity("WHMapper.Models.Db.WHInstanceAdmin", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHInstance", null)
+                        .WithMany("Administrators")
+                        .HasForeignKey("WHInstanceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -351,6 +440,25 @@ namespace WHMapper.Migrations
                         .HasForeignKey("WHSystemLinkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WHMapper.Models.Db.WHMap", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHInstance", null)
+                        .WithMany("WHMaps")
+                        .HasForeignKey("WHInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("WHMapper.Models.Db.WHMapAccess", b =>
+                {
+                    b.HasOne("WHMapper.Models.Db.WHMap", "WHMap")
+                        .WithMany("WHMapAccesses")
+                        .HasForeignKey("WHMapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WHMap");
                 });
 
             modelBuilder.Entity("WHMapper.Models.Db.WHNote", b =>
@@ -410,8 +518,19 @@ namespace WHMapper.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WHMapper.Models.Db.WHInstance", b =>
+                {
+                    b.Navigation("Administrators");
+
+                    b.Navigation("InstanceAccesses");
+
+                    b.Navigation("WHMaps");
+                });
+
             modelBuilder.Entity("WHMapper.Models.Db.WHMap", b =>
                 {
+                    b.Navigation("WHMapAccesses");
+
                     b.Navigation("WHSystemLinks");
 
                     b.Navigation("WHSystems");

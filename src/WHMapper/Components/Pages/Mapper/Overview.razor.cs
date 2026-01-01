@@ -15,6 +15,7 @@ public partial class Overview : IAsyncDisposable
 {
     private List<WHMap> WHMaps { get; set; } = new List<WHMap>();
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+    private bool _disposed = false;
 
     private int _selectedWHMapIndex = 0;
     private int SelectedWHMapIndex
@@ -62,6 +63,9 @@ public partial class Overview : IAsyncDisposable
     [Inject]
     private IPasteServices PasteServices { get; set; } = null!;
 
+    [Inject]
+    private IEveMapperAccessHelper AccessHelper { get; set; } = null!;
+
 
     private WHMap? _selectedWHMap = null!;
     private WHMapperUser? PrimaryAccount  { get; set; } = null!;
@@ -84,6 +88,9 @@ public partial class Overview : IAsyncDisposable
         {
             Snackbar?.Add("RealTimeService Initialization error", Severity.Error);
         }
+
+        // Subscribe to primary account changes to reload maps
+        UserManagement.PrimaryAccountChanged += OnPrimaryAccountChanged;
 
         await base.OnInitializedAsync();
     }
@@ -117,16 +124,31 @@ public partial class Overview : IAsyncDisposable
         else
         {
             WHMaps.Clear();
-            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            
+            // Load maps based on primary account's access, not the authenticated user
+            if (PrimaryAccount == null)
+            {
+                PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            }
+            
+            if (PrimaryAccount == null)
+            {
+                Logger.LogWarning("No primary account found, cannot load maps");
+                return false;
+            }
+            
+            Logger.LogInformation("Loading maps for primary account {AccountId}", PrimaryAccount.Id);
     
             foreach (var map in allMaps)
             {
-                var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
-                if (authorizationResult.Succeeded)
+                // Check if the primary account has access to this map
+                if (await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id))
                 {
                     WHMaps.Add(map);
                 }
             }
+            
+            Logger.LogInformation("Loaded {MapCount} maps for primary account {AccountId}", WHMaps.Count, PrimaryAccount.Id);
 
             _selectedWHMap = WHMaps.FirstOrDefault();
         }
@@ -137,27 +159,95 @@ public partial class Overview : IAsyncDisposable
             return _selectedWHMap != null;
     }
 
+    /// <summary>
+    /// Handler for when the primary account changes - reloads maps based on new primary account.
+    /// </summary>
+    private async Task OnPrimaryAccountChanged(string clientId, int newPrimaryAccountId)
+    {
+        if (clientId != UID.ClientId)
+        {
+            return;
+        }
+
+        Logger.LogInformation("Primary account changed to {AccountId}, reloading maps", newPrimaryAccountId);
+        
+        await _semaphoreSlim.WaitAsync();
+        try
+        {
+            _loading = true;
+            await InvokeAsync(StateHasChanged);
+            
+            // Update the primary account reference
+            PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            
+            // Reload maps for the new primary account
+            if (!await RestoreMaps())
+            {
+                Snackbar?.Add("Error reloading maps after primary account change", Severity.Error);
+            }
+            else
+            {
+                Snackbar?.Add($"Maps reloaded for new primary account", Severity.Info);
+            }
+            
+            _loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error handling primary account change");
+            Snackbar?.Add("Error switching primary account", Severity.Error);
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
-        if (TrackerServices != null)
+        if (_disposed)
+            return;
+        _disposed = true;
+        
+        // Unsubscribe from primary account changes
+        UserManagement.PrimaryAccountChanged -= OnPrimaryAccountChanged;
+        
+        try
         {
-            await TrackerServices.DisposeAsync();
-
+            if (TrackerServices != null)
+            {
+                await TrackerServices.DisposeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error disposing TrackerServices");
         }
 
-        if (RealTimeService != null)
+        try
         {
-
-            RealTimeService.MapAdded -= OnMapAdded;
-            RealTimeService.MapRemoved -= OnMapRemoved;
-            RealTimeService.MapNameChanged -= OnMapNameChanged;
-            RealTimeService.AllMapsRemoved -= OnAllMapsRemoved;
-            RealTimeService.MapAccessesAdded -= OnMapAccessesAdded;
-            RealTimeService.MapAccessRemoved -= OnMapAccessRemoved;
-            RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
-            await RealTimeService.DisposeAsync();
-
+            if (RealTimeService != null)
+            {
+                RealTimeService.MapAdded -= OnMapAdded;
+                RealTimeService.MapRemoved -= OnMapRemoved;
+                RealTimeService.MapNameChanged -= OnMapNameChanged;
+                RealTimeService.AllMapsRemoved -= OnAllMapsRemoved;
+                RealTimeService.MapAccessesAdded -= OnMapAccessesAdded;
+                RealTimeService.MapAccessRemoved -= OnMapAccessRemoved;
+                RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
+                RealTimeService.InstanceAccessAdded -= OnInstanceAccessAdded;
+                RealTimeService.InstanceAccessRemoved -= OnInstanceAccessRemoved;
+                await RealTimeService.DisposeAsync();
+            }
         }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error disposing RealTimeService");
+        }
+        
+        _semaphoreSlim.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private async Task<bool> InitRealTimeService()
@@ -177,6 +267,8 @@ public partial class Overview : IAsyncDisposable
             RealTimeService.MapAccessesAdded+=OnMapAccessesAdded;
             RealTimeService.MapAccessRemoved+=OnMapAccessRemoved;
             RealTimeService.MapAllAccessesRemoved+=OnMapAllAccessesRemoved;
+            RealTimeService.InstanceAccessAdded+=OnInstanceAccessAdded;
+            RealTimeService.InstanceAccessRemoved+=OnInstanceAccessRemoved;
 
             return true;
         }
@@ -201,11 +293,10 @@ public partial class Overview : IAsyncDisposable
             }
 
             var map = await DbWHMaps.GetById(mapId);
-            if (map != null)
+            if (map != null && PrimaryAccount != null)
             {
-                var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-                var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
-                if (authorizationResult.Succeeded)
+                // Check if the primary account has access to this map
+                if (await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id))
                 {
                     WHMaps.Add(map);
                     Snackbar?.Add($"Map {map.Name} added", Severity.Info);
@@ -306,37 +397,44 @@ public partial class Overview : IAsyncDisposable
             if(mapWithAccessUpdated==null)
             {
                 Logger.LogError("Map not found on NotifyMapAccessesAdded");
-                Snackbar?.Add("Map not found on NotifyMapAccessesAdded", Severity.Error);
                 return;
             }
-             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-            var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, mapWithAccessUpdated.Id, "Map");
+            
+            if (PrimaryAccount == null)
+            {
+                Logger.LogWarning("No primary account found on NotifyMapAccessesAdded");
+                return;
+            }
+            
+            // Check if the primary account has access to this map
+            var hasAccess = await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, mapWithAccessUpdated.Id);
             
 
             if(map!=null)
             {
-                if (authorizationResult.Succeeded)
+                if (hasAccess)
                 {
                     foreach (var accessIdToAdd in accessId)
                     {
-                        var accessToAdd = mapWithAccessUpdated.WHAccesses.FirstOrDefault(a => a.Id == accessIdToAdd);
+                        var accessToAdd = mapWithAccessUpdated.WHMapAccesses.FirstOrDefault(a => a.Id == accessIdToAdd);
                         if (accessToAdd != null)
                         {
-                            if(map.WHAccesses.Any(a => a.Id == accessIdToAdd))
+                            if(map.WHMapAccesses.Any(a => a.Id == accessIdToAdd))
                             {
                                 continue;
                             }
-                            map.WHAccesses.Add(accessToAdd);
+                            map.WHMapAccesses.Add(accessToAdd);
                         }
                     }
                 }
             }
             else
             {
-                if (authorizationResult.Succeeded)
+                // User didn't have this map before - check if they now have access
+                if (hasAccess)
                 {
                     WHMaps.Add(mapWithAccessUpdated);
-                    Snackbar?.Add($"Map {mapWithAccessUpdated.Name} added", Severity.Info);
+                    Snackbar?.Add($"You have been granted access to map '{mapWithAccessUpdated.Name}'", Severity.Success);
                     await InvokeAsync(StateHasChanged);
                 }
             }
@@ -358,20 +456,28 @@ public partial class Overview : IAsyncDisposable
         try
         {
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
-            if (map != null)
+            if (map != null && PrimaryAccount != null)
             {
-                var accessToRemove = map.WHAccesses.FirstOrDefault(a => a.Id == accessId);
+                var accessToRemove = map.WHMapAccesses.FirstOrDefault(a => a.Id == accessId);
                 if (accessToRemove != null)
                 {
-                    map.WHAccesses.Remove(accessToRemove);
+                    map.WHMapAccesses.Remove(accessToRemove);
 
-                    var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-    
-                    var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
-                    if (!authorizationResult.Succeeded)
+                    // Check if the primary account still has access to this map
+                    var hasAccess = await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id);
+                    if (!hasAccess)
                     {
+                        var mapName = map.Name;
                         WHMaps.Remove(map);
-                        Snackbar?.Add($"Access has been removed from map {map.Name}", Severity.Info);
+                        
+                        // Reset selection if needed
+                        if (_selectedWHMap?.Id == mapId)
+                        {
+                            _selectedWHMap = WHMaps.FirstOrDefault();
+                            _selectedWHMapIndex = 0;
+                        }
+                        
+                        Snackbar?.Add($"Your access to map '{mapName}' has been revoked", Severity.Warning);
                         await InvokeAsync(StateHasChanged);
                     }
 
@@ -394,23 +500,126 @@ public partial class Overview : IAsyncDisposable
         try
         {
             var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
-            if (map != null)
+            if (map != null && PrimaryAccount != null)
             {
-                map.WHAccesses.Clear();
-                var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-    
-                var authorizationResult = await _authorizationService.AuthorizeAsync(authState.User, map.Id, "Map");
-                if (!authorizationResult.Succeeded)
+                map.WHMapAccesses.Clear();
+                
+                // Check if the primary account still has access to this map
+                var hasAccess = await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id);
+                if (!hasAccess)
                 {
+                    var mapName = map.Name;
                     WHMaps.Remove(map);
-                    Snackbar?.Add($"All accesses removed from map {map.Name}", Severity.Info);
+                    
+                    // Reset selection if needed
+                    if (_selectedWHMap?.Id == mapId)
+                    {
+                        _selectedWHMap = WHMaps.FirstOrDefault();
+                        _selectedWHMapIndex = 0;
+                    }
+                    
+                    Snackbar?.Add($"Your access to map '{mapName}' has been revoked (all restrictions removed)", Severity.Warning);
                     await InvokeAsync(StateHasChanged);
                 }
-            }  
+                else
+                {
+                    // User still has access - notify that restrictions were removed
+                    Snackbar?.Add($"All access restrictions removed from map '{map.Name}'", Severity.Info);
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+            else if (map == null && PrimaryAccount != null)
+            {
+                // Map was not in user's list - check if they now have access (no restrictions = everyone with instance access can see it)
+                var mapWithAccessUpdated = await DbWHMaps.GetById(mapId);
+                if (mapWithAccessUpdated != null)
+                {
+                    var hasAccess = await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, mapWithAccessUpdated.Id);
+                    if (hasAccess)
+                    {
+                        WHMaps.Add(mapWithAccessUpdated);
+                        Snackbar?.Add($"You now have access to map '{mapWithAccessUpdated.Name}' (restrictions removed)", Severity.Success);
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "On NotifyMapAllAccessesRemoved error");
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
+    }
+
+    private async Task OnInstanceAccessAdded(int accountID, int instanceId, int accessId)
+    {
+        await _semaphoreSlim.WaitAsync();
+        try
+        {
+            if (PrimaryAccount == null)
+            {
+                Logger.LogWarning("No primary account found on OnInstanceAccessAdded");
+                return;
+            }
+
+            // Reload maps as user may now have access to new maps
+            var previousMapCount = WHMaps.Count;
+            await RestoreMaps();
+            
+            if (WHMaps.Count > previousMapCount)
+            {
+                Snackbar?.Add("You have been granted access to an instance - new maps are now available", Severity.Success);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On OnInstanceAccessAdded error");
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
+    }
+
+    private async Task OnInstanceAccessRemoved(int accountID, int instanceId, int accessId)
+    {
+        await _semaphoreSlim.WaitAsync();
+        try
+        {
+            if (PrimaryAccount == null)
+            {
+                Logger.LogWarning("No primary account found on OnInstanceAccessRemoved");
+                return;
+            }
+
+            // Store current maps before reload
+            var previousMaps = WHMaps.Select(m => m.Id).ToList();
+            
+            // Reload maps as user may have lost access
+            await RestoreMaps();
+            
+            // Check if any maps were lost
+            var lostMaps = previousMaps.Except(WHMaps.Select(m => m.Id)).ToList();
+            if (lostMaps.Any())
+            {
+                // Reset selection if needed
+                if (_selectedWHMap != null && lostMaps.Contains(_selectedWHMap.Id))
+                {
+                    _selectedWHMap = WHMaps.FirstOrDefault();
+                    _selectedWHMapIndex = 0;
+                }
+                
+                Snackbar?.Add("Your instance access has been revoked - some maps are no longer available", Severity.Warning);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On OnInstanceAccessRemoved error");
         }
         finally
         {

@@ -64,6 +64,7 @@ public partial class Overview : ComponentBase,IDisposable
 
     private CancellationTokenSource _cts = new();
     private DateTime _currentDateTime;
+    private bool _disposed = false;
 
     private MudTable<WHSignature?> _signatureTable { get; set; } =null!;
 
@@ -373,11 +374,30 @@ public partial class Overview : ComponentBase,IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if(!_cts.IsCancellationRequested)
+        if (_disposed)
+            return;
+        _disposed = true;
+        
+        if (disposing)
         {
-            _cts.Cancel();
+            // Unsubscribe from events
+            if (EveMapperRealTimeService != null)
+            {
+                EveMapperRealTimeService.WormholeSignaturesChanged -= OnWormholeSignaturesChanged;
+            }
+            
+            if (PasteServices != null)
+            {
+                PasteServices.Pasted -= OnPaste;
+            }
+            
+            // Cancel pending operations
+            if (!_cts.IsCancellationRequested)
+            {
+                _cts.Cancel();
+            }
+            _cts.Dispose();
         }
-        _cts.Dispose();
     }
 }
 

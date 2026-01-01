@@ -1,0 +1,222 @@
+@page "/instance/{InstanceId:int}/admin"
+@using WHMapper.Models.Db
+@using WHMapper.Models.Db.Enums
+@using WHMapper.Services.EveMapper
+@using WHMapper.Models.DTO.EveMapper.EveEntity
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+<PageTitle>WHMapper - Instance Administration</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudStack Row="true" Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/">
+            <MudIcon Icon="@Icons.Material.Filled.Map" Class="mr-1" />
+            Back to Map
+        </MudButton>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-block mx-auto my-8" />
+    }
+    else if (_instance == null)
+    {
+        <MudAlert Severity="Severity.Error">Instance not found or you don't have access.</MudAlert>
+    }
+    else if (!_isAdmin)
+    {
+        <MudAlert Severity="Severity.Warning">You are not an administrator of this instance.</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            <!-- Instance Info Header -->
+            <MudItem xs="12">
+                <MudPaper Class="pa-4">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudStack>
+                            <MudText Typo="Typo.h4">
+                                <MudIcon Icon="@Icons.Material.Filled.Dashboard" Class="mr-2" />
+                                @_instance.Name
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                Owner: @_instance.OwnerEveEntityName (@_instance.OwnerType)
+                            </MudText>
+                            @if (!string.IsNullOrEmpty(_instance.Description))
+                            {
+                                <MudText Typo="Typo.body2">@_instance.Description</MudText>
+                            }
+                        </MudStack>
+                        <MudStack Row="true" Spacing="2">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Warning" OnClick="EditInstance">
+                                <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1" /> Edit
+                            </MudButton>
+                            @if (_isOwner)
+                            {
+                                <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="DeleteInstance">
+                                    <MudIcon Icon="@Icons.Material.Filled.Delete" Class="mr-1" /> Delete Instance
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Maps Section -->
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Style="height: 100%;">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Map" Class="mr-2" />
+                            Maps (@(_maps?.Count() ?? 0))
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="AddMap">
+                            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" /> Add Map
+                        </MudButton>
+                    </MudStack>
+
+                    @if (_maps?.Any() == true)
+                    {
+                        <MudList T="WHMap" Dense="true">
+                            @foreach (var map in _maps)
+                            {
+                                <MudListItem>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+                                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                                            <MudText>@map.Name</MudText>
+                                            @if (map.WHMapAccesses?.Any() == true)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Filled.Lock">
+                                                    Restricted (@map.WHMapAccesses.Count)
+                                                </MudChip>
+                                            }
+                                        </MudStack>
+                                        <MudStack Row="true" Spacing="1">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Security" 
+                                                           Color="Color.Info" 
+                                                           Size="Size.Small"
+                                                           Title="Manage Access"
+                                                           OnClick="@(() => ManageMapAccess(map))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                           Color="Color.Error" 
+                                                           Size="Size.Small"
+                                                           Title="Delete Map"
+                                                           OnClick="@(() => DeleteMap(map))" />
+                                        </MudStack>
+                                    </MudStack>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary" Align="Align.Center">No maps yet. Create your first map!</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <!-- Administrators Section -->
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Style="height: 100%;">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="mr-2" />
+                            Administrators (@(_admins?.Count() ?? 0))
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="AddAdmin">
+                            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" /> Add Admin
+                        </MudButton>
+                    </MudStack>
+
+                    @if (_admins?.Any() == true)
+                    {
+                        <MudList T="WHInstanceAdmin" Dense="true">
+                            @foreach (var admin in _admins)
+                            {
+                                <MudListItem>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+                                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                                            <MudText>@admin.EveCharacterName</MudText>
+                                            @if (admin.IsOwner)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Owner</MudChip>
+                                            }
+                                        </MudStack>
+                                        @if (!admin.IsOwner)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                           Color="Color.Error" 
+                                                           Size="Size.Small"
+                                                           OnClick="@(() => RemoveAdmin(admin))" />
+                                        }
+                                    </MudStack>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary" Align="Align.Center">No administrators configured.</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <!-- Access Control Section -->
+            <MudItem xs="12">
+                <MudPaper Class="pa-4">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Security" Class="mr-2" />
+                            Access Control (@(_accesses?.Count() ?? 0))
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="AddAccess">
+                            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" /> Add Access
+                        </MudButton>
+                    </MudStack>
+
+                    @if (_accesses?.Any() == true)
+                    {
+                        <MudTable Items="@_accesses" Dense="true" Hover="true" Bordered="true" Striped="true">
+                            <HeaderContent>
+                                <MudTh>Entity Type</MudTh>
+                                <MudTh>Entity Name</MudTh>
+                                <MudTh>Granted At</MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="access">
+                                <MudTd DataLabel="Type">
+                                    @switch (access.EveEntity)
+                                    {
+                                        case WHAccessEntity.Character:
+                                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Person" Color="Color.Info">Character</MudChip>
+                                            break;
+                                        case WHAccessEntity.Corporation:
+                                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Business" Color="Color.Success">Corporation</MudChip>
+                                            break;
+                                        case WHAccessEntity.Alliance:
+                                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Groups" Color="Color.Warning">Alliance</MudChip>
+                                            break;
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Name">@access.EveEntityName</MudTd>
+                                <MudTd DataLabel="Granted">@access.GrantedAt.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                                <MudTd DataLabel="Actions">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                   Color="Color.Error" 
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => RemoveAccess(access))" />
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary" Align="Align.Center">No additional access entries. Only the owner entity has access by default.</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>

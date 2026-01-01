@@ -5,14 +5,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHAdmins;
+using WHMapper.Repositories.WHInstances;
 using WHMapper.Repositories.WHJumpLogs;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHNotes;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
+using WHMapper.Repositories.WHMapAccesses;
 
 using Xunit.Priority;
 
@@ -553,194 +553,6 @@ public class DbIntegrationTest
     }
 
     [Fact, Priority(6)]
-    public async Task CRUD_WHAdmin()
-    {
-        Assert.NotNull(_contextFactory);
-        //Create IWHMapRepository
-        IWHAdminRepository repo = new WHAdminRepository(new NullLogger<WHAdminRepository>(),_contextFactory);
-
-
-        //gat all epty
-        var results = await repo.GetAll();
-        Assert.NotNull(results);
-        Assert.Empty(results);
-
-        //ADD
-        var result1 = await repo.Create(new WHAdmin(EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME));
-        Assert.NotNull(result1);
-        Assert.Equal(EVE_CHARACTERE_ID, result1.EveCharacterId);
-        Assert.Equal(EVE_CHARACTERE_NAME, result1.EveCharacterName);
-
-        var result2 = await repo.Create(new WHAdmin(EVE_CHARACTERE_ID2, EVE_CHARACTERE_NAME2));
-        Assert.NotNull(result2);
-        Assert.Equal(EVE_CHARACTERE_ID2, result2.EveCharacterId);
-        Assert.Equal(EVE_CHARACTERE_NAME2, result2.EveCharacterName);
-
-        //GetCountAsync
-        var count = await repo.GetCountAsync();
-        Assert.Equal(2, count);
-
-        //add duplicate
-        var resultDuplicate= await repo.Create(new WHAdmin(EVE_CHARACTERE_ID2, EVE_CHARACTERE_NAME2));
-        Assert.Null(resultDuplicate);
-
-        //GetALL
-        results = await repo.GetAll();
-        Assert.NotNull(results);
-        Assert.NotEmpty(results);
-
-        //GetById
-        var resById1 = await repo.GetById(1);
-        Assert.NotNull(resById1);
-        Assert.Equal(EVE_CHARACTERE_ID, resById1.EveCharacterId);
-
-        var resById2 = await repo.GetById(2);
-        Assert.NotNull(resById2);
-        Assert.Equal(EVE_CHARACTERE_ID2, resById2.EveCharacterId);
-
-        var resBadId = await repo.GetById(-10);
-        Assert.Null(resBadId);
-
-
-        //update
-        resById1.EveCharacterName = FOOBAR_UPDATED;
-        var resUpdate1 = await repo.Update(resById1.Id, resById1);
-        Assert.NotNull(resUpdate1);
-        Assert.Equal(FOOBAR_UPDATED, resUpdate1.EveCharacterName);
-
-        resById2.EveCharacterId = EVE_CHARACTERE_ID;
-        var resUpdateDuplicate = await repo.Update(resById2.Id, resById2);
-        Assert.Null(resUpdateDuplicate);
-
-        //Delete WHMAP
-        var resDel1 = await repo.DeleteById(resById1.Id);
-        Assert.True(resDel1);
-
-        var resDel2 = await repo.DeleteById(resById2.Id);
-        Assert.True(resDel2);
-
-        var resBadDel = await repo.DeleteById(-10);
-        Assert.False(resBadDel);
-    }
-
-    [Fact, Priority(7)]
-    public async Task CRUD_WHAccess()
-    {
-        Assert.NotNull(_contextFactory);
-        //init MAP
-        //Create IWHMapRepository
-        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(),_contextFactory);
-
-        //ADD WHMAP
-        var map = await repoMap.Create(new WHMap(FOOBAR));
-        Assert.NotNull(map);
-        Assert.Equal(FOOBAR, map?.Name);
-
-        //Create AccessRepo
-        IWHAccessRepository repo = new WHAccessRepository(new NullLogger<WHAccessRepository>(),_contextFactory);
-
-        //get ALL empty
-        var results = await repo.GetAll();
-        Assert.NotNull(results);
-        Assert.Empty(results);
-
-        //ADD Access1
-        var result1 = await repo.Create(new WHAccess(EVE_CORPO_ID,EVE_CORPO_NAME, WHAccessEntity.Corporation));
-        Assert.NotNull(result1);
-        Assert.Equal(EVE_CORPO_ID, result1.EveEntityId);
-        Assert.Equal(EVE_CORPO_NAME, result1.EveEntityName);
-        Assert.Equal(WHAccessEntity.Corporation, result1.EveEntity);
-
-        //ADD Access1
-        var result2 = await repo.Create(new WHAccess(EVE_CORPO_ID2, EVE_CORPO_NAME2, WHAccessEntity.Corporation));
-        Assert.NotNull(result2);
-        Assert.Equal(EVE_CORPO_ID2, result2.EveEntityId);
-        Assert.Equal(EVE_CORPO_NAME2, result2.EveEntityName);
-        Assert.Equal(WHAccessEntity.Corporation, result2.EveEntity);
-
-        //GetCountAsync
-        var count = await repo.GetCountAsync();
-        Assert.Equal(2, count);
-
-        //ADD Access duplicate
-        var resultDuplicate = await repo.Create(new WHAccess(EVE_CORPO_ID2, EVE_CORPO_NAME2, WHAccessEntity.Corporation));
-        Assert.Null(resultDuplicate);
-
-        //GetALL
-        results = await repo.GetAll();
-        Assert.NotNull(results);
-        Assert.NotEmpty(results);
-
-
-        //GetbyID
-        var resultById = await repo.GetById(1);
-        Assert.NotNull(resultById);
-        Assert.Equal(EVE_CORPO_ID, resultById.EveEntityId);
-        Assert.Equal(EVE_CORPO_NAME, result1.EveEntityName);
-        Assert.Equal(WHAccessEntity.Corporation, resultById.EveEntity);
-
-        var resultBadById = await repo.GetById(-10);
-        Assert.Null(resultBadById);
-
-        //update
-        result1.EveEntityId = EVE_ALLIANCE_ID;
-        result1.EveEntity = WHAccessEntity.Alliance;
-        var resultUpdate1 = await repo.Update(result1.Id, result1);
-        Assert.NotNull(resultUpdate1);
-        Assert.Equal(EVE_ALLIANCE_ID, resultUpdate1.EveEntityId);
-        Assert.Equal(WHAccessEntity.Alliance, resultUpdate1.EveEntity);
-
-        //duplicate update
-        result2.EveEntityId = EVE_ALLIANCE_ID;
-        result2.EveEntity = WHAccessEntity.Alliance;
-        var resultUpdate2 = await repo.Update(result2.Id, result2);
-        Assert.Null(resultUpdate2);
-
-        //Delete
-        var resultdel2 = await repo.DeleteById(result2.Id);
-        Assert.True(resultdel2);
-
-        var resultBaddel = await repo.DeleteById(-10);
-        Assert.False(resultBaddel);
-
-        //map access
-        var mapAccess = await repoMap.GetMapAccesses(map.Id);
-        Assert.NotNull(mapAccess);
-        Assert.Empty(mapAccess);
-
-        //add access to map
-        var resultAddMapAccess = await repoMap.AddMapAccess(map.Id, result1.Id);
-        Assert.True(resultAddMapAccess);
-
-
-        Assert.NotNull(map);
-        mapAccess = await repoMap.GetMapAccesses(map.Id);
-        Assert.NotNull(mapAccess);
-        Assert.NotEmpty(mapAccess);
-
-        //delete access from map
-        var resultDelMapAccess = await repoMap.DeleteMapAccess(map.Id, result1.Id);
-        Assert.True(resultDelMapAccess);
-
-        //delete all access from map
-        var resultDelMapAccesses = await repoMap.DeleteMapAccesses(map.Id);
-        Assert.True(resultDelMapAccesses);
-
-        //dfelete bad access from map
-        var resultDelBadMapAccess = await repoMap.DeleteMapAccess(-10, result1.Id);
-        Assert.False(resultDelBadMapAccess);
-
-        //Delete WHMAP
-        var mapDeleted = await repoMap.DeleteById(map.Id);
-        Assert.True(mapDeleted);
-
-        //Delete Access
-        var resultdel1 = await repo.DeleteById(result1.Id);
-        Assert.True(resultdel1);
-        
-    }
-
-    [Fact, Priority(8)]
     public async Task CRUD_WHNote()
     {
         Assert.NotNull(_contextFactory);
@@ -840,6 +652,709 @@ public class DbIntegrationTest
         //Delete WHMAP
         var mapDeleted = await repoMap.DeleteById(map.Id);
         Assert.True(mapDeleted);
+    }
+
+        [Fact, Priority(7)]
+    public async Task CRUD_WHMapAccess()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
+
+        // Add WHMAP
+        var map = await repoMap.Create(new WHMap(FOOBAR));
+        Assert.NotNull(map);
+
+        // Create WHMapAccessRepository
+        IWHMapAccessRepository repo = new WHMapAccessRepository(new NullLogger<WHMapAccessRepository>(), _contextFactory);
+
+        // GetAll should be empty
+        var results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.Empty(results);
+
+        // Add access
+        var access1 = await repo.Create(new WHMapAccess(map.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, WHAccessEntity.Character));
+        Assert.NotNull(access1);
+        Assert.Equal(map.Id, access1.WHMapId);
+        Assert.Equal(EVE_CHARACTERE_ID, access1.EveEntityId);
+        Assert.Equal(EVE_CHARACTERE_NAME, access1.EveEntityName);
+
+
+        // Add another access
+        var access2 = await repo.Create(new WHMapAccess(map.Id, EVE_CHARACTERE_ID2, EVE_CHARACTERE_NAME2, WHAccessEntity.Character));
+        Assert.NotNull(access2);
+
+        // GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
+        // Duplicate add
+        var duplicate = await repo.Create(new WHMapAccess(map.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, WHAccessEntity.Character));
+        Assert.Null(duplicate);
+
+        // GetAll
+        results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.NotEmpty(results);
+
+        // GetById
+        var byId = await repo.GetById(access1.Id);
+        Assert.NotNull(byId);
+        Assert.Equal(EVE_CHARACTERE_ID, byId.EveEntityId);
+
+        var badById = await repo.GetById(-10);
+        Assert.Null(badById);
+
+        // Update
+        access1.EveEntityName = "UPDATED";
+        var updated = await repo.Update(access1.Id, access1);
+        Assert.NotNull(updated);
+        Assert.Equal("UPDATED", updated.EveEntityName);
+
+        // Duplicate update
+        access2.EveEntityId = EVE_CHARACTERE_ID;
+        var updateDuplicate = await repo.Update(access2.Id, access2);
+        Assert.Null(updateDuplicate);
+
+        // Delete
+        var del1 = await repo.DeleteById(access1.Id);
+        Assert.True(del1);
+
+        var del2 = await repo.DeleteById(access2.Id);
+        Assert.True(del2);
+
+        var badDel = await repo.DeleteById(-10);
+        Assert.False(badDel);
+
+        // Delete WHMAP
+        var mapDeleted = await repoMap.DeleteById(map.Id);
+        Assert.True(mapDeleted);
+    }
+
+    [Fact, Priority(70)]
+    public async Task WHMapAccess_AdvancedOperations()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create WHInstanceRepository to create an instance first
+        IWHInstanceRepository repoInstance = new WHInstanceRepository(new NullLogger<WHInstanceRepository>(), _contextFactory);
+        
+        // Create instance for testing
+        var instance = await repoInstance.Create(new WHInstance(
+            "TestInstance",
+            EVE_CHARACTERE_ID,
+            EVE_CHARACTERE_NAME,
+            WHAccessEntity.Character,
+            EVE_CHARACTERE_ID,
+            EVE_CHARACTERE_NAME,
+            "Test Instance for Map Access"
+        ));
+        Assert.NotNull(instance);
+
+        // Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
+
+        // Add WHMAP linked to instance
+        var map = await repoMap.Create(new WHMap(FOOBAR) { WHInstanceId = instance.Id });
+        Assert.NotNull(map);
+
+        var map2 = await repoMap.Create(new WHMap(FOOBAR2) { WHInstanceId = instance.Id });
+        Assert.NotNull(map2);
+
+        // Create WHMapAccessRepository
+        IWHMapAccessRepository repo = new WHMapAccessRepository(new NullLogger<WHMapAccessRepository>(), _contextFactory);
+
+        // Test GetMapAccessesAsync - empty
+        var mapAccesses = await repo.GetMapAccessesAsync(map.Id);
+        Assert.NotNull(mapAccesses);
+        Assert.Empty(mapAccesses);
+
+        // Test HasAccessRestrictionsAsync - no restrictions
+        var hasRestrictions = await repo.HasAccessRestrictionsAsync(map.Id);
+        Assert.False(hasRestrictions);
+
+        // Test HasMapAccessAsync - no restrictions means everyone has access
+        var hasAccess = await repo.HasMapAccessAsync(map.Id, EVE_CHARACTERE_ID, EVE_CORPO_ID, EVE_ALLIANCE_ID);
+        Assert.True(hasAccess);
+
+        // Add access via AddMapAccessAsync
+        var access1 = await repo.AddMapAccessAsync(new WHMapAccess(map.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, WHAccessEntity.Character));
+        Assert.NotNull(access1);
+
+        // Test HasAccessRestrictionsAsync - now has restrictions
+        hasRestrictions = await repo.HasAccessRestrictionsAsync(map.Id);
+        Assert.True(hasRestrictions);
+
+        // Test HasMapAccessAsync - character has access
+        hasAccess = await repo.HasMapAccessAsync(map.Id, EVE_CHARACTERE_ID, null, null);
+        Assert.True(hasAccess);
+
+        // Test HasMapAccessAsync - other character does not have access
+        hasAccess = await repo.HasMapAccessAsync(map.Id, EVE_CHARACTERE_ID2, null, null);
+        Assert.False(hasAccess);
+
+        // Add corporation access
+        var accessCorp = await repo.AddMapAccessAsync(new WHMapAccess(map.Id, EVE_CORPO_ID, EVE_CORPO_NAME, WHAccessEntity.Corporation));
+        Assert.NotNull(accessCorp);
+
+        // Test HasMapAccessAsync - corporation has access
+        hasAccess = await repo.HasMapAccessAsync(map.Id, 999, EVE_CORPO_ID, null);
+        Assert.True(hasAccess);
+
+        // Add alliance access
+        var accessAlliance = await repo.AddMapAccessAsync(new WHMapAccess(map.Id, EVE_ALLIANCE_ID, "TestAlliance", WHAccessEntity.Alliance));
+        Assert.NotNull(accessAlliance);
+
+        // Test HasMapAccessAsync - alliance has access
+        hasAccess = await repo.HasMapAccessAsync(map.Id, 999, null, EVE_ALLIANCE_ID);
+        Assert.True(hasAccess);
+
+        // Test GetMapAccessesAsync - should have 3 entries
+        mapAccesses = await repo.GetMapAccessesAsync(map.Id);
+        Assert.NotNull(mapAccesses);
+        Assert.Equal(3, mapAccesses.Count());
+
+        // Test GetMapAccessCountAsync
+        var accessCount = await repo.GetMapAccessCountAsync(map.Id);
+        Assert.Equal(3, accessCount);
+
+        // Add access to map2 for testing RemoveMapAccessesByEntityAsync
+        var access2Map2 = await repo.AddMapAccessAsync(new WHMapAccess(map2.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, WHAccessEntity.Character));
+        Assert.NotNull(access2Map2);
+
+        // Test RemoveMapAccessAsync
+        var removed = await repo.RemoveMapAccessAsync(map.Id, access1.Id);
+        Assert.True(removed);
+
+        // Test RemoveMapAccessAsync - wrong map id
+        removed = await repo.RemoveMapAccessAsync(map.Id, accessCorp.Id + 1000);
+        Assert.False(removed);
+
+        // Test RemoveMapAccessAsync - non-existent access
+        removed = await repo.RemoveMapAccessAsync(-10, -10);
+        Assert.False(removed);
+
+        // Test RemoveMapAccessesByEntityAsync for corporation
+        var accessCorpMap2 = await repo.AddMapAccessAsync(new WHMapAccess(map2.Id, EVE_CORPO_ID, EVE_CORPO_NAME, WHAccessEntity.Corporation));
+        Assert.NotNull(accessCorpMap2);
+        var removedCorpByEntity = await repo.RemoveMapAccessesByEntityAsync(instance.Id, EVE_CORPO_ID, WHAccessEntity.Corporation);
+        Assert.NotNull(removedCorpByEntity);
+        Assert.True(removedCorpByEntity.ContainsKey(map2.Id));
+
+        // Test RemoveMapAccessesByEntityAsync
+        var removedByEntity = await repo.RemoveMapAccessesByEntityAsync(instance.Id, EVE_CHARACTERE_ID, WHAccessEntity.Character);
+        Assert.NotNull(removedByEntity);
+        Assert.True(removedByEntity.ContainsKey(map2.Id));
+
+        // Test RemoveMapAccessesByEntityAsync - non-existent entity
+        removedByEntity = await repo.RemoveMapAccessesByEntityAsync(instance.Id, 999999, WHAccessEntity.Character);
+        Assert.NotNull(removedByEntity);
+        Assert.Empty(removedByEntity);
+
+        // Test ClearMapAccessesAsync
+        var cleared = await repo.ClearMapAccessesAsync(map.Id);
+        Assert.True(cleared);
+
+        // Verify cleared
+        mapAccesses = await repo.GetMapAccessesAsync(map.Id);
+        Assert.NotNull(mapAccesses);
+        Assert.Empty(mapAccesses);
+
+        // Test ClearMapAccessesAsync on empty map
+        cleared = await repo.ClearMapAccessesAsync(map2.Id);
+        Assert.True(cleared);
+
+        // Cleanup
+        await repoMap.DeleteById(map.Id);
+        await repoMap.DeleteById(map2.Id);
+        await repoInstance.DeleteById(instance.Id);
+    }
+
+    [Fact, Priority(8)]
+    public async Task CRUD_WHInstance()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create repository
+        IWHInstanceRepository repo = new WHInstanceRepository(new NullLogger<WHInstanceRepository>(), _contextFactory);
+
+        // GetAll should be empty
+        var results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.Empty(results);
+
+        // Add instance
+        var instance1 = await repo.Create(new WHInstance(
+            "Instance1",           // name
+            1,                     // ownerEveEntityId
+            "OwnerName1",          // ownerEveEntityName
+            WHAccessEntity.Character, // ownerEveEntityType
+            1,                  // creatorCharacterId
+            "creatorCharacterName1" //creatorCharacterName
+            , "Description1"         // description
+        ));
+        Assert.NotNull(instance1);
+        Assert.Equal("Instance1", instance1.Name);
+        Assert.Equal(1, instance1.OwnerEveEntityId);
+        Assert.Equal("OwnerName1", instance1.OwnerEveEntityName);
+        Assert.Equal(WHAccessEntity.Character, instance1.OwnerType);
+        Assert.Equal(1, instance1.CreatorCharacterId);
+        Assert.Equal("creatorCharacterName1", instance1.CreatorCharacterName);
+        Assert.Equal("Description1", instance1.Description);
+
+        // Add another instance
+        var instance2 = await repo.Create(new WHInstance(
+            "Instance2",
+            2,
+            "OwnerName2",
+            WHAccessEntity.Corporation,
+            1,
+            "Description2"
+        ));
+        Assert.NotNull(instance2);
+
+        // GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
+        // Duplicate add (same OwnerEveEntityId and OwnerType)
+        var duplicate = await repo.Create(new WHInstance(
+            "AnotherName",           // name can be different
+            1,                       // ownerEveEntityId
+            "OtherOwnerName",        // ownerEveEntityName
+            WHAccessEntity.Character, // ownerEveEntityType
+            1,                       // creatorCharacterId
+            "creatorCharacterName1", // creatorCharacterName
+            "OtherDescription"
+        ));
+        Assert.Null(duplicate);
+
+        // GetAll
+        results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.NotEmpty(results);
+
+        // GetById
+        var byId = await repo.GetById(instance1.Id);
+        Assert.NotNull(byId);
+        Assert.Equal("Instance1", byId.Name);
+
+        var badById = await repo.GetById(-10);
+        Assert.Null(badById);
+
+        // Update
+        instance1.Description = "UPDATED";
+        var updated = await repo.Update(instance1.Id, instance1);
+        Assert.NotNull(updated);
+        Assert.Equal("UPDATED", updated.Description);
+
+        // Duplicate update (same OwnerEveEntityId and OwnerType)
+        instance2.OwnerEveEntityId = 1;
+        instance2.OwnerType = WHAccessEntity.Character;
+        var updateDuplicate = await repo.Update(instance2.Id, instance2);
+        Assert.Null(updateDuplicate);
+
+        // Null update
+        var nullUpdate = await repo.Update(-10, null!);
+        Assert.Null(nullUpdate);
+
+        // Bad id update
+        var badIdUpdate = await repo.Update(-10, instance1);
+        Assert.Null(badIdUpdate);
+
+        // Delete
+        var del1 = await repo.DeleteById(instance1.Id);
+        Assert.True(del1);
+
+        var del2 = await repo.DeleteById(instance2.Id);
+        Assert.True(del2);
+
+        var badDel = await repo.DeleteById(-10);
+        Assert.False(badDel);
+
+        // Try to get deleted instance
+        var deletedInstance = await repo.GetById(instance1.Id);
+        Assert.Null(deletedInstance);
+
+        // Try to delete again
+        var delAgain = await repo.DeleteById(instance1.Id);
+        Assert.False(delAgain);
+    }
+
+    [Fact, Priority(85)]
+    public async Task WHInstance_AdvancedOperations()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create repository
+        IWHInstanceRepository repo = new WHInstanceRepository(new NullLogger<WHInstanceRepository>(), _contextFactory);
+
+        // Create instance
+        var instance = await repo.Create(new WHInstance(
+            "AdvancedTestInstance",
+            EVE_CHARACTERE_ID,
+            EVE_CHARACTERE_NAME,
+            WHAccessEntity.Character,
+            EVE_CHARACTERE_ID,
+            EVE_CHARACTERE_NAME,
+            "Advanced Test Instance"
+        ));
+        Assert.NotNull(instance);
+
+        // Test GetByOwnerAsync
+        var byOwner = await repo.GetByOwnerAsync(EVE_CHARACTERE_ID);
+        Assert.NotNull(byOwner);
+        Assert.Equal(instance.Id, byOwner.Id);
+
+        // Test GetByOwnerAsync - non-existent owner
+        var byOwnerNotFound = await repo.GetByOwnerAsync(999999);
+        Assert.Null(byOwnerNotFound);
+
+        // Test AddInstanceAdminAsync
+        var admin = await repo.AddInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, true);
+        Assert.NotNull(admin);
+        Assert.Equal(EVE_CHARACTERE_ID, admin.EveCharacterId);
+        Assert.True(admin.IsOwner);
+
+        // Add another admin (non-owner)
+        var admin2 = await repo.AddInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID2, EVE_CHARACTERE_NAME2, false);
+        Assert.NotNull(admin2);
+        Assert.False(admin2.IsOwner);
+
+        // Test GetInstanceAdminsAsync
+        var admins = await repo.GetInstanceAdminsAsync(instance.Id);
+        Assert.NotNull(admins);
+        Assert.Equal(2, admins.Count());
+
+        // Test IsInstanceAdminAsync - true
+        var isAdmin = await repo.IsInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID);
+        Assert.True(isAdmin);
+
+        // Test IsInstanceAdminAsync - false
+        isAdmin = await repo.IsInstanceAdminAsync(instance.Id, 999999);
+        Assert.False(isAdmin);
+
+        // Test GetInstancesForAdminAsync
+        var instancesForAdmin = await repo.GetInstancesForAdminAsync(EVE_CHARACTERE_ID);
+        Assert.NotNull(instancesForAdmin);
+        Assert.Contains(instancesForAdmin, i => i.Id == instance.Id);
+
+        // Test GetInstancesForAdminAsync - non-admin
+        instancesForAdmin = await repo.GetInstancesForAdminAsync(999999);
+        Assert.NotNull(instancesForAdmin);
+        Assert.Empty(instancesForAdmin);
+
+        // Test RemoveInstanceAdminAsync - cannot remove owner
+        var removedOwner = await repo.RemoveInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID);
+        Assert.False(removedOwner);
+
+        // Test RemoveInstanceAdminAsync - remove non-owner
+        var removedAdmin = await repo.RemoveInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID2);
+        Assert.True(removedAdmin);
+
+        // Test RemoveInstanceAdminAsync - non-existent admin
+        removedAdmin = await repo.RemoveInstanceAdminAsync(instance.Id, 999999);
+        Assert.False(removedAdmin);
+
+        // Test AddInstanceAccessAsync
+        var access = await repo.AddInstanceAccessAsync(new WHInstanceAccess(instance.Id, EVE_CORPO_ID, EVE_CORPO_NAME, WHAccessEntity.Corporation));
+        Assert.NotNull(access);
+
+        // Add another access for alliance
+        var accessAlliance = await repo.AddInstanceAccessAsync(new WHInstanceAccess(instance.Id, EVE_ALLIANCE_ID, "TestAlliance", WHAccessEntity.Alliance));
+        Assert.NotNull(accessAlliance);
+
+        // Add character access
+        var accessChar = await repo.AddInstanceAccessAsync(new WHInstanceAccess(instance.Id, EVE_CHARACTERE_ID2, EVE_CHARACTERE_NAME2, WHAccessEntity.Character));
+        Assert.NotNull(accessChar);
+
+        // Test GetInstanceAccessesAsync
+        var accesses = await repo.GetInstanceAccessesAsync(instance.Id);
+        Assert.NotNull(accesses);
+        Assert.Equal(3, accesses.Count());
+
+        // Test HasInstanceAccessAsync - admin has access
+        var hasAccess = await repo.HasInstanceAccessAsync(instance.Id, EVE_CHARACTERE_ID, null, null);
+        Assert.True(hasAccess);
+
+        // Test HasInstanceAccessAsync - character access
+        hasAccess = await repo.HasInstanceAccessAsync(instance.Id, EVE_CHARACTERE_ID2, null, null);
+        Assert.True(hasAccess);
+
+        // Test HasInstanceAccessAsync - corporation access
+        hasAccess = await repo.HasInstanceAccessAsync(instance.Id, 999, EVE_CORPO_ID, null);
+        Assert.True(hasAccess);
+
+        // Test HasInstanceAccessAsync - alliance access
+        hasAccess = await repo.HasInstanceAccessAsync(instance.Id, 999, null, EVE_ALLIANCE_ID);
+        Assert.True(hasAccess);
+
+        // Test HasInstanceAccessAsync - no access
+        hasAccess = await repo.HasInstanceAccessAsync(instance.Id, 999, 888, 777);
+        Assert.False(hasAccess);
+
+        // Test RemoveInstanceAccessAsync
+        var removedAccess = await repo.RemoveInstanceAccessAsync(instance.Id, access.Id);
+        Assert.True(removedAccess);
+
+        // Test RemoveInstanceAccessAsync - non-existent access
+        removedAccess = await repo.RemoveInstanceAccessAsync(instance.Id, 999999);
+        Assert.False(removedAccess);
+
+        // Create IWHMapRepository to add maps
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
+        
+        // Add map to instance
+        var map = await repoMap.Create(new WHMap("InstanceMap") { WHInstanceId = instance.Id });
+        Assert.NotNull(map);
+
+        // Test GetInstanceMapsAsync
+        var maps = await repo.GetInstanceMapsAsync(instance.Id);
+        Assert.NotNull(maps);
+        Assert.Single(maps);
+        Assert.Equal(map.Id, maps.First().Id);
+
+        // Test GetInstanceMapsAsync - empty
+        var mapsEmpty = await repo.GetInstanceMapsAsync(999999);
+        Assert.NotNull(mapsEmpty);
+        Assert.Empty(mapsEmpty);
+
+        // Test GetAccessibleInstancesAsync - admin
+        var accessibleInstances = await repo.GetAccessibleInstancesAsync(EVE_CHARACTERE_ID, null, null);
+        Assert.NotNull(accessibleInstances);
+        Assert.Contains(accessibleInstances, i => i.Id == instance.Id);
+
+        // Test GetAccessibleInstancesAsync - character access
+        accessibleInstances = await repo.GetAccessibleInstancesAsync(EVE_CHARACTERE_ID2, null, null);
+        Assert.NotNull(accessibleInstances);
+        Assert.Contains(accessibleInstances, i => i.Id == instance.Id);
+
+        // Test GetAccessibleInstancesAsync - alliance access (note: one access was removed)
+        accessibleInstances = await repo.GetAccessibleInstancesAsync(999, null, EVE_ALLIANCE_ID);
+        Assert.NotNull(accessibleInstances);
+        Assert.Contains(accessibleInstances, i => i.Id == instance.Id);
+
+        // Test GetAccessibleInstancesAsync - no access
+        accessibleInstances = await repo.GetAccessibleInstancesAsync(999, 888, 777);
+        Assert.NotNull(accessibleInstances);
+        Assert.DoesNotContain(accessibleInstances, i => i.Id == instance.Id);
+
+        // Cleanup
+        await repoMap.DeleteById(map.Id);
+        await repo.DeleteById(instance.Id);
+    }
+
+    [Fact, Priority(86)]
+    public async Task WHInstance_EdgeCases()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create repository
+        IWHInstanceRepository repo = new WHInstanceRepository(new NullLogger<WHInstanceRepository>(), _contextFactory);
+
+        // Create instance
+        var instance = await repo.Create(new WHInstance(
+            "EdgeCaseInstance",
+            EVE_CHARACTERE_ID + 100,
+            EVE_CHARACTERE_NAME,
+            WHAccessEntity.Character,
+            EVE_CHARACTERE_ID + 100,
+            EVE_CHARACTERE_NAME,
+            "Edge Case Instance"
+        ));
+        Assert.NotNull(instance);
+
+        // Test GetInstanceAdminsAsync on instance with no admins
+        var admins = await repo.GetInstanceAdminsAsync(instance.Id);
+        Assert.NotNull(admins);
+        Assert.Empty(admins);
+
+        // Test GetInstanceAccessesAsync on instance with no accesses
+        var accesses = await repo.GetInstanceAccessesAsync(instance.Id);
+        Assert.NotNull(accesses);
+        Assert.Empty(accesses);
+
+        // Test HasInstanceAccessAsync on instance with no accesses and no admins
+        var hasAccess = await repo.HasInstanceAccessAsync(instance.Id, 999, null, null);
+        Assert.False(hasAccess);
+
+        // Test GetAccessibleInstancesAsync - corporation access
+        var accessCorp = await repo.AddInstanceAccessAsync(new WHInstanceAccess(instance.Id, EVE_CORPO_ID2, EVE_CORPO_NAME2, WHAccessEntity.Corporation));
+        Assert.NotNull(accessCorp);
+
+        var accessibleInstances = await repo.GetAccessibleInstancesAsync(999, EVE_CORPO_ID2, null);
+        Assert.NotNull(accessibleInstances);
+        Assert.Contains(accessibleInstances, i => i.Id == instance.Id);
+
+        // Test HasInstanceAccessAsync with all null optional parameters
+        hasAccess = await repo.HasInstanceAccessAsync(instance.Id, 999, null, null);
+        Assert.False(hasAccess);
+
+        // Add admin to test duplicate admin behavior
+        var admin = await repo.AddInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID + 100, EVE_CHARACTERE_NAME, true);
+        Assert.NotNull(admin);
+
+        // Cleanup
+        await repo.DeleteById(instance.Id);
+    }
+
+    [Fact, Priority(71)]
+    public async Task WHMapAccess_EdgeCases()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
+
+        // Add WHMAP
+        var map = await repoMap.Create(new WHMap("EdgeCaseMap"));
+        Assert.NotNull(map);
+
+        // Create WHMapAccessRepository
+        IWHMapAccessRepository repo = new WHMapAccessRepository(new NullLogger<WHMapAccessRepository>(), _contextFactory);
+
+        // Test GetMapAccessCountAsync on empty map
+        var count = await repo.GetMapAccessCountAsync(map.Id);
+        Assert.Equal(0, count);
+
+        // Test GetMapAccessCountAsync on non-existent map
+        count = await repo.GetMapAccessCountAsync(-10);
+        Assert.Equal(0, count);
+
+        // Test HasMapAccessAsync with all null optional parameters
+        var hasAccess = await repo.HasMapAccessAsync(map.Id, 999, null, null);
+        Assert.True(hasAccess); // No restrictions means access granted
+
+        // Add access
+        var access = await repo.AddMapAccessAsync(new WHMapAccess(map.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, WHAccessEntity.Character));
+        Assert.NotNull(access);
+
+        // Test HasMapAccessAsync with null corporationId and allianceId
+        hasAccess = await repo.HasMapAccessAsync(map.Id, 999, null, null);
+        Assert.False(hasAccess); // Has restrictions but no matching access
+
+        // Test RemoveMapAccessAsync with correct mapId but wrong accessId
+        var removed = await repo.RemoveMapAccessAsync(map.Id, access.Id + 1000);
+        Assert.False(removed);
+
+        // Test GetMapAccessesAsync on non-existent map
+        var accesses = await repo.GetMapAccessesAsync(-10);
+        Assert.NotNull(accesses);
+        Assert.Empty(accesses);
+
+        // Test HasAccessRestrictionsAsync on non-existent map
+        var hasRestrictions = await repo.HasAccessRestrictionsAsync(-10);
+        Assert.False(hasRestrictions);
+
+        // Null update test
+        var nullUpdate = await repo.Update(-10, null!);
+        Assert.Null(nullUpdate);
+
+        // Bad id update test
+        var badIdUpdate = await repo.Update(-10, access);
+        Assert.Null(badIdUpdate);
+
+        // Cleanup
+        await repo.DeleteById(access.Id);
+        await repoMap.DeleteById(map.Id);
+    }
+
+    [Fact, Priority(72)]
+    public async Task WHMapAccess_RemoveMapAccessAsync_Success()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create IWHMapRepository
+        IWHMapRepository repoMap = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
+
+        // Add WHMAP
+        var map = await repoMap.Create(new WHMap("RemoveAccessMap"));
+        Assert.NotNull(map);
+
+        // Create WHMapAccessRepository
+        IWHMapAccessRepository repo = new WHMapAccessRepository(new NullLogger<WHMapAccessRepository>(), _contextFactory);
+
+        // Add access
+        var access = await repo.AddMapAccessAsync(new WHMapAccess(map.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, WHAccessEntity.Character));
+        Assert.NotNull(access);
+
+        // Test successful RemoveMapAccessAsync
+        var removed = await repo.RemoveMapAccessAsync(map.Id, access.Id);
+        Assert.True(removed);
+
+        // Verify removed
+        var accesses = await repo.GetMapAccessesAsync(map.Id);
+        Assert.NotNull(accesses);
+        Assert.Empty(accesses);
+
+        // Cleanup
+        await repoMap.DeleteById(map.Id);
+    }
+
+    [Fact, Priority(87)]
+    public async Task WHInstance_DuplicateAdmin()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create repository
+        IWHInstanceRepository repo = new WHInstanceRepository(new NullLogger<WHInstanceRepository>(), _contextFactory);
+
+        // Create instance
+        var instance = await repo.Create(new WHInstance(
+            "DuplicateAdminInstance",
+            EVE_CHARACTERE_ID + 200,
+            EVE_CHARACTERE_NAME,
+            WHAccessEntity.Character,
+            EVE_CHARACTERE_ID + 200,
+            EVE_CHARACTERE_NAME,
+            "Duplicate Admin Instance"
+        ));
+        Assert.NotNull(instance);
+
+        // Add admin
+        var admin = await repo.AddInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, false);
+        Assert.NotNull(admin);
+
+        // Try to add duplicate admin - should return null (due to unique constraint)
+        var duplicateAdmin = await repo.AddInstanceAdminAsync(instance.Id, EVE_CHARACTERE_ID, EVE_CHARACTERE_NAME, false);
+        Assert.Null(duplicateAdmin);
+
+        // Cleanup
+        await repo.DeleteById(instance.Id);
+    }
+
+    [Fact, Priority(88)]
+    public async Task WHInstance_DuplicateAccess()
+    {
+        Assert.NotNull(_contextFactory);
+
+        // Create repository
+        IWHInstanceRepository repo = new WHInstanceRepository(new NullLogger<WHInstanceRepository>(), _contextFactory);
+
+        // Create instance
+        var instance = await repo.Create(new WHInstance(
+            "DuplicateAccessInstance",
+            EVE_CHARACTERE_ID + 300,
+            EVE_CHARACTERE_NAME,
+            WHAccessEntity.Character,
+            EVE_CHARACTERE_ID + 300,
+            EVE_CHARACTERE_NAME,
+            "Duplicate Access Instance"
+        ));
+        Assert.NotNull(instance);
+
+        // Add access
+        var access = await repo.AddInstanceAccessAsync(new WHInstanceAccess(instance.Id, EVE_CORPO_ID, EVE_CORPO_NAME, WHAccessEntity.Corporation));
+        Assert.NotNull(access);
+
+        // Try to add duplicate access - should return null (due to unique constraint)
+        var duplicateAccess = await repo.AddInstanceAccessAsync(new WHInstanceAccess(instance.Id, EVE_CORPO_ID, EVE_CORPO_NAME, WHAccessEntity.Corporation));
+        Assert.Null(duplicateAccess);
+
+        // Cleanup
+        await repo.DeleteById(instance.Id);
     }
 
     [Fact, Priority(9)]

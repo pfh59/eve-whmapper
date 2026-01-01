@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Models.DTO.EveMapper;
+using WHMapper.Models.Db;
+using WHMapper.Repositories.WHMaps;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveOAuthProvider.Services;
@@ -17,13 +20,37 @@ public class EveMapperUserManagementServiceTest
 {
     private readonly Mock<IEveOnlineTokenProvider> _mockTokenProvider;
     private readonly Mock<ICharacterServices> _mockCharacterServices;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<ILogger<EveMapperUserManagementService>> _mockLogger;
+    private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+    private readonly Mock<IServiceScope> _mockServiceScope;
+    private readonly Mock<IServiceProvider> _mockScopedServiceProvider;
+    private readonly Mock<IWHMapRepository> _mockWHMapRepository;
+    private readonly Mock<IEveMapperAccessHelper> _mockAccessHelper;
     private readonly EveMapperUserManagementService _service;
 
     public EveMapperUserManagementServiceTest()
     {
         _mockTokenProvider = new Mock<IEveOnlineTokenProvider>();
         _mockCharacterServices = new Mock<ICharacterServices>();
-        _service = new EveMapperUserManagementService(_mockTokenProvider.Object, _mockCharacterServices.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockLogger = new Mock<ILogger<EveMapperUserManagementService>>();
+        _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+        _mockServiceScope = new Mock<IServiceScope>();
+        _mockScopedServiceProvider = new Mock<IServiceProvider>();
+        _mockWHMapRepository = new Mock<IWHMapRepository>();
+        _mockAccessHelper = new Mock<IEveMapperAccessHelper>();
+
+        // Setup the scoped service provider to return the IWHMapRepository
+        _mockScopedServiceProvider.Setup(sp => sp.GetService(typeof(IWHMapRepository))).Returns(_mockWHMapRepository.Object);
+        _mockScopedServiceProvider.Setup(sp => sp.GetService(typeof(IEveMapperAccessHelper))).Returns(_mockAccessHelper.Object);
+
+        // Setup the service scope to return the scoped service provider
+        _mockServiceScope.Setup(s => s.ServiceProvider).Returns(_mockScopedServiceProvider.Object);
+        _mockServiceScopeFactory.Setup(f => f.CreateScope()).Returns(_mockServiceScope.Object);
+        _mockServiceProvider.Setup(sp => sp.GetService(typeof(IServiceScopeFactory))).Returns(_mockServiceScopeFactory.Object);
+
+        _service = new EveMapperUserManagementService(_mockTokenProvider.Object, _mockCharacterServices.Object, _mockServiceProvider.Object, _mockLogger.Object);
     }
 
     [Fact]
@@ -416,7 +443,209 @@ public async Task SetPrimaryAccountAsync_ShouldThrowException_WhenAccountDoesNot
     var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.SetPrimaryAccountAsync(clientId, accountId));
     Assert.Equal("accountId", exception.ParamName);
 }
+ [Fact]
+    public async Task GetPrimaryAccountAsync_ShouldReturnPrimaryAccount_WhenExists()
+    {
+        // Arrange
+        var clientId = "test-client-id";
+        var users = new[]
+        {
+            new WHMapperUser(123, "portrait1.jpg") { IsPrimary = false },
+            new WHMapperUser(456, "portrait2.jpg") { IsPrimary = true }
+        };
 
+        var whMapperUsers = new ConcurrentDictionary<string, WHMapperUser[]>();
+        whMapperUsers.TryAdd(clientId, users);
+
+        typeof(EveMapperUserManagementService)
+            .GetField("_whMapperUsers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.SetValue(_service, whMapperUsers);
+
+        // Act
+        var result = await _service.GetPrimaryAccountAsync(clientId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(456, result.Id);
+        Assert.True(result.IsPrimary);
+    }
+
+    [Fact]
+    public async Task GetPrimaryAccountAsync_ShouldReturnNull_WhenNoPrimaryAccount()
+    {
+        // Arrange
+        var clientId = "test-client-id";
+        var users = new[]
+        {
+            new WHMapperUser(123, "portrait1.jpg"),
+            new WHMapperUser(456, "portrait2.jpg")
+        };
+
+        var whMapperUsers = new ConcurrentDictionary<string, WHMapperUser[]>();
+        whMapperUsers.TryAdd(clientId, users);
+
+        typeof(EveMapperUserManagementService)
+            .GetField("_whMapperUsers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.SetValue(_service, whMapperUsers);
+
+        // Act
+        var result = await _service.GetPrimaryAccountAsync(clientId);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetPrimaryAccountAsync_ShouldThrowArgumentNullException_WhenClientIdIsNull()
+    {
+        // Arrange
+        string? clientId = null;
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPrimaryAccountAsync(clientId!));
+        Assert.Equal("clientId", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task GetPrimaryAccountAsync_ShouldThrowArgumentNullException_WhenClientIdIsWhitespace()
+    {
+        // Arrange
+        var clientId = " ";
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPrimaryAccountAsync(clientId));
+        Assert.Equal("clientId", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task UpdateAccountsMapAccessAsync_ShouldSetHasMapAccessCorrectly_WhenPrimaryHasAccess()
+    {
+        // Arrange
+        var clientId = "test-client-id";
+        var users = new[]
+        {
+            new WHMapperUser(123, "portrait1.jpg") { IsPrimary = true },
+            new WHMapperUser(456, "portrait2.jpg") { IsPrimary = false }
+        };
+
+        var whMapperUsers = new ConcurrentDictionary<string, WHMapperUser[]>();
+        whMapperUsers.TryAdd(clientId, users);
+
+        typeof(EveMapperUserManagementService)
+            .GetField("_whMapperUsers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.SetValue(_service, whMapperUsers);
+
+        var maps = new[] { new WHMap ("map1"){ Id = 1 }, new WHMap("map2") { Id = 2 } };
+        _mockWHMapRepository.Setup(r => r.GetAll()).ReturnsAsync(maps.AsEnumerable());
+        _mockAccessHelper.Setup(h => h.IsEveMapperMapAccessAuthorized(123, 1)).ReturnsAsync(true);
+        _mockAccessHelper.Setup(h => h.IsEveMapperMapAccessAuthorized(123, 2)).ReturnsAsync(false);
+        _mockAccessHelper.Setup(h => h.IsEveMapperMapAccessAuthorized(456, 1)).ReturnsAsync(true);
+        _mockAccessHelper.Setup(h => h.IsEveMapperMapAccessAuthorized(456, 2)).ReturnsAsync(false);
+
+        // Act
+        await _service.UpdateAccountsMapAccessAsync(clientId);
+
+        // Assert
+        Assert.True(users[0].HasMapAccess); // primary always true
+        Assert.True(users[1].HasMapAccess); // secondary has access to at least one map
+    }
+
+    [Fact]
+    public async Task UpdateAccountsMapAccessAsync_ShouldSetHasMapAccessFalse_WhenNoMaps()
+    {
+        // Arrange
+        var clientId = "test-client-id";
+        var users = new[]
+        {
+            new WHMapperUser(123, "portrait1.jpg") { IsPrimary = true },
+            new WHMapperUser(456, "portrait2.jpg") { IsPrimary = false }
+        };
+
+        var whMapperUsers = new ConcurrentDictionary<string, WHMapperUser[]>();
+        whMapperUsers.TryAdd(clientId, users);
+
+        typeof(EveMapperUserManagementService)
+            .GetField("_whMapperUsers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.SetValue(_service, whMapperUsers);
+
+        _mockWHMapRepository.Setup(r => r.GetAll()).ReturnsAsync(Array.Empty<WHMap>());
+
+        // Act
+        await _service.UpdateAccountsMapAccessAsync(clientId);
+
+        // Assert
+        Assert.True(users[0].HasMapAccess);
+        Assert.False(users[1].HasMapAccess);
+    }
+
+    [Fact]
+    public async Task UpdateAccountsMapAccessAsync_ShouldThrowArgumentNullException_WhenClientIdIsNull()
+    {
+        // Arrange
+        string? clientId = null;
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.UpdateAccountsMapAccessAsync(clientId!));
+        Assert.Equal("clientId", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task UpdateAccountsCurrentMapAccessAsync_ShouldSetHasCurrentMapAccessCorrectly()
+    {
+        // Arrange
+        var clientId = "test-client-id";
+        var mapId = 42;
+        var users = new[]
+        {
+            new WHMapperUser(123, "portrait1.jpg"),
+            new WHMapperUser(456, "portrait2.jpg")
+        };
+
+        var whMapperUsers = new ConcurrentDictionary<string, WHMapperUser[]>();
+        whMapperUsers.TryAdd(clientId, users);
+
+        typeof(EveMapperUserManagementService)
+            .GetField("_whMapperUsers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.SetValue(_service, whMapperUsers);
+
+        _mockAccessHelper.Setup(h => h.IsEveMapperMapAccessAuthorized(123, mapId)).ReturnsAsync(true);
+        _mockAccessHelper.Setup(h => h.IsEveMapperMapAccessAuthorized(456, mapId)).ReturnsAsync(false);
+
+        // Act
+        await _service.UpdateAccountsCurrentMapAccessAsync(clientId, mapId);
+
+        // Assert
+        Assert.True(users[0].HasCurrentMapAccess);
+        Assert.False(users[1].HasCurrentMapAccess);
+    }
+
+    [Fact]
+    public async Task UpdateAccountsCurrentMapAccessAsync_ShouldThrowArgumentNullException_WhenClientIdIsNull()
+    {
+        // Arrange
+        string? clientId = null;
+        int mapId = 1;
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.UpdateAccountsCurrentMapAccessAsync(clientId!, mapId));
+        Assert.Equal("clientId", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task UpdateAccountsCurrentMapAccessAsync_ShouldDoNothing_WhenNoAccounts()
+    {
+        // Arrange
+        var clientId = "test-client-id";
+        int mapId = 1;
+
+        // No users for this clientId
+
+        // Act
+        var ex = await Record.ExceptionAsync(() => _service.UpdateAccountsCurrentMapAccessAsync(clientId, mapId));
+
+        // Assert
+        Assert.Null(ex); // Should not throw
+    }
     
 
 

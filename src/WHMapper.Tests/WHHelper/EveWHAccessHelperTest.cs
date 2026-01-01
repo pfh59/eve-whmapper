@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using WHMapper.Data;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
-using WHMapper.Repositories.WHAccesses;
-using WHMapper.Repositories.WHAdmins;
 using WHMapper.Repositories.WHMaps;
+using WHMapper.Repositories.WHMapAccesses;
+using WHMapper.Repositories.WHInstances;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
@@ -27,9 +27,9 @@ public class EveWHAccessHelperTest
 
     IDbContextFactory<WHMapperContext>? _contextFactory;
     private IEveMapperAccessHelper? _accessHelper;
-    private IWHAccessRepository? _whAccessRepository;
-    private IWHAdminRepository? _whAdminRepository;
     private IWHMapRepository? _whMapRepository;
+    private IWHInstanceRepository? _whInstanceRepository;
+    private IWHMapAccessRepository? _whMapAccessRepository;
 
     
 
@@ -56,14 +56,14 @@ public class EveWHAccessHelperTest
             _contextFactory = provider.GetService<IDbContextFactory<WHMapperContext>>();
             if (_contextFactory != null && httpclientfactory != null)
             {
-                _whAccessRepository = new WHAccessRepository(new NullLogger<WHAccessRepository>(), _contextFactory);
-                _whAdminRepository = new WHAdminRepository(new NullLogger<WHAdminRepository>(), _contextFactory);
                 _whMapRepository = new WHMapRepository(new NullLogger<WHMapRepository>(), _contextFactory);
+                _whInstanceRepository = new WHInstanceRepository(new NullLogger<WHInstanceRepository>(), _contextFactory);
+                _whMapAccessRepository = new WHMapAccessRepository(new NullLogger<WHMapAccessRepository>(), _contextFactory);
 
                 var httpClient = httpclientfactory.CreateClient();
                 httpClient.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
 
-                _accessHelper = new EveMapperAccessHelper(_whAccessRepository, _whAdminRepository,_whMapRepository, new CharacterServices(httpClient));
+                _accessHelper = new EveMapperAccessHelper(_whMapRepository, _whInstanceRepository, _whMapAccessRepository, new CharacterServices(httpClient));
             }
         }
 
@@ -87,130 +87,144 @@ public class EveWHAccessHelperTest
     }
 
     [Fact, Priority(2)]
-    public async Task Eve_Mapper_User_Access()
+    public async Task Eve_Mapper_No_Instance_No_Access()
     {
         Assert.NotNull(_accessHelper);
-        Assert.NotNull(_whAccessRepository);
+        Assert.NotNull(_whInstanceRepository);
 
-        var fullAuthorize = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
-        Assert.True(fullAuthorize);
-
-        var character = await _whAccessRepository.Create(new WHAccess(EVE_CHARACTERE_ID2, "TOTO",WHAccessEntity.Character));
-        Assert.NotNull(character);
-        Assert.Equal(EVE_CHARACTERE_ID2, character.EveEntityId);
-
-        var notAuthorize = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
-        Assert.False(notAuthorize);
-
-        var authorize = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID2);
-        Assert.True(authorize);
-
-        await _whAccessRepository.DeleteById(character.Id);
-
+        // Without any instance, user should NOT have access
+        var noAccess = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
+        Assert.False(noAccess);
     }
 
     [Fact, Priority(3)]
-    public async Task Eve_Mapper_Corpo_Access()
+    public async Task Eve_Mapper_Instance_Character_Access()
     {
         Assert.NotNull(_accessHelper);
-        Assert.NotNull(_whAccessRepository);
+        Assert.NotNull(_whInstanceRepository);
 
-        var corpo = await _whAccessRepository.Create(new WHAccess(EVE_CORPO_ID, "TOTO",WHAccessEntity.Corporation));
-        Assert.NotNull(corpo);
-        Assert.Equal(EVE_CORPO_ID, corpo.EveEntityId);
+        // Create an instance owned by character
+        var instance = new WHInstance("Test Instance", EVE_CHARACTERE_ID, "Test Character", WHAccessEntity.Character, EVE_CHARACTERE_ID, "Test Character");
+        var createdInstance = await _whInstanceRepository.Create(instance);
+        Assert.NotNull(createdInstance);
 
-        var authorizeU1 = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
-        Assert.True(authorizeU1);
+        // Add the owner as admin
+        await _whInstanceRepository.AddInstanceAdminAsync(createdInstance.Id, EVE_CHARACTERE_ID, "Test Character", true);
 
-        var authorizeU2 = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID2);
-        Assert.False(authorizeU2);
+        // Add character access
+        var access = new WHInstanceAccess(createdInstance.Id, EVE_CHARACTERE_ID, "Test Character", WHAccessEntity.Character);
+        await _whInstanceRepository.AddInstanceAccessAsync(access);
 
-        await _whAccessRepository.DeleteById(corpo.Id);
+        // User should have access
+        var hasAccess = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
+        Assert.True(hasAccess);
+
+        // Other user should NOT have access
+        var noAccess = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID2);
+        Assert.False(noAccess);
+
+        // Cleanup
+        await _whInstanceRepository.DeleteById(createdInstance.Id);
     }
 
     [Fact, Priority(4)]
-    public async Task Eve_Mapper_Alliance_Access()
+    public async Task Eve_Mapper_Instance_Corporation_Access()
     {
         Assert.NotNull(_accessHelper);
-        Assert.NotNull(_whAccessRepository);
+        Assert.NotNull(_whInstanceRepository);
 
-        var alliance = await _whAccessRepository.Create(new WHAccess(EVE_ALLIANCE_ID, "TOTO",WHAccessEntity.Alliance));
-        Assert.NotNull(alliance);
-        Assert.Equal(EVE_ALLIANCE_ID, alliance.EveEntityId);
+        // Create an instance owned by corporation
+        var instance = new WHInstance("Corp Instance", EVE_CORPO_ID, "Test Corp", WHAccessEntity.Corporation, EVE_CHARACTERE_ID, "Test Character");
+        var createdInstance = await _whInstanceRepository.Create(instance);
+        Assert.NotNull(createdInstance);
 
-        var authorizeU1 = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
-        Assert.True(authorizeU1);
+        // Add the creator as admin
+        await _whInstanceRepository.AddInstanceAdminAsync(createdInstance.Id, EVE_CHARACTERE_ID, "Test Character", true);
 
-        var authorizeU2 = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID2);
-        Assert.True(authorizeU2);
+        // Add corporation access
+        var access = new WHInstanceAccess(createdInstance.Id, EVE_CORPO_ID, "Test Corp", WHAccessEntity.Corporation);
+        await _whInstanceRepository.AddInstanceAccessAsync(access);
 
-        await _whAccessRepository.DeleteById(alliance.Id);
+        // User in corp should have access
+        var hasAccess = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID);
+        Assert.True(hasAccess);
+
+        // User NOT in corp should NOT have access
+        var noAccess = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID2);
+        Assert.False(noAccess);
+
+        // Cleanup
+        await _whInstanceRepository.DeleteById(createdInstance.Id);
     }
 
     [Fact, Priority(5)]
-    public async Task Eve_Mapper_Admin_Access()
+    public async Task Eve_Mapper_Instance_Admin_Access()
     {
         Assert.NotNull(_accessHelper);
-        Assert.NotNull(_whAdminRepository);
+        Assert.NotNull(_whInstanceRepository);
 
-        var fullAuthorize = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID);
-        Assert.True(fullAuthorize);
+        // Create an instance
+        var instance = new WHInstance("Admin Instance", EVE_CHARACTERE_ID, "Test Character", WHAccessEntity.Character, EVE_CHARACTERE_ID, "Test Character");
+        var createdInstance = await _whInstanceRepository.Create(instance);
+        Assert.NotNull(createdInstance);
 
-        var character = await _whAdminRepository.Create(new WHAdmin(EVE_CHARACTERE_ID2, "TOTO"));
-        Assert.NotNull(character);
-        Assert.Equal(EVE_CHARACTERE_ID2, character.EveCharacterId);
+        // Add the owner as admin
+        await _whInstanceRepository.AddInstanceAdminAsync(createdInstance.Id, EVE_CHARACTERE_ID, "Test Character", true);
 
-        var notAuthorize = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID);
-        Assert.False(notAuthorize);
+        // Owner should be admin
+        var isAdmin = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID);
+        Assert.True(isAdmin);
 
-        var authorize = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID2);
-        Assert.True(authorize);
+        // Other user should NOT be admin
+        var notAdmin = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID2);
+        Assert.False(notAdmin);
 
-        await _whAdminRepository.DeleteById(character.Id);
+        // Add second user as admin
+        await _whInstanceRepository.AddInstanceAdminAsync(createdInstance.Id, EVE_CHARACTERE_ID2, "Test Character 2", false);
+
+        // Second user should now be admin
+        var nowAdmin = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID2);
+        Assert.True(nowAdmin);
+
+        // Cleanup
+        await _whInstanceRepository.DeleteById(createdInstance.Id);
     }
 
     [Fact, Priority(6)]
-    public async Task Eve_Mapper_Map_Access()
+    public async Task Eve_Mapper_Map_Instance_Access()
     {
         Assert.NotNull(_accessHelper);
         Assert.NotNull(_whMapRepository);
-        Assert.NotNull(_whAccessRepository);
+        Assert.NotNull(_whInstanceRepository);
 
-        
-        var map = await _whMapRepository.Create(new WHMap("MAP"));
+        // Create an instance
+        var instance = new WHInstance("Map Instance", EVE_CHARACTERE_ID, "Test Character", WHAccessEntity.Character, EVE_CHARACTERE_ID, "Test Character");
+        var createdInstance = await _whInstanceRepository.Create(instance);
+        Assert.NotNull(createdInstance);
+
+        // Add the owner as admin and access
+        await _whInstanceRepository.AddInstanceAdminAsync(createdInstance.Id, EVE_CHARACTERE_ID, "Test Character", true);
+        var access = new WHInstanceAccess(createdInstance.Id, EVE_CHARACTERE_ID, "Test Character", WHAccessEntity.Character);
+        await _whInstanceRepository.AddInstanceAccessAsync(access);
+
+        // Create a map in this instance
+        var map = await _whMapRepository.Create(new WHMap("MAP", createdInstance.Id));
         Assert.NotNull(map);
         Assert.Equal("MAP", map.Name);
-        Assert.Empty(map.WHAccesses);
+        Assert.Equal(createdInstance.Id, map.WHInstanceId);
 
-        
-        var fullAuthorize = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID,map.Id);
-        Assert.True(fullAuthorize);
+        // User with instance access should have map access
+        var hasAccess = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID, map.Id);
+        Assert.True(hasAccess);
 
-        //add access to evemap lock all maps
-        var characterAccess = await _whAccessRepository.Create(new WHAccess(EVE_CHARACTERE_ID, "TOTO",WHAccessEntity.Character));
-        Assert.NotNull(characterAccess);
-        Assert.Equal(EVE_CHARACTERE_ID, characterAccess.EveEntityId);
+        // User without instance access should NOT have map access
+        var noAccess = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID2, map.Id);
+        Assert.False(noAccess);
 
-        var notAuthorize1 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID,map.Id);
-        Assert.False(notAuthorize1);
-
-        var notAuthorize2 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID2,map.Id);
-        Assert.False(notAuthorize2);
-
-        //add access to evemap only for user1
-        map.WHAccesses.Add(characterAccess);
-        await _whMapRepository.Update(map.Id,map);
-
-        var authorize1 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID,map.Id);
-        Assert.True(authorize1);
-
-        var notAuthorize2_2 = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID2,map.Id);
-        Assert.False(notAuthorize2_2);
-
+        // Cleanup
         await _whMapRepository.DeleteById(map.Id);
+        await _whInstanceRepository.DeleteById(createdInstance.Id);
     }
-
-
 }
 
 

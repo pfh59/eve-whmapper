@@ -13,6 +13,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     private readonly NavigationManager _navigation;
     private readonly IEveOnlineTokenProvider _tokenProvider;
     private readonly IConfiguration _configuration;
+    private bool _disposed = false;
 
     public event Func<int, Task>? UserConnected;
     public event Func<int, Task>? UserDisconnected;
@@ -37,6 +38,8 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, Task>? MapAllAccessesRemoved;
     public event Func<int, int, Task>? UserOnMapConnected;
     public event Func<int, int, Task>? UserOnMapDisconnected;
+    public event Func<int, int, int, Task>? InstanceAccessAdded;
+    public event Func<int, int, int, Task>? InstanceAccessRemoved;
 
 
     public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, IEveOnlineTokenProvider tokenProvider, IConfiguration configuration)
@@ -241,6 +244,20 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                     if (UserOnMapDisconnected != null)
                     {
                         await UserOnMapDisconnected.Invoke(accountID, mapId);
+                    }
+                });
+                hubConnection.On<int, int, int>("NotifyInstanceAccessAdded", async (accountID, instanceId, accessId) => 
+                {
+                    if (InstanceAccessAdded != null)
+                    {
+                        await InstanceAccessAdded.Invoke(accountID, instanceId, accessId);
+                    }
+                });
+                hubConnection.On<int, int, int>("NotifyInstanceAccessRemoved", async (accountID, instanceId, accessId) => 
+                {
+                    if (InstanceAccessRemoved != null)
+                    {
+                        await InstanceAccessRemoved.Invoke(accountID, instanceId, accessId);
                     }
                 });
 
@@ -499,24 +516,58 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
+    public async Task NotifyInstanceAccessAdded(int accountID, int instanceId, int accessId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendInstanceAccessAdded", instanceId, accessId);
+        }
+    }
+
+    public async Task NotifyInstanceAccessRemoved(int accountID, int instanceId, int accessId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendInstanceAccessRemoved", instanceId, accessId);
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
+        
+        _logger.LogInformation("EveMapperRealTimeService disposing...");
+        
         if (_hubConnection != null)
         {
-            foreach (var connection in _hubConnection.Values)
+            foreach (var kvp in _hubConnection)
             {
                 try
                 {
-                    await connection.StopAsync();
+                    _logger.LogInformation("Stopping hub connection for account {AccountId}", kvp.Key);
+                    await kvp.Value.StopAsync();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to stop the real-time service.");
+                    _logger.LogWarning(ex, "Error stopping hub connection for account {AccountId}", kvp.Key);
+                }
+                
+                try
+                {
+                    await kvp.Value.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error disposing hub connection for account {AccountId}", kvp.Key);
                 }
             }
             _hubConnection.Clear();
 
-            //ckear the events
+            // Clear all event handlers
             UserConnected = null;
             UserDisconnected = null;
             UserPosition = null;
@@ -527,6 +578,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             WormholeMoved = null;
             LinkChanged = null;
             WormholeNameExtensionChanged = null;
+            WormholeAlternateNameChanged = null;
             WormholeSignaturesChanged = null;
             WormholeLockChanged = null;
             WormholeSystemStatusChanged = null;
@@ -539,7 +591,12 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             MapAllAccessesRemoved = null;
             UserOnMapConnected = null;
             UserOnMapDisconnected = null;
+            InstanceAccessAdded = null;
+            InstanceAccessRemoved = null;
         }
+        
+        _logger.LogInformation("EveMapperRealTimeService disposed");
+        GC.SuppressFinalize(this);
     }
 
     public async Task<bool> IsConnected(int accountID)

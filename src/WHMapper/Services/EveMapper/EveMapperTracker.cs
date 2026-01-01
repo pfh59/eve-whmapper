@@ -30,9 +30,12 @@ public class EveMapperTracker : IEveMapperTracker
     private readonly ConcurrentDictionary<int, Ship> _currentShips;
   
     private readonly ConcurrentDictionary<int, CancellationTokenSource> _ctss = new();
+    private readonly ConcurrentDictionary<int, Task[]> _trackingTasks = new();
     private readonly SemaphoreSlim _semaphoreSlim;
+    private readonly SemaphoreSlim _trackingLock = new(1, 1);
 
-    private string test=Guid.NewGuid().ToString();
+    private readonly string _instanceId = Guid.NewGuid().ToString()[..8];
+    private bool _disposed = false;
 
 
     public EveMapperTracker(ILogger<EveMapperTracker> logger, IEveAPIServices eveAPI, IEveOnlineTokenProvider tokenProvider)
@@ -44,171 +47,331 @@ public class EveMapperTracker : IEveMapperTracker
         _currentLocations = new ConcurrentDictionary<int, EveLocation>();
         _currentShips = new ConcurrentDictionary<int, Ship>();
         _semaphoreSlim = new SemaphoreSlim(1,1);
+        
+        _logger.LogInformation("EveMapperTracker instance {InstanceId} created", _instanceId);
     }
 
     public async ValueTask DisposeAsync()
-    {       
+    {
+        if (_disposed)
+        {
+            return;
+        }
+        _disposed = true;
+        
+        _logger.LogInformation("EveMapperTracker instance {InstanceId} disposing...", _instanceId);
+        
+        // Cancel all tracking tokens
         foreach (var kvp in _ctss)
         {
-            if (kvp.Value != null && !kvp.Value.IsCancellationRequested)
+            try
             {
-                kvp.Value.Cancel();
-                kvp.Value.Dispose();
+                if (kvp.Value != null && !kvp.Value.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Cancelling tracking for account {AccountId}", kvp.Key);
+                    kvp.Value.Cancel();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error cancelling token for account {AccountId}", kvp.Key);
             }
         }
+        
+        // Wait for all tasks to complete with timeout
+        var allTasks = _trackingTasks.Values.SelectMany(t => t).ToArray();
+        if (allTasks.Length > 0)
+        {
+            _logger.LogInformation("Waiting for {TaskCount} tracking tasks to complete...", allTasks.Length);
+            try
+            {
+                await Task.WhenAll(allTasks).WaitAsync(TimeSpan.FromSeconds(5));
+            }
+            catch (TimeoutException)
+            {
+                _logger.LogWarning("Timeout waiting for tracking tasks to complete");
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error waiting for tracking tasks");
+            }
+        }
+        
+        // Dispose all CancellationTokenSources
+        foreach (var kvp in _ctss)
+        {
+            try
+            {
+                kvp.Value?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error disposing CTS for account {AccountId}", kvp.Key);
+            }
+        }
+        
         _ctss.Clear();
+        _trackingTasks.Clear();
         _currentLocations.Clear();
         _currentShips.Clear();
-
-        await Task.CompletedTask;
+        _semaphoreSlim.Dispose();
+        _trackingLock.Dispose();
+        
+        _logger.LogInformation("EveMapperTracker instance {InstanceId} disposed", _instanceId);
     }
 
     public async Task StartTracking(int accountID)
     {
-        CancellationTokenSource? cts = null;
-        _logger.LogInformation("Starting tracking for account {accountID}", accountID);
-
-        if (_ctss.ContainsKey(accountID))
+        if (_disposed)
         {
-            while (!_ctss.TryGetValue(accountID, out cts))
-                await Task.Delay(1);
+            _logger.LogWarning("Cannot start tracking - tracker instance {InstanceId} is disposed", _instanceId);
+            return;
+        }
+        
+        await _trackingLock.WaitAsync();
+        try
+        {
+            _logger.LogInformation("[{InstanceId}] StartTracking called for account {AccountId}", _instanceId, accountID);
 
-            if (cts != null && cts.IsCancellationRequested)
+            // Stop existing tracking first if any
+            if (_ctss.ContainsKey(accountID))
             {
-                cts.Dispose();
-                while (!_ctss.TryRemove(accountID, out _))
-                    await Task.Delay(1);
-
-                cts = new CancellationTokenSource();
-                while (!_ctss.TryAdd(accountID, cts))
-                    await Task.Delay(1);
+                _logger.LogInformation("[{InstanceId}] Stopping existing tracking for account {AccountId} before starting new one", _instanceId, accountID);
+                await StopTrackingInternal(accountID);
             }
+
+            // Create new CancellationTokenSource
+            var cts = new CancellationTokenSource();
+            if (!_ctss.TryAdd(accountID, cts))
+            {
+                _logger.LogError("[{InstanceId}] Failed to add CTS for account {AccountId}", _instanceId, accountID);
+                cts.Dispose();
+                return;
+            }
+
+            await ClearTracking(accountID);
+            
+            // Start tracking tasks and store references
+            var locationTask = Task.Run(() => HandleTrackLocationAsync(accountID, cts.Token), cts.Token);
+            var shipTask = Task.Run(() => HandleTrackShipAsync(accountID, cts.Token), cts.Token);
+            
+            _trackingTasks[accountID] = new[] { locationTask, shipTask };
+
+            _logger.LogInformation("[{InstanceId}] Tracking started for account {AccountId}", _instanceId, accountID);
         }
-        else
+        finally
         {
-            cts = new CancellationTokenSource();
-            while (!_ctss.TryAdd(accountID, cts))
-                await Task.Delay(1);
+            _trackingLock.Release();
         }
-
-
-        await ClearTracking(accountID);
-        _ = Task.Run(() => HandleTrackLocationAsync(cts!.Token, accountID));
-        _ = Task.Run(() => HandleTrackShipAsync(cts!.Token, accountID));
-
-        _logger.LogInformation("Tracking started for account {accountID}", accountID);
     }
 
     public async Task StopTracking(int accountID)
     {
-        CancellationTokenSource? cts = null;
-        _logger.LogInformation("Stopping tracking for account {accountID}", accountID);
-
-        if (_ctss.ContainsKey(accountID))
+        if (_disposed)
         {
-            while (!_ctss.TryGetValue(accountID, out cts))
-                await Task.Delay(1);
+            return;
+        }
+        
+        await _trackingLock.WaitAsync();
+        try
+        {
+            await StopTrackingInternal(accountID);
+        }
+        finally
+        {
+            _trackingLock.Release();
+        }
+    }
+    
+    private async Task StopTrackingInternal(int accountID)
+    {
+        _logger.LogInformation("[{InstanceId}] StopTrackingInternal called for account {AccountId}", _instanceId, accountID);
 
+        // Cancel the token
+        if (_ctss.TryRemove(accountID, out var cts))
+        {
             if (cts != null)
             {
                 if (!cts.IsCancellationRequested)
-                    cts.Cancel();
-
-                cts.Dispose();
+                {
+                    _logger.LogInformation("[{InstanceId}] Cancelling CTS for account {AccountId}", _instanceId, accountID);
+                    try
+                    {
+                        cts.Cancel();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Already disposed
+                    }
+                }
+                
+                // Wait for tasks to complete
+                if (_trackingTasks.TryRemove(accountID, out var tasks))
+                {
+                    try
+                    {
+                        _logger.LogInformation("[{InstanceId}] Waiting for tracking tasks to complete for account {AccountId}", _instanceId, accountID);
+                        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(3));
+                    }
+                    catch (TimeoutException)
+                    {
+                        _logger.LogWarning("[{InstanceId}] Timeout waiting for tracking tasks for account {AccountId}", _instanceId, accountID);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "[{InstanceId}] Error waiting for tasks for account {AccountId}", _instanceId, accountID);
+                    }
+                }
+                
+                try
+                {
+                    cts.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Already disposed
+                }
             }
-            
-            while (!_ctss.TryRemove(accountID, out _))
-                 await Task.Delay(1);
-            
         }
 
-        _logger.LogInformation("Tracking stopped for account {accountID}", accountID);
+        _logger.LogInformation("[{InstanceId}] Tracking stopped for account {AccountId}", _instanceId, accountID);
     }
 
-    private Task ClearTracking(int accountID)
+    private async Task ClearTracking(int accountID)
     {
-        if(_currentLocations.ContainsKey(accountID))
-        {
-            while (!_currentLocations.TryRemove(accountID, out _))
-                Task.Delay(1);
-        }
-
-        if(_currentShips.ContainsKey(accountID))
-        {
-            while (!_currentShips.TryRemove(accountID, out _))
-                Task.Delay(1);
-        }
-
-        return Task.CompletedTask;
+        _currentLocations.TryRemove(accountID, out _);
+        _currentShips.TryRemove(accountID, out _);
+        await Task.CompletedTask;
     }
 
-    private async Task HandleTrackLocationAsync(CancellationToken cancellationToken, int accountID)
+    private async Task HandleTrackLocationAsync(int accountID, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("HandleTrackLocationAsync started for account {accountID}", accountID);
+        _logger.LogInformation("[{InstanceId}] HandleTrackLocationAsync started for account {AccountId}", _instanceId, accountID);
 
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_LOCATION_HIT_IN_MS));
 
         try
         {
-            while (!cancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync(cancellationToken))
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
-                if (userToken == null)
+                try
                 {
-                    _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
+                    if (!await timer.WaitForNextTickAsync(cancellationToken))
+                    {
+                        break;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                
+                if (cancellationToken.IsCancellationRequested)
+                {
                     break;
                 }
 
-                await UpdateCurrentLocation(userToken, accountID);
+                var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
+                if (userToken == null)
+                {
+                    _logger.LogError("[{InstanceId}] Failed to retrieve token for account {AccountId}.", _instanceId, accountID);
+                    break;
+                }
+
+                await UpdateCurrentLocation(userToken, accountID, cancellationToken);
             }
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
-            _logger.LogInformation(ex, "HandleTrackLocationAsync operation canceled for account {accountID}", accountID);
+            // Expected when cancellation is requested
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in HandleTrackLocationAsync for account {accountID}", accountID);
+            _logger.LogError(ex, "[{InstanceId}] Error in HandleTrackLocationAsync for account {AccountId}", _instanceId, accountID);
         }
-    } 
-    private async Task HandleTrackShipAsync(CancellationToken cancellationToken, int accountID)
+        finally
+        {
+            _logger.LogInformation("[{InstanceId}] HandleTrackLocationAsync ended for account {AccountId}", _instanceId, accountID);
+        }
+    }
+
+    private async Task HandleTrackShipAsync(int accountID, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("HandleTrackShipAsync started for account {accountID}", accountID);
+        _logger.LogInformation("[{InstanceId}] HandleTrackShipAsync started for account {AccountId}", _instanceId, accountID);
 
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TRACK_SHIP_HIT_IN_MS));
 
         try
         {
-            while (!cancellationToken.IsCancellationRequested && await timer.WaitForNextTickAsync(cancellationToken))
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
-                if (userToken == null)
+                try
                 {
-                    _logger.LogError("Failed to retrieve token for account {accountID}.", accountID);
+                    if (!await timer.WaitForNextTickAsync(cancellationToken))
+                    {
+                        break;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                
+                if (cancellationToken.IsCancellationRequested)
+                {
                     break;
                 }
 
-                await UpdateCurrentShip(userToken, accountID);
+                var userToken = await _tokenProvider.GetToken(accountID.ToString(), true);
+                if (userToken == null)
+                {
+                    _logger.LogError("[{InstanceId}] Failed to retrieve token for account {AccountId}.", _instanceId, accountID);
+                    break;
+                }
+
+                await UpdateCurrentShip(userToken, accountID, cancellationToken);
             }
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
-            _logger.LogInformation(ex, "HandleTrackShipAsync operation canceled for account {accountID}", accountID);
+            // Expected when cancellation is requested
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in HandleTrackShipAsync for account {accountID}", accountID);
+            _logger.LogError(ex, "[{InstanceId}] Error in HandleTrackShipAsync for account {AccountId}", _instanceId, accountID);
+        }
+        finally
+        {
+            _logger.LogInformation("[{InstanceId}] HandleTrackShipAsync ended for account {AccountId}", _instanceId, accountID);
         }
     }
     
-    private async Task UpdateCurrentShip(UserToken token,int accountID)
+    private async Task UpdateCurrentShip(UserToken token, int accountID, CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+        
         Ship? ship = null;
         Ship? oldShip = null;
 
-        await _semaphoreSlim.WaitAsync();
+        await _semaphoreSlim.WaitAsync(cancellationToken);
         try
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            
             await _eveAPIServices.SetEveCharacterAuthenticatication(token);
             Result<Ship> shipResult = await _eveAPIServices.LocationServices.GetCurrentShip();
             if (shipResult.IsSuccess)
@@ -219,7 +382,7 @@ public class EveMapperTracker : IEveMapperTracker
             {
                 _logger.LogWarning("Rate limited when fetching ship for account {accountID}", accountID);
                 _ = TrackingShipRetryRequested?.Invoke(accountID);
-                await Task.Delay(shipResult.RetryAfter ?? TimeSpan.FromSeconds(1));
+                await Task.Delay(shipResult.RetryAfter ?? TimeSpan.FromSeconds(1), cancellationToken);
                 return;
             }
         }
@@ -228,43 +391,43 @@ public class EveMapperTracker : IEveMapperTracker
             _semaphoreSlim.Release();
         }
 
-        if(_currentShips.ContainsKey(accountID))
+        if (cancellationToken.IsCancellationRequested)
         {
-            while(!_currentShips.TryGetValue(accountID, out oldShip))
-                await Task.Delay(1);
+            return;
         }
-        else
-        {
-            oldShip = null;
-        }
+
+        _currentShips.TryGetValue(accountID, out oldShip);
         
-        if (ship == null  || oldShip?.ShipItemId == ship.ShipItemId) return;
+        if (ship == null || oldShip?.ShipItemId == ship.ShipItemId) return;
 
-        _logger.LogInformation("Ship Changed");
-        if(oldShip!=null)
+        _logger.LogInformation("Ship Changed for account {AccountId}", accountID);
+        
+        _currentShips.AddOrUpdate(accountID, ship, (_, _) => ship);
+
+        if (ship != null && !cancellationToken.IsCancellationRequested)
         {
-            while(!_currentShips.TryRemove(accountID, out _))
-                await Task.Delay(1);
-        }
-
-        while(! _currentShips.TryAdd(accountID, ship))
-            await Task.Delay(1);
-
-
-        if (ship != null)
-        {
-          _= ShipChanged?.Invoke(accountID, oldShip,ship);
+            _ = ShipChanged?.Invoke(accountID, oldShip, ship);
         }
     }
 
-    private async Task UpdateCurrentLocation(UserToken token,int accountID)
+    private async Task UpdateCurrentLocation(UserToken token, int accountID, CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+        
         EveLocation? newLocation = null;
         EveLocation? oldLocation = null;
 
-        await _semaphoreSlim.WaitAsync();
+        await _semaphoreSlim.WaitAsync(cancellationToken);
         try
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            
             await _eveAPIServices.SetEveCharacterAuthenticatication(token);
             Result<EveLocation> newLocationResult = await _eveAPIServices.LocationServices.GetLocation();
             if (newLocationResult.IsSuccess)
@@ -275,7 +438,7 @@ public class EveMapperTracker : IEveMapperTracker
             {
                 _logger.LogWarning("Rate limited when fetching location for account {accountID}", accountID);
                 _ = TrackingLocationRetryRequested?.Invoke(accountID);
-                await Task.Delay(newLocationResult.RetryAfter ?? TimeSpan.FromSeconds(1));
+                await Task.Delay(newLocationResult.RetryAfter ?? TimeSpan.FromSeconds(1), cancellationToken);
                 return;
             }
         }
@@ -284,32 +447,22 @@ public class EveMapperTracker : IEveMapperTracker
             _semaphoreSlim.Release();
         }
 
-
-        if(_currentLocations.ContainsKey(accountID))
+        if (cancellationToken.IsCancellationRequested)
         {
-            while(!_currentLocations.TryGetValue(accountID, out oldLocation))
-                await Task.Delay(1);
+            return;
         }
-        else
-        {
-            oldLocation = null;
-        }         
+
+        _currentLocations.TryGetValue(accountID, out oldLocation);
 
         if (newLocation == null || oldLocation?.SolarSystemId == newLocation.SolarSystemId) return;
 
-        _logger.LogInformation("System Changed");
-        if(oldLocation!=null)
-        {
-            while(!_currentLocations.TryRemove(accountID, out _))
-                await Task.Delay(1);
-        }
-    
-        while(!_currentLocations.TryAdd(accountID, newLocation))
-            await Task.Delay(1);
+        _logger.LogInformation("System Changed for account {AccountId}", accountID);
+        
+        _currentLocations.AddOrUpdate(accountID, newLocation, (_, _) => newLocation);
 
-        if (newLocation != null)
+        if (newLocation != null && !cancellationToken.IsCancellationRequested)
         {
-            _= SystemChanged?.Invoke(accountID,oldLocation, newLocation);
+            _ = SystemChanged?.Invoke(accountID, oldLocation, newLocation);
         }
     }
 }

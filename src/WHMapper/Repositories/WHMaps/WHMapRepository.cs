@@ -87,7 +87,7 @@ namespace WHMapper.Repositories.WHMaps
                     return await context.DbWHMaps.OrderBy(x => x.Name).ToListAsync();
                 else
                     return await context.DbWHMaps.AsNoTracking()
-                            .Include(x => x.WHAccesses)
+                            .Include(x => x.WHMapAccesses)
                             //.Include(x => x.WHSystems)
                             //.Include(x => x.WHSystemLinks)
                             //    .ThenInclude(x => x.JumpHistory)
@@ -101,7 +101,7 @@ namespace WHMapper.Repositories.WHMaps
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHMaps.AsNoTracking()
-                            .Include(x => x.WHAccesses)
+                            .Include(x => x.WHMapAccesses)
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)
                             .ThenInclude(x => x.JumpHistory)
@@ -135,71 +135,6 @@ namespace WHMapper.Repositories.WHMaps
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 return await context.DbWHMaps.CountAsync();
-            }
-        }
-
-        public async Task<IEnumerable<WHAccess>?> GetMapAccesses(int id)
-        {
-            using (var context = await _contextFactory.CreateDbContextAsync())
-            {
-                var map =  await context.DbWHMaps.AsNoTracking()
-                            .Include(x => x.WHAccesses)
-                            .SingleOrDefaultAsync(x => x.Id == id);
-
-                if (map == null)
-                    return null;
-                else
-                    return map.WHAccesses;
-            }
-        }
-
-        public async Task<bool> DeleteMapAccess(int mapId, int accessId)
-        {
-            using (var context = await _contextFactory.CreateDbContextAsync())
-            {
-                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
-                if (map == null)
-                    return false;
-
-                var access = map.WHAccesses.SingleOrDefault(x => x.Id == accessId);
-                if (access == null)
-                    return false;
-
-                map.WHAccesses.Remove(access);
-                await context.SaveChangesAsync();
-                return true;
-            }
-        }
-
-        public async Task<bool> DeleteMapAccesses(int mapId)
-        {
-            using (var context = await _contextFactory.CreateDbContextAsync())
-            {
-                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
-                if (map == null)
-                    return false;
-
-                map.WHAccesses.Clear();
-                await context.SaveChangesAsync();
-                return true;
-            }
-        }
-
-        public async Task<bool> AddMapAccess(int mapId, int accessId)
-        {
-            using (var context = await _contextFactory.CreateDbContextAsync())
-            {
-                var map = await context.DbWHMaps.Include(x => x.WHAccesses).SingleOrDefaultAsync(x => x.Id == mapId);
-                if (map == null)
-                    return false;
-
-                var access = await context.DbWHAccesses.SingleOrDefaultAsync(x => x.Id == accessId);
-                if (access == null)
-                    return false;
-
-                map.WHAccesses.Add(access);
-                await context.SaveChangesAsync();
-                return true;
             }
         }
 

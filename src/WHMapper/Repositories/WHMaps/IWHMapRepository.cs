@@ -6,10 +6,6 @@ namespace WHMapper.Repositories.WHMaps
     {
         Task<WHMap?> GetByNameAsync(string mapName);
         Task<bool> DeleteAll();
-        Task<IEnumerable<WHAccess>?> GetMapAccesses(int id);
-        Task<bool> DeleteMapAccess(int mapId, int accessId);
-        Task<bool> DeleteMapAccesses(int mapId);
-        Task<bool> AddMapAccess(int mapId, int accessId);
     }
 }
 

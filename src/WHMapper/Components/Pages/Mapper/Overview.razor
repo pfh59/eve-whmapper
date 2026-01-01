@@ -9,17 +9,17 @@
 
 
 
-<MudPaper class="d-flex" Width="100%" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" hidden="@(_loading)">
+<MudPaper class="d-flex flex-column" Style="width: 100%; height: calc(100vh - var(--mud-appbar-height) - 10px);" hidden="@(_loading)">
     @if (WHMaps != null && WHMaps.Any())
     {
         @if (WHMaps.Count() > 1)
         {
             <MudDynamicTabs Elevation="4" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="SelectedWHMapIndex" Rounded="true" Border="true" 
-                            Class="d-flex align-stretch flex-grow-1" PanelClass="d-flex align-stretch flex-grow-1" CloseTab="@CloseMapTab" AddIconClass="d-none">
+                            Style="width: 100%; height: 100%; display: flex; flex-direction: column;" CloseTab="@CloseMapTab" AddIconClass="d-none">
                 <ChildContent>
                     @foreach (var item in WHMaps)
                     {
-                        <MudTabPanel ID="@item.Id" Text="@item.Name">
+                        <MudTabPanel ID="@item.Id" Text="@item.Name" Style="height: 100%; flex: 1;">
                             <WHMapper.Components.Pages.Mapper.Map.Overview MapId="@item.Id" />
                         </MudTabPanel>
                     }

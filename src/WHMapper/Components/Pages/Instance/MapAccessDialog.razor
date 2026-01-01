@@ -1,0 +1,145 @@
+@using WHMapper.Models.Db
+@using WHMapper.Models.Db.Enums
+@using WHMapper.Models.DTO.EveMapper.EveEntity
+@using WHMapper.Models.DTO.EveMapper.Enums
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Security" Class="mr-2" />
+            Map Access Control - @Map?.Name
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressCircular Indeterminate="true" Class="d-block mx-auto my-4" />
+        }
+        else
+        {
+            <MudText Typo="Typo.body2" Class="mb-4">
+                @if (_mapAccesses?.Any() != true)
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+                        <strong>No restrictions:</strong> All users with instance access can view this map.
+                        Add an access entry below to restrict who can access this map.
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-4">
+                        <strong>Restricted access:</strong> Only the entities listed below can access this map.
+                        Instance administrators always have access.
+                    </MudAlert>
+                }
+            </MudText>
+
+            <!-- Current Map Accesses -->
+            @if (_mapAccesses?.Any() == true)
+            {
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Current Access Entries</MudText>
+                <MudTable Items="@_mapAccesses" Dense="true" Hover="true" Bordered="true" Class="mb-4">
+                    <HeaderContent>
+                        <MudTh>Type</MudTh>
+                        <MudTh>Entity Name</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="access">
+                        <MudTd DataLabel="Type">
+                            @switch (access.EveEntity)
+                            {
+                                case WHAccessEntity.Character:
+                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Person" Color="Color.Info">Character</MudChip>
+                                    break;
+                                case WHAccessEntity.Corporation:
+                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Business" Color="Color.Success">Corporation</MudChip>
+                                    break;
+                                case WHAccessEntity.Alliance:
+                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Groups" Color="Color.Warning">Alliance</MudChip>
+                                    break;
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="Name">@access.EveEntityName</MudTd>
+                        <MudTd DataLabel="Actions">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Color="Color.Error" 
+                                           Size="Size.Small"
+                                           OnClick="@(() => RemoveAccess(access))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" OnClick="ClearAllAccesses" Class="mb-4" FullWidth="true">
+                    <MudIcon Icon="@Icons.Material.Filled.LockOpen" Class="mr-1" />
+                    Remove All Restrictions (Make Public to Instance)
+                </MudButton>
+            }
+
+            <MudDivider Class="my-4" />
+
+            <!-- Add New Access -->
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Add Access from Instance Members</MudText>
+            
+            @if (InstanceAccesses?.Any() == true)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                    Select from entities that have access to the instance:
+                </MudText>
+                
+                <MudStack Spacing="2">
+                    @foreach (var instanceAccess in InstanceAccesses.Where(ia => !_mapAccesses?.Any(ma => ma.EveEntityId == ia.EveEntityId && ma.EveEntity == ia.EveEntity) == true))
+                    {
+                        <MudPaper Class="pa-2" Outlined="true">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                                    @switch (instanceAccess.EveEntity)
+                                    {
+                                        case WHAccessEntity.Character:
+                                            <MudAvatar Size="Size.Small">
+                                                <MudImage Src="@($"https://images.evetech.net/characters/{instanceAccess.EveEntityId}/portrait?size=64")" />
+                                            </MudAvatar>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Info">Character</MudChip>
+                                            break;
+                                        case WHAccessEntity.Corporation:
+                                            <MudAvatar Size="Size.Small">
+                                                <MudImage Src="@($"https://images.evetech.net/corporations/{instanceAccess.EveEntityId}/logo?size=64")" />
+                                            </MudAvatar>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Success">Corporation</MudChip>
+                                            break;
+                                        case WHAccessEntity.Alliance:
+                                            <MudAvatar Size="Size.Small">
+                                                <MudImage Src="@($"https://images.evetech.net/alliances/{instanceAccess.EveEntityId}/logo?size=64")" />
+                                            </MudAvatar>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">Alliance</MudChip>
+                                            break;
+                                    }
+                                    <MudText>@instanceAccess.EveEntityName</MudText>
+                                </MudStack>
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" 
+                                           OnClick="@(() => AddAccessFromInstance(instanceAccess))">
+                                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" /> Add
+                                </MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    }
+                </MudStack>
+                
+                @if (!InstanceAccesses.Any(ia => !_mapAccesses?.Any(ma => ma.EveEntityId == ia.EveEntityId && ma.EveEntity == ia.EveEntity) == true))
+                {
+                    <MudText Color="Color.Secondary" Align="Align.Center" Class="mt-2">
+                        All instance members have already been added to this map.
+                    </MudText>
+                }
+            }
+            else
+            {
+                <MudText Color="Color.Secondary" Align="Align.Center">
+                    No additional instance members to add. Add members to the instance first.
+                </MudText>
+            }
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
