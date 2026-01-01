@@ -87,9 +87,7 @@
 </AuthorizeView>
 
 @code
-{
-    private string? currentUrl;
-    private string? _antiForgeryToken;
+{    private string? _antiForgeryToken;
 
     [Inject]
     private ClientUID UID {get; set;} = null!;
@@ -104,13 +102,11 @@
     {
         var tokens = Antiforgery.GetAndStoreTokens(HttpContextAccessor.HttpContext!);
         _antiForgeryToken = tokens.RequestToken;
-        currentUrl = Navigation.Uri;
         Navigation.LocationChanged += OnLocationChanged;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        currentUrl = Navigation.Uri;
         StateHasChanged();
     }
 
