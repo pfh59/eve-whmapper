@@ -2,98 +2,162 @@
 <html lang="en">
 
 <head>
-    <title>Eve WHMapper</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eve WHMapper</title>
     <base href="/" />
-    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link href="_content/Z.Blazor.Diagrams/style.min.css" rel="stylesheet" />
-    <link href="_content/Z.Blazor.Diagrams/default.styles.min.css" rel="stylesheet" />
+    
+    <!-- External fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    
+    <!-- Third-party styles -->
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" />
+    <link rel="stylesheet" href="_content/Z.Blazor.Diagrams/style.min.css" />
+    <link rel="stylesheet" href="_content/Z.Blazor.Diagrams/default.styles.min.css" />
+    
+    <!-- Application styles -->
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="WHMapper.styles.css" />
+    
     <HeadOutlet @rendermode="new InteractiveServerRenderMode(prerender: false)" />
 </head>
 
-<body allow="clipboard-read; clipboard-write">
+<body>
     <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
     
-    <!-- Custom reconnection modal -->
-    <div id="components-reconnect-modal" class="components-reconnect-dialog">
+    <!-- Reconnection modal -->
+    <div id="components-reconnect-modal" class="components-reconnect-dialog" role="dialog" aria-labelledby="reconnect-title" aria-describedby="reconnect-message">
         <div class="reconnect-content">
-            <h5>Connection Lost</h5>
-            <p class="reconnect-message">Attempting to reconnect...</p>
-            <p class="reconnect-attempt">Attempt <span id="components-reconnect-current-attempt">0</span> / <span id="components-reconnect-max-retries">8</span></p>
-            <p class="reconnect-countdown">Next attempt in <span id="components-seconds-to-next-attempt">0</span>s</p>
-            <button class="reconnect-retry-btn" onclick="Blazor.reconnect()">Retry Now</button>
+            <h5 id="reconnect-title">Connection Lost</h5>
+            <p id="reconnect-message" class="reconnect-message">Attempting to reconnect...</p>
+            <p class="reconnect-attempt">
+                Attempt <span id="components-reconnect-current-attempt">0</span> / <span id="components-reconnect-max-retries">8</span>
+            </p>
+            <p class="reconnect-countdown">
+                Next attempt in <span id="components-seconds-to-next-attempt">0</span>s
+            </p>
+            <button type="button" class="reconnect-retry-btn" id="reconnect-retry-btn" aria-label="Retry connection">
+                Retry Now
+            </button>
         </div>
     </div>
 
-    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <!-- Third-party scripts -->
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/Z.Blazor.Diagrams/script.min.js"></script>
+    
+    <!-- Blazor framework -->
+    <script src="_framework/blazor.web.js" autostart="false"></script>
+    
+    <!-- Application initialization -->
     <script type="module">
-        import * as WHMapper from '/WHMapper.lib.module.js';
+        import * as WHMapper from './WHMapper.lib.module.js';
 
-        const reconnectModal = document.getElementById("components-reconnect-modal");
-        
-        // Handle reconnection state changes
-        reconnectModal.addEventListener("components-reconnect-state-changed", (event) => {
-            const messageEl = reconnectModal.querySelector('.reconnect-message');
-            const retryBtn = reconnectModal.querySelector('.reconnect-retry-btn');
-            
-            switch(event.detail.state) {
-                case "show":
-                    reconnectModal.classList.add('components-reconnect-show');
-                    reconnectModal.classList.remove('components-reconnect-hide', 'components-reconnect-failed', 'components-reconnect-rejected');
-                    messageEl.textContent = "Attempting to reconnect...";
-                    retryBtn.style.display = 'none';
-                    break;
-                case "hide":
-                    reconnectModal.classList.add('components-reconnect-hide');
-                    reconnectModal.classList.remove('components-reconnect-show', 'components-reconnect-failed', 'components-reconnect-rejected');
-                    break;
-                case "retrying":
-                    messageEl.textContent = "Reconnecting...";
-                    break;
-                case "failed":
-                    reconnectModal.classList.add('components-reconnect-failed');
-                    messageEl.textContent = "Reconnection failed. Please try again.";
-                    retryBtn.style.display = 'inline-block';
-                    break;
-                case "rejected":
-                    reconnectModal.classList.add('components-reconnect-rejected');
-                    messageEl.textContent = "Session expired. Reloading page...";
-                    retryBtn.style.display = 'none';
-                    setTimeout(() => location.reload(), 2000);
-                    break;
-            }
+        const MAX_RETRIES = 8;
+        const RETRY_INTERVALS_MS = [1000, 2000, 4000, 8000, 15000, 30000, 30000, 30000];
+        const SERVER_TIMEOUT_MS = 60000;
+        const KEEP_ALIVE_INTERVAL_MS = 15000;
+        const SESSION_EXPIRED_RELOAD_DELAY_MS = 2000;
+
+        const ReconnectState = Object.freeze({
+            SHOW: 'show',
+            HIDE: 'hide',
+            RETRYING: 'retrying',
+            FAILED: 'failed',
+            REJECTED: 'rejected'
         });
 
-        Blazor.start({
-            circuit: {
-                reconnectionOptions: {
-                    maxRetries: 8,
-                    retryIntervalMilliseconds: (previousAttempts, maxRetries) => {
-                        if (previousAttempts >= maxRetries) return null;
-                        // Exponential backoff: 1s, 2s, 4s, 8s, 15s, 30s, 30s, 30s
-                        const intervals = [1000, 2000, 4000, 8000, 15000, 30000, 30000, 30000];
-                        return intervals[Math.min(previousAttempts, intervals.length - 1)];
-                    }
-                },
-                configureSignalR: (builder) => {
-                    builder.withServerTimeout(60000).withKeepAliveInterval(15000);
+        function initReconnectModal() {
+            const modal = document.getElementById('components-reconnect-modal');
+            const messageEl = document.getElementById('reconnect-message');
+            const retryBtn = document.getElementById('reconnect-retry-btn');
+
+            if (!modal || !messageEl || !retryBtn) {
+                console.warn('Reconnect modal elements not found');
+                return;
+            }
+
+            retryBtn.addEventListener('click', () => {
+                Blazor.reconnect();
+            });
+
+            modal.addEventListener('components-reconnect-state-changed', (event) => {
+                const { state } = event.detail;
+
+                const stateClasses = ['components-reconnect-show', 'components-reconnect-hide', 'components-reconnect-failed', 'components-reconnect-rejected'];
+                modal.classList.remove(...stateClasses);
+
+                switch (state) {
+                    case ReconnectState.SHOW:
+                        modal.classList.add('components-reconnect-show');
+                        messageEl.textContent = 'Attempting to reconnect...';
+                        retryBtn.hidden = true;
+                        break;
+
+                    case ReconnectState.HIDE:
+                        modal.classList.add('components-reconnect-hide');
+                        break;
+
+                    case ReconnectState.RETRYING:
+                        messageEl.textContent = 'Reconnecting...';
+                        break;
+
+                    case ReconnectState.FAILED:
+                        modal.classList.add('components-reconnect-failed');
+                        messageEl.textContent = 'Reconnection failed. Please try again.';
+                        retryBtn.hidden = false;
+                        break;
+
+                    case ReconnectState.REJECTED:
+                        modal.classList.add('components-reconnect-rejected');
+                        messageEl.textContent = 'Session expired. Reloading page...';
+                        retryBtn.hidden = true;
+                        setTimeout(() => location.reload(), SESSION_EXPIRED_RELOAD_DELAY_MS);
+                        break;
                 }
+            });
+        }
+
+        function getRetryInterval(previousAttempts, maxRetries) {
+            if (previousAttempts >= maxRetries) {
+                return null;
             }
-        }).then(blazor => {
-            if (blazor._internal?.mode === "server") {
-                WHMapper.afterServerStarted(blazor);
-            } else if (blazor._internal?.mode === "webassembly") {
-                WHMapper.afterWebAssemblyStarted?.(blazor);
+            return RETRY_INTERVALS_MS[Math.min(previousAttempts, RETRY_INTERVALS_MS.length - 1)];
+        }
+
+        async function startBlazor() {
+            try {
+                await Blazor.start({
+                    circuit: {
+                        reconnectionOptions: {
+                            maxRetries: MAX_RETRIES,
+                            retryIntervalMilliseconds: getRetryInterval
+                        },
+                        configureSignalR: (builder) => {
+                            builder
+                                .withServerTimeout(SERVER_TIMEOUT_MS)
+                                .withKeepAliveInterval(KEEP_ALIVE_INTERVAL_MS);
+                        }
+                    }
+                });
+
+                // Register custom events after Blazor has started
+                WHMapper.afterServerStarted(Blazor);
+            } catch (error) {
+                console.error('Failed to start Blazor:', error);
             }
-        });
+        }
+
+        initReconnectModal();
+        startBlazor();
     </script>
 </body>
 

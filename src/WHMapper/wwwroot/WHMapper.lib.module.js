@@ -7,11 +7,18 @@ export function afterWebAssemblyStarted(blazor) {
 }
 
 function setup(blazor) {
-    blazor.registerCustomEventType('custompaste', {
-        browserEventName: 'paste',
-        createEventArgs: event => ({
-            eventTimestamp: new Date().toISOString(),
-            pastedData: event.clipboardData.getData('text'),
-        })
-    });
+    try {
+        blazor.registerCustomEventType('custompaste', {
+            browserEventName: 'paste',
+            createEventArgs: event => ({
+                eventTimestamp: new Date().toISOString(),
+                pastedData: event.clipboardData.getData('text'),
+            })
+        });
+    } catch (error) {
+        // Event already registered, ignore
+        if (!error.message?.includes('already registered')) {
+            console.error('Failed to register custompaste event:', error);
+        }
+    }
 }
