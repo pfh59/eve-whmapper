@@ -447,12 +447,13 @@ else
     Log.Warning("HTTPS redirection is not enabled. Please ensure that the application is behind a reverse proxy that handles HTTPS.");
 }
 
-app.UseStaticFiles();
+app.MapStaticAssets();
 app.UseAntiforgery();
 
 
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    .WithStaticAssets();
 
 app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");
 app.MapGroup("/authentication").MapLoginAndLogout();

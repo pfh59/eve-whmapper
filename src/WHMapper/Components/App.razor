@@ -54,110 +54,80 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/Z.Blazor.Diagrams/script.min.js"></script>
     
-    <!-- Blazor framework -->
-    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <!-- Blazor framework - autostart enabled, JS initializers handle configuration -->
+    <script src="_framework/blazor.web.js"></script>
     
-    <!-- Application initialization -->
-    <script type="module">
-        import * as WHMapper from './WHMapper.lib.module.js';
-
-        const MAX_RETRIES = 8;
-        const RETRY_INTERVALS_MS = [1000, 2000, 4000, 8000, 15000, 30000, 30000, 30000];
-        const SERVER_TIMEOUT_MS = 60000;
-        const KEEP_ALIVE_INTERVAL_MS = 15000;
-        const SESSION_EXPIRED_RELOAD_DELAY_MS = 2000;
-
-        const ReconnectState = Object.freeze({
-            SHOW: 'show',
-            HIDE: 'hide',
-            RETRYING: 'retrying',
-            FAILED: 'failed',
-            REJECTED: 'rejected'
-        });
-
-        function initReconnectModal() {
-            const modal = document.getElementById('components-reconnect-modal');
-            const messageEl = document.getElementById('reconnect-message');
-            const retryBtn = document.getElementById('reconnect-retry-btn');
-
-            if (!modal || !messageEl || !retryBtn) {
-                console.warn('Reconnect modal elements not found');
-                return;
-            }
-
-            retryBtn.addEventListener('click', () => {
-                Blazor.reconnect();
+    <!-- Reconnection modal event handlers -->
+    <script>
+        (function() {
+            'use strict';
+            
+            const SESSION_EXPIRED_RELOAD_DELAY_MS = 2000;
+            
+            const ReconnectState = Object.freeze({
+                SHOW: 'show',
+                HIDE: 'hide',
+                RETRYING: 'retrying',
+                FAILED: 'failed',
+                REJECTED: 'rejected'
             });
 
-            modal.addEventListener('components-reconnect-state-changed', (event) => {
-                const { state } = event.detail;
+            function initReconnectModal() {
+                const modal = document.getElementById('components-reconnect-modal');
+                const messageEl = document.getElementById('reconnect-message');
+                const retryBtn = document.getElementById('reconnect-retry-btn');
 
-                const stateClasses = ['components-reconnect-show', 'components-reconnect-hide', 'components-reconnect-failed', 'components-reconnect-rejected'];
-                modal.classList.remove(...stateClasses);
-
-                switch (state) {
-                    case ReconnectState.SHOW:
-                        modal.classList.add('components-reconnect-show');
-                        messageEl.textContent = 'Attempting to reconnect...';
-                        retryBtn.hidden = true;
-                        break;
-
-                    case ReconnectState.HIDE:
-                        modal.classList.add('components-reconnect-hide');
-                        break;
-
-                    case ReconnectState.RETRYING:
-                        messageEl.textContent = 'Reconnecting...';
-                        break;
-
-                    case ReconnectState.FAILED:
-                        modal.classList.add('components-reconnect-failed');
-                        messageEl.textContent = 'Reconnection failed. Please try again.';
-                        retryBtn.hidden = false;
-                        break;
-
-                    case ReconnectState.REJECTED:
-                        modal.classList.add('components-reconnect-rejected');
-                        messageEl.textContent = 'Session expired. Reloading page...';
-                        retryBtn.hidden = true;
-                        setTimeout(() => location.reload(), SESSION_EXPIRED_RELOAD_DELAY_MS);
-                        break;
+                if (!modal || !messageEl || !retryBtn) {
+                    return;
                 }
-            });
-        }
 
-        function getRetryInterval(previousAttempts, maxRetries) {
-            if (previousAttempts >= maxRetries) {
-                return null;
-            }
-            return RETRY_INTERVALS_MS[Math.min(previousAttempts, RETRY_INTERVALS_MS.length - 1)];
-        }
-
-        async function startBlazor() {
-            try {
-                await Blazor.start({
-                    circuit: {
-                        reconnectionOptions: {
-                            maxRetries: MAX_RETRIES,
-                            retryIntervalMilliseconds: getRetryInterval
-                        },
-                        configureSignalR: (builder) => {
-                            builder
-                                .withServerTimeout(SERVER_TIMEOUT_MS)
-                                .withKeepAliveInterval(KEEP_ALIVE_INTERVAL_MS);
-                        }
-                    }
+                retryBtn.addEventListener('click', () => {
+                    Blazor.reconnect();
                 });
 
-                // Register custom events after Blazor has started
-                WHMapper.afterServerStarted(Blazor);
-            } catch (error) {
-                console.error('Failed to start Blazor:', error);
-            }
-        }
+                modal.addEventListener('components-reconnect-state-changed', (event) => {
+                    const { state } = event.detail;
+                    const stateClasses = ['components-reconnect-show', 'components-reconnect-hide', 'components-reconnect-failed', 'components-reconnect-rejected'];
+                    modal.classList.remove(...stateClasses);
 
-        initReconnectModal();
-        startBlazor();
+                    switch (state) {
+                        case ReconnectState.SHOW:
+                            modal.classList.add('components-reconnect-show');
+                            messageEl.textContent = 'Attempting to reconnect...';
+                            retryBtn.hidden = true;
+                            break;
+
+                        case ReconnectState.HIDE:
+                            modal.classList.add('components-reconnect-hide');
+                            break;
+
+                        case ReconnectState.RETRYING:
+                            messageEl.textContent = 'Reconnecting...';
+                            break;
+
+                        case ReconnectState.FAILED:
+                            modal.classList.add('components-reconnect-failed');
+                            messageEl.textContent = 'Reconnection failed. Please try again.';
+                            retryBtn.hidden = false;
+                            break;
+
+                        case ReconnectState.REJECTED:
+                            modal.classList.add('components-reconnect-rejected');
+                            messageEl.textContent = 'Session expired. Reloading page...';
+                            retryBtn.hidden = true;
+                            setTimeout(() => location.reload(), SESSION_EXPIRED_RELOAD_DELAY_MS);
+                            break;
+                    }
+                });
+            }
+
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initReconnectModal);
+            } else {
+                initReconnectModal();
+            }
+        })();
     </script>
 </body>
 
