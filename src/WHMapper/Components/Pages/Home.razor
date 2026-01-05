@@ -50,17 +50,37 @@
         @if(_loading)
         {
             <MudPaper Class="d-flex align-center justify-center" Height="calc(100vh - var(--mud-appbar-height) + var(--mud-appbar-height)/4);" Width="100%">
-                <MudCard Outlined="true">
+                <MudCard Outlined="true" Style="min-width: 400px;">
                     <MudCardHeader>
                         <CardHeaderContent>
-                            <MudText Typo="Typo.h6">Initialization</MudText>
+                            <MudText Typo="Typo.h6">Initialization in progress</MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudText Align="Align.Center">EVE Wormhole mapper is downloading a new SDE package.</MudText>
-                        <MudText class="py-1" Typo="Typo.body2">@String.Format("{0}, please wait ...",_init_process_msg)
-                            <MudProgressCircular Color="Color.Secondary" Indeterminate="@_loading" Size="MudBlazor.Size.Small" />
-                        </MudText>                 
+                        @if(_isWaitingForOtherInitialization)
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                                Another user is currently initializing the application.
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                                EVE Wormhole mapper is downloading and installing a new SDE package.
+                            </MudAlert>
+                        }
+                        <MudText Align="Align.Center" Typo="Typo.body2" Class="mb-2">
+                            This process may take a few moments, please wait...
+                        </MudText>
+                        <MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center" Class="py-2">
+                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" />
+                        </MudStack>
+                        @if(!string.IsNullOrEmpty(_init_process_msg))
+                        {
+                            <MudText Align="Align.Center" Typo="Typo.caption" Color="Color.Secondary">
+                                @_init_process_msg
+                            </MudText>
+                        }
                     </MudCardContent>
                 </MudCard>
             </MudPaper>

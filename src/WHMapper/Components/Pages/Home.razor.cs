@@ -12,12 +12,16 @@ public partial class Home : ComponentBase, IAsyncDisposable
     private bool _loading = true;
     private string _init_process_msg = string.Empty;
     private bool _disposed = false;
+    private bool _isWaitingForOtherInitialization = false;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
     [Inject]
     private ISDEServiceManager SDEServices { get; set; } = null!;
+
+    [Inject]
+    private ISDEInitializationState SDEInitializationState { get; set; } = null!;
 
     [Inject]
     private IEveMapperRealTimeService? RealTimeService { get; set; }
@@ -40,6 +44,14 @@ public partial class Home : ComponentBase, IAsyncDisposable
         {
             _loading = false;
         }
+        else if (SDEInitializationState.IsInitializationInProgress)
+        {
+            // Another user is already initializing the SDE, subscribe to progress updates
+            _isWaitingForOtherInitialization = true;
+            _init_process_msg = SDEInitializationState.CurrentProgressMessage;
+            SDEInitializationState.OnProgressChanged += OnSDEProgressChanged;
+            SDEInitializationState.OnInitializationCompleted += OnSDEInitializationCompleted;
+        }
 
         // Subscribe to instance access events
         await InitRealTimeServiceEvents();
@@ -53,10 +65,61 @@ public partial class Home : ComponentBase, IAsyncDisposable
         {
             if (!SDEServices.IsExtractionSuccesful())
             {
-                await DownloadExtractImportSDE();
+                if (_isWaitingForOtherInitialization)
+                {
+                    // Wait for the other initialization to complete
+                    await WaitForOtherInitializationAsync();
+                }
+                else
+                {
+                    await DownloadExtractImportSDE();
+                }
             }
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void OnSDEProgressChanged(string message)
+    {
+        InvokeAsync(() =>
+        {
+            _init_process_msg = message;
+            StateHasChanged();
+        });
+    }
+
+    private void OnSDEInitializationCompleted()
+    {
+        InvokeAsync(() =>
+        {
+            _loading = false;
+            StateHasChanged();
+        });
+    }
+
+    private async Task WaitForOtherInitializationAsync()
+    {
+        try
+        {
+            await SDEInitializationState.WaitForInitializationAsync();
+            
+            // Verify the SDE was successfully extracted
+            if (SDEServices.IsExtractionSuccesful())
+            {
+                await SetLoading(false);
+            }
+            else
+            {
+                // The other initialization failed, try our own
+                _isWaitingForOtherInitialization = false;
+                await DownloadExtractImportSDE();
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Handle cancellation gracefully
+            await SetLoading(false);
+        }
     }
 
     private async Task InitRealTimeServiceEvents()
@@ -102,6 +165,10 @@ public partial class Home : ComponentBase, IAsyncDisposable
             RealTimeService.InstanceAccessAdded -= OnInstanceAccessAdded;
         }
 
+        // Unsubscribe from SDE initialization events
+        SDEInitializationState.OnProgressChanged -= OnSDEProgressChanged;
+        SDEInitializationState.OnInitializationCompleted -= OnSDEInitializationCompleted;
+
         GC.SuppressFinalize(this);
         await Task.CompletedTask;
     }
@@ -132,40 +199,68 @@ public partial class Home : ComponentBase, IAsyncDisposable
 
     private async Task DownloadExtractImportSDE()
     {
-        if (await SDEServices.IsNewSDEAvailable())
+        // Try to acquire the initialization lock
+        if (!SDEInitializationState.TryAcquireInitializationLock())
         {
-            await SetProcessMessage("Removing current SDE package (1/4)");
-            if (!await SDEServices.ClearSDEResources())
-            {
-                Snackbar.Add("Removing current SDE package failed", Severity.Error);
-                await Cleaning();
-                return;
-            }
-
-            await SetProcessMessage("Download SDE package (2/4)");
-            if (!await SDEServices.DownloadSDE())
-            {
-                Snackbar.Add("Download SDE package failed.", Severity.Error);
-                await Cleaning();
-                return;
-            }
-
-            await SetProcessMessage("Extract SDE package (3/4)");
-            if (!await SDEServices.ExtractSDE())
-            {
-                Snackbar.Add("Extract SDE package failed.", Severity.Error);
-                await Cleaning();
-                return;
-            }
-
-            await SetProcessMessage("Initialize SDE cache (4/4)");
-            if (!await SDEServices.BuildCache())
-            {
-                Snackbar.Add("Initialize SDE cache failed.", Severity.Error);
-                await Cleaning();
-                return;
-            }
+            // Another user started initialization between our check and now
+            // Subscribe to progress updates and wait
+            _isWaitingForOtherInitialization = true;
+            _init_process_msg = SDEInitializationState.CurrentProgressMessage;
+            SDEInitializationState.OnProgressChanged += OnSDEProgressChanged;
+            SDEInitializationState.OnInitializationCompleted += OnSDEInitializationCompleted;
+            await WaitForOtherInitializationAsync();
+            return;
         }
-        await SetLoading(false);
+
+        try
+        {
+            if (await SDEServices.IsNewSDEAvailable())
+            {
+                await SetProcessMessageWithGlobalUpdate("Removing current SDE package (1/4)");
+                if (!await SDEServices.ClearSDEResources())
+                {
+                    Snackbar.Add("Removing current SDE package failed", Severity.Error);
+                    await Cleaning();
+                    return;
+                }
+
+                await SetProcessMessageWithGlobalUpdate("Download SDE package (2/4)");
+                if (!await SDEServices.DownloadSDE())
+                {
+                    Snackbar.Add("Download SDE package failed.", Severity.Error);
+                    await Cleaning();
+                    return;
+                }
+
+                await SetProcessMessageWithGlobalUpdate("Extract SDE package (3/4)");
+                if (!await SDEServices.ExtractSDE())
+                {
+                    Snackbar.Add("Extract SDE package failed.", Severity.Error);
+                    await Cleaning();
+                    return;
+                }
+
+                await SetProcessMessageWithGlobalUpdate("Initialize SDE cache (4/4)");
+                if (!await SDEServices.BuildCache())
+                {
+                    Snackbar.Add("Initialize SDE cache failed.", Severity.Error);
+                    await Cleaning();
+                    return;
+                }
+            }
+            await SetLoading(false);
+        }
+        finally
+        {
+            // Always release the lock when done
+            SDEInitializationState.ReleaseInitializationLock();
+        }
+    }
+
+    private async Task SetProcessMessageWithGlobalUpdate(string message)
+    {
+        // Update both local UI and global state for other users
+        SDEInitializationState.SetProgressMessage(message);
+        await SetProcessMessage(message);
     }
 }

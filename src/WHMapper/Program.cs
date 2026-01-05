@@ -248,6 +248,7 @@ builder.Services.AddScoped<IAnoikServices, AnoikServices>();
 builder.Services.AddScoped<ISDEService, SDEService>();
 builder.Services.AddScoped<ISDEServiceManager, SDEServiceManager>();
 builder.Services.AddScoped<ISDEDataSupplier, SdeDataSupplier>();
+builder.Services.AddSingleton<ISDEInitializationState, SDEInitializationState>(); // Singleton to share state across all users
 builder.Services.AddHttpClient<ISDEDataSupplier, SdeDataSupplier>(client =>
 {
     var baseUrl = builder.Configuration["SdeDataSupplier:BaseUrl"] ?? throw new InvalidOperationException("BaseUrl is not configured in SdeDataSupplier settings.");
