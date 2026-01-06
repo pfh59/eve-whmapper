@@ -12,12 +12,12 @@ namespace WHMapper.Services.EveAPI.Characters
 
         public async Task<Result<Character>> GetCharacter(int character_id)
         {
-            return await base.Execute<Character>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v5/characters/{0}/?datasource=tranquility", character_id));
+            return await base.Execute<Character>(RequestSecurity.Public, RequestMethod.Get, string.Format("/characters/{0}/?datasource=tranquility", character_id));
         }
 
         public async Task<Result<Portrait>> GetCharacterPortrait(int character_id)
         {
-            return await base.Execute<Portrait>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v3/characters/{0}/portrait/?datasource=tranquility", character_id));
+            return await base.Execute<Portrait>(RequestSecurity.Public, RequestMethod.Get, string.Format("/characters/{0}/portrait/?datasource=tranquility", character_id));
         }
     }
 }

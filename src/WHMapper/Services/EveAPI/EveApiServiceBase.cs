@@ -54,6 +54,15 @@ namespace WHMapper.Services.EveAPI
 
         private void ConfigureHeaders(RequestSecurity security)
         {
+            // Always add the X-Compatibility-Date header for ESI API versioning
+            // This replaces the old per-route versioning (v1, v2, etc.)
+            if (!_httpClient.DefaultRequestHeaders.Contains(EveAPIServiceConstants.CompatibilityDateHeader))
+            {
+                _httpClient.DefaultRequestHeaders.Add(
+                    EveAPIServiceConstants.CompatibilityDateHeader, 
+                    EveAPIServiceConstants.CompatibilityDateValue);
+            }
+
             if (security == RequestSecurity.Authenticated)
             {
                 if (UserToken == null)
@@ -63,7 +72,8 @@ namespace WHMapper.Services.EveAPI
             }
             else
             {
-                _httpClient.DefaultRequestHeaders.Clear();
+                // Clear authorization but keep the compatibility date header
+                _httpClient.DefaultRequestHeaders.Authorization = null;
             }
         }
 
