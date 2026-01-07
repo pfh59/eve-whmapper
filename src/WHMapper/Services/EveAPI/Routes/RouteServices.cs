@@ -1,4 +1,5 @@
 ﻿using WHMapper.Models.DTO;
+using WHMapper.Models.DTO.EveAPI.Route;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
 
 namespace WHMapper.Services.EveAPI.Routes
@@ -19,32 +20,45 @@ namespace WHMapper.Services.EveAPI.Routes
             return await GetRoute(from, to, avoid, null);
         }
 
-        public async Task<Result<int[]>> GetRoute(int from, int to, int[][]? connections)
+        public async Task<Result<int[]>> GetRoute(int from, int to, RouteConnection[]? connections)
         {
             return await GetRoute(from, to, null, connections);
         }
 
-        public async Task<Result<int[]>> GetRoute(int from, int to, int[]? avoid, int[][]? connections)
+        public async Task<Result<int[]>> GetRoute(int from, int to, int[]? avoid, RouteConnection[]? connections)
         {
             return await GetRoute(from, to, RouteType.Shortest, avoid, connections);
         }
 
-        public async Task<Result<int[]>> GetRoute(int from, int to, RouteType routeType, int[]? avoid, int[][]? connections)
+        public async Task<Result<int[]>> GetRoute(int from, int to, RouteType routeType, int[]? avoid, RouteConnection[]? connections)
         {
-            if (avoid != null && connections != null)
+            var requestBody = new RouteRequest
             {
-                return await Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&avoid={2}&connections={3}&flag={4}", from, to, string.Join(",", avoid), string.Join(",", connections.Select(x => string.Join("|", x))), routeType.ToString().ToLower()));
-            }
-            else if (avoid != null)
+                AvoidSystems = avoid,
+                Connections = connections,
+                Preference = MapRouteTypeToPreference(routeType)
+            };
+
+            var uri = $"/route/{from}/{to}";
+            var result = await Execute<RouteResponse>(RequestSecurity.Public, RequestMethod.Post, uri, requestBody);
+
+            if (result.IsSuccess && result.Data != null)
             {
-                return await Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&avoid={2}&flag={3}", from, to, string.Join(",", avoid), routeType.ToString().ToLower()));
-            }
-            else if (connections != null)
-            {
-                return await Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&connections={2}&flag={3}", from, to, string.Join(",", connections.Select(x => string.Join("|", x))), routeType.ToString().ToLower()));
+                return Result<int[]>.Success(result.Data.Route);
             }
 
-            return await Execute<int[]>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v1/route/{0}/{1}/?datasource=tranquility&flag={2}", from, to, routeType.ToString().ToLower()));
+            return Result<int[]>.Failure(result.ErrorMessage ?? "Failed to get route");
+        }
+
+        private static string MapRouteTypeToPreference(RouteType routeType)
+        {
+            return routeType switch
+            {
+                RouteType.Shortest => "Shorter",
+                RouteType.Secure => "Safer",
+                RouteType.Insecure => "LessSecure",
+                _ => "Shorter"
+            };
         }
     }
 }

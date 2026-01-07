@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using WHMapper.Models.DTO.EveAPI.Route;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Alliances;
@@ -330,7 +331,7 @@ public class PublicEveOnlineAPITest
         Assert.Null(routeResult2?.Data);
 
         //WH route to Jita with connections by amarr
-        var connections = new int[][] { new int[] { SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_AMARR_ID } };
+        var connections = new RouteConnection[] { new RouteConnection { From = SOLAR_SYSTEM_WH_ID, To = SOLAR_SYSTEM_AMARR_ID } };
 
         var routeResult3 = await _routeServices.GetRoute(SOLAR_SYSTEM_WH_ID, SOLAR_SYSTEM_JITA_ID, connections);
         Assert.NotNull(routeResult3?.Data);

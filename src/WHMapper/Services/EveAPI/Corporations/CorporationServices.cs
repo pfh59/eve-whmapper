@@ -12,7 +12,7 @@ namespace WHMapper.Services.EveAPI.Corporations
 
         public async Task<Result<Corporation>> GetCorporation(int corporation_id)
         {
-            return await Execute<Corporation>(RequestSecurity.Public, RequestMethod.Get, string.Format("/v5/corporations/{0}/?datasource=tranquility", corporation_id));
+            return await Execute<Corporation>(RequestSecurity.Public, RequestMethod.Get, string.Format("/corporations/{0}/?datasource=tranquility", corporation_id));
         }
     }
 }
