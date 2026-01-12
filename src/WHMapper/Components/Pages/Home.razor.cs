@@ -56,6 +56,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
         // Subscribe to instance access events
         await InitRealTimeServiceEvents();
 
+        // Subscribe to primary account changes to refresh authorization state
+        UserManagement.PrimaryAccountChanged += OnPrimaryAccountChanged;
+
         await base.OnInitializedAsync();
     }
 
@@ -154,6 +157,27 @@ public partial class Home : ComponentBase, IAsyncDisposable
         }
     }
 
+    private async Task OnPrimaryAccountChanged(string clientId, int newPrimaryAccountId)
+    {
+        try
+        {
+            // Only react to changes for our client
+            if (clientId != UID.ClientId)
+                return;
+
+            // Force navigation to reload the page and re-evaluate authorization
+            // The new primary account may have different instance access
+            await InvokeAsync(() =>
+            {
+                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+            });
+        }
+        catch (Exception)
+        {
+            // Silently handle errors
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -164,6 +188,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
         {
             RealTimeService.InstanceAccessAdded -= OnInstanceAccessAdded;
         }
+
+        // Unsubscribe from primary account changes
+        UserManagement.PrimaryAccountChanged -= OnPrimaryAccountChanged;
 
         // Unsubscribe from SDE initialization events
         SDEInitializationState.OnProgressChanged -= OnSDEProgressChanged;

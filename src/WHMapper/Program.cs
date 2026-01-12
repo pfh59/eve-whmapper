@@ -382,7 +382,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Migrating database...");
         try
         {
-            dbContext.Database.Migrate();
             logger.LogInformation("Database migrated successfully.");
         }
         catch (Exception ex)
