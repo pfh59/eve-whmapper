@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using WHMapper.Models.DTO;
 using WHMapper.Services.EveMapper;
@@ -34,9 +33,6 @@ public partial class Home : ComponentBase, IAsyncDisposable
 
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
-
-    [Inject]
-    private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -127,29 +123,78 @@ public partial class Home : ComponentBase, IAsyncDisposable
 
     private async Task InitRealTimeServiceEvents()
     {
-        if (RealTimeService != null)
+        if (RealTimeService != null && !string.IsNullOrEmpty(UID?.ClientId))
         {
             RealTimeService.InstanceAccessAdded += OnInstanceAccessAdded;
+            RealTimeService.InstanceAccessRemoved += OnInstanceAccessRemoved;
+
+            // Start the RealTimeService for the primary account so we can receive instance access notifications
+            // even when the user doesn't have access to any instance yet
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount != null)
+            {
+                await RealTimeService.Start(primaryAccount.Id);
+            }
         }
-        await Task.CompletedTask;
     }
 
     private async Task OnInstanceAccessAdded(int accountID, int instanceId, int accessId)
     {
         try
         {
-            // Check if the current user now has access
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            if (authState.User.Identity?.IsAuthenticated == true)
+            if (string.IsNullOrEmpty(UID?.ClientId))
+                return;
+
+            // accountID is the sender (admin who added access), not the receiver
+            // We need to check if the access was granted to one of our accounts
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount == null)
+                return;
+
+            // Don't react to our own notifications
+            if (primaryAccount.Id == accountID)
+                return;
+
+            // Refresh the page to re-evaluate the authorization
+            // The policy will check if we now have access
+            Snackbar.Add("You have been granted access to an instance! Refreshing...", Severity.Success);
+            await InvokeAsync(() =>
             {
-                // Refresh the page to re-evaluate the authorization
-                Snackbar.Add("You have been granted access to an instance! Refreshing...", Severity.Success);
-                await InvokeAsync(() =>
-                {
-                    // Force navigation to reload the page and re-evaluate authorization
-                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
-                });
-            }
+                // Force navigation to reload the page and re-evaluate authorization
+                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+            });
+        }
+        catch (Exception)
+        {
+            // Silently handle errors
+        }
+    }
+
+    private async Task OnInstanceAccessRemoved(int accountID, int instanceId, int accessId)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(UID?.ClientId))
+                return;
+
+            // accountID is the sender (admin who removed access), not the receiver
+            // We need to check if our access was revoked
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount == null)
+                return;
+
+            // Don't react to our own notifications
+            if (primaryAccount.Id == accountID)
+                return;
+
+            // Refresh the page to re-evaluate the authorization
+            // The policy will check if we still have access
+            Snackbar.Add("Your access to an instance has been revoked. Refreshing...", Severity.Warning);
+            await InvokeAsync(() =>
+            {
+                // Force navigation to reload the page and re-evaluate authorization
+                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+            });
         }
         catch (Exception)
         {
@@ -187,6 +232,7 @@ public partial class Home : ComponentBase, IAsyncDisposable
         if (RealTimeService != null)
         {
             RealTimeService.InstanceAccessAdded -= OnInstanceAccessAdded;
+            RealTimeService.InstanceAccessRemoved -= OnInstanceAccessRemoved;
         }
 
         // Unsubscribe from primary account changes

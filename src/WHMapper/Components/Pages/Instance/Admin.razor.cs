@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using WHMapper.Components.Dialogs;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO;
@@ -128,12 +129,18 @@ public partial class Admin : ComponentBase
 
     private async Task DeleteInstance()
     {
-        var confirm = await DialogService.ShowMessageBox(
-            "Delete Instance",
-            "Are you sure you want to delete this instance? This will delete all maps and data. This action cannot be undone!",
-            yesText: "Delete", cancelText: "Cancel");
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to delete this instance? This will delete all maps and data. This action cannot be undone!" },
+            { x => x.ConfirmText, "Delete" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Instance", parameters, options);
+        var result = await dialog.Result;
 
-        if (confirm == true)
+        if (result != null && !result.Canceled)
         {
             var success = await InstanceService.DeleteInstanceAsync(InstanceId, _characterId);
             if (success)
@@ -168,12 +175,18 @@ public partial class Admin : ComponentBase
 
     private async Task DeleteMap(WHMap map)
     {
-        var confirm = await DialogService.ShowMessageBox(
-            "Delete Map",
-            $"Are you sure you want to delete the map '{map.Name}'? All systems and connections will be lost!",
-            yesText: "Delete", cancelText: "Cancel");
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to delete the map '{map.Name}'? All systems and connections will be lost!" },
+            { x => x.ConfirmText, "Delete" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Map", parameters, options);
+        var result = await dialog.Result;
 
-        if (confirm == true)
+        if (result != null && !result.Canceled)
         {
             var success = await InstanceService.DeleteMapAsync(InstanceId, map.Id, _characterId);
             if (success)
@@ -209,12 +222,18 @@ public partial class Admin : ComponentBase
 
     private async Task RemoveAdmin(WHInstanceAdmin admin)
     {
-        var confirm = await DialogService.ShowMessageBox(
-            "Remove Administrator",
-            $"Are you sure you want to remove '{admin.EveCharacterName}' as an administrator?",
-            yesText: "Remove", cancelText: "Cancel");
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to remove '{admin.EveCharacterName}' as an administrator?" },
+            { x => x.ConfirmText, "Remove" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Administrator", parameters, options);
+        var result = await dialog.Result;
 
-        if (confirm == true)
+        if (result != null && !result.Canceled)
         {
             var success = await InstanceService.RemoveAdminAsync(InstanceId, admin.EveCharacterId, _characterId);
             if (success)
@@ -250,12 +269,18 @@ public partial class Admin : ComponentBase
 
     private async Task RemoveAccess(WHInstanceAccess access)
     {
-        var confirm = await DialogService.ShowMessageBox(
-            "Remove Access",
-            $"Are you sure you want to remove access for '{access.EveEntityName}'? This will also remove any map-specific access for this entity.",
-            yesText: "Remove", cancelText: "Cancel");
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to remove access for '{access.EveEntityName}'? This will also remove any map-specific access for this entity." },
+            { x => x.ConfirmText, "Remove" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Access", parameters, options);
+        var result = await dialog.Result;
 
-        if (confirm == true)
+        if (result != null && !result.Canceled)
         {
             var accessId = access.Id;
             var (success, removedMapAccesses) = await InstanceService.RemoveAccessAsync(InstanceId, accessId, _characterId);
