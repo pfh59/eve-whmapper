@@ -204,26 +204,17 @@ public partial class Overview : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         if (_disposed)
-            return;
+            return ValueTask.CompletedTask;
         _disposed = true;
         
         // Unsubscribe from primary account changes
         UserManagement.PrimaryAccountChanged -= OnPrimaryAccountChanged;
         
-        try
-        {
-            if (TrackerServices != null)
-            {
-                await TrackerServices.DisposeAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Error disposing TrackerServices");
-        }
+        // Note: Do NOT dispose TrackerServices here - it's a scoped service managed by DI
+        // and must remain active for the lifetime of the user session
 
         try
         {
@@ -238,16 +229,18 @@ public partial class Overview : IAsyncDisposable
                 RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
                 RealTimeService.InstanceAccessAdded -= OnInstanceAccessAdded;
                 RealTimeService.InstanceAccessRemoved -= OnInstanceAccessRemoved;
-                await RealTimeService.DisposeAsync();
+                // Note: Do NOT dispose RealTimeService here - it's a scoped service managed by DI
+                // and may be used by other components in the same circuit
             }
         }
         catch (Exception ex)
         {
-            Logger.LogWarning(ex, "Error disposing RealTimeService");
+            Logger.LogWarning(ex, "Error unsubscribing from RealTimeService events");
         }
         
         _semaphoreSlim.Dispose();
         GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
 
     private async Task<bool> InitRealTimeService()

@@ -188,6 +188,11 @@ public partial class Overview : IAsyncDisposable
         await InvokeAsync(() => {
             StateHasChanged();
         });
+        
+        // CRITICAL: Subscribe to events FIRST before any tracking starts
+        // This prevents race conditions where events fire before handlers are attached
+        SubscribeToEvents();
+        
         if (MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value != MapId.Value))
         {
             if (await Restore(MapId.Value, cancellationToken))
@@ -264,35 +269,40 @@ public partial class Overview : IAsyncDisposable
 
                     await InitBlazorDiagramEvents();
                 }
-
-                TrackerServices.SystemChanged += OnSystemChanged;
-                TrackerServices.ShipChanged += OnShipChanged;
-                TrackerServices.TrackingLocationRetryRequested += OnTrackingLocationRetryRequested;
-                TrackerServices.TrackingShipRetryRequested += OnTrackingShipRetryRequested;
-
-                EveMapperRealTime.UserDisconnected += OnUserDisconnected;
-                EveMapperRealTime.UserOnMapConnected += OnUserOnMapConnected;
-                EveMapperRealTime.UserOnMapDisconnected += OnUserOnMapDisconnected;
-
-                EveMapperRealTime.UserPosition += OnUserPositionChanged;
-
-                EveMapperRealTime.WormholeAdded += OnWormholeAdded;
-                EveMapperRealTime.WormholeRemoved += OnWormholeRemoved;
-                EveMapperRealTime.WormholeMoved += OnWormholeMoved;
-                EveMapperRealTime.WormholeLockChanged += OnWormholeLockChanged;
-                EveMapperRealTime.WormholeSystemStatusChanged += OnWormholeSystemStatusChanged;
-                EveMapperRealTime.WormholeNameExtensionChanged += OnWormholeNameExtensionChanged;
-                EveMapperRealTime.WormholeAlternateNameChanged += OnWormholeAlternateNameChanged;
-
-                EveMapperRealTime.LinkAdded += OnLinkAdded;
-                EveMapperRealTime.LinkRemoved += OnLinkRemoved;
-                EveMapperRealTime.LinkChanged += OnLinkChanged;
             }
         }
         _loading = false;
         await InvokeAsync(() => {
             StateHasChanged();
         });
+    }
+
+    private void SubscribeToEvents()
+    {
+        // IMPORTANT: Subscribe to events BEFORE starting any tracking
+        // to avoid race conditions where events fire before handlers are attached
+        TrackerServices.SystemChanged += OnSystemChanged;
+        TrackerServices.ShipChanged += OnShipChanged;
+        TrackerServices.TrackingLocationRetryRequested += OnTrackingLocationRetryRequested;
+        TrackerServices.TrackingShipRetryRequested += OnTrackingShipRetryRequested;
+
+        EveMapperRealTime.UserDisconnected += OnUserDisconnected;
+        EveMapperRealTime.UserOnMapConnected += OnUserOnMapConnected;
+        EveMapperRealTime.UserOnMapDisconnected += OnUserOnMapDisconnected;
+
+        EveMapperRealTime.UserPosition += OnUserPositionChanged;
+
+        EveMapperRealTime.WormholeAdded += OnWormholeAdded;
+        EveMapperRealTime.WormholeRemoved += OnWormholeRemoved;
+        EveMapperRealTime.WormholeMoved += OnWormholeMoved;
+        EveMapperRealTime.WormholeLockChanged += OnWormholeLockChanged;
+        EveMapperRealTime.WormholeSystemStatusChanged += OnWormholeSystemStatusChanged;
+        EveMapperRealTime.WormholeNameExtensionChanged += OnWormholeNameExtensionChanged;
+        EveMapperRealTime.WormholeAlternateNameChanged += OnWormholeAlternateNameChanged;
+
+        EveMapperRealTime.LinkAdded += OnLinkAdded;
+        EveMapperRealTime.LinkRemoved += OnLinkRemoved;
+        EveMapperRealTime.LinkChanged += OnLinkChanged;
     }
 
     
@@ -310,20 +320,14 @@ public partial class Overview : IAsyncDisposable
         _cts.Dispose();
 
         // Unsubscribe from TrackerServices events
-        try
+        // Note: Do NOT dispose TrackerServices here - it's a scoped service managed by DI
+        // and must remain active for the lifetime of the user session
+        if (TrackerServices != null)
         {
-            if (TrackerServices != null)
-            {
-                TrackerServices.SystemChanged -= OnSystemChanged;
-                TrackerServices.ShipChanged -= OnShipChanged;
-                TrackerServices.TrackingLocationRetryRequested -= OnTrackingLocationRetryRequested;
-                TrackerServices.TrackingShipRetryRequested -= OnTrackingShipRetryRequested;
-                await TrackerServices.DisposeAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Error disposing TrackerServices");
+            TrackerServices.SystemChanged -= OnSystemChanged;
+            TrackerServices.ShipChanged -= OnShipChanged;
+            TrackerServices.TrackingLocationRetryRequested -= OnTrackingLocationRetryRequested;
+            TrackerServices.TrackingShipRetryRequested -= OnTrackingShipRetryRequested;
         }
 
         // Unsubscribe from EveMapperRealTime events
