@@ -82,7 +82,20 @@
                 }
 
                 retryBtn.addEventListener('click', () => {
-                    Blazor.reconnect();
+                    // Reset UI before retry
+                    messageEl.textContent = 'Reconnecting...';
+                    retryBtn.style.display = 'none';
+                    modal.classList.remove('components-reconnect-failed');
+                    
+                    // Attempt to reconnect
+                    Blazor.reconnect().catch(() => {
+                        // If reconnect fails, show failed state again
+                        setTimeout(() => {
+                            modal.classList.add('components-reconnect-failed');
+                            messageEl.textContent = 'Connection failed. Click Retry to try again.';
+                            retryBtn.style.display = 'inline-block';
+                        }, 1000);
+                    });
                 });
 
                 modal.addEventListener('components-reconnect-state-changed', (event) => {
