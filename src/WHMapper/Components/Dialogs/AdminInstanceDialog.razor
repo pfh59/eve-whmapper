@@ -1,0 +1,548 @@
+@using WHMapper.Models.Db
+@using WHMapper.Models.Db.Enums
+@using WHMapper.Services.EveMapper
+@using WHMapper.Models.DTO
+@using WHMapper.Components.Pages.Instance
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" />
+            <MudText Typo="Typo.h6">Instance Administration</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="pa-8">
+                <MudProgressCircular Indeterminate="true" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Loading instance...</MudText>
+            </MudStack>
+        }
+        else if (_instance == null)
+        {
+            <MudAlert Severity="Severity.Error">Instance not found or you don't have access.</MudAlert>
+        }
+        else if (!_isAdmin)
+        {
+            <MudAlert Severity="Severity.Warning">You are not an administrator of this instance.</MudAlert>
+        }
+        else
+        {
+            <MudStack Spacing="3" Style="max-height: 70vh; overflow-y: auto;">
+                <!-- Instance Info Header -->
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudStack>
+                            <MudText Typo="Typo.h5">
+                                <MudIcon Icon="@Icons.Material.Filled.Dashboard" Class="mr-2" />
+                                @_instance.Name
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                Owner: @_instance.OwnerEveEntityName (@_instance.OwnerType)
+                            </MudText>
+                            @if (!string.IsNullOrEmpty(_instance.Description))
+                            {
+                                <MudText Typo="Typo.body2">@_instance.Description</MudText>
+                            }
+                        </MudStack>
+                        <MudStack Row="true" Spacing="2">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small" OnClick="EditInstance">
+                                <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1" Size="Size.Small" /> Edit
+                            </MudButton>
+                            @if (_isOwner)
+                            {
+                                <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" OnClick="DeleteInstance">
+                                    <MudIcon Icon="@Icons.Material.Filled.Delete" Class="mr-1" Size="Size.Small" /> Delete
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+
+                <MudGrid>
+                    <!-- Maps Section -->
+                    <MudItem xs="12" md="6">
+                        <MudPaper Class="pa-4" Elevation="1" Style="height: 100%;">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+                                <MudText Typo="Typo.h6">
+                                    <MudIcon Icon="@Icons.Material.Filled.Map" Class="mr-2" />
+                                    Maps (@(_maps?.Count() ?? 0))
+                                </MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="AddMap">
+                                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" Size="Size.Small" /> Add
+                                </MudButton>
+                            </MudStack>
+
+                            @if (_maps?.Any() == true)
+                            {
+                                <MudList T="WHMap" Dense="true">
+                                    @foreach (var map in _maps)
+                                    {
+                                        <MudListItem>
+                                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+                                                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                                                    <MudText>@map.Name</MudText>
+                                                    @if (map.WHMapAccesses?.Any() == true)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Filled.Lock">
+                                                            @map.WHMapAccesses.Count
+                                                        </MudChip>
+                                                    }
+                                                </MudStack>
+                                                <MudStack Row="true" Spacing="1">
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Security" 
+                                                                   Color="Color.Info" 
+                                                                   Size="Size.Small"
+                                                                   Title="Manage Access"
+                                                                   OnClick="@(() => ManageMapAccess(map))" />
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                                   Color="Color.Error" 
+                                                                   Size="Size.Small"
+                                                                   Title="Delete Map"
+                                                                   OnClick="@(() => DeleteMap(map))" />
+                                                </MudStack>
+                                            </MudStack>
+                                        </MudListItem>
+                                    }
+                                </MudList>
+                            }
+                            else
+                            {
+                                <MudText Color="Color.Secondary" Align="Align.Center" Typo="Typo.body2">No maps yet.</MudText>
+                            }
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- Administrators Section -->
+                    <MudItem xs="12" md="6">
+                        <MudPaper Class="pa-4" Elevation="1" Style="height: 100%;">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+                                <MudText Typo="Typo.h6">
+                                    <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="mr-2" />
+                                    Admins (@(_admins?.Count() ?? 0))
+                                </MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="AddAdmin">
+                                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" Size="Size.Small" /> Add
+                                </MudButton>
+                            </MudStack>
+
+                            @if (_admins?.Any() == true)
+                            {
+                                <MudList T="WHInstanceAdmin" Dense="true">
+                                    @foreach (var admin in _admins)
+                                    {
+                                        <MudListItem>
+                                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+                                                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                                                    <MudText>@admin.EveCharacterName</MudText>
+                                                    @if (admin.IsOwner)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Owner</MudChip>
+                                                    }
+                                                </MudStack>
+                                                @if (!admin.IsOwner)
+                                                {
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                                   Color="Color.Error" 
+                                                                   Size="Size.Small"
+                                                                   OnClick="@(() => RemoveAdmin(admin))" />
+                                                }
+                                            </MudStack>
+                                        </MudListItem>
+                                    }
+                                </MudList>
+                            }
+                            else
+                            {
+                                <MudText Color="Color.Secondary" Align="Align.Center" Typo="Typo.body2">No administrators.</MudText>
+                            }
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+
+                <!-- Access Control Section -->
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Security" Class="mr-2" />
+                            Access Control (@(_accesses?.Count() ?? 0))
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="AddAccess">
+                            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" Size="Size.Small" /> Add Access
+                        </MudButton>
+                    </MudStack>
+
+                    @if (_accesses?.Any() == true)
+                    {
+                        <MudSimpleTable Dense="true" Hover="true" Bordered="true" Striped="true" Style="overflow-x: auto;">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Name</th>
+                                    <th>Granted</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var access in _accesses)
+                                {
+                                    <tr>
+                                        <td>
+                                            @switch (access.EveEntity)
+                                            {
+                                                case WHAccessEntity.Character:
+                                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Person" Color="Color.Info">Char</MudChip>
+                                                    break;
+                                                case WHAccessEntity.Corporation:
+                                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Business" Color="Color.Success">Corp</MudChip>
+                                                    break;
+                                                case WHAccessEntity.Alliance:
+                                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Groups" Color="Color.Warning">Alliance</MudChip>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>@access.EveEntityName</td>
+                                        <td>@access.GrantedAt.ToString("yyyy-MM-dd")</td>
+                                        <td>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                           Color="Color.Error" 
+                                                           Size="Size.Small"
+                                                           OnClick="@(() => RemoveAccess(access))" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </MudSimpleTable>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary" Align="Align.Center" Typo="Typo.body2">
+                            No additional access. Only the owner entity has access by default.
+                        </MudText>
+                    }
+                </MudPaper>
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public int InstanceId { get; set; }
+
+    [Inject]
+    private ILogger<AdminInstanceDialog> Logger { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperRealTimeService RealTimeService { get; set; } = null!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
+
+    private bool _loading = true;
+    private bool _isAdmin = false;
+    private bool _isOwner = false;
+    private int _characterId = 0;
+
+    private WHInstance? _instance = null;
+    private IEnumerable<WHMap>? _maps = null;
+    private IEnumerable<WHInstanceAdmin>? _admins = null;
+    private IEnumerable<WHInstanceAccess>? _accesses = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+
+        try
+        {
+            if (string.IsNullOrEmpty(UID.ClientId))
+            {
+                Logger.LogWarning("ClientId is null");
+                return;
+            }
+
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount == null)
+            {
+                Logger.LogWarning("Could not get primary account");
+                return;
+            }
+            _characterId = primaryAccount.Id;
+
+            _instance = await InstanceService.GetInstanceAsync(InstanceId);
+            if (_instance == null)
+            {
+                Logger.LogWarning("Instance {InstanceId} not found", InstanceId);
+                return;
+            }
+
+            _isAdmin = await InstanceService.IsAdminAsync(InstanceId, _characterId);
+            _isOwner = await InstanceService.IsOwnerAsync(InstanceId, _characterId);
+
+            if (_isAdmin)
+            {
+                _maps = await InstanceService.GetMapsAsync(InstanceId);
+                _admins = await InstanceService.GetAdminsAsync(InstanceId);
+                _accesses = await InstanceService.GetAccessesAsync(InstanceId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading instance data");
+            Snackbar.Add("Error loading instance data", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task EditInstance()
+    {
+        var parameters = new DialogParameters<EditInstanceDialog>
+        {
+            { x => x.Instance, _instance! }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EditInstanceDialog>("Edit Instance", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteInstance()
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to delete this instance? This will delete all maps and data. This action cannot be undone!" },
+            { x => x.ConfirmText, "Delete" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Instance", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            var success = await InstanceService.DeleteInstanceAsync(InstanceId, _characterId);
+            if (success)
+            {
+                Snackbar.Add("Instance deleted successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete instance", Severity.Error);
+            }
+        }
+    }
+
+    private async Task AddMap()
+    {
+        var parameters = new DialogParameters<AddMapDialog>
+        {
+            { x => x.InstanceId, InstanceId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddMapDialog>("Add Map", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteMap(WHMap map)
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to delete the map '{map.Name}'? All systems and connections will be lost!" },
+            { x => x.ConfirmText, "Delete" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Map", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            var success = await InstanceService.DeleteMapAsync(InstanceId, map.Id, _characterId);
+            if (success)
+            {
+                Snackbar.Add("Map deleted successfully", Severity.Success);
+                await LoadDataAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete map", Severity.Error);
+            }
+        }
+    }
+
+    private async Task AddAdmin()
+    {
+        var parameters = new DialogParameters<AddAdminDialog>
+        {
+            { x => x.InstanceId, InstanceId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddAdminDialog>("Add Administrator", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveAdmin(WHInstanceAdmin admin)
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to remove '{admin.EveCharacterName}' as an administrator?" },
+            { x => x.ConfirmText, "Remove" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Administrator", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            var success = await InstanceService.RemoveAdminAsync(InstanceId, admin.EveCharacterId, _characterId);
+            if (success)
+            {
+                Snackbar.Add("Administrator removed successfully", Severity.Success);
+                await LoadDataAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Failed to remove administrator", Severity.Error);
+            }
+        }
+    }
+
+    private async Task AddAccess()
+    {
+        var parameters = new DialogParameters<AddAccessDialog>
+        {
+            { x => x.InstanceId, InstanceId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddAccessDialog>("Add Access", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveAccess(WHInstanceAccess access)
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to remove access for '{access.EveEntityName}'?" },
+            { x => x.ConfirmText, "Remove" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Access", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            var accessId = access.Id;
+            var (success, removedMapAccesses) = await InstanceService.RemoveAccessAsync(InstanceId, accessId, _characterId);
+            if (success)
+            {
+                Snackbar.Add("Access removed successfully", Severity.Success);
+                await RealTimeService.NotifyInstanceAccessRemoved(_characterId, InstanceId, accessId);
+                
+                foreach (var mapAccess in removedMapAccesses)
+                {
+                    foreach (var removedAccessId in mapAccess.Value)
+                    {
+                        await RealTimeService.NotifyMapAccessRemoved(_characterId, mapAccess.Key, removedAccessId);
+                    }
+                }
+                
+                await LoadDataAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Failed to remove access", Severity.Error);
+            }
+        }
+    }
+
+    private async Task ManageMapAccess(WHMap map)
+    {
+        var parameters = new DialogParameters<MapAccessDialog>
+        {
+            { x => x.InstanceId, InstanceId },
+            { x => x.Map, map },
+            { x => x.InstanceAccesses, _accesses }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<MapAccessDialog>($"Manage Access - {map.Name}", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+    }
+
+    private void Close() => MudDialog.Cancel();
+}

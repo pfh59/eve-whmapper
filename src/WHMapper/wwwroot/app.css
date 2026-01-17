@@ -71,11 +71,16 @@ h1:focus {
 }
 
 #components-reconnect-modal.components-reconnect-show {
-    display: flex;
+    display: flex !important;
 }
 
 #components-reconnect-modal.components-reconnect-hide {
     display: none;
+}
+
+/* Keep modal visible when in failed state, override any Blazor default behavior */
+#components-reconnect-modal.components-reconnect-failed {
+    display: flex !important;
 }
 
 #components-reconnect-modal .reconnect-content {
@@ -130,6 +135,10 @@ h1:focus {
 
 #components-reconnect-modal .reconnect-retry-btn:hover {
     background-color: #1b6ec2;
+}
+
+#components-reconnect-modal.components-reconnect-failed .reconnect-message {
+    color: rgba(255, 255, 255, 0.87);
 }
 
 #components-reconnect-modal.components-reconnect-failed .reconnect-content {

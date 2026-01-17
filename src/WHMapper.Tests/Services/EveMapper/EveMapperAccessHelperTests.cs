@@ -160,5 +160,52 @@ namespace WHMapper.Tests.Services.EveMapper
             Assert.False(await sut.IsEveMapperMapAccessAuthorized(1, map.Id));
         }
         #endregion
+
+        #region IsEveMapperUserAccessAuthorizedForAny()
+        [Theory, AutoMoqData]
+        public async Task IfNoCharacterIds_WhenGettingAccessForAny_ReturnsFalse(
+            EveMapperAccessHelper sut)
+        {
+            Assert.False(await sut.IsEveMapperUserAccessAuthorizedForAny(Array.Empty<int>()));
+            Assert.False(await sut.IsEveMapperUserAccessAuthorizedForAny(null!));
+        }
+
+        [Theory, AutoMoqData]
+        public async Task IfOneCharacterHasAccess_WhenGettingAccessForAny_ReturnsTrue(
+            WHInstance instance,
+            [Frozen] Mock<ICharacterServices> characterServices,
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
+        {
+            var character = new Character() { CorporationId = 100, AllianceId = 200 };
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
+                .ReturnsAsync(Result<Character>.Success(character));
+
+            // First character has no access, second has access
+            instanceRepository.SetupSequence(x => x.GetAccessibleInstancesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
+                .ReturnsAsync(new List<WHInstance>())
+                .ReturnsAsync(new List<WHInstance> { instance });
+
+            var characterIds = new List<int> { 1, 2 };
+            Assert.True(await sut.IsEveMapperUserAccessAuthorizedForAny(characterIds));
+        }
+
+        [Theory, AutoMoqData]
+        public async Task IfNoCharacterHasAccess_WhenGettingAccessForAny_ReturnsFalse(
+            [Frozen] Mock<ICharacterServices> characterServices,
+            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
+            EveMapperAccessHelper sut)
+        {
+            var character = new Character() { CorporationId = 100, AllianceId = 200 };
+            characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))
+                .ReturnsAsync(Result<Character>.Success(character));
+
+            instanceRepository.Setup(x => x.GetAccessibleInstancesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>()))
+                .ReturnsAsync(new List<WHInstance>());
+
+            var characterIds = new List<int> { 1, 2, 3 };
+            Assert.False(await sut.IsEveMapperUserAccessAuthorizedForAny(characterIds));
+        }
+        #endregion
     }
 }

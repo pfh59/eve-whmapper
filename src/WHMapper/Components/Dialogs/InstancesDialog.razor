@@ -1,0 +1,228 @@
+@using WHMapper.Models.Db
+@using WHMapper.Models.Db.Enums
+@using WHMapper.Services.EveMapper
+@using WHMapper.Services.EveAPI.Characters
+@using WHMapper.Models.DTO
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Dashboard" />
+            <MudText Typo="Typo.h6">My Instances</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="pa-8">
+                <MudProgressCircular Indeterminate="true" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Loading instances...</MudText>
+            </MudStack>
+        }
+        else if (_instances?.Any() != true)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="pa-6">
+                <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Secondary" />
+                <MudText Typo="Typo.h6" Color="Color.Secondary">No instances found</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+                    You don't have access to any instances yet. Create one or ask an admin to grant you access.
+                </MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="3" Class="pa-2" Style="max-height: 60vh; overflow-y: auto;">
+                @foreach (var instance in _instances)
+                {
+                    <MudCard Elevation="1">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">@instance.Name</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @GetOwnerTypeIcon(instance.OwnerType) @instance.OwnerEveEntityName
+                                </MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                @if (IsAdmin(instance))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Icon="@Icons.Material.Filled.AdminPanelSettings">
+                                        Admin
+                                    </MudChip>
+                                }
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!string.IsNullOrEmpty(instance.Description))
+                            {
+                                <MudText Typo="Typo.body2" Class="mb-2">@instance.Description</MudText>
+                            }
+                            <MudStack Row="true" Spacing="2">
+                                <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Map">
+                                    @(instance.WHMaps?.Count ?? 0) Maps
+                                </MudChip>
+                                <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Person">
+                                    @(instance.Administrators?.Count ?? 0) Admins
+                                </MudChip>
+                            </MudStack>
+                        </MudCardContent>
+                        @if (IsAdmin(instance))
+                        {
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="@(() => ManageInstance(instance.Id))">
+                                    <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-1" Size="Size.Small" />
+                                    Manage
+                                </MudButton>
+                            </MudCardActions>
+                        }
+                    </MudCard>
+                }
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Info" OnClick="CreateNewInstance">
+            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" />
+            Create New Instance
+        </MudButton>
+        <MudSpacer />
+        <MudButton Variant="Variant.Text" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Inject]
+    private ILogger<InstancesDialog> Logger { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
+
+    [Inject]
+    private ICharacterServices CharacterServices { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
+    private bool _loading = true;
+    private int _characterId = 0;
+    private IEnumerable<WHInstance>? _instances;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInstancesAsync();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task LoadInstancesAsync()
+    {
+        _loading = true;
+
+        try
+        {
+            if (string.IsNullOrEmpty(UID.ClientId))
+            {
+                Logger.LogWarning("ClientId is null");
+                return;
+            }
+
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount == null)
+            {
+                Logger.LogWarning("Could not get primary account");
+                return;
+            }
+            _characterId = primaryAccount.Id;
+
+            var characterResult = await CharacterServices.GetCharacter(_characterId);
+            if (!characterResult.IsSuccess || characterResult.Data == null)
+            {
+                Logger.LogWarning("Could not get character info");
+                return;
+            }
+
+            var character = characterResult.Data;
+            _instances = await InstanceService.GetAccessibleInstancesAsync(
+                _characterId,
+                character.CorporationId > 0 ? character.CorporationId : null,
+                character.AllianceId > 0 ? character.AllianceId : null);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading instances");
+            Snackbar.Add("Error loading instances", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private bool IsAdmin(WHInstance instance)
+    {
+        return instance.Administrators?.Any(a => a.EveCharacterId == _characterId) == true;
+    }
+
+    private string GetOwnerTypeIcon(WHAccessEntity ownerType)
+    {
+        return ownerType switch
+        {
+            WHAccessEntity.Character => "👤",
+            WHAccessEntity.Corporation => "🏢",
+            WHAccessEntity.Alliance => "🌐",
+            _ => ""
+        };
+    }
+
+    private async Task ManageInstance(int instanceId)
+    {
+        var parameters = new DialogParameters<AdminInstanceDialog>
+        {
+            { x => x.InstanceId, instanceId }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        await DialogService.ShowAsync<AdminInstanceDialog>("Manage Instance", parameters, options);
+        
+        // Reload instances after admin dialog closes in case of changes
+        await LoadInstancesAsync();
+        StateHasChanged();
+    }
+
+    private async Task CreateNewInstance()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        await DialogService.ShowAsync<RegisterInstanceDialog>("Create Instance", options);
+        
+        // Reload instances after creation dialog closes
+        await LoadInstancesAsync();
+        StateHasChanged();
+    }
+
+    private void Close() => MudDialog.Cancel();
+}

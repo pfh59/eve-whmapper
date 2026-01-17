@@ -56,8 +56,8 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        
         int accountID = CurrentAccountId();
+        
         _connections.Remove(accountID, Context.ConnectionId);
         
         if (_connectedUserPosition.ContainsKey(accountID) && _connections.GetConnections(accountID).Count() == 0)

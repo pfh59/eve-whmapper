@@ -1,7 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Antiforgery
 @using WHMapper.Models.DTO
+@using WHMapper.Components.Dialogs
 @implements IDisposable
 @inject NavigationManager Navigation
+@inject IDialogService DialogService
 
 
 <AuthorizeView>
@@ -14,8 +16,8 @@
                     </ActivatorContent>
                     <ChildContent>
                         <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" Href="/instances">My Instances</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" Href="/register">Create Instance</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" OnClick="OpenInstancesDialog">My Instances</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
                         <MudForm action="authentication/logout" method="post">
                             <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
                             <input type="hidden" name="ReturnUrl" value="/" />
@@ -36,8 +38,8 @@
                             </ActivatorContent>
                             <ChildContent>
                                 <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" Href="/instances">My Instances</MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" Href="/register">Create Instance</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" OnClick="OpenInstancesDialog">My Instances</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
                                 <MudForm action="authentication/logout" method="post">
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
                                     <input type="hidden" name="ReturnUrl" value="/" />
@@ -56,7 +58,7 @@
                                  <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
                             </ActivatorContent>
                             <ChildContent>
-                                <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" Href="/register">Create Instance</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
                                 <MudForm action="authentication/logout" method="post">
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
                                     <input type="hidden" name="ReturnUrl" value="/" />
@@ -115,5 +117,31 @@
     private string GetLoginUrl()
     {
         return $"authentication/login?clientId={UID.ClientId}";
+    }
+
+    private async Task OpenInstancesDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        await DialogService.ShowAsync<InstancesDialog>("My Instances", options);
+    }
+
+    private async Task OpenCreateInstanceDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        await DialogService.ShowAsync<RegisterInstanceDialog>("Create Instance", options);
     }
 }

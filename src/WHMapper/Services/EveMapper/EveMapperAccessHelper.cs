@@ -48,6 +48,23 @@ namespace WHMapper.Services.EveMapper
         }
 
         /// <summary>
+        /// Check if any of the provided characters has access to at least one instance.
+        /// Used for multi-account scenarios where the user may have multiple EVE characters linked.
+        /// </summary>
+        public async Task<bool> IsEveMapperUserAccessAuthorizedForAny(IEnumerable<int> eveCharacterIds)
+        {
+            if (eveCharacterIds == null || !eveCharacterIds.Any())
+                return false;
+
+            foreach (var characterId in eveCharacterIds)
+            {
+                if (await IsEveMapperUserAccessAuthorized(characterId))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Check if a user is admin of at least one instance.
         /// </summary>
         public async Task<bool> IsEveMapperAdminAccessAuthorized(int eveCharacterId)

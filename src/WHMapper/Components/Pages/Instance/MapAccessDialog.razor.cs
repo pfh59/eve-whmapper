@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using WHMapper.Components.Dialogs;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO;
@@ -111,12 +112,18 @@ public partial class MapAccessDialog : ComponentBase
 
     private async Task RemoveAccess(WHMapAccess access)
     {
-        var confirm = await DialogService.ShowMessageBox(
-            "Remove Map Access",
-            $"Are you sure you want to remove map access for '{access.EveEntityName}'?",
-            yesText: "Remove", cancelText: "Cancel");
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, $"Are you sure you want to remove map access for '{access.EveEntityName}'?" },
+            { x => x.ConfirmText, "Remove" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Map Access", parameters, options);
+        var result = await dialog.Result;
 
-        if (confirm == true)
+        if (result != null && !result.Canceled)
         {
             try
             {
@@ -146,12 +153,18 @@ public partial class MapAccessDialog : ComponentBase
 
     private async Task ClearAllAccesses()
     {
-        var confirm = await DialogService.ShowMessageBox(
-            "Remove All Restrictions",
-            "Are you sure you want to remove all access restrictions from this map? All users with instance access will be able to view the map.",
-            yesText: "Remove All", cancelText: "Cancel");
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to remove all access restrictions from this map? All users with instance access will be able to view the map." },
+            { x => x.ConfirmText, "Remove All" },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove All Restrictions", parameters, options);
+        var result = await dialog.Result;
 
-        if (confirm == true)
+        if (result != null && !result.Canceled)
         {
             try
             {

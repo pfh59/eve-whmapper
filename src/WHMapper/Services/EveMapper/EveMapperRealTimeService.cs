@@ -9,6 +9,7 @@ namespace WHMapper.Services.EveMapper;
 public class EveMapperRealTimeService : IEveMapperRealTimeService
 {
     private readonly ConcurrentDictionary<int, HubConnection> _hubConnection = new ConcurrentDictionary<int, HubConnection>();
+    private readonly ConcurrentDictionary<int, SemaphoreSlim> _accountLocks = new ConcurrentDictionary<int, SemaphoreSlim>();
     private readonly ILogger<EveMapperRealTimeService> _logger;
     private readonly NavigationManager _navigation;
     private readonly IEveOnlineTokenProvider _tokenProvider;
@@ -49,8 +50,16 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         _tokenProvider = tokenProvider;
         _configuration = configuration;
     }
+
+    private SemaphoreSlim GetAccountLock(int accountID)
+    {
+        return _accountLocks.GetOrAdd(accountID, _ => new SemaphoreSlim(1, 1));
+    }
+
     public async Task<bool> Start(int accountID)
     {
+        var accountLock = GetAccountLock(accountID);
+        await accountLock.WaitAsync();
         try
         {
             HubConnection? hubConnection = await GetHubConnection(accountID);
@@ -278,6 +287,10 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             _logger.LogError(ex, "Failed to start the real-time service.");
             return false;
         }
+        finally
+        {
+            accountLock.Release();
+        }
     }
 
     private async Task<HubConnection?> GetHubConnection(int accountID)
@@ -296,6 +309,8 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public async Task<bool> Stop(int accountID)
     {
+        var accountLock = GetAccountLock(accountID);
+        await accountLock.WaitAsync();
         try
         {
             HubConnection? hubConnection = await GetHubConnection(accountID);
@@ -311,6 +326,10 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         {
             _logger.LogError(ex, "Failed to stop the real-time service.");
             return false;
+        }
+        finally
+        {
+            accountLock.Release();
         }
     }
 

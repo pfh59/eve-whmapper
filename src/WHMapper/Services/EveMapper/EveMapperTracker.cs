@@ -118,6 +118,12 @@ public class EveMapperTracker : IEveMapperTracker
         _trackingTasks.Clear();
         _currentLocations.Clear();
         _currentShips.Clear();
+        
+        // Clear all event handlers to prevent memory leaks
+        SystemChanged = null;
+        ShipChanged = null;
+        TrackingLocationRetryRequested = null;
+        TrackingShipRetryRequested = null;
         _semaphoreSlim.Dispose();
         _trackingLock.Dispose();
         
@@ -381,7 +387,18 @@ public class EveMapperTracker : IEveMapperTracker
             else if(shipResult.StatusCode == (int)HttpStatusCode.TooManyRequests) // Rate limited
             {
                 _logger.LogWarning("Rate limited when fetching ship for account {accountID}", accountID);
-                _ = TrackingShipRetryRequested?.Invoke(accountID);
+                try
+                {
+                    var handler = TrackingShipRetryRequested;
+                    if (handler != null)
+                    {
+                        await handler.Invoke(accountID);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[{InstanceId}] Error invoking TrackingShipRetryRequested for account {AccountId}", _instanceId, accountID);
+                }
                 await Task.Delay(shipResult.RetryAfter ?? TimeSpan.FromSeconds(1), cancellationToken);
                 return;
             }
@@ -406,7 +423,18 @@ public class EveMapperTracker : IEveMapperTracker
 
         if (ship != null && !cancellationToken.IsCancellationRequested)
         {
-            _ = ShipChanged?.Invoke(accountID, oldShip, ship);
+            try
+            {
+                var handler = ShipChanged;
+                if (handler != null)
+                {
+                    await handler.Invoke(accountID, oldShip, ship);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{InstanceId}] Error invoking ShipChanged event for account {AccountId}", _instanceId, accountID);
+            }
         }
     }
 
@@ -437,7 +465,18 @@ public class EveMapperTracker : IEveMapperTracker
             else if(newLocationResult.StatusCode == (int)HttpStatusCode.TooManyRequests) // Rate limited
             {
                 _logger.LogWarning("Rate limited when fetching location for account {accountID}", accountID);
-                _ = TrackingLocationRetryRequested?.Invoke(accountID);
+                try
+                {
+                    var handler = TrackingLocationRetryRequested;
+                    if (handler != null)
+                    {
+                        await handler.Invoke(accountID);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[{InstanceId}] Error invoking TrackingLocationRetryRequested for account {AccountId}", _instanceId, accountID);
+                }
                 await Task.Delay(newLocationResult.RetryAfter ?? TimeSpan.FromSeconds(1), cancellationToken);
                 return;
             }
@@ -462,7 +501,18 @@ public class EveMapperTracker : IEveMapperTracker
 
         if (newLocation != null && !cancellationToken.IsCancellationRequested)
         {
-            _ = SystemChanged?.Invoke(accountID, oldLocation, newLocation);
+            try
+            {
+                var handler = SystemChanged;
+                if (handler != null)
+                {
+                    await handler.Invoke(accountID, oldLocation, newLocation);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{InstanceId}] Error invoking SystemChanged event for account {AccountId}", _instanceId, accountID);
+            }
         }
     }
 }
