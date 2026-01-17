@@ -989,6 +989,224 @@ public partial class Overview : IAsyncDisposable
 
     }
 
+    /// <summary>
+    /// Calculates an optimal position for a new node connected to a source node,
+    /// avoiding overlaps with existing nodes.
+    /// </summary>
+    /// <param name="srcNode">The source node from which the new node will be connected</param>
+    /// <returns>A tuple containing the X and Y position for the new node</returns>
+    private (double X, double Y) CalculateNewNodePosition(EveSystemNodeModel srcNode)
+    {
+        const double NODE_WIDTH = 180;  // Approximate node width
+        const double NODE_HEIGHT = 100; // Approximate node height
+        const double SPACING = 30;      // Space between nodes
+        const double DISTANCE = NODE_WIDTH + SPACING; // Distance from source center to new node center
+
+        // Default position if no source node
+        if (srcNode?.Position == null || srcNode.Size == null)
+            return (0, 0);
+
+        double srcCenterX = srcNode.Position.X + (srcNode.Size.Width / 2);
+        double srcCenterY = srcNode.Position.Y + (srcNode.Size.Height / 2);
+
+        // Get all nodes connected to the source node
+        var connectedNodes = GetConnectedNodes(srcNode);
+
+        // Define 8 possible directions around the source node (in radians)
+        // Priority order: Right → Bottom → Top → Left → Diagonals (Bottom-Right, Top-Right, Bottom-Left, Top-Left)
+        var directions = new[]
+        {
+            0,                      // Right (priority 1)
+            Math.PI / 2,            // Bottom (priority 2)
+            3 * Math.PI / 2,        // Top (priority 3)
+            Math.PI,                // Left (priority 4)
+            Math.PI / 4,            // Bottom-Right (priority 5)
+            7 * Math.PI / 4,        // Top-Right (priority 6)
+            3 * Math.PI / 4,        // Bottom-Left (priority 7)
+            5 * Math.PI / 4         // Top-Left (priority 8)
+        };
+
+        // Calculate angles to existing connected nodes
+        var occupiedAngles = new List<double>();
+        foreach (var node in connectedNodes)
+        {
+            if (node?.Position == null || node.Size == null)
+                continue;
+
+            double nodeCenterX = node.Position.X + (node.Size.Width / 2);
+            double nodeCenterY = node.Position.Y + (node.Size.Height / 2);
+
+            double angle = Math.Atan2(nodeCenterY - srcCenterY, nodeCenterX - srcCenterX);
+            if (angle < 0) angle += 2 * Math.PI; // Normalize to 0-2π
+            occupiedAngles.Add(angle);
+        }
+
+        // Tolerance for considering a direction as occupied (in radians, ~30 degrees)
+        const double ANGLE_TOLERANCE = Math.PI / 6;
+
+        // Find the first available direction in priority order
+        double bestAngle = directions[0]; // Default to right
+        bool foundFreeDirection = false;
+
+        foreach (var direction in directions)
+        {
+            bool isOccupied = false;
+
+            foreach (var occupied in occupiedAngles)
+            {
+                double diff = Math.Abs(direction - occupied);
+                // Account for wrap-around (e.g., 0 and 2π are the same)
+                if (diff > Math.PI)
+                    diff = 2 * Math.PI - diff;
+
+                if (diff < ANGLE_TOLERANCE)
+                {
+                    isOccupied = true;
+                    break;
+                }
+            }
+
+            if (!isOccupied)
+            {
+                bestAngle = direction;
+                foundFreeDirection = true;
+                break; // Take the first free direction in priority order
+            }
+        }
+
+        // If all directions are occupied, use the first direction (right) anyway
+        if (!foundFreeDirection)
+        {
+            bestAngle = directions[0];
+        }
+
+        // Calculate position based on best angle
+        // For cardinal directions, ensure perfect alignment on the axis
+        double newX, newY;
+        double srcWidth = srcNode.Size.Width;
+        double srcHeight = srcNode.Size.Height;
+
+        // Check if it's a cardinal direction (with small tolerance for floating point)
+        bool isRight = Math.Abs(bestAngle - 0) < 0.01;
+        bool isBottom = Math.Abs(bestAngle - Math.PI / 2) < 0.01;
+        bool isTop = Math.Abs(bestAngle - 3 * Math.PI / 2) < 0.01;
+        bool isLeft = Math.Abs(bestAngle - Math.PI) < 0.01;
+
+        if (isRight)
+        {
+            // Place to the right, vertically centered
+            newX = srcNode.Position.X + srcWidth + SPACING;
+            newY = srcNode.Position.Y + (srcHeight - NODE_HEIGHT) / 2;
+        }
+        else if (isLeft)
+        {
+            // Place to the left, vertically centered
+            newX = srcNode.Position.X - NODE_WIDTH - SPACING;
+            newY = srcNode.Position.Y + (srcHeight - NODE_HEIGHT) / 2;
+        }
+        else if (isBottom)
+        {
+            // Place below, horizontally centered
+            newX = srcNode.Position.X + (srcWidth - NODE_WIDTH) / 2;
+            newY = srcNode.Position.Y + srcHeight + SPACING;
+        }
+        else if (isTop)
+        {
+            // Place above, horizontally centered
+            newX = srcNode.Position.X + (srcWidth - NODE_WIDTH) / 2;
+            newY = srcNode.Position.Y - NODE_HEIGHT - SPACING;
+        }
+        else
+        {
+            // Diagonal directions - use angle-based calculation
+            newX = srcCenterX + (DISTANCE * Math.Cos(bestAngle)) - (NODE_WIDTH / 2);
+            newY = srcCenterY + (DISTANCE * Math.Sin(bestAngle)) - (NODE_HEIGHT / 2);
+        }
+
+        // Verify no collision with any existing node and adjust if needed
+        newX = Math.Max(10, newX); // Ensure not off-screen to the left
+        newY = Math.Max(10, newY); // Ensure not off-screen to the top
+
+        // Check for collisions with all nodes and shift if necessary
+        if (_blazorDiagram?.Nodes != null)
+        {
+            bool hasCollision;
+            int attempts = 0;
+            const int maxAttempts = 8;
+
+            do
+            {
+                hasCollision = false;
+                foreach (var existingNode in _blazorDiagram.Nodes.OfType<EveSystemNodeModel>())
+                {
+                    if (existingNode?.Position == null || existingNode.Size == null)
+                        continue;
+
+                    // Check for overlap using bounding boxes
+                    bool overlapsX = newX < existingNode.Position.X + existingNode.Size.Width + SPACING &&
+                                     newX + NODE_WIDTH + SPACING > existingNode.Position.X;
+                    bool overlapsY = newY < existingNode.Position.Y + existingNode.Size.Height + SPACING &&
+                                     newY + NODE_HEIGHT + SPACING > existingNode.Position.Y;
+
+                    if (overlapsX && overlapsY)
+                    {
+                        hasCollision = true;
+                        // Shift to the next direction
+                        attempts++;
+                        if (attempts < maxAttempts)
+                        {
+                            bestAngle += Math.PI / 4; // Try next 45-degree direction
+                            newX = srcCenterX + (DISTANCE * Math.Cos(bestAngle)) - (NODE_WIDTH / 2);
+                            newY = srcCenterY + (DISTANCE * Math.Sin(bestAngle)) - (NODE_HEIGHT / 2);
+                            newX = Math.Max(10, newX);
+                            newY = Math.Max(10, newY);
+                        }
+                        else
+                        {
+                            // If all directions fail, increase distance
+                            double extraDistance = DISTANCE + (attempts - maxAttempts + 1) * (NODE_WIDTH + SPACING);
+                            newX = srcCenterX + (extraDistance * Math.Cos(bestAngle)) - (NODE_WIDTH / 2);
+                            newY = srcCenterY + (extraDistance * Math.Sin(bestAngle)) - (NODE_HEIGHT / 2);
+                            newX = Math.Max(10, newX);
+                            newY = Math.Max(10, newY);
+                        }
+                        break;
+                    }
+                }
+            } while (hasCollision && attempts < maxAttempts * 2);
+        }
+
+        return (newX, newY);
+    }
+
+    /// <summary>
+    /// Gets all nodes that are connected to the specified node via links.
+    /// </summary>
+    private IEnumerable<EveSystemNodeModel> GetConnectedNodes(EveSystemNodeModel node)
+    {
+        if (_blazorDiagram?.Links == null || node == null)
+            return Enumerable.Empty<EveSystemNodeModel>();
+
+        var connectedNodes = new List<EveSystemNodeModel>();
+
+        foreach (var link in _blazorDiagram.Links)
+        {
+            var sourceNode = link.Source?.Model as EveSystemNodeModel;
+            var targetNode = link.Target?.Model as EveSystemNodeModel;
+
+            if (sourceNode?.IdWH == node.IdWH && targetNode != null)
+            {
+                connectedNodes.Add(targetNode);
+            }
+            else if (targetNode?.IdWH == node.IdWH && sourceNode != null)
+            {
+                connectedNodes.Add(sourceNode);
+            }
+        }
+
+        return connectedNodes;
+    }
+
     private async Task<bool> AddSystemNode(int? mapId, SystemEntity solarSystem, int accountID, char? extension = null, double nodePositionX = 0, double nodePositionY = 0)
     {
         WHSystem? newWHSystem = null;
@@ -1316,13 +1534,14 @@ public partial class Overview : IAsyncDisposable
                 if (oldLocation != null)
                     extension = await GetTargetExtension(oldLocation, newLocation);
 
-                //get placement, shall be refactored to be more dynamic
+                //Calculate optimal position avoiding overlaps with existing nodes
                 double nodePositionX = 0;
                 double nodePositionY = 0;
-                if (srcNode != null && srcNode.Position != null && srcNode.Size != null)
+                if (srcNode != null)
                 {
-                    nodePositionX = srcNode.Position.X + srcNode.Size.Width + 10;
-                    nodePositionY = srcNode.Position.Y + srcNode!.Size.Height + 10;
+                    var newPosition = CalculateNewNodePosition(srcNode);
+                    nodePositionX = newPosition.X;
+                    nodePositionY = newPosition.Y;
                 }
 
                 if (await AddSystemNode(MapId.Value, newLocation, accountID, extension, nodePositionX, nodePositionY))//add system node if system is not already added
