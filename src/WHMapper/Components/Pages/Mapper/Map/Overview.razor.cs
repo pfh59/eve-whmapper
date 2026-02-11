@@ -991,9 +991,10 @@ public partial class Overview : IAsyncDisposable
 
     /// <summary>
     /// Calculates an optimal position for a new node connected to a source node,
-    /// avoiding overlaps with existing nodes.
-    /// Logic: The new node starts at the source node position, then we calculate
-    /// the displacement needed to place it beside, using both nodes' dimensions.
+    /// avoiding overlaps with existing nodes using direct collision detection.
+    /// Logic: Try each candidate position around the source node. As soon as a
+    /// position has no collision, use it. If all positions collide, increase
+    /// distance and retry (left/right: x±5, top/bottom: y±5, diagonals: x±5 and y±5).
     /// </summary>
     /// <param name="srcNode">The source node from which the new node will be connected</param>
     /// <param name="newNodeWidth">Expected width of the new node (defaults to source width if null)</param>
@@ -1002,6 +1003,8 @@ public partial class Overview : IAsyncDisposable
     private (double X, double Y) CalculateNewNodePosition(EveSystemNodeModel srcNode, double? newNodeWidth = null, double? newNodeHeight = null)
     {
         const double SPACING = 30; // Space between nodes
+        const double DISTANCE_INCREMENT = 5; // Distance increment on collision retry
+        const int MAX_DISTANCE_ATTEMPTS = 50; // Max retries before giving up
 
         // Default position if no source node
         if (srcNode?.Position == null || srcNode.Size == null)
@@ -1010,149 +1013,107 @@ public partial class Overview : IAsyncDisposable
         // Source node dimensions
         double srcWidth = srcNode.Size.Width;
         double srcHeight = srcNode.Size.Height;
-        double srcCenterX = srcNode.Position.X + srcWidth / 2;
-        double srcCenterY = srcNode.Position.Y + srcHeight / 2;
 
         // New node dimensions (use source dimensions as default estimate)
         double newWidth = newNodeWidth ?? srcWidth;
         double newHeight = newNodeHeight ?? srcHeight;
 
-        // Step 1: New node starts at source node position
+        // Base position = source node position
         double baseX = srcNode.Position.X;
         double baseY = srcNode.Position.Y;
 
-        // Get all nodes connected to the source node
-        var connectedNodes = GetConnectedNodes(srcNode);
-
-        // Step 2: Calculate displacement for each direction based on actual dimensions
-        // 8 positions around the source node, evenly distributed
-        var displacements = new (double dx, double dy, string name, double angleMin, double angleMax)[]
+        // 8 candidate positions around the source node (direction name + base displacement)
+        var directions = new (double dx, double dy, string name)[]
         {
-            // Right (0°)
-            (srcWidth + SPACING, (srcHeight - newHeight) / 2, "Right", -Math.PI / 8, Math.PI / 8),
-            // Bottom-Right (45°)
-            (srcWidth + SPACING, srcHeight + SPACING, "Bottom-Right", Math.PI / 8, 3 * Math.PI / 8),
-            // Bottom (90°)
-            ((srcWidth - newWidth) / 2, srcHeight + SPACING, "Bottom", 3 * Math.PI / 8, 5 * Math.PI / 8),
-            // Bottom-Left (135°)
-            (-(newWidth + SPACING), srcHeight + SPACING, "Bottom-Left", 5 * Math.PI / 8, 7 * Math.PI / 8),
-            // Left (180°) - wraps around ±π
-            (-(newWidth + SPACING), (srcHeight - newHeight) / 2, "Left", 7 * Math.PI / 8, -7 * Math.PI / 8),
-            // Top-Left (225° / -135°)
-            (-(newWidth + SPACING), -(newHeight + SPACING), "Top-Left", -7 * Math.PI / 8, -5 * Math.PI / 8),
-            // Top (270° / -90°)
-            ((srcWidth - newWidth) / 2, -(newHeight + SPACING), "Top", -5 * Math.PI / 8, -3 * Math.PI / 8),
-            // Top-Right (315° / -45°)
-            (srcWidth + SPACING, -(newHeight + SPACING), "Top-Right", -3 * Math.PI / 8, -Math.PI / 8),
+            // Right
+            (srcWidth + SPACING, (srcHeight - newHeight) / 2, "Right"),
+            // Bottom
+            ((srcWidth - newWidth) / 2, srcHeight + SPACING, "Bottom"),
+            // Top
+            ((srcWidth - newWidth) / 2, -(newHeight + SPACING), "Top"),
+            // Bottom-Right
+            (srcWidth + SPACING, srcHeight + SPACING, "Bottom-Right"),
+            // Top-Right
+            (srcWidth + SPACING, -(newHeight + SPACING), "Top-Right"),
+            // Left
+            (-(newWidth + SPACING), (srcHeight - newHeight) / 2, "Left"),
+            // Bottom-Left
+            (-(newWidth + SPACING), srcHeight + SPACING, "Bottom-Left"),
+            // Top-Left
+            (-(newWidth + SPACING), -(newHeight + SPACING), "Top-Left"),
         };
 
-        // Calculate which positions are occupied by connected nodes using angle-based detection
-        var occupiedPositions = new HashSet<int>();
-        foreach (var node in connectedNodes)
+        // Try with increasing distance until a free position is found
+        for (int attempt = 0; attempt < MAX_DISTANCE_ATTEMPTS; attempt++)
         {
-            if (node?.Position == null || node.Size == null)
+            foreach (var (dx, dy, name) in directions)
+            {
+                // Calculate the extra offset for this attempt based on direction type
+                double extraX = 0;
+                double extraY = 0;
+
+                if (attempt > 0)
+                {
+                    double offset = DISTANCE_INCREMENT * attempt;
+
+                    if (name == "Left" || name == "Right")
+                    {
+                        // Left/Right: extend x only
+                        extraX = dx > 0 ? offset : -offset;
+                    }
+                    else if (name == "Top" || name == "Bottom")
+                    {
+                        // Top/Bottom: extend y only
+                        extraY = dy > 0 ? offset : -offset;
+                    }
+                    else
+                    {
+                        // Diagonals: extend both x and y
+                        extraX = dx > 0 ? offset : -offset;
+                        extraY = dy > 0 ? offset : -offset;
+                    }
+                }
+
+                double candidateX = Math.Max(10, baseX + dx + extraX);
+                double candidateY = Math.Max(10, baseY + dy + extraY);
+
+                // Check collision against all existing nodes
+                if (!HasCollision(candidateX, candidateY, newWidth, newHeight, SPACING))
+                {
+                    return (candidateX, candidateY);
+                }
+            }
+        }
+
+        // Fallback: return first direction position even if collision exists
+        double fallbackX = Math.Max(10, baseX + directions[0].dx);
+        double fallbackY = Math.Max(10, baseY + directions[0].dy);
+        return (fallbackX, fallbackY);
+    }
+
+    /// <summary>
+    /// Checks if a candidate position collides with any existing node on the diagram.
+    /// </summary>
+    private bool HasCollision(double x, double y, double width, double height, double spacing)
+    {
+        if (_blazorDiagram?.Nodes == null)
+            return false;
+
+        foreach (var existingNode in _blazorDiagram.Nodes.OfType<EveSystemNodeModel>())
+        {
+            if (existingNode?.Position == null || existingNode.Size == null)
                 continue;
 
-            double nodeCenterX = node.Position.X + (node.Size.Width / 2);
-            double nodeCenterY = node.Position.Y + (node.Size.Height / 2);
+            bool overlapsX = x < existingNode.Position.X + existingNode.Size.Width + spacing &&
+                             x + width + spacing > existingNode.Position.X;
+            bool overlapsY = y < existingNode.Position.Y + existingNode.Size.Height + spacing &&
+                             y + height + spacing > existingNode.Position.Y;
 
-            // Calculate angle from source center to connected node center
-            double angle = Math.Atan2(nodeCenterY - srcCenterY, nodeCenterX - srcCenterX);
-
-            // Match angle to position
-            for (int i = 0; i < displacements.Length; i++)
-            {
-                var (dx, dy, name, angleMin, angleMax) = displacements[i];
-                
-                // Special case for Left direction (wraps around ±π)
-                if (i == 4) // Left
-                {
-                    if (angle > angleMin || angle < angleMax)
-                    {
-                        occupiedPositions.Add(i);
-                        break;
-                    }
-                }
-                else
-                {
-                    if (angle >= angleMin && angle <= angleMax)
-                    {
-                        occupiedPositions.Add(i);
-                        break;
-                    }
-                }
-            }
+            if (overlapsX && overlapsY)
+                return true;
         }
 
-        // Find the first available position in priority order
-        int bestIndex = 0;
-        for (int i = 0; i < displacements.Length; i++)
-        {
-            if (!occupiedPositions.Contains(i))
-            {
-                bestIndex = i;
-                break;
-            }
-        }
-
-        // Step 3: Apply displacement to base position
-        double newX = baseX + displacements[bestIndex].dx;
-        double newY = baseY + displacements[bestIndex].dy;
-
-        // Ensure not off-screen
-        newX = Math.Max(10, newX);
-        newY = Math.Max(10, newY);
-
-        // Step 4: Check for collisions and increase distance if needed
-        if (_blazorDiagram?.Nodes != null)
-        {
-            var disp = displacements[bestIndex];
-            int multiplier = 0;
-            const int maxAttempts = 10;
-
-            while (multiplier < maxAttempts)
-            {
-                bool hasCollision = false;
-                
-                foreach (var existingNode in _blazorDiagram.Nodes.OfType<EveSystemNodeModel>())
-                {
-                    if (existingNode?.Position == null || existingNode.Size == null)
-                        continue;
-
-                    // Check for overlap using actual bounding boxes
-                    bool overlapsX = newX < existingNode.Position.X + existingNode.Size.Width + SPACING &&
-                                     newX + newWidth + SPACING > existingNode.Position.X;
-                    bool overlapsY = newY < existingNode.Position.Y + existingNode.Size.Height + SPACING &&
-                                     newY + newHeight + SPACING > existingNode.Position.Y;
-
-                    if (overlapsX && overlapsY)
-                    {
-                        hasCollision = true;
-                        break;
-                    }
-                }
-
-                if (!hasCollision)
-                    break;
-
-                // Collision detected: increase distance in the same direction
-                multiplier++;
-                
-                // Calculate extension based on direction (just add SPACING increment)
-                double extendX = disp.dx > 0 ? (SPACING * multiplier) : 
-                                 disp.dx < 0 ? -(SPACING * multiplier) : 0;
-                double extendY = disp.dy > 0 ? (SPACING * multiplier) :
-                                 disp.dy < 0 ? -(SPACING * multiplier) : 0;
-                
-                newX = baseX + disp.dx + extendX;
-                newY = baseY + disp.dy + extendY;
-
-                newX = Math.Max(10, newX);
-                newY = Math.Max(10, newY);
-            }
-        }
-
-        return (newX, newY);
+        return false;
     }
 
     /// <summary>
