@@ -15,7 +15,7 @@ public partial class Overview : ComponentBase
     private const string NO_EFFECT = "No Effect";
     private const string DOTLAN_URL="https://evemaps.dotlan.net/system/{0}";
     private const string DOTLAN_LOGO_PATH="/Images/logo_dotlan.png";
-    private const string ZKILLBOARD_URL="https://zkillboard.com/system/{0}";
+    private const string ZKILLBOARD_URL="https://zkillboard.com/system/{0}/";
     private const string ZKILLBOARD_LOGO_PATH="/Images/logo_zkillboard.png";
     private const string ANOIK_URL="http://anoik.is/systems/{0}";
     private const string ANOIK_LOGO_PATH="/Images/logo_anoik.png";
