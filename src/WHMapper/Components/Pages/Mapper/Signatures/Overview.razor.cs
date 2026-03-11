@@ -80,15 +80,20 @@ public partial class Overview : ComponentBase,IDisposable
     }
 
     protected override Task OnParametersSetAsync()
-    {
-        if (_cts.IsCancellationRequested)
+    {   
+        _isEditingSignature = false;
+
+
+        if(CurrentSystemNodeId != null)
         {
-            _cts.Dispose();
-            _cts = new CancellationTokenSource();
+            if (_cts.IsCancellationRequested)
+            {
+                _cts.Dispose();
+                _cts = new CancellationTokenSource();
+            }
+            Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync(_cts.Token)), Task.Run(() => LoadCurrentUserNameAsync()));
         }
 
-
-        Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync(_cts.Token)), Task.Run(() => LoadCurrentUserNameAsync()));
         return base.OnParametersSetAsync();
     }
     private async Task LoadCurrentUserNameAsync()
@@ -276,7 +281,7 @@ public partial class Overview : ComponentBase,IDisposable
         }
     }
 
-    protected void BackupSingature(object element)
+    protected void BackupSignature(object element)
     {
         _isEditingSignature = true;
 
@@ -290,7 +295,7 @@ public partial class Overview : ComponentBase,IDisposable
         StateHasChanged();
     }
 
-    protected void ResetSingatureToOriginalValues(object element)
+    protected void ResetSignatureToOriginalValues(object element)
     {
         ((WHSignature)element).Name = _signatureBeforeEdit.Name;
         ((WHSignature)element).Group = _signatureBeforeEdit.Group;
@@ -300,7 +305,7 @@ public partial class Overview : ComponentBase,IDisposable
         StateHasChanged();
     }
 
-    protected void SignatiureHasBeenCommitted(object element)
+    protected void SignatureHasBeenCommitted(object element)
     {
         ((WHSignature)element).Updated = DateTime.UtcNow;
         ((WHSignature)element).UpdatedBy = _currentUser;
