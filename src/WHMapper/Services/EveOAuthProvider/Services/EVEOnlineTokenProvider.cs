@@ -19,23 +19,15 @@ namespace WHMapper.Services.EveOAuthProvider.Services
             _options = options.Get(EVEOnlineAuthenticationDefaults.AuthenticationScheme);
         }
         
-        public async Task SaveToken(UserToken token)
+        public Task SaveToken(UserToken token)
         {
             if (token.AccountId == null)
             {
                 throw new ArgumentNullException(nameof(token.AccountId), "AccountId cannot be null");
             }
 
-            if(_tokens.ContainsKey(token.AccountId))
-            {
-                while (!_tokens.Remove(token.AccountId, out _))
-                    await Task.Delay(1);
-
-            }
-           
-            while(! _tokens.TryAdd(token.AccountId, token))
-                await Task.Delay(1);
-            
+            _tokens.AddOrUpdate(token.AccountId, token, (_, _) => token);
+            return Task.CompletedTask;
         }
 
         public async Task<UserToken?> GetToken(string accountId, bool autoResfred = false)

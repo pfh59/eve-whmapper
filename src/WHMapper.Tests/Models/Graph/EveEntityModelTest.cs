@@ -21,13 +21,13 @@ namespace WHMapper.Tests.Models.Graph
 
 
         [Fact]
-        public Task CharactereEntity_Model_Test()
+        public Task CharacterEntity_Model_Test()
         {
             
             var fake_eveapi_charactere = new Character();
             fake_eveapi_charactere.Name="Test Charactere";
 
-            var char_entity = new CharactereEntity(1,fake_eveapi_charactere);
+            var char_entity = new CharacterEntity(1,fake_eveapi_charactere);
             Assert.NotNull(char_entity);
             Assert.Equal(1,char_entity.Id);
             Assert.Equal("Test Charactere",char_entity.Name);

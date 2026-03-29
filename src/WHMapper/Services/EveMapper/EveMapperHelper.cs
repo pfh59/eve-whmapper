@@ -1,5 +1,8 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.Db;
@@ -30,14 +33,10 @@ namespace WHMapper.Services.EveMapper
         private const string C18_NAME = "J174618";
         private const string C18_ALTERNATE_NAME = "Azdaja Redoubt";
 
-        private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _magnetarEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(7);
-        private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _redGiantEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(7);
-        private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _pulsarEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(7);
-        private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _wolfRayetEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(8);
-        private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _cataclysmicEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(7);
-        private readonly IDictionary<EveSystemType, IList<EveSystemEffect>> _blackHoleEffects = new Dictionary<EveSystemType, IList<EveSystemEffect>>(6);
+        private readonly Dictionary<WHEffect, Dictionary<EveSystemType, IList<EveSystemEffect>>> _whEffects = new();
 
-        private IList<WormholeType> _whTypes = new List<WormholeType>();
+        private volatile IList<WormholeType> _whTypes = new List<WormholeType>();
+        private readonly Task _initWormholeTypesTask;
 
         private ParallelOptions _options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
 
@@ -57,447 +56,50 @@ namespace WHMapper.Services.EveMapper
             _anoikServices = anoikServices;
             _noteServices = noteServices;
 
-            InitMagnetarEffects();
-            InitRedGiantEffects();
-            InitPulsarEffects();
-            InitWolfRayetEffects();
-            InitCataclysmicEffects();
-            InitBlackHoleEffects();
+            LoadEffectsFromJson();
 
-            Task.Run(async () => await InitWormholeTypeList());
+            _initWormholeTypesTask = Task.Run(InitWormholeTypeList);
         }
 
-        #region Init WH effects
-        private void InitMagnetarEffects()
+        private async Task EnsureWormholeTypesInitializedAsync()
         {
-            _logger?.LogInformation("Init magnetar effects");
-            _magnetarEffects.Add(EveSystemType.C1, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Damage", 30),
-                new EveSystemEffect("Missile exp. radius", 15),
-                new EveSystemEffect("Drone tracking", -15),
-                new EveSystemEffect("Targeting range", -15),
-                new EveSystemEffect("Tracking speed", -15),
-                new EveSystemEffect("Target Painter strength", -15)
-            });
-
-
-            _magnetarEffects.Add(EveSystemType.C2, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Damage", 44),
-                new EveSystemEffect("Missile exp. radius", 22),
-                new EveSystemEffect("Drone tracking", -22),
-                new EveSystemEffect("Targeting range", -22),
-                new EveSystemEffect("Tracking speed", -22),
-                new EveSystemEffect("Target Painter strength", -22)
-            });
-
-            _magnetarEffects.Add(EveSystemType.C3, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Damage", 58),
-                new EveSystemEffect("Missile exp. radius", 29),
-                new EveSystemEffect("Drone tracking", -29),
-                new EveSystemEffect("Targeting range", -29),
-                new EveSystemEffect("Tracking speed", -29),
-                new EveSystemEffect("Target Painter strength", -29)
-            });
-
-            _magnetarEffects.Add(EveSystemType.C4, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Damage", 72),
-                new EveSystemEffect("Missile exp. radius", 36),
-                new EveSystemEffect("Drone tracking", -36),
-                new EveSystemEffect("Targeting range", -36),
-                new EveSystemEffect("Tracking speed", -36),
-                new EveSystemEffect("Target Painter strength", -36)
-            });
-
-            _magnetarEffects.Add(EveSystemType.C5, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Damage", 86),
-                new EveSystemEffect("Missile exp. radius", 43),
-                new EveSystemEffect("Drone tracking", -43),
-                new EveSystemEffect("Targeting range", -43),
-                new EveSystemEffect("Tracking speed", -43),
-                new EveSystemEffect("Target Painter strength", -43)
-            });
-
-            _magnetarEffects.Add(EveSystemType.C6, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Damage", 100),
-                new EveSystemEffect("Missile exp. radius", 50),
-                new EveSystemEffect("Drone tracking", -50),
-                new EveSystemEffect("Targeting range", -50),
-                new EveSystemEffect("Tracking speed", -50),
-                new EveSystemEffect("Target Painter strength", -50)
-
-            });
-
-            _magnetarEffects.Add(EveSystemType.C16, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Damage", 44),
-                new EveSystemEffect("Missile exp. radius", 22),
-                new EveSystemEffect("Drone tracking", -22),
-                new EveSystemEffect("Targeting range", -22),
-                new EveSystemEffect("Tracking speed", -22),
-                new EveSystemEffect("Target Painter strength", -22)
-            });
+            await _initWormholeTypesTask.ConfigureAwait(false);
         }
 
-        private void InitRedGiantEffects()
+        private void LoadEffectsFromJson()
         {
-            _logger?.LogInformation("Init redgiant effects");
-            _redGiantEffects.Add(EveSystemType.C1, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Heat damage", 15),
-                new EveSystemEffect("Overload bonus", 30),
-                new EveSystemEffect("Smart Bomb range", 30),
-                new EveSystemEffect("Smart Bomb damage", 30),
-                new EveSystemEffect("Bomb damage", 30)
-            });
+            _logger?.LogInformation("Loading WH effects from embedded resource");
 
-            _redGiantEffects.Add(EveSystemType.C2, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Heat damage", 22),
-                new EveSystemEffect("Overload bonus", 44),
-                new EveSystemEffect("Smart Bomb range", 44),
-                new EveSystemEffect("Smart Bomb damage", 44),
-                new EveSystemEffect("Bomb damage", 44)
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("WHMapper.Resources.wh-effects.json")
+                ?? throw new InvalidOperationException("Embedded resource 'WHMapper.Resources.wh-effects.json' not found");
 
-            });
+            var raw = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<EveSystemEffect>>>>(stream)
+                ?? throw new InvalidOperationException("Failed to deserialize wh-effects.json");
 
-            _redGiantEffects.Add(EveSystemType.C3, new List<EveSystemEffect>(5)
+            foreach (var (effectName, classes) in raw)
             {
-                new EveSystemEffect("Heat damage", 29),
-                new EveSystemEffect("Overload bonus", 58),
-                new EveSystemEffect("Smart Bomb range", 58),
-                new EveSystemEffect("Smart Bomb damage", 58),
-                new EveSystemEffect("Bomb damage", 58)
-            });
+                if (!Enum.TryParse<WHEffect>(effectName, out var effect))
+                    continue;
 
-            _redGiantEffects.Add(EveSystemType.C4, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Heat damage", 36),
-                new EveSystemEffect("Overload bonus", 72),
-                new EveSystemEffect("Smart Bomb range", 72),
-                new EveSystemEffect("Smart Bomb damage", 72),
-                new EveSystemEffect("Bomb damage", 72)
-            });
+                var classDict = new Dictionary<EveSystemType, IList<EveSystemEffect>>();
+                foreach (var (className, effects) in classes)
+                {
+                    if (Enum.TryParse<EveSystemType>(className, out var systemType))
+                        classDict[systemType] = effects;
+                }
 
-            _redGiantEffects.Add(EveSystemType.C5, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Heat damage", 43),
-                new EveSystemEffect("Overload bonus", 86),
-                new EveSystemEffect("Smart Bomb range", 86),
-                new EveSystemEffect("Smart Bomb damage", 86),
-                new EveSystemEffect("Bomb damage", 86)
-            });
-
-            _redGiantEffects.Add(EveSystemType.C6, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Heat damage", 50),
-                new EveSystemEffect("Overload bonus", 100),
-                new EveSystemEffect("Smart Bomb range", 100),
-                new EveSystemEffect("Smart Bomb damage", 100),
-                new EveSystemEffect("Bomb damage", 100)
-            });
-
-            _redGiantEffects.Add(EveSystemType.C14, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Heat damage", 22),
-                new EveSystemEffect("Overload bonus", 44),
-                new EveSystemEffect("Smart Bomb range", 44),
-                new EveSystemEffect("Smart Bomb damage", 44),
-                new EveSystemEffect("Bomb damage", 44)
-            });
+                _whEffects[effect] = classDict;
+            }
         }
 
-        private void InitPulsarEffects()
-        {
-            _logger?.LogInformation("Init pulsar effects");
-            _pulsarEffects.Add(EveSystemType.C1, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Shield HP", 30),
-                new EveSystemEffect("Armor resist", -15),
-                new EveSystemEffect("Capacitor recharge", -15),
-                new EveSystemEffect("Signature", 30),
-                new EveSystemEffect("NOS/Neut drain", 30)
-            });
-
-            _pulsarEffects.Add(EveSystemType.C2, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Shield HP", 44),
-                new EveSystemEffect("Armor resist", -22),
-                new EveSystemEffect("Capacitor recharge", -22),
-                new EveSystemEffect("Signature", 44),
-                new EveSystemEffect("NOS/Neut drain", 44)
-            });
-
-            _pulsarEffects.Add(EveSystemType.C3, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Shield HP", 58),
-                new EveSystemEffect("Armor resist", -29),
-                new EveSystemEffect("Capacitor recharge", -29),
-                new EveSystemEffect("Signature", 58),
-                new EveSystemEffect("NOS/Neut drain", 58)
-            });
-
-            _pulsarEffects.Add(EveSystemType.C4, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Shield HP", 72),
-                new EveSystemEffect("Armor resist", -36),
-                new EveSystemEffect("Capacitor recharge", -36),
-                new EveSystemEffect("Signature", 72),
-                new EveSystemEffect("NOS/Neut drain", 72)
-            });
-
-            _pulsarEffects.Add(EveSystemType.C5, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Shield HP", 86),
-                new EveSystemEffect("Armor resist", -43),
-                new EveSystemEffect("Capacitor recharge", -43),
-                new EveSystemEffect("Signature", 86),
-                new EveSystemEffect("NOS/Neut drain", 86)
-            });
-
-            _pulsarEffects.Add(EveSystemType.C6, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Shield HP", 100),
-                new EveSystemEffect("Armor resist", -50),
-                new EveSystemEffect("Capacitor recharge", -50),
-                new EveSystemEffect("Signature", 100),
-                new EveSystemEffect("NOS/Neut drain", 100)
-            });
-
-            _pulsarEffects.Add(EveSystemType.C17, new List<EveSystemEffect>(5)
-            {
-                new EveSystemEffect("Shield HP", 44),
-                new EveSystemEffect("Armor resist", -22),
-                new EveSystemEffect("Capacitor recharge", -22),
-                new EveSystemEffect("Signature", 44),
-                new EveSystemEffect("NOS/Neut drain", 44)
-            });
-        }
-
-        private void InitWolfRayetEffects()
-        {
-            _logger?.LogInformation("Init wolf-rayet effects");
-            _wolfRayetEffects.Add(EveSystemType.C1, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 30),
-                new EveSystemEffect("Shield resist", -15),
-                new EveSystemEffect("Small Weapon damage", 60),
-                new EveSystemEffect("Signature size", -15)
-            });
-
-            _wolfRayetEffects.Add(EveSystemType.C2, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 44),
-                new EveSystemEffect("Shield resist", -22),
-                new EveSystemEffect("Small Weapon damage", 88),
-                new EveSystemEffect("Signature size", -22)
-            });
-
-            _wolfRayetEffects.Add(EveSystemType.C3, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 58),
-                new EveSystemEffect("Shield resist", -29),
-                new EveSystemEffect("Small Weapon damage", 116),
-                new EveSystemEffect("Signature size", 29)
-            });
-
-            _wolfRayetEffects.Add(EveSystemType.C4, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 72),
-                new EveSystemEffect("Shield resist", -36),
-                new EveSystemEffect("Small Weapon damage", 144),
-                new EveSystemEffect("Signature size", 36)
-            });
-
-            _wolfRayetEffects.Add(EveSystemType.C5, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 86),
-                new EveSystemEffect("Shield resist", -43),
-                new EveSystemEffect("Small Weapon damage", 172),
-                new EveSystemEffect("Signature size", -43)
-            });
-
-            _wolfRayetEffects.Add(EveSystemType.C6, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 100),
-                new EveSystemEffect("Shield resist", -50),
-                new EveSystemEffect("Small Weapon damage", 200),
-                new EveSystemEffect("Signature size", -50)
-            });
-
-            _wolfRayetEffects.Add(EveSystemType.C13, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 100),
-                new EveSystemEffect("Shield resist", -50),
-                new EveSystemEffect("Small Weapon damage", 200),
-                new EveSystemEffect("Signature size", -50)
-            });
-
-            _wolfRayetEffects.Add(EveSystemType.C18, new List<EveSystemEffect>(4)
-            {
-                new EveSystemEffect("Armor HP", 44),
-                new EveSystemEffect("Shield resist", -22),
-                new EveSystemEffect("Small Weapon damage", 88),
-                new EveSystemEffect("Signature size", -22)
-            });
-        }
-
-        private void InitCataclysmicEffects()
-        {
-            _logger?.LogInformation("Init cataclismic effects");
-            _cataclysmicEffects.Add(EveSystemType.C1, new List<EveSystemEffect>(7)
-            {
-                new EveSystemEffect("Local armor repair amount", -15),
-                new EveSystemEffect("Local shield boost amount", -15),
-                new EveSystemEffect("Shield transfer amount", 30),
-                new EveSystemEffect("Remote repair amount", 30),
-                new EveSystemEffect("Capacitor capacity'", 30),
-                new EveSystemEffect("Capacitor recharge time", 15),
-                new EveSystemEffect("Remote Capacitor Transmitter amount", -15)
-            });
-
-            _cataclysmicEffects.Add(EveSystemType.C2, new List<EveSystemEffect>(7)
-            {
-                new EveSystemEffect("Local armor repair amount", -22),
-                new EveSystemEffect("Local shield boost amount", -22),
-                new EveSystemEffect("Shield transfer amount", 44),
-                new EveSystemEffect("Remote repair amount", 44),
-                new EveSystemEffect("Capacitor capacity", 44),
-                new EveSystemEffect("Capacitor recharge time", 22),
-                new EveSystemEffect("Remote Capacitor Transmitter amount", -22)
-            });
-
-            _cataclysmicEffects.Add(EveSystemType.C3, new List<EveSystemEffect>(7)
-            {
-                new EveSystemEffect("Local armor repair amount", -29),
-                new EveSystemEffect("Local shield boost amount", -29),
-                new EveSystemEffect("Shield transfer amount", 58),
-                new EveSystemEffect("Remote repair amount", 58),
-                new EveSystemEffect("Capacitor capacity", 58),
-                new EveSystemEffect("Capacitor recharge time", 29),
-                new EveSystemEffect("Remote Capacitor Transmitter amount", -29)
-            });
-
-            _cataclysmicEffects.Add(EveSystemType.C4, new List<EveSystemEffect>(7)
-            {
-                new EveSystemEffect("Local armor repair amount", -36),
-                new EveSystemEffect("Local shield boost amount", -36),
-                new EveSystemEffect("Shield transfer amount", 72),
-                new EveSystemEffect("Remote repair amount", 72),
-                new EveSystemEffect("Capacitor capacity", 72),
-                new EveSystemEffect("Capacitor recharge time", 36),
-                new EveSystemEffect("Remote Capacitor Transmitter amount", -36)
-            });
-
-            _cataclysmicEffects.Add(EveSystemType.C5, new List<EveSystemEffect>(7)
-            {
-                new EveSystemEffect("Local armor repair amount", -43),
-                new EveSystemEffect("Local shield boost amount", -43),
-                new EveSystemEffect("Shield transfer amount", 86),
-                new EveSystemEffect("Remote repair amount", 86),
-                new EveSystemEffect("Capacitor capacity", 86),
-                new EveSystemEffect("Capacitor recharge time", 43),
-                new EveSystemEffect("Remote Capacitor Transmitter amount", -43)
-            });
-
-            _cataclysmicEffects.Add(EveSystemType.C6, new List<EveSystemEffect>(7)
-            {
-                new EveSystemEffect("Local armor repair amount", -50),
-                new EveSystemEffect("Local shield boost amount", -50),
-                new EveSystemEffect("Shield transfer amount", 100),
-                new EveSystemEffect("Remote repair amount", 100),
-                new EveSystemEffect("Capacitor capacity", 100),
-                new EveSystemEffect("Capacitor recharge time", 50),
-                new EveSystemEffect("Remote Capacitor Transmitter amount", -50)
-            });
-
-            _cataclysmicEffects.Add(EveSystemType.C15, new List<EveSystemEffect>(7)
-            {
-                new EveSystemEffect("Local armor repair amount", -22),
-                new EveSystemEffect("Local shield boost amount", -22),
-                new EveSystemEffect("Shield transfer amount", 44),
-                new EveSystemEffect("Remote repair amount", 44),
-                new EveSystemEffect("Capacitor capacity", 44),
-                new EveSystemEffect("Capacitor recharge time", 22),
-                new EveSystemEffect("Remote Capacitor Transmitter amount", -22)
-            });
-        }
-
-        private void InitBlackHoleEffects()
-        {
-            _logger?.LogInformation("Init blackhole effects");
-            _blackHoleEffects.Add(EveSystemType.C1, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Missile velocity", 15),
-                new EveSystemEffect("Missile exp. velocity", 30),
-                new EveSystemEffect("Ship velocity", 30),
-                new EveSystemEffect("Stasis Webifier strength", -15),
-                new EveSystemEffect("Inertia", 15),
-                new EveSystemEffect("Targeting range", 30)
-            });
-
-            _blackHoleEffects.Add(EveSystemType.C2, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Missile velocity", 22),
-                new EveSystemEffect("Missile exp. velocity", 44),
-                new EveSystemEffect("Ship velocity", 44),
-                new EveSystemEffect("Stasis Webifier strength", -22),
-                new EveSystemEffect("Inertia", 22),
-                new EveSystemEffect("Targeting range", 44)
-            });
-
-            _blackHoleEffects.Add(EveSystemType.C3, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Missile velocity", 29),
-                new EveSystemEffect("Missile exp. velocity", 58),
-                new EveSystemEffect("Ship velocity", 58),
-                new EveSystemEffect("Stasis Webifier strength", -29),
-                new EveSystemEffect("Inertia", 29),
-                new EveSystemEffect("Targeting range", 58)
-            });
-
-            _blackHoleEffects.Add(EveSystemType.C4, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Missile velocity", 36),
-                new EveSystemEffect("Missile exp. velocity", 72),
-                new EveSystemEffect("Ship velocity", 72),
-                new EveSystemEffect("Stasis Webifier strength", -36),
-                new EveSystemEffect("Inertia", 36),
-                new EveSystemEffect("Targeting range", 72)
-            });
-
-            _blackHoleEffects.Add(EveSystemType.C5, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Missile velocity", 43),
-                new EveSystemEffect("Missile exp. velocity", 86),
-                new EveSystemEffect("Ship velocity", 86),
-                new EveSystemEffect("Stasis Webifier strength", -43),
-                new EveSystemEffect("Inertia", 43),
-                new EveSystemEffect("Targeting range", 86)
-            });
-
-            _blackHoleEffects.Add(EveSystemType.C6, new List<EveSystemEffect>(6)
-            {
-                new EveSystemEffect("Missile velocity", 50),
-                new EveSystemEffect("Missile exp. velocity", 100),
-                new EveSystemEffect("Ship velocity", 100),
-                new EveSystemEffect("Stasis Webifier strength", -50),
-                new EveSystemEffect("Inertia", 50),
-                new EveSystemEffect("Targeting range", 100)
-            });
-        }
-        #endregion
 
 
         public ReadOnlyCollection<WormholeType> WormholeTypes
         {
             get
             {
+                _initWormholeTypesTask.GetAwaiter().GetResult();
                 return new ReadOnlyCollection<WormholeType>(_whTypes);
             }
         }
@@ -649,24 +251,10 @@ namespace WHMapper.Services.EveMapper
 
         private IList<EveSystemEffect>? GetWHEffectDetails(WHEffect effect, EveSystemType whClass)
         {
+            if (_whEffects.TryGetValue(effect, out var classes) && classes.TryGetValue(whClass, out var effects))
+                return effects;
 
-            switch (effect)
-            {
-                case WHEffect.Magnetar:
-                    return _magnetarEffects[whClass];
-                case WHEffect.BlackHole:
-                    return _blackHoleEffects[whClass];
-                case WHEffect.Cataclysmic:
-                    return _cataclysmicEffects[whClass];
-                case WHEffect.Pulsar:
-                    return _pulsarEffects[whClass];
-                case WHEffect.RedGiant:
-                    return _redGiantEffects[whClass];
-                case WHEffect.WolfRayet:
-                    return _wolfRayetEffects[whClass];
-                default:
-                    return null;
-            }
+            return null;
         }
 
         public async Task<EveSystemNodeModel> DefineEveSystemNodeModel(WHSystem wh)
@@ -697,6 +285,8 @@ namespace WHMapper.Services.EveMapper
                 IList<WormholeType>? statics = null;
 
                 IEnumerable<KeyValuePair<string, string>>? whStatics = await _anoikServices!.GetSystemStatics(wh.Name);
+                
+                await EnsureWormholeTypesInitializedAsync();
                 if (whStatics!=null && whStatics.Any() && _whTypes != null && _whTypes.Any()) 
                 {
                     statics = whStatics.Select(x => _whTypes.FirstOrDefault<WormholeType>(y => String.Equals(y.Name,x.Key,StringComparison.OrdinalIgnoreCase))).Where(y => y != null).ToList<WormholeType>();
@@ -719,62 +309,72 @@ namespace WHMapper.Services.EveMapper
 
         private async Task InitWormholeTypeList()
         {
-            _logger?.LogInformation("Init wormhole type list");           
-            GroupEntity? whGroup = await _eveMapperEntity.GetGroup(GROUPE_WORMHOLE_ID);
-            if(whGroup==null)
-                throw new InvalidDataException("Wormhole group not found");
-            
-            await Parallel.ForEachAsync(whGroup!.Types, _options, async (whTypeId, token) =>
+            _logger?.LogInformation("Init wormhole type list");
+            try
             {
-                var whType = await _eveMapperEntity.GetWormhole(whTypeId);
-                if (whType != null)
-                {
-                    if (_whTypes?.Where(x => x.Name == whType.Name).Count() == 0)
-                    {
-                        switch (whType.SystemTypeValue)
-                        {
-                            case 0://K162
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C1));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C2));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C3));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C4));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C5));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.C6));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.HS));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.LS));
-                                _whTypes.Add(new WormholeType("K162", EveSystemType.NS));
-                                break;
-                            case 10:
-                            case 11:
-                                //QA WH A abd QA WH B, unused WH
-                                break;
-                            default:
+                GroupEntity? whGroup = await _eveMapperEntity.GetGroup(GROUPE_WORMHOLE_ID);
+                if (whGroup == null)
+                    throw new InvalidDataException("Wormhole group not found");
 
-                                int sys_type_value=(int)whType.SystemTypeValue;
-                                if (Enum.IsDefined(typeof(EveSystemType), sys_type_value))
-                                {
-                                    _whTypes.Add(new WormholeType(whType));
-                                }
-                                else
-                                {
-                                    _logger?.LogWarning("Unknown wormhole type");
-                                }
-                                break;
+                var bag = new ConcurrentBag<WormholeType>();
+                var addedNames = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
+
+                await Parallel.ForEachAsync(whGroup.Types, _options, async (whTypeId, token) =>
+                {
+                    var whType = await _eveMapperEntity.GetWormhole(whTypeId);
+                    if (whType != null)
+                    {
+                        if (addedNames.TryAdd(whType.Name, 0))
+                        {
+                            switch (whType.SystemTypeValue)
+                            {
+                                case 0: //K162
+                                    bag.Add(new WormholeType("K162", EveSystemType.C1));
+                                    bag.Add(new WormholeType("K162", EveSystemType.C2));
+                                    bag.Add(new WormholeType("K162", EveSystemType.C3));
+                                    bag.Add(new WormholeType("K162", EveSystemType.C4));
+                                    bag.Add(new WormholeType("K162", EveSystemType.C5));
+                                    bag.Add(new WormholeType("K162", EveSystemType.C6));
+                                    bag.Add(new WormholeType("K162", EveSystemType.HS));
+                                    bag.Add(new WormholeType("K162", EveSystemType.LS));
+                                    bag.Add(new WormholeType("K162", EveSystemType.NS));
+                                    break;
+                                case 10:
+                                case 11:
+                                    //QA WH A and QA WH B, unused WH
+                                    break;
+                                default:
+                                    int sys_type_value = (int)whType.SystemTypeValue;
+                                    if (Enum.IsDefined(typeof(EveSystemType), sys_type_value))
+                                    {
+                                        bag.Add(new WormholeType(whType));
+                                    }
+                                    else
+                                    {
+                                        _logger?.LogWarning("Unknown wormhole type");
+                                    }
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            _logger?.LogInformation("Already added: {Name}", whType.Name);
                         }
                     }
                     else
                     {
-                        _logger?.LogInformation("Always added");
+                        _logger?.LogWarning("Nullable wormhole type, value : {whTypeId}", whTypeId);
                     }
+                });
 
-                }
-                else
-                {
-                    _logger?.LogWarning("Nullable wormhole type, value : {whTypeId}", whTypeId);
-                }
-            });
-            _whTypes = _whTypes.OrderBy(x => x.Name).ToList<WormholeType>();
-
+                _whTypes = bag.OrderBy(x => x.Name).ToList();
+                _logger?.LogInformation("Wormhole type list initialized with {Count} entries", _whTypes.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to initialize wormhole type list");
+                throw;
+            }
         }
 
         public async Task<bool> IsRouteViaWH(SystemEntity src, SystemEntity dst)

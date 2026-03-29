@@ -10,8 +10,8 @@ namespace WHMapper.Services.EveMapper
 
         Task<IEnumerable<SDESolarSystem>?> SearchSystem(string value, CancellationToken cancellationToken);
 
-        Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value, CancellationToken cancellationToken);
-        Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value,bool strict, CancellationToken cancellationToken);
+        Task<IEnumerable<CharacterEntity>?> SearchCharactere(string value, CancellationToken cancellationToken);
+        Task<IEnumerable<CharacterEntity>?> SearchCharactere(string value,bool strict, CancellationToken cancellationToken);
         Task<IEnumerable<CorporationEntity>?> SearchCorporation(string value,bool strict, CancellationToken cancellationToken);
         Task<IEnumerable<AllianceEntity>?> SearchAlliance(string value,bool strict, CancellationToken cancellationToken);
         Task<IEnumerable<AEveEntity>?> SearchEveEntities(string value, CancellationToken cancellationToken);

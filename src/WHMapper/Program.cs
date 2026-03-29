@@ -8,6 +8,7 @@ using System.Net;
 using WHMapper.Data;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.AspNetCore.DataProtection;
 using WHMapper.Services.EveMapper.AuthorizationPolicies;
 using WHMapper.Services.Cache;
@@ -50,6 +51,8 @@ using OpenTelemetry.Instrumentation.Process;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Exporter;
 using WHMapper.Services.Metrics;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 
 
@@ -64,7 +67,9 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 
 builder.Services.AddDbContextFactory<WHMapperContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection"),
+        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
+    .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
 
 
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection") 
@@ -181,6 +186,17 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 
 builder.Services.AddSignalR();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddFixedWindowLimiter("auth", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+});
 
 builder.Services.AddAuthorization(options =>
 {
@@ -220,16 +236,43 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IEveAPIServices, EveAPIServices>(client =>
 {
     client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-});//.AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
+    client.Timeout = TimeSpan.FromSeconds(15);
+})
+.AddStandardResilienceHandler(options =>
+{
+    options.Retry.MaxRetryAttempts = 3;
+    options.Retry.UseJitter = true;
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(10);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+});
 
 builder.Services.AddHttpClient<ICharacterServices, CharacterServices>(client =>
 {
     client.BaseAddress = new Uri(EveAPIServiceConstants.ESIUrl);
-});//.AddHttpMessageHandler<EveOnlineAccessTokenHandler>();
+    client.Timeout = TimeSpan.FromSeconds(15);
+})
+.AddStandardResilienceHandler(options =>
+{
+    options.Retry.MaxRetryAttempts = 3;
+    options.Retry.UseJitter = true;
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(10);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+});
 
 builder.Services.AddHttpClient<IEveScoutAPIServices, EveScoutAPIServices>(client =>
 {
     client.BaseAddress = new Uri(EveScoutAPIServiceConstants.EveScoutUrl);
+    client.Timeout = TimeSpan.FromSeconds(15);
+})
+.AddStandardResilienceHandler(options =>
+{
+    options.Retry.MaxRetryAttempts = 2;
+    options.Retry.UseJitter = true;
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(10);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
 });
 
 builder.Services.AddScoped<IAnoikDataSupplier>(sp =>
@@ -363,11 +406,11 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<WHMapperContext>();
 
     int attempt = 0;
-    while (!dbContext.Database.CanConnect() && attempt < 10)
+    while (!await dbContext.Database.CanConnectAsync() && attempt < 10)
     {
-        logger.LogWarning("Database not ready yet.Attempt {0}/10", attempt);
-        Thread.Sleep(1000);
         attempt++;
+        logger.LogWarning("Database not ready yet. Attempt {Attempt}/10", attempt);
+        await Task.Delay(TimeSpan.FromSeconds(Math.Min(attempt * 2, 10)));
     }
 
     if (attempt >= 10)
@@ -436,6 +479,23 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Security headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    context.Response.Headers["Content-Security-Policy"] =
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "font-src 'self' https://fonts.gstatic.com; " +
+        "img-src 'self' data: https://images.evetech.net; " +
+        "connect-src 'self' wss:; " +
+        "frame-ancestors 'none';";
+    await next();
+});
 
 //check if applicationUrls contains https
 var applicationUrls = builder.Configuration["Kestrel:Endpoints:Https:Url"];
@@ -451,13 +511,13 @@ else
 
 app.MapStaticAssets();
 app.UseAntiforgery();
-
+app.UseRateLimiter();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .WithStaticAssets();
 
 app.MapHub<WHMapperNotificationHub>("/whmappernotificationhub");
-app.MapGroup("/authentication").MapLoginAndLogout();
+app.MapGroup("/authentication").MapLoginAndLogout().RequireRateLimiting("auth");
 
 app.Run();

@@ -67,11 +67,11 @@ public class EveMapperService : IEveMapperService
         );
     }
 
-    public async Task<CharactereEntity?> GetCharacter(int characterId)
+    public async Task<CharacterEntity?> GetCharacter(int characterId)
     {
         return await Get(characterId,
             async x => (await x.CharacterServices.GetCharacter(characterId))?.Data,
-            x => new CharactereEntity(characterId, x)
+            x => new CharacterEntity(characterId, x)
         );
     }
 

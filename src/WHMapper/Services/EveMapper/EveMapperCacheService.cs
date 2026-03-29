@@ -65,7 +65,7 @@ public class EveMapperCacheService : IEveMapperCacheService
 
             result.Add(entity);
 
-            return await _cacheService.Set(cacheKey, result);
+            return await _cacheService.Set(cacheKey, result, GetTtlForEntity<TEntity>());
         }
         catch (Exception e)
         {
@@ -81,7 +81,7 @@ public class EveMapperCacheService : IEveMapperCacheService
         {
             "AllianceEntity" => IEveMapperCacheService.REDIS_ALLIANCE_KEY,
             "CorporationEntity" => IEveMapperCacheService.REDIS_COORPORATION_KEY,
-            "CharactereEntity" => IEveMapperCacheService.REDIS_CHARACTER_KEY,
+            "CharacterEntity" => IEveMapperCacheService.REDIS_CHARACTER_KEY,
             "ShipEntity" => IEveMapperCacheService.REDIS_SHIP_KEY,
             "SystemEntity" => IEveMapperCacheService.REDIS_SYSTEM_KEY,
             "ConstellationEntity" => IEveMapperCacheService.REDIS_CONSTELLATION_KEY,
@@ -91,6 +91,26 @@ public class EveMapperCacheService : IEveMapperCacheService
             "WHEntity" => IEveMapperCacheService.REDIS_WORMHOLE_KEY,
             "SunEntity" => IEveMapperCacheService.REDIS_SUN_KEY,
             _ => throw new InvalidCastException("Invalid entity type"),
+        };
+    }
+
+    private static TimeSpan GetTtlForEntity<T>()
+        where T : AEveEntity
+    {
+        return typeof(T).Name switch
+        {
+            "CharacterEntity" => TimeSpan.FromHours(1),
+            "CorporationEntity" => TimeSpan.FromHours(6),
+            "AllianceEntity" => TimeSpan.FromHours(6),
+            "ShipEntity" => TimeSpan.FromHours(24),
+            "SystemEntity" => TimeSpan.FromHours(24),
+            "ConstellationEntity" => TimeSpan.FromHours(24),
+            "RegionEntity" => TimeSpan.FromHours(24),
+            "StargateEntity" => TimeSpan.FromHours(24),
+            "GroupEntity" => TimeSpan.FromHours(24),
+            "WHEntity" => TimeSpan.FromHours(24),
+            "SunEntity" => TimeSpan.FromHours(24),
+            _ => TimeSpan.FromHours(1),
         };
     }
 }

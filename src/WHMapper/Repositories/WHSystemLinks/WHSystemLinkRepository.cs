@@ -46,12 +46,9 @@ namespace WHMapper.Repositories.WHSystemLinks
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (!await context.DbWHRoutes.AnyAsync())
-                    return await context.DbWHSystemLinks.ToListAsync();
-                else
-                    return await context.DbWHSystemLinks
-                            .Include(x => x.JumpHistory)
-                            .ToListAsync();
+                return await context.DbWHSystemLinks
+                        .Include(x => x.JumpHistory)
+                        .ToListAsync();
             }
         }
 

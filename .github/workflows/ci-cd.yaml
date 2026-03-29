@@ -10,7 +10,7 @@ on:
     paths-ignore: ['**.md', '.vscode/**','docs/**','deploy/**']
   
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: '10.0.x'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   REGISTRY_DOCKERHUB: docker.io
@@ -65,7 +65,7 @@ jobs:
           distribution: 'oracle'
           java-version: 22
 
-      - name: Setup .NET 9 🦴
+      - name: Setup .NET 10 🦴
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}

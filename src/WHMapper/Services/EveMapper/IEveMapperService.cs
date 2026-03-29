@@ -4,7 +4,7 @@ namespace WHMapper.Services.EveMapper;
 
 public interface IEveMapperService
 {
-    Task<CharactereEntity?> GetCharacter(int characterId);
+    Task<CharacterEntity?> GetCharacter(int characterId);
     Task<CorporationEntity?> GetCorporation(int corporationId);
     Task<AllianceEntity?> GetAlliance(int allianceId);
     Task<ShipEntity?> GetShip(int shipTypeId);

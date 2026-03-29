@@ -8,7 +8,10 @@ public class ConnectionMapping<T> where T : notnull
     {
         get
         {
-            return _connections.Count;
+            lock (_connections)
+            {
+                return _connections.Count;
+            }
         }
     }
 
@@ -32,13 +35,15 @@ public class ConnectionMapping<T> where T : notnull
 
     public IEnumerable<string> GetConnections(T key)
     {
-        HashSet<string>? connections=null;
-        if (_connections.TryGetValue(key, out connections))
+        lock (_connections)
         {
-            return connections;
-        }
+            if (_connections.TryGetValue(key, out var connections))
+            {
+                return connections.ToList();
+            }
 
-        return Enumerable.Empty<string>();
+            return Enumerable.Empty<string>();
+        }
     }
 
     public void Remove(T key, string connectionId)

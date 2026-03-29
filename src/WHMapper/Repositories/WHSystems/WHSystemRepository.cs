@@ -47,12 +47,10 @@ namespace WHMapper.Repositories.WHSystems
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (!await context.DbWHRoutes.AnyAsync())
-                    return await context.DbWHSystems.ToListAsync();
-                else
-                    return await context.DbWHSystems.OrderBy(x => x.Name)
-                            .Include(x => x.WHSignatures)
-                            .ToListAsync();
+                return await context.DbWHSystems
+                        .Include(x => x.WHSignatures)
+                        .OrderBy(x => x.Name)
+                        .ToListAsync();
             }
         }
 

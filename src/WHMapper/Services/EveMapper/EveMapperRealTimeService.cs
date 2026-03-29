@@ -75,14 +75,21 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                     {
                         options.AccessTokenProvider = async () => token.AccessToken;
                         if (_configuration.GetValue<bool>("DisableSignalRCertificateValidation"))
-                        { 
-                            options.HttpMessageHandlerFactory = (message) =>
+                        {
+                            var env = _configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT");
+                            if (string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase))
                             {
-                                if (message is HttpClientHandler clientHandler)
-                                    // bypass SSL certificate
-                                    clientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-                                return message;
-                            };
+                                options.HttpMessageHandlerFactory = (message) =>
+                                {
+                                    if (message is HttpClientHandler clientHandler)
+                                        clientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                                    return message;
+                                };
+                            }
+                            else
+                            {
+                                _logger.LogWarning("DisableSignalRCertificateValidation is ignored outside Development environment");
+                            }
                         }
                                     
                     })
@@ -627,5 +634,23 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
 
         return false;
+    }
+
+    public async Task JoinMap(int accountID, int mapId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("JoinMap", mapId);
+        }
+    }
+
+    public async Task LeaveMap(int accountID, int mapId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("LeaveMap", mapId);
+        }
     }
 }
