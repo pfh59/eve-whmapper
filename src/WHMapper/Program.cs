@@ -480,29 +480,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Security headers
-app.Use(async (context, next) =>
-{
-    var nonce = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-    context.Items["CspNonce"] = nonce;
-
-    var host = context.Request.Host.Value;
-    var wssOrigin = $"wss://{host}";
-
-    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    context.Response.Headers["X-Frame-Options"] = "DENY";
-    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-    context.Response.Headers["Content-Security-Policy"] =
-        "default-src 'self'; " +
-        "script-src 'self'; " +
-        $"style-src 'self' 'nonce-{nonce}' https://fonts.googleapis.com; " +
-        "font-src 'self' https://fonts.gstatic.com; " +
-        "img-src 'self' data: https://images.evetech.net; " +
-        $"connect-src 'self' {wssOrigin}; " +
-        "frame-ancestors 'none';";
-    await next();
-});
 
 //check if applicationUrls contains https
 var applicationUrls = builder.Configuration["Kestrel:Endpoints:Https:Url"];
