@@ -1,6 +1,8 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-
+@{
+    var nonce = HttpContextAccessor.HttpContext?.Items["CspNonce"]?.ToString() ?? "";
+}
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,7 +17,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     
     <!-- External fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" nonce="@nonce" />
     
     <!-- Third-party styles -->
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
@@ -62,3 +64,5 @@
 </body>
 
 </html>
+
+@inject IHttpContextAccessor HttpContextAccessor

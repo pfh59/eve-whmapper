@@ -7,7 +7,6 @@ namespace WHMapper.Components.Pages.Instance;
 
 public partial class AddMapDialog : ComponentBase
 {
-    private MudForm _form = null!;
     private bool _formIsValid = false;
     private bool _creating = false;
     

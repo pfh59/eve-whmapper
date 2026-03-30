@@ -11,7 +11,6 @@ namespace WHMapper.Components.Pages.Instance;
 
 public partial class Register : ComponentBase
 {
-    private MudForm _form = null!;
     private bool _formIsValid = false;
     private bool _loading = true;
     private bool _registering = false;
@@ -65,44 +64,44 @@ public partial class Register : ComponentBase
 
         try
         {
-            if (!string.IsNullOrEmpty(UID.ClientId))
+            if (string.IsNullOrEmpty(UID.ClientId))
+                return;
+
+            var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+            if (primaryAccount == null)
+                return;
+
+            _isAuthenticated = true;
+            _characterId = primaryAccount.Id;
+
+            // Get character info from ESI
+            var characterResult = await CharacterServices.GetCharacter(_characterId);
+            if (characterResult.IsSuccess && characterResult.Data != null)
             {
-                var primaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
-                if (primaryAccount != null)
+                _characterInfo = characterResult.Data;
+                _characterName = _characterInfo.Name ?? string.Empty;
+
+                // Get corporation name
+                if (_characterInfo.CorporationId > 0)
                 {
-                    _isAuthenticated = true;
-                    _characterId = primaryAccount.Id;
-
-                    // Get character info from ESI
-                    var characterResult = await CharacterServices.GetCharacter(_characterId);
-                    if (characterResult.IsSuccess && characterResult.Data != null)
-                    {
-                        _characterInfo = characterResult.Data;
-                        _characterName = _characterInfo.Name ?? string.Empty;
-
-                        // Get corporation name
-                        if (_characterInfo.CorporationId > 0)
-                        {
-                            var corp = await EveMapperService.GetCorporation(_characterInfo.CorporationId);
-                            _corporationName = corp?.Name ?? "Unknown Corporation";
-                        }
-
-                        // Get alliance name
-                        if (_characterInfo.AllianceId > 0)
-                        {
-                            var alliance = await EveMapperService.GetAlliance(_characterInfo.AllianceId);
-                            _allianceName = alliance?.Name ?? "Unknown Alliance";
-                        }
-                    }
-
-                    // Check if user already has an instance
-                    var existingInstances = await InstanceService.GetAdministeredInstancesAsync(_characterId);
-                    _alreadyHasInstance = existingInstances?.Any() == true;
-                    if (_alreadyHasInstance && existingInstances != null)
-                    {
-                        _existingInstanceId = existingInstances.First().Id;
-                    }
+                    var corp = await EveMapperService.GetCorporation(_characterInfo.CorporationId);
+                    _corporationName = corp?.Name ?? "Unknown Corporation";
                 }
+
+                // Get alliance name
+                if (_characterInfo.AllianceId > 0)
+                {
+                    var alliance = await EveMapperService.GetAlliance(_characterInfo.AllianceId);
+                    _allianceName = alliance?.Name ?? "Unknown Alliance";
+                }
+            }
+
+            // Check if user already has an instance
+            var existingInstances = await InstanceService.GetAdministeredInstancesAsync(_characterId);
+            if (existingInstances?.Any() == true)
+            {
+                _alreadyHasInstance = true;
+                _existingInstanceId = existingInstances.First().Id;
             }
         }
         catch (Exception ex)

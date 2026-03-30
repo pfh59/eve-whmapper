@@ -98,11 +98,11 @@ namespace WHMapper.Repositories.WHNotes
             }
         }
 
-        public async Task<WHNote?> Get(int mapid, int solardSystemId)
+        public async Task<WHNote?> Get(int mapId, int solardSystemId)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHNotes.SingleOrDefaultAsync(x => x.SoloarSystemId == solardSystemId && x.MapId == mapid);
+                return await context.DbWHNotes.SingleOrDefaultAsync(x => x.SoloarSystemId == solardSystemId && x.MapId == mapId);
             }
         }
     }
