@@ -1,38 +1,60 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: bug
-assignees: pfh59
+name: Bug Report
+description: Report a bug to help improve Eve WH Mapper
+labels: [bug, needs-triage]
 
----
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🐛 Found a bug?
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+        Help us fix it by providing clear steps and context.
+        The more precise you are, the faster it can be fixed.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+  - type: textarea
+    id: bug
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly and concisely.
+      placeholder: e.g. Connections disappear after refreshing the map
+    validations:
+      required: true
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the issue?
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. See error
+    validations:
+      required: true
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: What should have happened instead?
+      placeholder: e.g. Connections should persist after refresh
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: Add any useful context (fleet situation, scanning, chain state, etc.)
+      placeholder: e.g. Happened during a fleet op with multiple scouts editing the chain
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+  - type: input
+    id: environment
+    attributes:
+      label: Environment (optional)
+      description: OS, browser, device...
+      placeholder: e.g. Windows 11 / Chrome 122
 
-**Additional context**
-Add any other context about the problem here.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots or logs (optional)
+      description: Drag and drop screenshots or paste error logs here
