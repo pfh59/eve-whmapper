@@ -42,13 +42,8 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         _connections.Add(accountID, Context.ConnectionId);
         
-        bool isNewUser = false;
-        _connectedUserPosition.GetOrAdd(accountID, _ =>
-        {
-            isNewUser = true;
-            return null;
-        });
-
+        var previous = _connectedUserPosition.GetOrAdd(accountID, _ => null);
+        bool isNewUser = previous == null;
         if (isNewUser)
         {
             meters.ConnectUser();
