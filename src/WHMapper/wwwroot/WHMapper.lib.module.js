@@ -3,7 +3,9 @@
 
 let isCustomEventRegistered = false;
 let countdownInterval = null;
+let reconnectionLoopRunning = false;
 const MAX_RETRIES = 8;
+const SESSION_EXPIRED_RELOAD_DELAY_MS = 3000;
 
 const ReconnectState = Object.freeze({
     SHOW: 'show',
@@ -22,16 +24,10 @@ function initReconnectModal() {
     retryBtn.addEventListener('click', function() {
         messageEl.textContent = 'Reconnecting...';
         retryBtn.style.display = 'none';
+        retryBtn.hidden = true;
         modal.classList.remove('components-reconnect-failed');
-        if (window.Blazor && typeof window.Blazor.reconnect === 'function') {
-            window.Blazor.reconnect().catch(function() {
-                setTimeout(function() {
-                    modal.classList.add('components-reconnect-failed');
-                    messageEl.textContent = 'Connection failed. Click Retry to try again.';
-                    retryBtn.style.display = 'inline-block';
-                }, 1000);
-            });
-        }
+        reconnectionLoopRunning = false;
+        startReconnectionLoop();
     });
 
     modal.addEventListener('components-reconnect-state-changed', function(event) {
@@ -79,16 +75,26 @@ if (typeof window !== 'undefined') {
  * @param {object} options - Blazor start options that can be modified
  */
 export function beforeWebStart(options) {
-    // Configure circuit options before start
     options.circuit ??= {};
-    options.circuit.reconnectionOptions ??= {};
-    options.circuit.reconnectionOptions.maxRetries = MAX_RETRIES;
-    options.circuit.reconnectionOptions.retryIntervalMilliseconds = getRetryInterval;
-    
+
+    // Custom reconnection handler — fires onConnectionDown immediately when the circuit drops
+    options.circuit.reconnectionHandler = {
+        onConnectionDown(opts, error) {
+            console.warn('[WHMapper] Circuit connection down:', error?.message ?? 'unknown');
+            showReconnectModal();
+            startReconnectionLoop();
+        },
+        onConnectionUp() {
+            console.info('[WHMapper] Circuit connection restored');
+            reconnectionLoopRunning = false;
+            hideReconnectModal();
+        }
+    };
+
     options.circuit.configureSignalR = (builder) => {
         builder
-            .withServerTimeout(60000)
-            .withKeepAliveInterval(15000);
+            .withServerTimeout(30000)
+            .withKeepAliveInterval(10000);
     };
 }
 
@@ -99,6 +105,7 @@ export function beforeWebStart(options) {
 export function afterWebStarted(blazor) {
     registerCustomEvents(blazor);
     initReconnectModal();
+    registerBrowserOfflineDetection();
 }
 
 /**
@@ -117,50 +124,125 @@ export function beforeServerStart(options, extensions) {
 export function afterServerStarted(blazor) {
     registerCustomEvents(blazor);
     initReconnectModal();
+    registerBrowserOfflineDetection();
 }
 
 /**
- * Calculate retry interval with exponential backoff
- * @param {number} previousAttempts - Number of previous retry attempts
- * @param {number} maxRetries - Maximum number of retries
- * @returns {number|null} - Interval in milliseconds or null to stop retrying
+ * Register browser offline/online events as backup detection
+ * (handles network-level disconnections that SignalR may not detect instantly)
  */
-function getRetryInterval(previousAttempts, maxRetries) {
-    const currentAttempt = previousAttempts + 1;
-    updateReconnectUI(currentAttempt);
-    
-    if (previousAttempts >= maxRetries) {
-        showReconnectFailed();
-        return null;
-    }
-    
-    // Exponential backoff: 1s, 2s, 4s, 8s, 15s, 30s, 30s, 30s
-    const intervals = [1000, 2000, 4000, 8000, 15000, 30000, 30000, 30000];
-    const interval = intervals[Math.min(previousAttempts, intervals.length - 1)];
-    
-    startCountdown(interval / 1000);
-    
-    return interval;
+let browserOfflineRegistered = false;
+function registerBrowserOfflineDetection() {
+    if (browserOfflineRegistered) return;
+    browserOfflineRegistered = true;
+
+    window.addEventListener('offline', () => {
+        console.warn('[WHMapper] Browser went offline');
+        showReconnectModal();
+    });
+
+    window.addEventListener('online', () => {
+        console.info('[WHMapper] Browser back online, triggering reconnect');
+        if (window.Blazor && typeof window.Blazor.reconnect === 'function') {
+            window.Blazor.reconnect();
+        }
+    });
 }
 
 /**
- * Update the reconnection UI with current attempt info
+ * Show the reconnect modal immediately
  */
-function updateReconnectUI(attempt) {
+function showReconnectModal() {
     const modal = document.getElementById('components-reconnect-modal');
-    const attemptEl = document.getElementById('components-reconnect-current-attempt');
-    const maxRetriesEl = document.getElementById('components-reconnect-max-retries');
     const messageEl = document.getElementById('reconnect-message');
     const retryBtn = document.getElementById('reconnect-retry-btn');
-    
+    const attemptEl = document.getElementById('components-reconnect-current-attempt');
+    const maxRetriesEl = document.getElementById('components-reconnect-max-retries');
+
     if (modal) {
         modal.classList.remove('components-reconnect-hide', 'components-reconnect-failed');
         modal.classList.add('components-reconnect-show');
+        modal.style.display = 'flex';
     }
-    if (attemptEl) attemptEl.textContent = attempt;
+    if (messageEl) messageEl.textContent = 'Connection lost. Reconnecting...';
+    if (retryBtn) {
+        retryBtn.style.display = 'none';
+        retryBtn.hidden = true;
+    }
+    if (attemptEl) attemptEl.textContent = '0';
     if (maxRetriesEl) maxRetriesEl.textContent = MAX_RETRIES;
+}
+
+/**
+ * Hide the reconnect modal
+ */
+function hideReconnectModal() {
+    const modal = document.getElementById('components-reconnect-modal');
+    if (modal) {
+        modal.classList.remove('components-reconnect-show', 'components-reconnect-failed');
+        modal.classList.add('components-reconnect-hide');
+        modal.style.display = '';
+    }
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+}
+
+/**
+ * Start the reconnection retry loop with exponential backoff
+ */
+function startReconnectionLoop() {
+    if (reconnectionLoopRunning) return;
+    reconnectionLoopRunning = true;
+
+    const intervals = [1000, 2000, 4000, 8000, 15000, 30000, 30000, 30000];
+    let attempt = 0;
+
+    function tryReconnect() {
+        if (!reconnectionLoopRunning) return;
+
+        attempt++;
+        updateReconnectAttempt(attempt);
+
+        if (attempt > MAX_RETRIES) {
+            showReconnectFailed();
+            reconnectionLoopRunning = false;
+            return;
+        }
+
+        const delay = intervals[Math.min(attempt - 1, intervals.length - 1)];
+        startCountdown(delay / 1000);
+
+        if (window.Blazor && typeof window.Blazor.reconnect === 'function') {
+            window.Blazor.reconnect().then(function (success) {
+                if (success) {
+                    reconnectionLoopRunning = false;
+                    hideReconnectModal();
+                } else {
+                    // Reconnect returned false — schedule next attempt
+                    setTimeout(tryReconnect, delay);
+                }
+            }).catch(function () {
+                setTimeout(tryReconnect, delay);
+            });
+        } else {
+            setTimeout(tryReconnect, delay);
+        }
+    }
+
+    // First attempt after a very short delay to allow UI to render
+    setTimeout(tryReconnect, 500);
+}
+
+/**
+ * Update attempt counter in the UI
+ */
+function updateReconnectAttempt(attempt) {
+    const attemptEl = document.getElementById('components-reconnect-current-attempt');
+    const messageEl = document.getElementById('reconnect-message');
+    if (attemptEl) attemptEl.textContent = attempt;
     if (messageEl) messageEl.textContent = 'Attempting to reconnect...';
-    if (retryBtn) retryBtn.style.display = 'none';
 }
 
 /**
@@ -202,25 +284,18 @@ function showReconnectFailed() {
         countdownInterval = null;
     }
     
-    // Apply failed state immediately
-    applyFailedState();
-    
-    // Also apply after a delay to override any Blazor default behavior that might hide the modal
-    setTimeout(applyFailedState, 100);
-    setTimeout(applyFailedState, 500);
-    setTimeout(applyFailedState, 1000);
-    
-    function applyFailedState() {
-        if (modal) {
-            modal.classList.remove('components-reconnect-hide');
-            modal.classList.add('components-reconnect-show', 'components-reconnect-failed');
-            modal.style.display = 'flex';
-        }
-        if (messageEl) messageEl.textContent = 'Connection failed. Click Retry to try again.';
-        if (retryBtn) retryBtn.style.display = 'inline-block';
-        if (countdownEl) countdownEl.textContent = '-';
-        if (attemptEl) attemptEl.textContent = MAX_RETRIES;
+    if (modal) {
+        modal.classList.remove('components-reconnect-hide');
+        modal.classList.add('components-reconnect-show', 'components-reconnect-failed');
+        modal.style.display = 'flex';
     }
+    if (messageEl) messageEl.textContent = 'Connection failed. Click Retry to try again.';
+    if (retryBtn) {
+        retryBtn.style.display = 'inline-block';
+        retryBtn.hidden = false;
+    }
+    if (countdownEl) countdownEl.textContent = '-';
+    if (attemptEl) attemptEl.textContent = MAX_RETRIES;
 }
 
 /**
