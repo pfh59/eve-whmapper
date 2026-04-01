@@ -10,11 +10,7 @@
     <Authorized>
         <AuthorizeView Policy="Admin" Context="innerContext">
            <Authorized>
-                <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                    <ActivatorContent>
-                        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
-                    </ActivatorContent>
-                    <ChildContent>
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                         <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" OnClick="OpenInstancesDialog">My Instances</MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
@@ -26,17 +22,12 @@
                                 Logout
                             </MudButton>
                         </MudForm>
-                    </ChildContent>
                 </MudMenu>
             </Authorized>
             <NotAuthorized>
                 <AuthorizeView Policy="Access" Context="innerContext2">
                     <Authorized>
-                        <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                            <ActivatorContent>
-                                 <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
-                            </ActivatorContent>
-                            <ChildContent>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                 <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
                                 <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" OnClick="OpenInstancesDialog">My Instances</MudMenuItem>
                                 <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
@@ -48,16 +39,11 @@
                                         Logout
                                     </MudButton>
                                 </MudForm>
-                            </ChildContent>
                         </MudMenu>
                     </Authorized>
                     <NotAuthorized>
                         @* User is authenticated but has no instance access - show registration option *@
-                        <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                            <ActivatorContent>
-                                 <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
-                            </ActivatorContent>
-                            <ChildContent>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                 <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
                                 <MudForm action="authentication/logout" method="post">
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
@@ -67,7 +53,6 @@
                                         Logout
                                     </MudButton>
                                 </MudForm>
-                            </ChildContent>
                         </MudMenu>
                     </NotAuthorized>
                 </AuthorizeView>
@@ -78,11 +63,11 @@
     </Authorized>
     <NotAuthorized>
         <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-            <ActivatorContent>
-                <MudChip T="string" Icon="@Icons.Material.Filled.Person">Account</MudChip>
+            <ActivatorContent Context="menuContext">
+                <MudChip T="string" Icon="@Icons.Material.Filled.Person" OnClick="@menuContext.ToggleAsync">Account</MudChip>
             </ActivatorContent>
             <ChildContent>
-                <MudMenuItem Icon=@Icons.Material.Filled.Login IconColor="Color.Default" Href="@GetLoginUrl()">Login</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Login" IconColor="Color.Default" Href="@GetLoginUrl()">Login</MudMenuItem>
             </ChildContent>
         </MudMenu>
     </NotAuthorized>
