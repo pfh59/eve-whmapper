@@ -334,25 +334,7 @@ public partial class Overview : IAsyncDisposable
         // Unsubscribe from EveMapperRealTime events
         if (EveMapperRealTime != null)
         {
-            // Leave the SignalR map group for all accounts
-            if (MapId.HasValue)
-            {
-                try
-                {
-                    var accounts = await GetAccountsAsync();
-                    if (accounts != null)
-                    {
-                        foreach (var account in accounts)
-                        {
-                            await EveMapperRealTime.LeaveMap(account.Id, MapId.Value);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogWarning(ex, "Error leaving map group during dispose");
-                }
-            }
+            await LeaveMapGroupsAsync();
 
             EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
             EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
@@ -384,6 +366,28 @@ public partial class Overview : IAsyncDisposable
         _semaphoreSlim.Dispose();
         _semaphoreSlim2.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private async Task LeaveMapGroupsAsync()
+    {
+        if (!MapId.HasValue)
+            return;
+
+        try
+        {
+            var accounts = await GetAccountsAsync();
+            if (accounts != null)
+            {
+                foreach (var account in accounts)
+                {
+                    await EveMapperRealTime.LeaveMap(account.Id, MapId.Value);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error leaving map group during dispose");
+        }
     }
 
     private async Task<bool> Restore(int mapId, CancellationToken cancellationToken)

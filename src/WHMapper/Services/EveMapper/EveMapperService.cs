@@ -44,7 +44,7 @@ public class EveMapperService : IEveMapperService
             else
             {
                 // Add to cache (fire and forget) and return the entity
-                var entity = entityMap(apiResult);
+                var entity = entityMap(apiResult!);
                 if (entity != null)
                 {
                     await _cacheService.AddAsync(entity);

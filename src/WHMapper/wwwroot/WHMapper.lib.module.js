@@ -31,9 +31,9 @@ function initReconnectModal() {
     });
 
     modal.addEventListener('components-reconnect-state-changed', function(event) {
-        var state = event.detail.state;
-        var stateClasses = ['components-reconnect-show', 'components-reconnect-hide', 'components-reconnect-failed', 'components-reconnect-rejected'];
-        modal.classList.remove.apply(modal.classList, stateClasses);
+        const state = event.detail.state;
+        const stateClasses = ['components-reconnect-show', 'components-reconnect-hide', 'components-reconnect-failed', 'components-reconnect-rejected'];
+        modal.classList.remove(...stateClasses);
         switch (state) {
             case ReconnectState.SHOW:
                 modal.classList.add('components-reconnect-show');
