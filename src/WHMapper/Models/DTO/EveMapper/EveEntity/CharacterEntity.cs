@@ -4,15 +4,15 @@ using WHMapper.Models.DTO.EveMapper.Enums;
 
 namespace WHMapper.Models.DTO.EveMapper.EveEntity
 {
-    public class CharactereEntity : AEveEntity
+    public class CharacterEntity : AEveEntity
     {
-        public CharactereEntity(int id, Character entity)
+        public CharacterEntity(int id, Character entity)
             : base(id, entity.Name, EveEntityEnums.Character)
         {
         }
 
         [JsonConstructor]
-        public CharactereEntity(int id, string name)
+        public CharacterEntity(int id, string name)
             : base(id, name, EveEntityEnums.Character)
         {
         }

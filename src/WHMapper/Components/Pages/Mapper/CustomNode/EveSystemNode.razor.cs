@@ -8,7 +8,6 @@ namespace WHMapper.Components.Pages.Mapper.CustomNode;
 
 public partial class EveSystemNode
 {
-    private string _secColor = IWHColorHelper.DEFAULT_COLOR;
     private string _systemColor = IWHColorHelper.DEFAULT_COLOR;
     private string _whEffectColor = IWHColorHelper.DEFAULT_COLOR;
 
@@ -73,7 +72,6 @@ public partial class EveSystemNode
     {
         if (Node != null)
         {
-            _secColor = WHColorHelper.GetSecurityStatusColor(Node.SecurityStatus);
             _systemColor = WHColorHelper.GetSystemTypeColor(Node.SystemType);
             _whEffectColor = WHColorHelper.GetEffectColor(Node.Effect);
 

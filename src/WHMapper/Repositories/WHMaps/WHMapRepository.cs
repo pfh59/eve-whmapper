@@ -83,16 +83,10 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (!await context.DbWHMaps.AnyAsync())
-                    return await context.DbWHMaps.OrderBy(x => x.Name).ToListAsync();
-                else
-                    return await context.DbWHMaps.AsNoTracking()
-                            .Include(x => x.WHMapAccesses)
-                            //.Include(x => x.WHSystems)
-                            //.Include(x => x.WHSystemLinks)
-                            //    .ThenInclude(x => x.JumpHistory)
-                            .OrderBy(x => x.Name)
-                            .ToListAsync();
+                return await context.DbWHMaps
+                        .Include(x => x.WHMapAccesses)
+                        .OrderBy(x => x.Name)
+                        .ToListAsync();
             }
         }
 
@@ -100,11 +94,12 @@ namespace WHMapper.Repositories.WHMaps
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                return await context.DbWHMaps.AsNoTracking()
+                return await context.DbWHMaps
                             .Include(x => x.WHMapAccesses)
                             .Include(x => x.WHSystems)
                             .Include(x => x.WHSystemLinks)
                             .ThenInclude(x => x.JumpHistory)
+                            .AsSplitQuery()
                             .SingleOrDefaultAsync(x => x.Id == id);
             }
         }

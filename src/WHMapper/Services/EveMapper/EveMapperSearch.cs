@@ -51,7 +51,7 @@ namespace WHMapper.Services.EveMapper
 
                     results = (IEnumerable<T>?)await _sdeServices.SearchSystem(value);
                 }
-                else if (typeof(T) == typeof(CharactereEntity) || (typeof(T) == typeof(CorporationEntity)) || (typeof(T) == typeof(AllianceEntity)))
+                else if (typeof(T) == typeof(CharacterEntity) || (typeof(T) == typeof(CorporationEntity)) || (typeof(T) == typeof(AllianceEntity)))
                 {
                     if (string.IsNullOrEmpty(value) || _eveAPIServices == null || _eveAPIServices.SearchServices == null || value.Length < IEveMapperSearch.MIN_SEARCH_ENTITY_CHARACTERS)
                         return null;
@@ -78,9 +78,9 @@ namespace WHMapper.Services.EveMapper
                     await _eveAPIServices.SetEveCharacterAuthenticatication(token);
             
 
-                    if (typeof(T) == typeof(CharactereEntity))
+                    if (typeof(T) == typeof(CharacterEntity))
                     {
-                        BlockingCollection<CharactereEntity> eveEntityResults = new BlockingCollection<CharactereEntity>();
+                        BlockingCollection<CharacterEntity> eveEntityResults = new BlockingCollection<CharacterEntity>();
                         Result<SearchCharacterResults> characterResults = await _eveAPIServices.SearchServices.SearchCharacter(value, strict);
 
                         if (characterResults.IsSuccess && characterResults.Data != null && characterResults.Data.Characters != null)
@@ -89,7 +89,7 @@ namespace WHMapper.Services.EveMapper
                             {
                                 Result<Character> characterResult = await _eveAPIServices.CharacterServices.GetCharacter(characterId);
                                 if (characterResult.IsSuccess && characterResult.Data != null)
-                                    while (!eveEntityResults.TryAdd(new CharactereEntity(characterId, characterResult.Data), 100, token))
+                                    while (!eveEntityResults.TryAdd(new CharacterEntity(characterId, characterResult.Data), 100, token))
                                         await Task.Delay(1);
 
                                 await Task.Yield();
@@ -178,13 +178,13 @@ namespace WHMapper.Services.EveMapper
             }
         }
 
-        public async Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CharacterEntity>?> SearchCharactere(string value, CancellationToken cancellationToken)
         {
             try
             {
-                IEnumerable<CharactereEntity>? results = new BlockingCollection<CharactereEntity>();
-                IEnumerable<CharactereEntity>? strictCharacterEntities = await Search<CharactereEntity>(value, true, cancellationToken);
-                IEnumerable<CharactereEntity>? characterEntities = await Search<CharactereEntity>(value, false, cancellationToken);
+                IEnumerable<CharacterEntity>? results = new BlockingCollection<CharacterEntity>();
+                IEnumerable<CharacterEntity>? strictCharacterEntities = await Search<CharacterEntity>(value, true, cancellationToken);
+                IEnumerable<CharacterEntity>? characterEntities = await Search<CharacterEntity>(value, false, cancellationToken);
 
                 if (strictCharacterEntities != null)
                 {
@@ -212,11 +212,11 @@ namespace WHMapper.Services.EveMapper
 
         } 
 
-        public async Task<IEnumerable<CharactereEntity>?> SearchCharactere(string value,bool strict, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CharacterEntity>?> SearchCharactere(string value,bool strict, CancellationToken cancellationToken)
         {
             try
             {
-                return await Search<CharactereEntity>(value,strict, cancellationToken);
+                return await Search<CharacterEntity>(value,strict, cancellationToken);
             }
             catch (OperationCanceledException oce)
             {
@@ -269,7 +269,7 @@ namespace WHMapper.Services.EveMapper
             IEnumerable<AEveEntity>? results2 = new BlockingCollection<AEveEntity>();
             IEnumerable<AllianceEntity>? strictAllianceEntities = await SearchAlliance(value,true, cancellationToken);
             IEnumerable<CorporationEntity>? strictCoorporationEntities = await SearchCorporation(value,true, cancellationToken);
-            IEnumerable<CharactereEntity>? strictCharacterEntities = await SearchCharactere(value,true, cancellationToken);
+            IEnumerable<CharacterEntity>? strictCharacterEntities = await SearchCharactere(value,true, cancellationToken);
 
 
             if (strictAllianceEntities != null)
@@ -293,7 +293,7 @@ namespace WHMapper.Services.EveMapper
 
            IEnumerable<AllianceEntity>? allianceEntities = await SearchAlliance(value,false, cancellationToken);
            IEnumerable<CorporationEntity>? coorporationEntities = await SearchCorporation(value,false, cancellationToken);
-           IEnumerable<CharactereEntity>? characterEntities = await SearchCharactere(value,false, cancellationToken);
+           IEnumerable<CharacterEntity>? characterEntities = await SearchCharactere(value,false, cancellationToken);
 
             if (allianceEntities != null)
             {

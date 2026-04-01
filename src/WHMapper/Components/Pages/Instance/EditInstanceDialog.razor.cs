@@ -7,7 +7,6 @@ namespace WHMapper.Components.Pages.Instance;
 
 public partial class EditInstanceDialog : ComponentBase
 {
-    private MudForm _form = null!;
     private bool _formIsValid = false;
     private bool _saving = false;
     

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Db.Enums;
@@ -7,10 +6,37 @@ using WHMapper.Models.DTO.EveAPI.Character;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 
-namespace WHMapper.Components.Pages.Instance;
+namespace WHMapper.Components.Dialogs;
 
-public partial class Register : ComponentBase
+public partial class RegisterInstanceDialog
 {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Inject]
+    private ILogger<RegisterInstanceDialog> Logger { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
+
+    [Inject]
+    private ICharacterServices CharacterServices { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperService EveMapperService { get; set; } = null!;
+
+    [Inject]
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
     private bool _formIsValid = false;
     private bool _loading = true;
     private bool _registering = false;
@@ -27,30 +53,6 @@ public partial class Register : ComponentBase
     private Character? _characterInfo = null;
     private string _corporationName = string.Empty;
     private string _allianceName = string.Empty;
-
-    [Inject]
-    private ILogger<Register> Logger { get; set; } = null!;
-
-    [Inject]
-    private ISnackbar Snackbar { get; set; } = null!;
-
-    [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
-
-    [Inject]
-    private IEveMapperUserManagementService UserManagement { get; set; } = null!;
-
-    [Inject]
-    private ClientUID UID { get; set; } = null!;
-
-    [Inject]
-    private ICharacterServices CharacterServices { get; set; } = null!;
-
-    [Inject]
-    private IEveMapperService EveMapperService { get; set; } = null!;
-
-    [Inject]
-    private IEveMapperInstanceService InstanceService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,21 +76,18 @@ public partial class Register : ComponentBase
             _isAuthenticated = true;
             _characterId = primaryAccount.Id;
 
-            // Get character info from ESI
             var characterResult = await CharacterServices.GetCharacter(_characterId);
             if (characterResult.IsSuccess && characterResult.Data != null)
             {
                 _characterInfo = characterResult.Data;
                 _characterName = _characterInfo.Name ?? string.Empty;
 
-                // Get corporation name
                 if (_characterInfo.CorporationId > 0)
                 {
                     var corp = await EveMapperService.GetCorporation(_characterInfo.CorporationId);
                     _corporationName = corp?.Name ?? "Unknown Corporation";
                 }
 
-                // Get alliance name
                 if (_characterInfo.AllianceId > 0)
                 {
                     var alliance = await EveMapperService.GetAlliance(_characterInfo.AllianceId);
@@ -96,7 +95,6 @@ public partial class Register : ComponentBase
                 }
             }
 
-            // Check if user already has an instance
             var existingInstances = await InstanceService.GetAdministeredInstancesAsync(_characterId);
             if (existingInstances?.Any() == true)
             {
@@ -156,7 +154,6 @@ public partial class Register : ComponentBase
                     return;
             }
 
-            // Check if can register
             if (!await InstanceService.CanRegisterAsync(ownerEntityId))
             {
                 Snackbar.Add("An instance already exists for this entity", Severity.Warning);
@@ -175,7 +172,20 @@ public partial class Register : ComponentBase
             if (instance != null)
             {
                 Snackbar.Add("Instance created successfully!", Severity.Success);
-                Navigation.NavigateTo($"/instance/{instance.Id}/admin");
+                MudDialog.Close(DialogResult.Ok(instance.Id));
+                
+                // Open the admin dialog for the newly created instance
+                var parameters = new DialogParameters<AdminInstanceDialog>
+                {
+                    { x => x.InstanceId, instance.Id }
+                };
+                var options = new DialogOptions
+                {
+                    MaxWidth = MaxWidth.Large,
+                    FullWidth = true,
+                    CloseButton = true
+                };
+                await DialogService.ShowAsync<AdminInstanceDialog>("Instance Administration", parameters, options);
             }
             else
             {
@@ -192,4 +202,23 @@ public partial class Register : ComponentBase
             _registering = false;
         }
     }
+
+    private async Task ManageExistingInstance()
+    {
+        MudDialog.Close(DialogResult.Ok(_existingInstanceId));
+        
+        var parameters = new DialogParameters<AdminInstanceDialog>
+        {
+            { x => x.InstanceId, _existingInstanceId }
+        };
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true,
+            CloseButton = true
+        };
+        await DialogService.ShowAsync<AdminInstanceDialog>("Instance Administration", parameters, options);
+    }
+
+    private void Close() => MudDialog.Cancel();
 }

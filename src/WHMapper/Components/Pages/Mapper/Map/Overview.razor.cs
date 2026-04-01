@@ -239,7 +239,7 @@ public partial class Overview : IAsyncDisposable
                                     var systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == (item.Value?.Value ?? 0));
                                     if (systemToAddUser != null)
                                     {
-                                        CharactereEntity? user = await eveMapperService.GetCharacter(item.Key);
+                                        CharacterEntity? user = await eveMapperService.GetCharacter(item.Key);
                                         if (user != null)
                                         {
                                             await systemToAddUser.AddConnectedUser(user.Name);
@@ -255,6 +255,7 @@ public partial class Overview : IAsyncDisposable
                             Logger.LogError(ex, "On NotifyUserPosition error");
                         }
 
+                        await EveMapperRealTime.JoinMap(account.Id, MapId.Value);
                         await EveMapperRealTime.NotifyUserOnMapConnected(account.Id, MapId.Value);
                         if (account.Tracking)
                         {
@@ -333,6 +334,8 @@ public partial class Overview : IAsyncDisposable
         // Unsubscribe from EveMapperRealTime events
         if (EveMapperRealTime != null)
         {
+            await LeaveMapGroupsAsync();
+
             EveMapperRealTime.UserDisconnected -= OnUserDisconnected;
             EveMapperRealTime.UserOnMapConnected -= OnUserOnMapConnected;
             EveMapperRealTime.UserOnMapDisconnected -= OnUserOnMapDisconnected;
@@ -363,6 +366,28 @@ public partial class Overview : IAsyncDisposable
         _semaphoreSlim.Dispose();
         _semaphoreSlim2.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private async Task LeaveMapGroupsAsync()
+    {
+        if (!MapId.HasValue)
+            return;
+
+        try
+        {
+            var accounts = await GetAccountsAsync();
+            if (accounts != null)
+            {
+                foreach (var account in accounts)
+                {
+                    await EveMapperRealTime.LeaveMap(account.Id, MapId.Value);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error leaving map group during dispose");
+        }
     }
 
     private async Task<bool> Restore(int mapId, CancellationToken cancellationToken)
@@ -1523,7 +1548,7 @@ public partial class Overview : IAsyncDisposable
             }
 
             //update user position
-            CharactereEntity? user = await eveMapperService.GetCharacter(accountID);
+            CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
             if (user != null)
             {
                 //remove user from old system if exist
@@ -1917,7 +1942,7 @@ public partial class Overview : IAsyncDisposable
     {
         if (MapId.HasValue && MapId.Value == mapId)
         {
-            CharactereEntity? user = await eveMapperService.GetCharacter(accountID);
+            CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
             if (user == null)
                 throw new NullReferenceException("User not found");
 
@@ -1929,7 +1954,7 @@ public partial class Overview : IAsyncDisposable
     {
         if (MapId.HasValue && MapId.Value == mapId)
         {
-            CharactereEntity? user = await eveMapperService.GetCharacter(accountID);
+            CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
             if (user == null)
                 throw new NullReferenceException("User not found");
 
@@ -1943,7 +1968,7 @@ public partial class Overview : IAsyncDisposable
         await _semaphoreSlim2.WaitAsync();
         try
         {
-            CharactereEntity? user = await eveMapperService.GetCharacter(accountID);
+            CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
             if (user == null)
                 throw new NullReferenceException("User not found");
 
@@ -1972,7 +1997,7 @@ public partial class Overview : IAsyncDisposable
             WHMapperUser[]? accounts = await GetAccountsAsync();
             if (this.MapId.HasValue && this.MapId.Value == mapId && accounts != null && accounts.FirstOrDefault(x => x.Id == accountID) == null)
             {
-                CharactereEntity? user = await eveMapperService.GetCharacter(accountID);
+                CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
                 if (user == null)
                     throw new NullReferenceException("User not found");
 

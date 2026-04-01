@@ -18,7 +18,7 @@ public class CacheService : ICacheService
     {
         try
         {
-            _logger.LogInformation($"Getting cache key {key}");
+            _logger.LogDebug("Getting cache key {Key}", key);
             var value = await _cache.GetStringAsync(key);
             if (value == null)
             {
@@ -29,7 +29,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error getting cache key {key}");
+            _logger.LogError(ex, "Error getting cache key {Key}", key);
             return default;
         }
     }
@@ -38,7 +38,7 @@ public class CacheService : ICacheService
     {
         try
         {
-            _logger.LogInformation($"Setting cache key {key}");
+            _logger.LogDebug("Setting cache key {Key}", key);
             var options = new DistributedCacheEntryOptions();
             if (absoluteExpirationRelativeToNow.HasValue)
             {
@@ -50,7 +50,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error setting cache key {key}");
+            _logger.LogError(ex, "Error setting cache key {Key}", key);
             return false;
         }
     }
@@ -64,13 +64,13 @@ public class CacheService : ICacheService
         }
         try
         {
-            _logger.LogInformation($"Removing cache key {key}");
+            _logger.LogDebug("Removing cache key {Key}", key);
             await _cache.RemoveAsync(key);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error removing cache key {key}");
+            _logger.LogError(ex, "Error removing cache key {Key}", key);
             return false;
         }
     }

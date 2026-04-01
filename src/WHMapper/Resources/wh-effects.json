@@ -1,0 +1,56 @@
+{
+  "Magnetar": {
+    "C1":  [{ "Name": "Damage", "Value": 30 }, { "Name": "Missile exp. radius", "Value": 15 }, { "Name": "Drone tracking", "Value": -15 }, { "Name": "Targeting range", "Value": -15 }, { "Name": "Tracking speed", "Value": -15 }, { "Name": "Target Painter strength", "Value": -15 }],
+    "C2":  [{ "Name": "Damage", "Value": 44 }, { "Name": "Missile exp. radius", "Value": 22 }, { "Name": "Drone tracking", "Value": -22 }, { "Name": "Targeting range", "Value": -22 }, { "Name": "Tracking speed", "Value": -22 }, { "Name": "Target Painter strength", "Value": -22 }],
+    "C3":  [{ "Name": "Damage", "Value": 58 }, { "Name": "Missile exp. radius", "Value": 29 }, { "Name": "Drone tracking", "Value": -29 }, { "Name": "Targeting range", "Value": -29 }, { "Name": "Tracking speed", "Value": -29 }, { "Name": "Target Painter strength", "Value": -29 }],
+    "C4":  [{ "Name": "Damage", "Value": 72 }, { "Name": "Missile exp. radius", "Value": 36 }, { "Name": "Drone tracking", "Value": -36 }, { "Name": "Targeting range", "Value": -36 }, { "Name": "Tracking speed", "Value": -36 }, { "Name": "Target Painter strength", "Value": -36 }],
+    "C5":  [{ "Name": "Damage", "Value": 86 }, { "Name": "Missile exp. radius", "Value": 43 }, { "Name": "Drone tracking", "Value": -43 }, { "Name": "Targeting range", "Value": -43 }, { "Name": "Tracking speed", "Value": -43 }, { "Name": "Target Painter strength", "Value": -43 }],
+    "C6":  [{ "Name": "Damage", "Value": 100 }, { "Name": "Missile exp. radius", "Value": 50 }, { "Name": "Drone tracking", "Value": -50 }, { "Name": "Targeting range", "Value": -50 }, { "Name": "Tracking speed", "Value": -50 }, { "Name": "Target Painter strength", "Value": -50 }],
+    "C16": [{ "Name": "Damage", "Value": 44 }, { "Name": "Missile exp. radius", "Value": 22 }, { "Name": "Drone tracking", "Value": -22 }, { "Name": "Targeting range", "Value": -22 }, { "Name": "Tracking speed", "Value": -22 }, { "Name": "Target Painter strength", "Value": -22 }]
+  },
+  "RedGiant": {
+    "C1":  [{ "Name": "Heat damage", "Value": 15 }, { "Name": "Overload bonus", "Value": 30 }, { "Name": "Smart Bomb range", "Value": 30 }, { "Name": "Smart Bomb damage", "Value": 30 }, { "Name": "Bomb damage", "Value": 30 }],
+    "C2":  [{ "Name": "Heat damage", "Value": 22 }, { "Name": "Overload bonus", "Value": 44 }, { "Name": "Smart Bomb range", "Value": 44 }, { "Name": "Smart Bomb damage", "Value": 44 }, { "Name": "Bomb damage", "Value": 44 }],
+    "C3":  [{ "Name": "Heat damage", "Value": 29 }, { "Name": "Overload bonus", "Value": 58 }, { "Name": "Smart Bomb range", "Value": 58 }, { "Name": "Smart Bomb damage", "Value": 58 }, { "Name": "Bomb damage", "Value": 58 }],
+    "C4":  [{ "Name": "Heat damage", "Value": 36 }, { "Name": "Overload bonus", "Value": 72 }, { "Name": "Smart Bomb range", "Value": 72 }, { "Name": "Smart Bomb damage", "Value": 72 }, { "Name": "Bomb damage", "Value": 72 }],
+    "C5":  [{ "Name": "Heat damage", "Value": 43 }, { "Name": "Overload bonus", "Value": 86 }, { "Name": "Smart Bomb range", "Value": 86 }, { "Name": "Smart Bomb damage", "Value": 86 }, { "Name": "Bomb damage", "Value": 86 }],
+    "C6":  [{ "Name": "Heat damage", "Value": 50 }, { "Name": "Overload bonus", "Value": 100 }, { "Name": "Smart Bomb range", "Value": 100 }, { "Name": "Smart Bomb damage", "Value": 100 }, { "Name": "Bomb damage", "Value": 100 }],
+    "C14": [{ "Name": "Heat damage", "Value": 22 }, { "Name": "Overload bonus", "Value": 44 }, { "Name": "Smart Bomb range", "Value": 44 }, { "Name": "Smart Bomb damage", "Value": 44 }, { "Name": "Bomb damage", "Value": 44 }]
+  },
+  "Pulsar": {
+    "C1":  [{ "Name": "Shield HP", "Value": 30 }, { "Name": "Armor resist", "Value": -15 }, { "Name": "Capacitor recharge", "Value": -15 }, { "Name": "Signature", "Value": 30 }, { "Name": "NOS/Neut drain", "Value": 30 }],
+    "C2":  [{ "Name": "Shield HP", "Value": 44 }, { "Name": "Armor resist", "Value": -22 }, { "Name": "Capacitor recharge", "Value": -22 }, { "Name": "Signature", "Value": 44 }, { "Name": "NOS/Neut drain", "Value": 44 }],
+    "C3":  [{ "Name": "Shield HP", "Value": 58 }, { "Name": "Armor resist", "Value": -29 }, { "Name": "Capacitor recharge", "Value": -29 }, { "Name": "Signature", "Value": 58 }, { "Name": "NOS/Neut drain", "Value": 58 }],
+    "C4":  [{ "Name": "Shield HP", "Value": 72 }, { "Name": "Armor resist", "Value": -36 }, { "Name": "Capacitor recharge", "Value": -36 }, { "Name": "Signature", "Value": 72 }, { "Name": "NOS/Neut drain", "Value": 72 }],
+    "C5":  [{ "Name": "Shield HP", "Value": 86 }, { "Name": "Armor resist", "Value": -43 }, { "Name": "Capacitor recharge", "Value": -43 }, { "Name": "Signature", "Value": 86 }, { "Name": "NOS/Neut drain", "Value": 86 }],
+    "C6":  [{ "Name": "Shield HP", "Value": 100 }, { "Name": "Armor resist", "Value": -50 }, { "Name": "Capacitor recharge", "Value": -50 }, { "Name": "Signature", "Value": 100 }, { "Name": "NOS/Neut drain", "Value": 100 }],
+    "C17": [{ "Name": "Shield HP", "Value": 44 }, { "Name": "Armor resist", "Value": -22 }, { "Name": "Capacitor recharge", "Value": -22 }, { "Name": "Signature", "Value": 44 }, { "Name": "NOS/Neut drain", "Value": 44 }]
+  },
+  "WolfRayet": {
+    "C1":  [{ "Name": "Armor HP", "Value": 30 }, { "Name": "Shield resist", "Value": -15 }, { "Name": "Small Weapon damage", "Value": 60 }, { "Name": "Signature size", "Value": -15 }],
+    "C2":  [{ "Name": "Armor HP", "Value": 44 }, { "Name": "Shield resist", "Value": -22 }, { "Name": "Small Weapon damage", "Value": 88 }, { "Name": "Signature size", "Value": -22 }],
+    "C3":  [{ "Name": "Armor HP", "Value": 58 }, { "Name": "Shield resist", "Value": -29 }, { "Name": "Small Weapon damage", "Value": 116 }, { "Name": "Signature size", "Value": 29 }],
+    "C4":  [{ "Name": "Armor HP", "Value": 72 }, { "Name": "Shield resist", "Value": -36 }, { "Name": "Small Weapon damage", "Value": 144 }, { "Name": "Signature size", "Value": 36 }],
+    "C5":  [{ "Name": "Armor HP", "Value": 86 }, { "Name": "Shield resist", "Value": -43 }, { "Name": "Small Weapon damage", "Value": 172 }, { "Name": "Signature size", "Value": -43 }],
+    "C6":  [{ "Name": "Armor HP", "Value": 100 }, { "Name": "Shield resist", "Value": -50 }, { "Name": "Small Weapon damage", "Value": 200 }, { "Name": "Signature size", "Value": -50 }],
+    "C13": [{ "Name": "Armor HP", "Value": 100 }, { "Name": "Shield resist", "Value": -50 }, { "Name": "Small Weapon damage", "Value": 200 }, { "Name": "Signature size", "Value": -50 }],
+    "C18": [{ "Name": "Armor HP", "Value": 44 }, { "Name": "Shield resist", "Value": -22 }, { "Name": "Small Weapon damage", "Value": 88 }, { "Name": "Signature size", "Value": -22 }]
+  },
+  "Cataclysmic": {
+    "C1":  [{ "Name": "Local armor repair amount", "Value": -15 }, { "Name": "Local shield boost amount", "Value": -15 }, { "Name": "Shield transfer amount", "Value": 30 }, { "Name": "Remote repair amount", "Value": 30 }, { "Name": "Capacitor capacity", "Value": 30 }, { "Name": "Capacitor recharge time", "Value": 15 }, { "Name": "Remote Capacitor Transmitter amount", "Value": -15 }],
+    "C2":  [{ "Name": "Local armor repair amount", "Value": -22 }, { "Name": "Local shield boost amount", "Value": -22 }, { "Name": "Shield transfer amount", "Value": 44 }, { "Name": "Remote repair amount", "Value": 44 }, { "Name": "Capacitor capacity", "Value": 44 }, { "Name": "Capacitor recharge time", "Value": 22 }, { "Name": "Remote Capacitor Transmitter amount", "Value": -22 }],
+    "C3":  [{ "Name": "Local armor repair amount", "Value": -29 }, { "Name": "Local shield boost amount", "Value": -29 }, { "Name": "Shield transfer amount", "Value": 58 }, { "Name": "Remote repair amount", "Value": 58 }, { "Name": "Capacitor capacity", "Value": 58 }, { "Name": "Capacitor recharge time", "Value": 29 }, { "Name": "Remote Capacitor Transmitter amount", "Value": -29 }],
+    "C4":  [{ "Name": "Local armor repair amount", "Value": -36 }, { "Name": "Local shield boost amount", "Value": -36 }, { "Name": "Shield transfer amount", "Value": 72 }, { "Name": "Remote repair amount", "Value": 72 }, { "Name": "Capacitor capacity", "Value": 72 }, { "Name": "Capacitor recharge time", "Value": 36 }, { "Name": "Remote Capacitor Transmitter amount", "Value": -36 }],
+    "C5":  [{ "Name": "Local armor repair amount", "Value": -43 }, { "Name": "Local shield boost amount", "Value": -43 }, { "Name": "Shield transfer amount", "Value": 86 }, { "Name": "Remote repair amount", "Value": 86 }, { "Name": "Capacitor capacity", "Value": 86 }, { "Name": "Capacitor recharge time", "Value": 43 }, { "Name": "Remote Capacitor Transmitter amount", "Value": -43 }],
+    "C6":  [{ "Name": "Local armor repair amount", "Value": -50 }, { "Name": "Local shield boost amount", "Value": -50 }, { "Name": "Shield transfer amount", "Value": 100 }, { "Name": "Remote repair amount", "Value": 100 }, { "Name": "Capacitor capacity", "Value": 100 }, { "Name": "Capacitor recharge time", "Value": 50 }, { "Name": "Remote Capacitor Transmitter amount", "Value": -50 }],
+    "C15": [{ "Name": "Local armor repair amount", "Value": -22 }, { "Name": "Local shield boost amount", "Value": -22 }, { "Name": "Shield transfer amount", "Value": 44 }, { "Name": "Remote repair amount", "Value": 44 }, { "Name": "Capacitor capacity", "Value": 44 }, { "Name": "Capacitor recharge time", "Value": 22 }, { "Name": "Remote Capacitor Transmitter amount", "Value": -22 }]
+  },
+  "BlackHole": {
+    "C1":  [{ "Name": "Missile velocity", "Value": 15 }, { "Name": "Missile exp. velocity", "Value": 30 }, { "Name": "Ship velocity", "Value": 30 }, { "Name": "Stasis Webifier strength", "Value": -15 }, { "Name": "Inertia", "Value": 15 }, { "Name": "Targeting range", "Value": 30 }],
+    "C2":  [{ "Name": "Missile velocity", "Value": 22 }, { "Name": "Missile exp. velocity", "Value": 44 }, { "Name": "Ship velocity", "Value": 44 }, { "Name": "Stasis Webifier strength", "Value": -22 }, { "Name": "Inertia", "Value": 22 }, { "Name": "Targeting range", "Value": 44 }],
+    "C3":  [{ "Name": "Missile velocity", "Value": 29 }, { "Name": "Missile exp. velocity", "Value": 58 }, { "Name": "Ship velocity", "Value": 58 }, { "Name": "Stasis Webifier strength", "Value": -29 }, { "Name": "Inertia", "Value": 29 }, { "Name": "Targeting range", "Value": 58 }],
+    "C4":  [{ "Name": "Missile velocity", "Value": 36 }, { "Name": "Missile exp. velocity", "Value": 72 }, { "Name": "Ship velocity", "Value": 72 }, { "Name": "Stasis Webifier strength", "Value": -36 }, { "Name": "Inertia", "Value": 36 }, { "Name": "Targeting range", "Value": 72 }],
+    "C5":  [{ "Name": "Missile velocity", "Value": 43 }, { "Name": "Missile exp. velocity", "Value": 86 }, { "Name": "Ship velocity", "Value": 86 }, { "Name": "Stasis Webifier strength", "Value": -43 }, { "Name": "Inertia", "Value": 43 }, { "Name": "Targeting range", "Value": 86 }],
+    "C6":  [{ "Name": "Missile velocity", "Value": 50 }, { "Name": "Missile exp. velocity", "Value": 100 }, { "Name": "Ship velocity", "Value": 100 }, { "Name": "Stasis Webifier strength", "Value": -50 }, { "Name": "Inertia", "Value": 50 }, { "Name": "Targeting range", "Value": 100 }]
+  }
+}

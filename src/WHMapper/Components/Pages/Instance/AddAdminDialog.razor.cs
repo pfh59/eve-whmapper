@@ -12,7 +12,7 @@ public partial class AddAdminDialog : ComponentBase
     private bool _formIsValid = false;
     private bool _adding = false;
     
-    private CharactereEntity? _selectedCharacter;
+    private CharacterEntity? _selectedCharacter;
     private int _characterId = 0;
 
     [CascadingParameter]
@@ -50,19 +50,19 @@ public partial class AddAdminDialog : ComponentBase
 
     private void Cancel() => MudDialog.Cancel();
 
-    private async Task<IEnumerable<CharactereEntity>> SearchCharacter(string? value, CancellationToken cancellationToken)
+    private async Task<IEnumerable<CharacterEntity>> SearchCharacter(string? value, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
-            return Enumerable.Empty<CharactereEntity>();
+            return Enumerable.Empty<CharacterEntity>();
 
         try
         {
             var results = await EveMapperSearch.SearchCharactere(value, cancellationToken);
-            return results ?? Enumerable.Empty<CharactereEntity>();
+            return results ?? Enumerable.Empty<CharacterEntity>();
         }
         catch
         {
-            return Enumerable.Empty<CharactereEntity>();
+            return Enumerable.Empty<CharacterEntity>();
         }
     }
 

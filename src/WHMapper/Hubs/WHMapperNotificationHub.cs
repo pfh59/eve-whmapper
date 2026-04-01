@@ -39,17 +39,16 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
 
     public override async Task OnConnectedAsync()
     {
-        
         int accountID = CurrentAccountId();
         _connections.Add(accountID, Context.ConnectionId);
         
-        if(!_connectedUserPosition.ContainsKey(accountID))
+        var previous = _connectedUserPosition.GetOrAdd(accountID, _ => null);
+        bool isNewUser = previous == null;
+        if (isNewUser)
         {
-            while (!_connectedUserPosition.TryAdd(accountID, null))
-                await Task.Delay(1);
-                    
             meters.ConnectUser();
         }
+
         await base.OnConnectedAsync();
         await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(accountID);
     }
@@ -60,33 +59,34 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         
         _connections.Remove(accountID, Context.ConnectionId);
         
-        if (_connectedUserPosition.ContainsKey(accountID) && _connections.GetConnections(accountID).Count() == 0)
+        if (!_connections.GetConnections(accountID).Any() && _connectedUserPosition.TryRemove(accountID, out _))
         {
-            while (!_connectedUserPosition.TryRemove(accountID, out _))
-                await Task.Delay(1);
-
             meters.DisconnectUser();
             await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(accountID);
         }
 
-
         await base.OnDisconnectedAsync(exception);
+    }
+
+    public async Task JoinMap(int mapId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"map:{mapId}");
+    }
+
+    public async Task LeaveMap(int mapId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"map:{mapId}");
     }
 
     public async Task SendUserPosition(int mapId,int wormholeId)
     {
         int accountID = CurrentAccountId();
-        if (_connectedUserPosition.ContainsKey(accountID))
-        {
-            KeyValuePair<int,int>? res = null;
-            while (!_connectedUserPosition.TryGetValue(accountID, out res))
-                await Task.Delay(1);
+        _connectedUserPosition.AddOrUpdate(
+            accountID,
+            new KeyValuePair<int, int>(mapId, wormholeId),
+            (_, _) => new KeyValuePair<int, int>(mapId, wormholeId));
 
-            while (!_connectedUserPosition.TryUpdate(accountID, new KeyValuePair<int,int>(mapId,wormholeId), res))
-                await Task.Delay(1);
-        }
-
-        await Clients.AllExcept(Context.ConnectionId).NotifyUserPosition(accountID, mapId, wormholeId);
+        await Clients.OthersInGroup($"map:{mapId}").NotifyUserPosition(accountID, mapId, wormholeId);
     }
 
     public async Task SendWormholeAdded(int mapId, int wowrmholeId)
@@ -95,7 +95,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         if(accountID != 0)
         {
             meters.AddSystem();
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormoleAdded(accountID, mapId, wowrmholeId);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormoleAdded(accountID, mapId, wowrmholeId);
         }
         
     }
@@ -106,7 +106,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         if(accountID != 0)
         {
             meters.DeleteSystem();
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeRemoved(accountID, mapId, wowrmholeId);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeRemoved(accountID, mapId, wowrmholeId);
         }
     }
 
@@ -116,7 +116,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         if(accountID != 0)
         {
             meters.AddLink();
-            await Clients.AllExcept(Context.ConnectionId).NotifyLinkAdded(accountID, mapId, linkId);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyLinkAdded(accountID, mapId, linkId);
         }
     }
 
@@ -126,7 +126,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         if(accountID != 0)
         {
             meters.DeleteLink();
-            await Clients.AllExcept(Context.ConnectionId).NotifyLinkRemoved(accountID, mapId, linkId);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyLinkRemoved(accountID, mapId, linkId);
         }
     }
 
@@ -135,7 +135,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormoleMoved(accountID, mapId, wowrmholeId, posX, posY);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormoleMoved(accountID, mapId, wowrmholeId, posX, posY);
         }
     }
 
@@ -145,7 +145,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyLinkChanged(accountID, mapId, linkId, eolStatus, size, mass);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyLinkChanged(accountID, mapId, linkId, eolStatus, size, mass);
         }
     }
 
@@ -154,7 +154,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeNameExtensionChanged(accountID, mapId, wowrmholeId,extension);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeNameExtensionChanged(accountID, mapId, wowrmholeId,extension);
         }
 
     }
@@ -164,7 +164,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeSignaturesChanged(accountID, mapId, wowrmholeId);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeSignaturesChanged(accountID, mapId, wowrmholeId);
         }
     }
 
@@ -173,7 +173,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeLockChanged(accountID, mapId, wormholeId, locked);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeLockChanged(accountID, mapId, wormholeId, locked);
         }
     }
 
@@ -182,7 +182,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeSystemStatusChanged(accountID, mapId, wormholeId, systemStatus);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeSystemStatusChanged(accountID, mapId, wormholeId, systemStatus);
         }
     }
     
@@ -191,7 +191,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyWormholeAlternateNameChanged(accountID, mapId, wormholeId, alternateName);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeAlternateNameChanged(accountID, mapId, wormholeId, alternateName);
         }
     }
 
@@ -270,7 +270,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyUserOnMapConnected(accountID, mapId);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyUserOnMapConnected(accountID, mapId);
         }
     }
 
@@ -279,7 +279,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
-            await Clients.AllExcept(Context.ConnectionId).NotifyUserOnMapDisconnected(accountID, mapId);
+            await Clients.OthersInGroup($"map:{mapId}").NotifyUserOnMapDisconnected(accountID, mapId);
         }
     }
 

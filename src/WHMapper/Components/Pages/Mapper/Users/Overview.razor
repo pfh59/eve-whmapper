@@ -12,9 +12,11 @@
         <MudBadge Color="@badgeColor" Overlap="true" Bordered="true" Dot="true">
             <MudMenu ActivationEvent="@MouseEvent.RightClick">
                 <ActivatorContent>
-                    <MudAvatar Style="@avatarStyle">
-                        <MudImage Src="@account.PortraitUrl"/>
-                    </MudAvatar>
+                    <div @oncontextmenu="@context.ToggleAsync" @oncontextmenu:preventDefault>
+                        <MudAvatar Style="@avatarStyle">
+                            <MudImage Src="@account.PortraitUrl"/>
+                        </MudAvatar>
+                    </div>
                 </ActivatorContent>
                 <ChildContent>
                     @if(account.IsPrimary)

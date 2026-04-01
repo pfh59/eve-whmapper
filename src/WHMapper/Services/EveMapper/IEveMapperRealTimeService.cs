@@ -443,4 +443,14 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="accountID"></param>
     /// <returns></returns>
     Task<bool> IsConnected(int accountID);
+
+    /// <summary>
+    /// Joins the SignalR group for the specified map to receive map-scoped events.
+    /// </summary>
+    Task JoinMap(int accountID, int mapId);
+
+    /// <summary>
+    /// Leaves the SignalR group for the specified map.
+    /// </summary>
+    Task LeaveMap(int accountID, int mapId);
 }

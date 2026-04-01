@@ -8,8 +8,6 @@ namespace WHMapper.Components.Pages.Mapper.CustomNode;
 public partial class EveSystemLink
 {
     private const string DEFAULT_COLOR = IWHColorHelper.DEFAULT_COLOR;
-    private string? _eolColor;
-    
 
     [Inject]
     private IWHColorHelper? WHColorHelper { get; set; }
@@ -17,15 +15,6 @@ public partial class EveSystemLink
 
     [Parameter]
     public EveSystemLinkModel Link {get;set;}=null!;
-
-    protected override Task OnParametersSetAsync()
-    {
-        if (Link != null)
-        {
-            _eolColor = WHColorHelper?.GetLinkEOLColor(Link.EndOfLifeStatus);
-        }
-        return base.OnParametersSetAsync();
-    }       
 }
 
 

@@ -1,0 +1,14 @@
+name: Triage Automation
+
+on:
+  issues:
+    types: [assigned]
+
+jobs:
+  remove-triage-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove needs-triage label
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: needs-triage

@@ -75,14 +75,21 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                     {
                         options.AccessTokenProvider = async () => token.AccessToken;
                         if (_configuration.GetValue<bool>("DisableSignalRCertificateValidation"))
-                        { 
-                            options.HttpMessageHandlerFactory = (message) =>
+                        {
+                            var env = _configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT");
+                            if (string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase))
                             {
-                                if (message is HttpClientHandler clientHandler)
-                                    // bypass SSL certificate
-                                    clientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-                                return message;
-                            };
+                                options.HttpMessageHandlerFactory = (message) =>
+                                {
+                                    if (message is HttpClientHandler clientHandler)
+                                        clientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                                    return message;
+                                };
+                            }
+                            else
+                            {
+                                _logger.LogWarning("DisableSignalRCertificateValidation is ignored outside Development environment");
+                            }
                         }
                                     
                     })
@@ -337,7 +344,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     {
         
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendUserPosition", mapId, wormholeId);
         }
@@ -346,7 +353,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyWormoleAdded(int accountID,int mapId, int wormholeId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeAdded", mapId, wormholeId);
         }
@@ -355,7 +362,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyWormholeRemoved(int accountID,int mapId, int wormholeId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeRemoved", mapId, wormholeId);
         }
@@ -364,7 +371,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyLinkAdded(int accountID,int mapId, int linkId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendLinkAdded", mapId, linkId);
         }
@@ -373,7 +380,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyLinkRemoved(int accountID,int mapId, int linkId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendLinkRemoved", mapId, linkId);
         }
@@ -382,7 +389,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyWormholeMoved(int accountID,int mapId, int wormholeId, double posX, double posY)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeMoved", mapId, wormholeId, posX, posY);
         }
@@ -391,7 +398,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyLinkChanged(int accountID,int mapId, int linkId, SystemLinkEolStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus mass)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendLinkChanged", mapId, linkId, (int)eolStatus, size, (int)mass);
         }
@@ -400,7 +407,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyWormholeNameExtensionChanged(int accountID,int mapId, int wormholeId, char? extension)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeNameExtensionChanged", mapId, wormholeId, extension);
         }
@@ -410,7 +417,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyWormholeSignaturesChanged(int accountID, int mapId, int wormholeId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeSignaturesChanged", mapId, wormholeId);
         }
@@ -419,7 +426,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyWormholeLockChanged(int accountID,int mapId, int wormholeId, bool locked)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeLockChanged", mapId, wormholeId, locked);
         }
@@ -428,7 +435,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyWormholeSystemStatusChanged(int accountID,int mapId, int wormholeId, WHSystemStatus systemStatus)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeSystemStatusChanged", mapId, wormholeId, systemStatus);
         }
@@ -437,7 +444,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyAlternameNameChanged(int accountID, int mapId, int wormholeId, string? alternateName)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendWormholeAlternateNameChanged", mapId, wormholeId, alternateName);
         }
@@ -457,7 +464,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyMapAdded(int accountID,int mapId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendMapAdded", mapId);
         }
@@ -466,7 +473,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyMapRemoved(int accountID,int mapId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendMapRemoved", mapId);
         }
@@ -475,7 +482,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyMapNameChanged(int accountID,int mapId, string newName)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendMapNameChanged", mapId, newName);
         }
@@ -484,7 +491,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyAllMapsRemoved(int accountID)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendAllMapsRemoved");
         }
@@ -493,7 +500,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyMapAccessesAdded(int accountID,int mapId, IEnumerable<int> accessIds)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendMapAccessesAdded", mapId, accessIds);
         }
@@ -502,7 +509,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyMapAccessRemoved(int accountID,int mapId, int accessId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendMapAccessRemoved", mapId, accessId);
         }
@@ -511,7 +518,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyMapAllAccessesRemoved(int accountID,int mapId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendMapAllAccessesRemoved", mapId);
         }
@@ -520,7 +527,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyUserOnMapConnected(int accountID,int mapId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendUserOnMapConnected", mapId);
         }
@@ -529,7 +536,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyUserOnMapDisconnected(int accountID,int mapId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendUserOnMapDisconnected", mapId);
         }
@@ -538,7 +545,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyInstanceAccessAdded(int accountID, int instanceId, int accessId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendInstanceAccessAdded", instanceId, accessId);
         }
@@ -547,7 +554,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task NotifyInstanceAccessRemoved(int accountID, int instanceId, int accessId)
     {
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
             await hubConnection.SendAsync("SendInstanceAccessRemoved", instanceId, accessId);
         }
@@ -627,5 +634,23 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
 
         return false;
+    }
+
+    public async Task JoinMap(int accountID, int mapId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
+        {
+            await hubConnection.SendAsync("JoinMap", mapId);
+        }
+    }
+
+    public async Task LeaveMap(int accountID, int mapId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
+        {
+            await hubConnection.SendAsync("LeaveMap", mapId);
+        }
     }
 }

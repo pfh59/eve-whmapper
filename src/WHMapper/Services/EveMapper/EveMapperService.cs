@@ -44,7 +44,7 @@ public class EveMapperService : IEveMapperService
             else
             {
                 // Add to cache (fire and forget) and return the entity
-                var entity = entityMap(apiResult);
+                var entity = entityMap(apiResult!);
                 if (entity != null)
                 {
                     await _cacheService.AddAsync(entity);
@@ -67,11 +67,11 @@ public class EveMapperService : IEveMapperService
         );
     }
 
-    public async Task<CharactereEntity?> GetCharacter(int characterId)
+    public async Task<CharacterEntity?> GetCharacter(int characterId)
     {
         return await Get(characterId,
             async x => (await x.CharacterServices.GetCharacter(characterId))?.Data,
-            x => new CharactereEntity(characterId, x)
+            x => new CharacterEntity(characterId, x)
         );
     }
 

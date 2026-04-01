@@ -100,7 +100,7 @@ public class EveWHMapperEntityTest
 
     public async Task Get_Character_Test()
     {
-        var clearing = await _eveMapperCacheService.ClearCacheAsync<CharactereEntity>();
+        var clearing = await _eveMapperCacheService.ClearCacheAsync<CharacterEntity>();
         Assert.True(clearing);
 
         var character = await _eveMapperService.GetCharacter(BAD_ID);
@@ -124,7 +124,7 @@ public class EveWHMapperEntityTest
         Assert.Equal(CHARACTER_GOONS_NAME, character.Name);
         Assert.True(with_cache < without_cache);
 
-        clearing = await _eveMapperCacheService.ClearCacheAsync<CharactereEntity>();
+        clearing = await _eveMapperCacheService.ClearCacheAsync<CharacterEntity>();
         Assert.True(clearing);
     }
 
