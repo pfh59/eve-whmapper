@@ -5,7 +5,8 @@ namespace WHMapper.Models.Db.Enums
         Unknown,
         Friendly,
         Occupied,
-        Hostile
+        Hostile,
+        Empty
     }
 }
 

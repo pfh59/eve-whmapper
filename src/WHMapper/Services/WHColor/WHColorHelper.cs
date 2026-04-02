@@ -71,6 +71,7 @@ namespace WHMapper.Services.WHColor
         private const string NODE_STATUS_FRIENDLY_COLOR = "#428bca";
         private const string NODE_STATUS_OCCUPIED_COLOR = "#e28a0d";
         private const string NODE_STATUS_HOSTILE_COLOR = "#be0000";
+        private const string NODE_STATUS_EMPTY_COLOR = "#00b300";
         private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
 
 
@@ -97,6 +98,8 @@ namespace WHMapper.Services.WHColor
                     return NODE_STATUS_OCCUPIED_COLOR;
                 case WHSystemStatus.Hostile:
                     return NODE_STATUS_HOSTILE_COLOR;
+                case WHSystemStatus.Empty:
+                    return NODE_STATUS_EMPTY_COLOR;
                 default:
                     return IWHColorHelper.DEFAULT_COLOR;
             }

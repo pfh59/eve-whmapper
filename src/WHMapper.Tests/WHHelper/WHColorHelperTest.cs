@@ -82,6 +82,7 @@ public class WHColorHelperTest
     private const string NODE_STATUS_FRIENDLY_COLOR = "#428bca";
     private const string NODE_STATUS_OCCUPIED_COLOR = "#e28a0d";
     private const string NODE_STATUS_HOSTILE_COLOR = "#be0000";
+    private const string NODE_STATUS_EMPTY_COLOR = "#00b300";
     private const string NODE_STATUS_UNKNOWN_COLOR = IWHColorHelper.DEFAULT_COLOR;
 
 
@@ -178,6 +179,7 @@ public class WHColorHelperTest
         Assert.Equal(NODE_STATUS_FRIENDLY_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Friendly));
         Assert.Equal(NODE_STATUS_OCCUPIED_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Occupied));
         Assert.Equal(NODE_STATUS_HOSTILE_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Hostile));
+        Assert.Equal(NODE_STATUS_EMPTY_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Empty));
         Assert.Equal(NODE_STATUS_UNKNOWN_COLOR, _whHelper.GetNodeStatusColor(WHSystemStatus.Unknown));
         Assert.Equal(IWHColorHelper.DEFAULT_COLOR, _whHelper.GetNodeStatusColor((WHSystemStatus)28));
     }
