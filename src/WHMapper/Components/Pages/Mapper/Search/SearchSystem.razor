@@ -5,7 +5,7 @@
         <MudForm @bind-IsValid="@_success" @ref="@_form">
             <MudAutocomplete T="SDESolarSystem" Label="System Name" @bind-Value="_searchResult" SearchFunc="@EveMapperSearch.SearchSystem"
                 Margin="Margin.Dense" Dense="true"
-                Required="true" ResetValueOnEmptyText="true" CoerceValue="true" CoerceText="true"
+                Required="true" ResetValueOnEmptyText="true" CoerceText="true"
                 Validation="@(new Func<string, IEnumerable<string>>(EveMapperSearch.ValidateSearchType))"
                 AdornmentIcon="@Icons.Material.Filled.Search" 
                 AdornmentColor="Color.Primary" 

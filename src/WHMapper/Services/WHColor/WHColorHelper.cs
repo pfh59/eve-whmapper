@@ -62,7 +62,7 @@ namespace WHMapper.Services.WHColor
         private const string WH_EOL_4H_COLOR = "#d747d6";
         private const string WH_EOL_1H_COLOR = "#d747d6";
         private const string WH_MASS_NORMAL_COLOR = "#3C3F41";
-        private const string WH_MASS_CRITICAL_COLOR = "#e28a0d";
+        private const string WH_MASS_REDUCED_COLOR = "#e28a0d";
         private const string WH_MASS_VERGE_COLOR = "#a52521";
 
         private const string SELECTED_LINK_COLOR = "white";
@@ -227,8 +227,8 @@ namespace WHMapper.Services.WHColor
             {
                 case SystemLinkMassStatus.Normal:
                     return WH_MASS_NORMAL_COLOR;
-                case SystemLinkMassStatus.Critical:
-                    return WH_MASS_CRITICAL_COLOR;
+                case SystemLinkMassStatus.Reduced:
+                    return WH_MASS_REDUCED_COLOR;
                 case SystemLinkMassStatus.Verge:
                     return WH_MASS_VERGE_COLOR;
             }

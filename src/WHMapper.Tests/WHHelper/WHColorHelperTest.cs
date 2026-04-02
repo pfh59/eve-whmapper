@@ -74,7 +74,7 @@ public class WHColorHelperTest
     private const string WH_EOL_4H_COLOR = "#d747d6";
     private const string WH_EOL_1H_COLOR = "#d747d6";
     private const string WH_MASS_NORMAL_COLOR = "#3C3F41";
-    private const string WH_MASS_CRITICAL_COLOR = "#e28a0d";
+    private const string WH_MASS_REDUCED_COLOR = "#e28a0d";
     private const string WH_MASS_VERGE_COLOR = "#a52521";
 
     private const string SELECTED_LINK_COLOR = "white";
@@ -162,7 +162,7 @@ public class WHColorHelperTest
     public void Get_Link_Status_Color()
     {
         Assert.Equal(WH_MASS_NORMAL_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Normal));
-        Assert.Equal(WH_MASS_CRITICAL_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Critical));
+        Assert.Equal(WH_MASS_REDUCED_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Reduced));
         Assert.Equal(WH_MASS_VERGE_COLOR, _whHelper.GetLinkStatusColor(SystemLinkMassStatus.Verge));
         Assert.Equal(WH_MASS_NORMAL_COLOR, _whHelper.GetLinkStatusColor((SystemLinkMassStatus)212));
     }

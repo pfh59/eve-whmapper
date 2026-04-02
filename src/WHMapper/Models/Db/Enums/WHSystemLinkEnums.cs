@@ -11,7 +11,7 @@
     public enum SystemLinkMassStatus : int
     {
         Normal = 0,
-        Critical = 1,
+        Reduced = 1,
         Verge = 2
     }
 }
