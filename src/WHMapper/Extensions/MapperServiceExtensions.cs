@@ -39,6 +39,7 @@ public static class MapperServiceExtensions
         services.AddScoped<IEveMapperCacheService, EveMapperCacheService>();
         services.AddScoped<IEveMapperAccessHelper, EveMapperAccessHelper>();
         services.AddScoped<IEveMapperInstanceService, EveMapperInstanceService>();
+        services.AddScoped<IInstanceRegistrationHelper, InstanceRegistrationHelper>();
         services.AddScoped<IEveMapperTracker, EveMapperTracker>();
         services.AddScoped<IEveMapperSearch, EveMapperSearch>();
         services.AddScoped<IEveMapperHelper, EveMapperHelper>();

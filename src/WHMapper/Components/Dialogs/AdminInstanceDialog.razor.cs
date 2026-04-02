@@ -123,29 +123,20 @@ public partial class AdminInstanceDialog
 
     private async Task DeleteInstance()
     {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ContentText, "Are you sure you want to delete this instance? This will delete all maps and data. This action cannot be undone!" },
-            { x => x.ConfirmText, "Delete" },
-            { x => x.CancelText, "Cancel" },
-            { x => x.ButtonColor, Color.Error }
-        };
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Instance", parameters, options);
-        var result = await dialog.Result;
+        if (!await ShowConfirmationAsync("Delete Instance",
+            "Are you sure you want to delete this instance? This will delete all maps and data. This action cannot be undone!",
+            "Delete"))
+            return;
 
-        if (result != null && !result.Canceled)
+        var success = await InstanceService.DeleteInstanceAsync(InstanceId, _characterId);
+        if (success)
         {
-            var success = await InstanceService.DeleteInstanceAsync(InstanceId, _characterId);
-            if (success)
-            {
-                Snackbar.Add("Instance deleted successfully", Severity.Success);
-                MudDialog.Close(DialogResult.Ok(true));
-            }
-            else
-            {
-                Snackbar.Add("Failed to delete instance", Severity.Error);
-            }
+            Snackbar.Add("Instance deleted successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete instance", Severity.Error);
         }
     }
 
@@ -169,30 +160,21 @@ public partial class AdminInstanceDialog
 
     private async Task DeleteMap(WHMap map)
     {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ContentText, $"Are you sure you want to delete the map '{map.Name}'? All systems and connections will be lost!" },
-            { x => x.ConfirmText, "Delete" },
-            { x => x.CancelText, "Cancel" },
-            { x => x.ButtonColor, Color.Error }
-        };
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Map", parameters, options);
-        var result = await dialog.Result;
+        if (!await ShowConfirmationAsync("Delete Map",
+            $"Are you sure you want to delete the map '{map.Name}'? All systems and connections will be lost!",
+            "Delete"))
+            return;
 
-        if (result != null && !result.Canceled)
+        var success = await InstanceService.DeleteMapAsync(InstanceId, map.Id, _characterId);
+        if (success)
         {
-            var success = await InstanceService.DeleteMapAsync(InstanceId, map.Id, _characterId);
-            if (success)
-            {
-                Snackbar.Add("Map deleted successfully", Severity.Success);
-                await LoadDataAsync();
-                StateHasChanged();
-            }
-            else
-            {
-                Snackbar.Add("Failed to delete map", Severity.Error);
-            }
+            Snackbar.Add("Map deleted successfully", Severity.Success);
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete map", Severity.Error);
         }
     }
 
@@ -216,30 +198,21 @@ public partial class AdminInstanceDialog
 
     private async Task RemoveAdmin(WHInstanceAdmin admin)
     {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ContentText, $"Are you sure you want to remove '{admin.EveCharacterName}' as an administrator?" },
-            { x => x.ConfirmText, "Remove" },
-            { x => x.CancelText, "Cancel" },
-            { x => x.ButtonColor, Color.Error }
-        };
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Administrator", parameters, options);
-        var result = await dialog.Result;
+        if (!await ShowConfirmationAsync("Remove Administrator",
+            $"Are you sure you want to remove '{admin.EveCharacterName}' as an administrator?",
+            "Remove"))
+            return;
 
-        if (result != null && !result.Canceled)
+        var success = await InstanceService.RemoveAdminAsync(InstanceId, admin.EveCharacterId, _characterId);
+        if (success)
         {
-            var success = await InstanceService.RemoveAdminAsync(InstanceId, admin.EveCharacterId, _characterId);
-            if (success)
-            {
-                Snackbar.Add("Administrator removed successfully", Severity.Success);
-                await LoadDataAsync();
-                StateHasChanged();
-            }
-            else
-            {
-                Snackbar.Add("Failed to remove administrator", Severity.Error);
-            }
+            Snackbar.Add("Administrator removed successfully", Severity.Success);
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Failed to remove administrator", Severity.Error);
         }
     }
 
@@ -263,41 +236,32 @@ public partial class AdminInstanceDialog
 
     private async Task RemoveAccess(WHInstanceAccess access)
     {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ContentText, $"Are you sure you want to remove access for '{access.EveEntityName}'?" },
-            { x => x.ConfirmText, "Remove" },
-            { x => x.CancelText, "Cancel" },
-            { x => x.ButtonColor, Color.Error }
-        };
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Access", parameters, options);
-        var result = await dialog.Result;
+        if (!await ShowConfirmationAsync("Remove Access",
+            $"Are you sure you want to remove access for '{access.EveEntityName}'?",
+            "Remove"))
+            return;
 
-        if (result != null && !result.Canceled)
+        var accessId = access.Id;
+        var (success, removedMapAccesses) = await InstanceService.RemoveAccessAsync(InstanceId, accessId, _characterId);
+        if (success)
         {
-            var accessId = access.Id;
-            var (success, removedMapAccesses) = await InstanceService.RemoveAccessAsync(InstanceId, accessId, _characterId);
-            if (success)
+            Snackbar.Add("Access removed successfully", Severity.Success);
+            await RealTimeService.NotifyInstanceAccessRemoved(_characterId, InstanceId, accessId);
+            
+            foreach (var mapAccess in removedMapAccesses)
             {
-                Snackbar.Add("Access removed successfully", Severity.Success);
-                await RealTimeService.NotifyInstanceAccessRemoved(_characterId, InstanceId, accessId);
-                
-                foreach (var mapAccess in removedMapAccesses)
+                foreach (var removedAccessId in mapAccess.Value)
                 {
-                    foreach (var removedAccessId in mapAccess.Value)
-                    {
-                        await RealTimeService.NotifyMapAccessRemoved(_characterId, mapAccess.Key, removedAccessId);
-                    }
+                    await RealTimeService.NotifyMapAccessRemoved(_characterId, mapAccess.Key, removedAccessId);
                 }
-                
-                await LoadDataAsync();
-                StateHasChanged();
             }
-            else
-            {
-                Snackbar.Add("Failed to remove access", Severity.Error);
-            }
+            
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Failed to remove access", Severity.Error);
         }
     }
 
@@ -319,6 +283,21 @@ public partial class AdminInstanceDialog
             await LoadDataAsync();
             StateHasChanged();
         }
+    }
+
+    private async Task<bool> ShowConfirmationAsync(string title, string content, string confirmText = "Delete")
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, content },
+            { x => x.ConfirmText, confirmText },
+            { x => x.CancelText, "Cancel" },
+            { x => x.ButtonColor, Color.Error }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(title, parameters, options);
+        var result = await dialog.Result;
+        return result != null && !result.Canceled;
     }
 
     private void Close() => MudDialog.Cancel();
