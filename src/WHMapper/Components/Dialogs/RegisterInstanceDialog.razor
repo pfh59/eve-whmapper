@@ -58,13 +58,13 @@
                     <MudSelectItem Value="WHAccessEntity.Character">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" /> Personal (Just me)
                     </MudSelectItem>
-                    @if (_characterInfo?.CorporationId > 0)
+                    @if (_context.CharacterInfo?.CorporationId > 0)
                     {
                         <MudSelectItem Value="WHAccessEntity.Corporation">
                             <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" /> Corporation (@_corporationName)
                         </MudSelectItem>
                     }
-                    @if (_characterInfo?.AllianceId > 0)
+                    @if (_context.CharacterInfo?.AllianceId > 0)
                     {
                         <MudSelectItem Value="WHAccessEntity.Alliance">
                             <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-2" /> Alliance (@_allianceName)
