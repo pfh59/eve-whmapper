@@ -214,7 +214,7 @@ namespace WHMapper.Tests.Models.Custom.Node
 
         [Theory]
         [InlineData(SystemLinkMassStatus.Normal)]
-        [InlineData(SystemLinkMassStatus.Critical)]
+        [InlineData(SystemLinkMassStatus.Reduced)]
         [InlineData(SystemLinkMassStatus.Verge)]
         public void MassStatus_GetSet_ShouldWork(SystemLinkMassStatus status)
         {
