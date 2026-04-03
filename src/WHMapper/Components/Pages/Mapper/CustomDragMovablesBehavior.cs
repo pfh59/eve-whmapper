@@ -8,10 +8,12 @@ namespace WHMapper.Components.Pages.Mapper
 {
     public class CustomDragMovablesBehavior : Behavior
     {
+        private const double DragThreshold = 5.0;
         private readonly Dictionary<MovableModel, Point> _initialPositions;
         private double? _lastClientX;
         private double? _lastClientY;
         private bool _moved;
+        private bool _dragStarted;
 
         public CustomDragMovablesBehavior(Diagram diagram) : base(diagram)
         {
@@ -49,6 +51,7 @@ namespace WHMapper.Components.Pages.Mapper
             _lastClientX = e.ClientX;
             _lastClientY = e.ClientY;
             _moved = false;
+            _dragStarted = false;
         }
 
         private void OnPointerMove(Model? model, PointerEventArgs e)
@@ -56,7 +59,24 @@ namespace WHMapper.Components.Pages.Mapper
             if (_initialPositions.Count == 0 || _lastClientX == null || _lastClientY == null)
                 return;
 
+            // Left button released outside the canvas (e.g. over bottom panel)
+            if ((e.Buttons & 1) == 0)
+            {
+                CancelDrag();
+                return;
+            }
+
             _moved = true;
+
+            if (!_dragStarted)
+            {
+                var dx = e.ClientX - _lastClientX.Value;
+                var dy = e.ClientY - _lastClientY.Value;
+                if (dx * dx + dy * dy < DragThreshold * DragThreshold)
+                    return;
+                _dragStarted = true;
+            }
+
             var deltaX = (e.ClientX - _lastClientX.Value) / Diagram.Zoom;
             var deltaY = (e.ClientY - _lastClientY.Value) / Diagram.Zoom;
 
@@ -80,7 +100,7 @@ namespace WHMapper.Components.Pages.Mapper
             if (_initialPositions.Count == 0 || e.Button != 0)
                 return;
 
-            if (_moved)
+            if (_moved && _dragStarted)
             {
                 foreach (var (movable, _) in _initialPositions)
                 {
@@ -88,9 +108,16 @@ namespace WHMapper.Components.Pages.Mapper
                 }
             }
 
+            CancelDrag();
+        }
+
+        public void CancelDrag()
+        {
             _initialPositions.Clear();
             _lastClientX = null;
             _lastClientY = null;
+            _moved = false;
+            _dragStarted = false;
         }
 
         private double ApplyGridSize(double n)
