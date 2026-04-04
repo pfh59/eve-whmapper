@@ -38,7 +38,6 @@ public partial class RouteDetails
         List<RouteSystemDetail> details = new List<RouteSystemDetail>();
         if(RouteSystems != null)
         {
-            details.Clear();
             foreach(var systemId in RouteSystems)
             {
                 var systemInfo = await EveMapperService.GetSystem(systemId);
