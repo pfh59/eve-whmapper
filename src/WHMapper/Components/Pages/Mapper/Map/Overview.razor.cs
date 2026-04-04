@@ -31,6 +31,7 @@ public partial class Overview : IAsyncDisposable
     private const string UidNullOrEmptyMessage = "UID is null or empty";
 
     private BlazorDiagram _blazorDiagram = null!;
+    private MudMenu _contextMenu = null!;
     private int? _selectedWHMapId = null;
 
     private bool _loading = true;
@@ -485,6 +486,13 @@ public partial class Overview : IAsyncDisposable
 
         _blazorDiagram.SelectionChanged += async (item) => await OnDiagramSelectionChanged(item);
         _blazorDiagram.KeyDown += async (kbevent) => await OnDiagramKeyDown(kbevent);
+        _blazorDiagram.PointerDown += async (item, pointerEvent) =>
+        {
+            if (pointerEvent.Button == 0)
+            {
+                await _contextMenu.CloseMenuAsync();
+            }
+        };
         _blazorDiagram.PointerUp += async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
 
         return Task.CompletedTask;
