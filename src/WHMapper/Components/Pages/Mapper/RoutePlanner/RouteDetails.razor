@@ -1,0 +1,16 @@
+@using WHMapper.Models.DTO.RoutePlanner
+@using WHMapper.Services.WHColor;
+    <MudPaper Class="d-flex align-content-start flex-wrap flex-grow-1 gap-1" MaxWidth="160px" MaxHeight="100px" Elevation="0">
+@if(RouteSystems != null && RouteSystems.Length > 0)
+{
+
+        @foreach(RouteSystemDetail sysInfo in _routeSystemDetails)
+        {
+
+            <MudTooltip Text="@sysInfo.SystemName" Placement="Placement.Top">
+                <MudPaper Width="14px" Height="14px" Style="@($"background-color:{sysInfo.Color};")" />
+            </MudTooltip>
+        }
+}
+    </MudPaper>
+
