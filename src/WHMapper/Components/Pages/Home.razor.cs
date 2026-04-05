@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using WHMapper.Components.Pages.Instance;
 using WHMapper.Models.DTO;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.SDE;
@@ -34,6 +35,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
 
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
         if (SDEServices.IsExtractionSuccesful())
@@ -56,6 +60,25 @@ public partial class Home : ComponentBase, IAsyncDisposable
         UserManagement.PrimaryAccountChanged += OnPrimaryAccountChanged;
 
         await base.OnInitializedAsync();
+    }
+
+    private async Task OpenRegisterDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        var dialog = await DialogService.ShowAsync<RegisterInstanceDialog>("Create Instance", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

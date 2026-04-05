@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace WHMapper.Components.Dialogs;
+namespace WHMapper.Components.Pages.Instance;
 
 public partial class ConfirmationDialog
 {

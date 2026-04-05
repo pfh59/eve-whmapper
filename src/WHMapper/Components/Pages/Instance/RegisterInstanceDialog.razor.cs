@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Db.Enums;
@@ -7,8 +6,26 @@ using WHMapper.Services.EveMapper;
 
 namespace WHMapper.Components.Pages.Instance;
 
-public partial class Register : ComponentBase
+public partial class RegisterInstanceDialog
 {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Inject]
+    private ILogger<RegisterInstanceDialog> Logger { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = null!;
+
+    [Inject]
+    private ClientUID UID { get; set; } = null!;
+
+    [Inject]
+    private IInstanceRegistrationHelper RegistrationHelper { get; set; } = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
     private bool _formIsValid = false;
     private bool _loading = true;
     private bool _registering = false;
@@ -25,21 +42,6 @@ public partial class Register : ComponentBase
     private int _existingInstanceId => _context.ExistingInstanceId;
     private string _corporationName => _context.CorporationName;
     private string _allianceName => _context.AllianceName;
-
-    [Inject]
-    private ILogger<Register> Logger { get; set; } = null!;
-
-    [Inject]
-    private ISnackbar Snackbar { get; set; } = null!;
-
-    [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
-
-    [Inject]
-    private ClientUID UID { get; set; } = null!;
-
-    [Inject]
-    private IInstanceRegistrationHelper RegistrationHelper { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,7 +83,20 @@ public partial class Register : ComponentBase
             if (instance != null)
             {
                 Snackbar.Add("Instance created successfully!", Severity.Success);
-                Navigation.NavigateTo($"/instance/{instance.Id}/admin");
+                MudDialog.Close(DialogResult.Ok(instance.Id));
+                
+                // Open the admin dialog for the newly created instance
+                var parameters = new DialogParameters<AdminInstanceDialog>
+                {
+                    { x => x.InstanceId, instance.Id }
+                };
+                var options = new DialogOptions
+                {
+                    MaxWidth = MaxWidth.Large,
+                    FullWidth = true,
+                    CloseButton = true
+                };
+                await DialogService.ShowAsync<AdminInstanceDialog>("Instance Administration", parameters, options);
             }
             else
             {
@@ -102,4 +117,23 @@ public partial class Register : ComponentBase
             _registering = false;
         }
     }
+
+    private async Task ManageExistingInstance()
+    {
+        MudDialog.Close(DialogResult.Ok(_existingInstanceId));
+        
+        var parameters = new DialogParameters<AdminInstanceDialog>
+        {
+            { x => x.InstanceId, _existingInstanceId }
+        };
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true,
+            CloseButton = true
+        };
+        await DialogService.ShowAsync<AdminInstanceDialog>("Instance Administration", parameters, options);
+    }
+
+    private void Close() => MudDialog.Cancel();
 }

@@ -6,7 +6,7 @@ using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 
-namespace WHMapper.Components.Dialogs;
+namespace WHMapper.Components.Pages.Instance;
 
 public partial class InstancesDialog
 {

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using WHMapper.Components.Dialogs;
 using WHMapper.Models.Db;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO;
