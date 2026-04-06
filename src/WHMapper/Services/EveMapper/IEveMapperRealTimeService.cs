@@ -207,6 +207,13 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     event Func<int, int, int, Task> InstanceAccessRemoved;
 
     /// <summary>
+    /// Triggered when an instance is removed.
+    /// </summary>
+    /// <param name="accountID">The accountID of the user who removed the instance.</param>
+    /// <param name="instanceId">The ID of the removed instance.</param>
+    event Func<int, int, Task> InstanceRemoved;
+
+    /// <summary>
     /// Starts the real-time service.
     /// </summary>
     /// <param name="accountID">The ID of the account.</param>
@@ -436,6 +443,14 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// <param name="accessId">The ID of the access that was removed.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task NotifyInstanceAccessRemoved(int accountID, int instanceId, int accessId);
+
+    /// <summary>
+    /// Notifies the server that an instance has been removed.
+    /// </summary>
+    /// <param name="accountID">The ID of the account.</param>
+    /// <param name="instanceId">The ID of the removed instance.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task NotifyInstanceRemoved(int accountID, int instanceId);
 
     /// <summary>
     /// Checks if the account is connected.

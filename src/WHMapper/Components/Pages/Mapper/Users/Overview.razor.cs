@@ -290,10 +290,8 @@ public partial class Overview : IAsyncDisposable
 
     private void UpdateInstancesPageState(string uri)
     {
-        var relativeUri = new Uri(uri).PathAndQuery;
-        IsOnInstancesPage = relativeUri.StartsWith("/instances", StringComparison.OrdinalIgnoreCase) ||
-                           relativeUri.StartsWith("/instance/", StringComparison.OrdinalIgnoreCase) ||
-                           relativeUri.StartsWith("/register", StringComparison.OrdinalIgnoreCase);
+        // Instance management is now handled via dialogs, not separate pages
+        IsOnInstancesPage = false;
     }
 
     private async Task PauseTrackingForInstancesPage()

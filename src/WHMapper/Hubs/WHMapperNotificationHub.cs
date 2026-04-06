@@ -301,7 +301,14 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         }
     }
 
- 
+    public async Task SendInstanceRemoved(int instanceId)
+    {
+        int accountID = CurrentAccountId();
+        if(accountID != 0)
+        {
+            await Clients.All.NotifyInstanceRemoved(accountID, instanceId);
+        }
+    }
 
 }
 

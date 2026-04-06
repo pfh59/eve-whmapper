@@ -6,7 +6,7 @@ using WHMapper.Models.DTO;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveMapper;
 
-namespace WHMapper.Components.Dialogs;
+namespace WHMapper.Components.Pages.Instance;
 
 public partial class InstancesDialog
 {
@@ -119,10 +119,19 @@ public partial class InstancesDialog
             BackdropClick = true
         };
 
-        await DialogService.ShowAsync<AdminInstanceDialog>("Manage Instance", parameters, options);
+        var dialog = await DialogService.ShowAsync<AdminInstanceDialog>("Manage Instance", parameters, options);
+        await dialog.Result;
         
         // Reload instances after admin dialog closes in case of changes
         await LoadInstancesAsync();
+
+        // Auto-close if no instances remain (e.g. last instance was deleted)
+        if (_instances?.Any() != true)
+        {
+            MudDialog.Close();
+            return;
+        }
+
         StateHasChanged();
     }
 
@@ -136,7 +145,8 @@ public partial class InstancesDialog
             BackdropClick = true
         };
 
-        await DialogService.ShowAsync<RegisterInstanceDialog>("Create Instance", options);
+        var dialog = await DialogService.ShowAsync<RegisterInstanceDialog>("Create Instance", options);
+        await dialog.Result;
         
         // Reload instances after creation dialog closes
         await LoadInstancesAsync();

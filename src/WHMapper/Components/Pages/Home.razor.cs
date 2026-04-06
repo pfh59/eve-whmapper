@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
+using WHMapper.Components.Pages.Instance;
 using WHMapper.Models.DTO;
 using WHMapper.Services.EveMapper;
 using WHMapper.Services.SDE;
@@ -32,7 +34,10 @@ public partial class Home : ComponentBase, IAsyncDisposable
     private ClientUID UID { get; set; } = null!;
 
     [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
+    private IJSRuntime JSRuntime { get; set; } = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,6 +61,25 @@ public partial class Home : ComponentBase, IAsyncDisposable
         UserManagement.PrimaryAccountChanged += OnPrimaryAccountChanged;
 
         await base.OnInitializedAsync();
+    }
+
+    private async Task OpenRegisterDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        var dialog = await DialogService.ShowAsync<RegisterInstanceDialog>("Create Instance", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await JSRuntime.InvokeVoidAsync("window.location.replace", "/");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -158,10 +182,10 @@ public partial class Home : ComponentBase, IAsyncDisposable
             // Refresh the page to re-evaluate the authorization
             // The policy will check if we now have access
             Snackbar.Add("You have been granted access to an instance! Refreshing...", Severity.Success);
-            await InvokeAsync(() =>
+            await InvokeAsync(async () =>
             {
-                // Force navigation to reload the page and re-evaluate authorization
-                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                // Force page reload to re-evaluate authorization
+                await JSRuntime.InvokeVoidAsync("window.location.replace", "/");
             });
         }
         catch (Exception)
@@ -190,10 +214,10 @@ public partial class Home : ComponentBase, IAsyncDisposable
             // Refresh the page to re-evaluate the authorization
             // The policy will check if we still have access
             Snackbar.Add("Your access to an instance has been revoked. Refreshing...", Severity.Warning);
-            await InvokeAsync(() =>
+            await InvokeAsync(async () =>
             {
-                // Force navigation to reload the page and re-evaluate authorization
-                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                // Force page reload to re-evaluate authorization
+                await JSRuntime.InvokeVoidAsync("window.location.replace", "/");
             });
         }
         catch (Exception)
@@ -210,11 +234,11 @@ public partial class Home : ComponentBase, IAsyncDisposable
             if (clientId != UID.ClientId)
                 return;
 
-            // Force navigation to reload the page and re-evaluate authorization
+            // Force page reload to re-evaluate authorization
             // The new primary account may have different instance access
-            await InvokeAsync(() =>
+            await InvokeAsync(async () =>
             {
-                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                await JSRuntime.InvokeVoidAsync("window.location.replace", "/");
             });
         }
         catch (Exception)

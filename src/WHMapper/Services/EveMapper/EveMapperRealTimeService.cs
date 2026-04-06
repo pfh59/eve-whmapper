@@ -41,6 +41,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public event Func<int, int, Task>? UserOnMapDisconnected;
     public event Func<int, int, int, Task>? InstanceAccessAdded;
     public event Func<int, int, int, Task>? InstanceAccessRemoved;
+    public event Func<int, int, Task>? InstanceRemoved;
 
 
     public EveMapperRealTimeService(ILogger<EveMapperRealTimeService> logger, NavigationManager navigation, IEveOnlineTokenProvider tokenProvider, IConfiguration configuration)
@@ -274,6 +275,13 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
                     if (InstanceAccessRemoved != null)
                     {
                         await InstanceAccessRemoved.Invoke(accountID, instanceId, accessId);
+                    }
+                });
+                hubConnection.On<int, int>("NotifyInstanceRemoved", async (accountID, instanceId) => 
+                {
+                    if (InstanceRemoved != null)
+                    {
+                        await InstanceRemoved.Invoke(accountID, instanceId);
                     }
                 });
 
@@ -560,6 +568,15 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
+    public async Task NotifyInstanceRemoved(int accountID, int instanceId)
+    {
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
+        {
+            await hubConnection.SendAsync("SendInstanceRemoved", instanceId);
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -619,6 +636,7 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
             UserOnMapDisconnected = null;
             InstanceAccessAdded = null;
             InstanceAccessRemoved = null;
+            InstanceRemoved = null;
         }
         
         _logger.LogInformation("EveMapperRealTimeService disposed");

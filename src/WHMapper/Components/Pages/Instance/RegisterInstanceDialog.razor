@@ -98,7 +98,7 @@
         else if (_isAuthenticated && !_loading)
         {
             <MudButton Variant="Variant.Filled" 
-                       Color="Color.Primary" 
+                       Color="Color.Success" 
                        OnClick="RegisterInstance" 
                        Disabled="@(!_formIsValid || _registering)">
                 @if (_registering)
@@ -114,6 +114,6 @@
             </MudButton>
         }
         <MudSpacer />
-        <MudButton Variant="Variant.Text" OnClick="Close">Close</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Close" Color="Color.Error">Close</MudButton>
     </DialogActions>
 </MudDialog>
