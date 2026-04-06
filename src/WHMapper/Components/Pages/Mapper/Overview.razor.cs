@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Models.Db;
 using MudBlazor;
@@ -55,7 +56,7 @@ public partial class Overview : IAsyncDisposable
     private ClientUID UID { get; set; } = null!;
 
     [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
+    private IJSRuntime JSRuntime { get; set; } = null!;
 
     [Inject]
     IWHMapRepository DbWHMaps { get; set; } = null!;
@@ -657,9 +658,9 @@ public partial class Overview : IAsyncDisposable
             if (!WHMaps.Any())
             {
                 // Force page reload to re-evaluate Access policy and show registration page
-                await InvokeAsync(() =>
+                await InvokeAsync(async () =>
                 {
-                    Navigation.NavigateTo("/", forceLoad: true);
+                    await JSRuntime.InvokeVoidAsync("window.location.replace", "/");
                 });
                 return;
             }
