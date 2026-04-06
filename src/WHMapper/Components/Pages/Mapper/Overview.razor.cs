@@ -55,6 +55,9 @@ public partial class Overview : IAsyncDisposable
     private ClientUID UID { get; set; } = null!;
 
     [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
+
+    [Inject]
     IWHMapRepository DbWHMaps { get; set; } = null!;
 
     [Inject]
@@ -229,6 +232,7 @@ public partial class Overview : IAsyncDisposable
                 RealTimeService.MapAllAccessesRemoved -= OnMapAllAccessesRemoved;
                 RealTimeService.InstanceAccessAdded -= OnInstanceAccessAdded;
                 RealTimeService.InstanceAccessRemoved -= OnInstanceAccessRemoved;
+                RealTimeService.InstanceRemoved -= OnInstanceRemoved;
                 // Note: Do NOT dispose RealTimeService here - it's a scoped service managed by DI
                 // and may be used by other components in the same circuit
             }
@@ -262,6 +266,7 @@ public partial class Overview : IAsyncDisposable
             RealTimeService.MapAllAccessesRemoved+=OnMapAllAccessesRemoved;
             RealTimeService.InstanceAccessAdded+=OnInstanceAccessAdded;
             RealTimeService.InstanceAccessRemoved+=OnInstanceAccessRemoved;
+            RealTimeService.InstanceRemoved+=OnInstanceRemoved;
 
             return true;
         }
@@ -613,6 +618,57 @@ public partial class Overview : IAsyncDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "On OnInstanceAccessRemoved error");
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
+    }
+
+    private async Task OnInstanceRemoved(int accountID, int instanceId)
+    {
+        await _semaphoreSlim.WaitAsync();
+        try
+        {
+            if (PrimaryAccount == null)
+            {
+                Logger.LogWarning("No primary account found on OnInstanceRemoved");
+                return;
+            }
+
+            // Store current maps before reload
+            var previousMapCount = WHMaps.Count;
+
+            // Reload maps - maps from the deleted instance will no longer exist
+            await RestoreMaps();
+
+            if (WHMaps.Count < previousMapCount)
+            {
+                // Reset selection if the current map was in the deleted instance
+                if (_selectedWHMap != null && !WHMaps.Any(m => m.Id == _selectedWHMap.Id))
+                {
+                    _selectedWHMap = WHMaps.FirstOrDefault();
+                    _selectedWHMapIndex = 0;
+                }
+
+                Snackbar?.Add("An instance has been deleted - some maps are no longer available", Severity.Warning);
+            }
+
+            if (!WHMaps.Any())
+            {
+                // Force page reload to re-evaluate Access policy and show registration page
+                await InvokeAsync(() =>
+                {
+                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                });
+                return;
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "On OnInstanceRemoved error");
         }
         finally
         {

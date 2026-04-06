@@ -130,6 +130,7 @@ public partial class AdminInstanceDialog
         var success = await InstanceService.DeleteInstanceAsync(InstanceId, _characterId);
         if (success)
         {
+            await RealTimeService.NotifyInstanceRemoved(_characterId, InstanceId);
             Snackbar.Add("Instance deleted successfully", Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
