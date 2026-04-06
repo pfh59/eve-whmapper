@@ -659,7 +659,7 @@ public partial class Overview : IAsyncDisposable
                 // Force page reload to re-evaluate Access policy and show registration page
                 await InvokeAsync(() =>
                 {
-                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                    Navigation.NavigateTo("/", forceLoad: true);
                 });
                 return;
             }

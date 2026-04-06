@@ -77,7 +77,7 @@ public partial class Home : ComponentBase, IAsyncDisposable
 
         if (result != null && !result.Canceled)
         {
-            Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+            Navigation.NavigateTo("/", forceLoad: true);
         }
     }
 
@@ -184,7 +184,7 @@ public partial class Home : ComponentBase, IAsyncDisposable
             await InvokeAsync(() =>
             {
                 // Force navigation to reload the page and re-evaluate authorization
-                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                Navigation.NavigateTo("/", forceLoad: true);
             });
         }
         catch (Exception)
@@ -216,7 +216,7 @@ public partial class Home : ComponentBase, IAsyncDisposable
             await InvokeAsync(() =>
             {
                 // Force navigation to reload the page and re-evaluate authorization
-                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                Navigation.NavigateTo("/", forceLoad: true);
             });
         }
         catch (Exception)
@@ -237,7 +237,7 @@ public partial class Home : ComponentBase, IAsyncDisposable
             // The new primary account may have different instance access
             await InvokeAsync(() =>
             {
-                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                Navigation.NavigateTo("/", forceLoad: true);
             });
         }
         catch (Exception)
