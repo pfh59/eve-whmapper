@@ -8,15 +8,16 @@ namespace WHMapper.Components.Pages.Mapper
 {
     public class CustomDragMovablesBehavior : Behavior
     {
-        private const double DragThreshold = 5.0;
+        private readonly double DragThreshold;
         private readonly Dictionary<MovableModel, Point> _initialPositions;
         private double? _lastClientX;
         private double? _lastClientY;
         private bool _moved;
         private bool _dragStarted;
 
-        public CustomDragMovablesBehavior(Diagram diagram) : base(diagram)
+        public CustomDragMovablesBehavior(Diagram diagram, double dragThreshold = 5.0) : base(diagram)
         {
+            DragThreshold = dragThreshold;
             _initialPositions = new Dictionary<MovableModel, Point>();
             Diagram.PointerDown += OnPointerDown;
             Diagram.PointerMove += OnPointerMove;

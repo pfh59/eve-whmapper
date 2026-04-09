@@ -22,6 +22,7 @@ using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO;
 using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Components.Pages.Mapper.CustomNode;
+using WHMapper.Services.WHUserSettings;
 
 namespace WHMapper.Components.Pages.Mapper.Map;
 
@@ -103,6 +104,11 @@ public partial class Overview : IAsyncDisposable
     [Inject]
     private IEveMapperService eveMapperService { get; set; } = null!;
 
+    [Inject]
+    private IWHUserSettingService UserSettingService { get; set; } = null!;
+
+    private WHUserSetting _userSettings = WHUserSetting.CreateDefault(0);
+
 
     #region Repositories
     [Inject]
@@ -158,11 +164,17 @@ public partial class Overview : IAsyncDisposable
             throw new InvalidOperationException(UidNullOrEmptyMessage);
         }
 
-
+        // InitDiagram must run before the first await so _blazorDiagram is set before Blazor renders DiagramCanvas
         if (!await InitDiagram())
         {
             Snackbar?.Add("Map Initialization error", Severity.Error);
         }
+
+        // Load real user settings and apply to the already-created diagram
+        var primaryAccount = await GetPrimaryAccountAsync();
+        _userSettings = await UserSettingService.GetSettingsAsync(primaryAccount?.Id ?? 0);
+        ApplyUserSettingsToDiagram();
+        UserSettingService.OnSettingsChanged += OnUserSettingsChangedAsync;
 
         await base.OnInitializedAsync();
     }
@@ -321,6 +333,8 @@ public partial class Overview : IAsyncDisposable
         }
         _cts.Dispose();
 
+        UserSettingService.OnSettingsChanged -= OnUserSettingsChangedAsync;
+
         // Unsubscribe from TrackerServices events
         // Note: Do NOT dispose TrackerServices here - it's a scoped service managed by DI
         // and must remain active for the lifetime of the user session
@@ -451,12 +465,6 @@ public partial class Overview : IAsyncDisposable
             {
 
                 _blazorDiagram = new BlazorDiagram();
-                _blazorDiagram.UnregisterBehavior<DragMovablesBehavior>();
-                _blazorDiagram.RegisterBehavior(new CustomDragMovablesBehavior(_blazorDiagram));
-                _blazorDiagram.Options.Zoom.Enabled = true;
-                _blazorDiagram.Options.Zoom.Inverse = false;
-                _blazorDiagram.Options.Links.EnableSnapping = false;
-                _blazorDiagram.Options.AllowMultiSelection = true;
                 _blazorDiagram.RegisterComponent<EveSystemNodeModel, EveSystemNode>();
                 _blazorDiagram.RegisterComponent<EveSystemLinkModel, EveSystemLink>();
             }
@@ -476,6 +484,27 @@ public partial class Overview : IAsyncDisposable
             return Task.FromResult(false);
         }
     }
+
+    private void ApplyUserSettingsToDiagram()
+    {
+        if (_blazorDiagram == null) return;
+
+        _blazorDiagram.UnregisterBehavior<DragMovablesBehavior>();
+        _blazorDiagram.UnregisterBehavior<CustomDragMovablesBehavior>();
+        _blazorDiagram.RegisterBehavior(new CustomDragMovablesBehavior(_blazorDiagram, _userSettings?.DragThreshold ?? WHUserSetting.DEFAULT_DRAG_THRESHOLD));
+        _blazorDiagram.Options.Zoom.Enabled = _userSettings?.ZoomEnabled ?? WHUserSetting.DEFAULT_ZOOM_ENABLED;
+        _blazorDiagram.Options.Zoom.Inverse = _userSettings?.ZoomInverse ?? WHUserSetting.DEFAULT_ZOOM_INVERSE;
+        _blazorDiagram.Options.Links.EnableSnapping = _userSettings?.LinkSnapping ?? WHUserSetting.DEFAULT_LINK_SNAPPING;
+        _blazorDiagram.Options.AllowMultiSelection = _userSettings?.AllowMultiSelection ?? WHUserSetting.DEFAULT_ALLOW_MULTI_SELECTION;
+    }
+
+    private async Task OnUserSettingsChangedAsync(WHUserSetting newSettings)
+    {
+        _userSettings = newSettings;
+        ApplyUserSettingsToDiagram();
+        await InvokeAsync(StateHasChanged);
+    }
+
     private Task InitBlazorDiagramEvents()
     {
         if (_blazorDiagram == null)
@@ -680,7 +709,7 @@ public partial class Overview : IAsyncDisposable
     #region Diagram Keyboard Pressed
     private async Task<bool> HandleLinkSystemKey(Blazor.Diagrams.Core.Events.KeyboardEventArgs eventArgs)
     {
-        if (eventArgs.Code == "KeyL" && MapId.HasValue && _selectedSystemNodes != null && _selectedSystemNodes.Count == 2)
+        if (eventArgs.Code == (_userSettings?.KeyLink ?? WHUserSetting.DEFAULT_KEY_LINK) && MapId.HasValue && _selectedSystemNodes != null && _selectedSystemNodes.Count == 2)
         {
             if (await IsLinkExist(_selectedSystemNodes.ElementAt(0), _selectedSystemNodes.ElementAt(1)))
             {
@@ -706,9 +735,14 @@ public partial class Overview : IAsyncDisposable
 
     private async Task<bool> HandleIncrementOrDecrementExtensionKey(Blazor.Diagrams.Core.Events.KeyboardEventArgs eventArgs)
     {
-        if ((eventArgs.Code == "NumpadAdd" || eventArgs.Code == "NumpadSubtract" || eventArgs.Code == "ArrowUp" || eventArgs.Code == "ArrowDown") && MapId.HasValue && SelectedSystemNode != null)
+        var incKey = _userSettings?.KeyIncrementExtension ?? WHUserSetting.DEFAULT_KEY_INCREMENT_EXTENSION;
+        var decKey = _userSettings?.KeyDecrementExtension ?? WHUserSetting.DEFAULT_KEY_DECREMENT_EXTENSION;
+        var incAltKey = _userSettings?.KeyIncrementExtensionAlt ?? WHUserSetting.DEFAULT_KEY_INCREMENT_EXTENSION_ALT;
+        var decAltKey = _userSettings?.KeyDecrementExtensionAlt ?? WHUserSetting.DEFAULT_KEY_DECREMENT_EXTENSION_ALT;
+
+        if ((eventArgs.Code == incKey || eventArgs.Code == decKey || eventArgs.Code == incAltKey || eventArgs.Code == decAltKey) && MapId.HasValue && SelectedSystemNode != null)
         {
-            bool res = eventArgs.Code == "NumpadAdd" || eventArgs.Code == "ArrowUp"
+            bool res = eventArgs.Code == incKey || eventArgs.Code == incAltKey
                 ? await IncrementOrDecrementNodeExtensionNameOnMap(MapId.Value, SelectedSystemNode, true)
                 : await IncrementOrDecrementNodeExtensionNameOnMap(MapId.Value, SelectedSystemNode, false);
 
@@ -728,7 +762,7 @@ public partial class Overview : IAsyncDisposable
 
     private async Task<bool> HandleDeleteKey(Blazor.Diagrams.Core.Events.KeyboardEventArgs eventArgs)
     {
-        if (eventArgs.Code == "Delete")
+        if (eventArgs.Code == (_userSettings?.KeyDelete ?? WHUserSetting.DEFAULT_KEY_DELETE))
         {
             if (!MapId.HasValue)
             {

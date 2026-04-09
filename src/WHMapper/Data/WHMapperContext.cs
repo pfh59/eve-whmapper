@@ -19,6 +19,7 @@ namespace WHMapper.Data
         public DbSet<WHInstanceAdmin> DbWHInstanceAdmins { get; set; } = null!;
         public DbSet<WHInstanceAccess> DbWHInstanceAccesses { get; set; } = null!;
         public DbSet<WHMapAccess> DbWHMapAccesses { get; set; } = null!;
+        public DbSet<WHUserSetting> DbWHUserSettings { get; set; } = null!;
 
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
@@ -78,6 +79,9 @@ namespace WHMapper.Data
 
             modelBuilder.Entity<WHJumpLog>().ToTable("JumpLogs");
             modelBuilder.Entity<WHJumpLog>().HasIndex(x => new { x.CharacterId, x.JumpDate }).IsUnique(true);
+
+            modelBuilder.Entity<WHUserSetting>().ToTable("UserSettings");
+            modelBuilder.Entity<WHUserSetting>().HasIndex(x => x.EveCharacterId).IsUnique(true);
         }
     }
 }

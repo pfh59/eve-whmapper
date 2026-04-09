@@ -99,17 +99,17 @@ public class EveMapperCacheService : IEveMapperCacheService
     {
         return typeof(T).Name switch
         {
-            "CharacterEntity" => TimeSpan.FromHours(1),
-            "CorporationEntity" => TimeSpan.FromHours(6),
-            "AllianceEntity" => TimeSpan.FromHours(6),
-            "ShipEntity" => TimeSpan.FromHours(24),
-            "SystemEntity" => TimeSpan.FromHours(24),
-            "ConstellationEntity" => TimeSpan.FromHours(24),
-            "RegionEntity" => TimeSpan.FromHours(24),
-            "StargateEntity" => TimeSpan.FromHours(24),
-            "GroupEntity" => TimeSpan.FromHours(24),
-            "WHEntity" => TimeSpan.FromHours(24),
-            "SunEntity" => TimeSpan.FromHours(24),
+            "CharacterEntity" => TimeSpan.FromDays(1),
+            "CorporationEntity" => TimeSpan.FromDays(1),
+            "AllianceEntity" => TimeSpan.FromDays(1),
+            "ShipEntity" => TimeSpan.FromDays(7),
+            "SystemEntity" => TimeSpan.FromDays(7),
+            "ConstellationEntity" => TimeSpan.FromDays(7),
+            "RegionEntity" => TimeSpan.FromDays(7),
+            "StargateEntity" => TimeSpan.FromDays(7),
+            "GroupEntity" => TimeSpan.FromDays(7),
+            "WHEntity" => TimeSpan.FromDays(7),
+            "SunEntity" => TimeSpan.FromDays(7),
             _ => TimeSpan.FromHours(1),
         };
     }

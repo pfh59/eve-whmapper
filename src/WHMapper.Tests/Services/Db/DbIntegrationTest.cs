@@ -13,6 +13,7 @@ using WHMapper.Repositories.WHSignatures;
 using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Repositories.WHMapAccesses;
+using WHMapper.Repositories.WHUserSettings;
 
 using Xunit.Priority;
 
@@ -1560,5 +1561,101 @@ public class DbIntegrationTest
 
         //clean map
         var mapDeleted = await repoMap.DeleteById(map.Id);
+    }
+
+    [Fact, Priority(11)]
+    public async Task CRUD_WHUserSetting()
+    {
+        Assert.NotNull(_contextFactory);
+
+        IWHUserSettingRepository repo = new WHUserSettingRepository(new NullLogger<WHUserSettingRepository>(), _contextFactory);
+
+        // GetAll => empty
+        var resEmpty = await repo.GetAll();
+        Assert.NotNull(resEmpty);
+        Assert.Empty(resEmpty);
+
+        // Create
+        var result1 = await repo.Create(new WHUserSetting(EVE_CHARACTERE_ID));
+        Assert.NotNull(result1);
+        Assert.Equal(EVE_CHARACTERE_ID, result1!.EveCharacterId);
+        Assert.Equal(WHUserSetting.DEFAULT_KEY_LINK, result1.KeyLink);
+        Assert.Equal(WHUserSetting.DEFAULT_KEY_DELETE, result1.KeyDelete);
+        Assert.Equal(WHUserSetting.DEFAULT_KEY_INCREMENT_EXTENSION, result1.KeyIncrementExtension);
+        Assert.Equal(WHUserSetting.DEFAULT_KEY_DECREMENT_EXTENSION, result1.KeyDecrementExtension);
+        Assert.Equal(WHUserSetting.DEFAULT_KEY_INCREMENT_EXTENSION_ALT, result1.KeyIncrementExtensionAlt);
+        Assert.Equal(WHUserSetting.DEFAULT_KEY_DECREMENT_EXTENSION_ALT, result1.KeyDecrementExtensionAlt);
+        Assert.Equal(WHUserSetting.DEFAULT_ZOOM_ENABLED, result1.ZoomEnabled);
+        Assert.Equal(WHUserSetting.DEFAULT_ZOOM_INVERSE, result1.ZoomInverse);
+        Assert.Equal(WHUserSetting.DEFAULT_ALLOW_MULTI_SELECTION, result1.AllowMultiSelection);
+        Assert.Equal(WHUserSetting.DEFAULT_LINK_SNAPPING, result1.LinkSnapping);
+        Assert.Equal(WHUserSetting.DEFAULT_NODE_SPACING, result1.NodeSpacing);
+        Assert.Equal(WHUserSetting.DEFAULT_DRAG_THRESHOLD, result1.DragThreshold);
+
+        var result2 = await repo.Create(new WHUserSetting(EVE_CHARACTERE_ID2));
+        Assert.NotNull(result2);
+        Assert.Equal(EVE_CHARACTERE_ID2, result2!.EveCharacterId);
+
+        // Duplicate character create
+        var resultDuplicate = await repo.Create(new WHUserSetting(EVE_CHARACTERE_ID));
+        Assert.Null(resultDuplicate);
+
+        // GetCountAsync
+        var count = await repo.GetCountAsync();
+        Assert.Equal(2, count);
+
+        // GetAll
+        var results = await repo.GetAll();
+        Assert.NotNull(results);
+        Assert.Equal(2, results!.Count());
+
+        // GetById
+        var resultById1 = await repo.GetById(result1.Id);
+        Assert.NotNull(resultById1);
+        Assert.Equal(result1.Id, resultById1!.Id);
+
+        var resultBadById = await repo.GetById(-10);
+        Assert.Null(resultBadById);
+
+        // GetByCharacterId
+        var resultByChar = await repo.GetByCharacterId(EVE_CHARACTERE_ID);
+        Assert.NotNull(resultByChar);
+        Assert.Equal(EVE_CHARACTERE_ID, resultByChar!.EveCharacterId);
+
+        var resultBadByChar = await repo.GetByCharacterId(0);
+        Assert.Null(resultBadByChar);
+
+        // Update
+        result1.KeyLink = "KeyM";
+        result1.ZoomEnabled = false;
+        result1.NodeSpacing = 50;
+        var resultUpdate = await repo.Update(result1.Id, result1);
+        Assert.NotNull(resultUpdate);
+        Assert.Equal("KeyM", resultUpdate!.KeyLink);
+        Assert.False(resultUpdate.ZoomEnabled);
+        Assert.Equal(50, resultUpdate.NodeSpacing);
+
+        // Bad update (wrong id)
+        var resultBadUpdate = await repo.Update(-10, result1);
+        Assert.Null(resultBadUpdate);
+
+        // DeleteById
+        var resultDel1 = await repo.DeleteById(result1.Id);
+        Assert.True(resultDel1);
+
+        var resultBadDel = await repo.DeleteById(-10);
+        Assert.False(resultBadDel);
+
+        // DeleteByCharacterId
+        var resultDelByChar = await repo.DeleteByCharacterId(EVE_CHARACTERE_ID2);
+        Assert.True(resultDelByChar);
+
+        var resultBadDelByChar = await repo.DeleteByCharacterId(0);
+        Assert.False(resultBadDelByChar);
+
+        // Verify empty again
+        var resFinal = await repo.GetAll();
+        Assert.NotNull(resFinal);
+        Assert.Empty(resFinal);
     }
 }
