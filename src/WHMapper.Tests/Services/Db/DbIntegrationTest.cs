@@ -1639,6 +1639,10 @@ public class DbIntegrationTest
         var resultBadUpdate = await repo.Update(-10, result1);
         Assert.Null(resultBadUpdate);
 
+        // Null item update
+        var resultNullUpdate = await repo.Update(result1.Id, null!);
+        Assert.Null(resultNullUpdate);
+
         // DeleteById
         var resultDel1 = await repo.DeleteById(result1.Id);
         Assert.True(resultDel1);
