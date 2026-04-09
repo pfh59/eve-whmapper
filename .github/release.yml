@@ -4,6 +4,18 @@ changelog:
       labels:
         - features
         - user story
-    - title: 👒 Bugs
+    - title: ✨ Enhancements
+      labels:
+        - enhancement
+    - title: 🧹 Chores
+      labels:
+        - chore
+    - title: 🧪 Tests
+      labels:
+        - test
+    - title: 💪 Improvements
+      labels:
+        - improvement
+    - title: 🐛 Bugs
       labels:
         - bug
