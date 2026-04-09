@@ -1,0 +1,73 @@
+@using WHMapper.Models.Db
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Settings" />
+            <MudText Typo="Typo.h6">Settings</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        @if (_settings == null)
+        {
+            <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Class="pa-4">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </MudStack>
+        }
+        else
+        {
+        <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true">
+            <MudTabPanel Text="Keyboard" Icon="@Icons.Material.Filled.Keyboard">
+                <MudStack Spacing="3">
+                    <MudText Typo="Typo.caption" Class="pa-1">Click on a field and press any key to change the binding.</MudText>
+                    <div @onkeydown="@((e) => OnKeyCaptured(e, nameof(WHUserSetting.KeyLink)))" @onkeydown:preventDefault>
+                        <MudTextField T="string" Label="Link Systems" Value="@_settings.KeyLink"
+                            ReadOnly="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Link" />
+                    </div>
+                    <div @onkeydown="@((e) => OnKeyCaptured(e, nameof(WHUserSetting.KeyDelete)))" @onkeydown:preventDefault>
+                        <MudTextField T="string" Label="Delete" Value="@_settings.KeyDelete"
+                            ReadOnly="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Delete" />
+                    </div>
+                    <div @onkeydown="@((e) => OnKeyCaptured(e, nameof(WHUserSetting.KeyIncrementExtension)))" @onkeydown:preventDefault>
+                        <MudTextField T="string" Label="Increment Extension" Value="@_settings.KeyIncrementExtension"
+                            ReadOnly="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Add" />
+                    </div>
+                    <div @onkeydown="@((e) => OnKeyCaptured(e, nameof(WHUserSetting.KeyDecrementExtension)))" @onkeydown:preventDefault>
+                        <MudTextField T="string" Label="Decrement Extension" Value="@_settings.KeyDecrementExtension"
+                            ReadOnly="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Remove" />
+                    </div>
+                    <div @onkeydown="@((e) => OnKeyCaptured(e, nameof(WHUserSetting.KeyIncrementExtensionAlt)))" @onkeydown:preventDefault>
+                        <MudTextField T="string" Label="Increment Extension (Alt)" Value="@_settings.KeyIncrementExtensionAlt"
+                            ReadOnly="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.KeyboardArrowUp" />
+                    </div>
+                    <div @onkeydown="@((e) => OnKeyCaptured(e, nameof(WHUserSetting.KeyDecrementExtensionAlt)))" @onkeydown:preventDefault>
+                        <MudTextField T="string" Label="Decrement Extension (Alt)" Value="@_settings.KeyDecrementExtensionAlt"
+                            ReadOnly="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.KeyboardArrowDown" />
+                    </div>
+                </MudStack>
+            </MudTabPanel>
+            <MudTabPanel Text="Mouse / Zoom" Icon="@Icons.Material.Filled.Mouse">
+                <MudStack Spacing="3">
+                    <MudSwitch @bind-Value="_settings.ZoomEnabled" Label="@($"Zoom {(_settings.ZoomEnabled ? "Enabled" : "Disabled")}")" Color="@(_settings.ZoomEnabled ? Color.Success : Color.Error)" />
+                    <MudSwitch @bind-Value="_settings.ZoomInverse" Label="@($"Inverse Zoom Direction {(_settings.ZoomInverse ? "Enabled" : "Disabled")}")" Color="@(_settings.ZoomInverse ? Color.Success : Color.Error)" />
+                    <MudSwitch @bind-Value="_settings.AllowMultiSelection" Label="@($"Allow Multi-Selection (Ctrl+Click) {(_settings.AllowMultiSelection ? "Enabled" : "Disabled")}")" Color="@(_settings.AllowMultiSelection ? Color.Success : Color.Error)" />
+                    <MudSwitch @bind-Value="_settings.LinkSnapping" Label="@($"Link Snapping {(_settings.LinkSnapping ? "Enabled" : "Disabled")}")" Color="@(_settings.LinkSnapping ? Color.Success : Color.Error)" />
+                </MudStack>
+            </MudTabPanel>
+            <MudTabPanel Text="Map" Icon="@Icons.Material.Filled.Map">
+                <MudStack Spacing="3">
+                    <MudNumericField @bind-Value="_settings.NodeSpacing" Label="Node Spacing" Variant="Variant.Outlined"
+                        Min="10.0" Max="200.0" Step="5.0" Adornment="Adornment.End" AdornmentText="px" />
+                    <MudNumericField @bind-Value="_settings.DragThreshold" Label="Drag Threshold" Variant="Variant.Outlined"
+                        Min="1.0" Max="50.0" Step="1.0" Adornment="Adornment.End" AdornmentText="px" />
+                </MudStack>
+            </MudTabPanel>
+        </MudTabs>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Color="Color.Error">Cancel</MudButton>
+        <MudButton OnClick="ResetToDefaults" Variant="Variant.Text" Color="Color.Warning" StartIcon="@Icons.Material.Filled.RestartAlt">Reset</MudButton>
+        <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>

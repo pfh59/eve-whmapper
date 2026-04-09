@@ -54,12 +54,12 @@ public static class DatabaseExtensions
             Environment.Exit(1);
         }
 
-        if (dbContext.Database.GetPendingMigrations().Any())
+        if ((await dbContext.Database.GetPendingMigrationsAsync()).Any())
         {
             logger.LogInformation("Migrating database...");
             try
             {
-                dbContext.Database.Migrate();
+                await dbContext.Database.MigrateAsync();
                 logger.LogInformation("Database migrated successfully.");
             }
             catch (Exception ex)
