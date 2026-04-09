@@ -5,14 +5,12 @@ namespace WHMapper.Services.WHUserSettings
 {
     public class WHUserSettingService : IWHUserSettingService
     {
-        private readonly ILogger<WHUserSettingService> _logger;
         private readonly IWHUserSettingRepository _repository;
 
         public event Func<WHUserSetting, Task>? OnSettingsChanged;
 
-        public WHUserSettingService(ILogger<WHUserSettingService> logger, IWHUserSettingRepository repository)
+        public WHUserSettingService(IWHUserSettingRepository repository)
         {
-            _logger = logger;
             _repository = repository;
         }
 
