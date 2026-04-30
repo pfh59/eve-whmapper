@@ -66,6 +66,9 @@ namespace WHMapper.Services.EveOAuthProvider.Services
                 throw new NullReferenceException("Token is null");
             }
 
+            if (token.Expiry == default || token.Expiry == DateTime.MinValue)
+                return Task.FromResult(true);
+
             return Task.FromResult(DateTimeOffset.UtcNow > token.Expiry.AddMinutes(-5));//// 5 minutes before expiry
         }
 
