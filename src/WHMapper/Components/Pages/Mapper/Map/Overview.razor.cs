@@ -1003,7 +1003,7 @@ public partial class Overview : IAsyncDisposable
     {
         if (_blazorDiagram == null || _blazorDiagram.Nodes == null || _blazorDiagram.Nodes.Count == 0)
         {
-            Logger.LogWarning("GetNodeBySolarSystemId, no node in diagram");
+            Logger.LogDebug("GetNodeBySolarSystemId, no node in diagram");
             return Task.FromResult(null as EveSystemNodeModel);
         }
         var res = _blazorDiagram.Nodes
