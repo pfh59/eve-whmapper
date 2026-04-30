@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.SSO;
 
@@ -12,6 +13,7 @@ namespace WHMapper.Services.EveOAuthProvider.Services
     {
         private readonly EVEOnlineAuthenticationOptions _options;
         private readonly ConcurrentDictionary<string, UserToken> _tokens = new();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _refreshLocks = new();
 
 
         public EveOnlineTokenProvider(IOptionsMonitor<EVEOnlineAuthenticationOptions> options)
@@ -30,10 +32,10 @@ namespace WHMapper.Services.EveOAuthProvider.Services
             return Task.CompletedTask;
         }
 
-        public async Task<UserToken?> GetToken(string accountId, bool autoResfred = false)
+        public async Task<UserToken?> GetToken(string accountId, bool autoRefreshed = false)
         {
             _tokens.TryGetValue(accountId, out var token);
-            if(autoResfred && token != null && await IsTokenExpire(token))
+            if(autoRefreshed && token != null && await IsTokenExpire(token))
             {
                 await RefreshAccessToken(accountId);
                 _tokens.TryGetValue(accountId, out token);
@@ -69,18 +71,33 @@ namespace WHMapper.Services.EveOAuthProvider.Services
 
         public async Task RefreshAccessToken(string accountId)
         {
+            var semaphore = _refreshLocks.GetOrAdd(accountId, _ => new SemaphoreSlim(1, 1));
+            await semaphore.WaitAsync();
+            try
+            {
             var token = await GetToken(accountId);
             if (token == null)
             {
                 throw new NullReferenceException("Token is null");
             }
 
+            // Double-check: another thread may have already refreshed while we were waiting
+            if (!await IsTokenExpire(token))
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(token.RefreshToken))
+            {
+                throw new InvalidOperationException("Refresh token is missing.");
+            }
+
             var refreshToken = Uri.EscapeDataString(token.RefreshToken);
             var content = new StringContent($"grant_type=refresh_token&refresh_token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
 
-            _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
-            var response = await _options.Backchannel.PostAsync(_options.TokenEndpoint, content);
-            _options.Backchannel.DefaultRequestHeaders.Authorization=null;
+            var request = new HttpRequestMessage(HttpMethod.Post, _options.TokenEndpoint) { Content = content };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+            var response = await _options.Backchannel.SendAsync(request);
 
             response.EnsureSuccessStatusCode();
 
@@ -97,8 +114,11 @@ namespace WHMapper.Services.EveOAuthProvider.Services
             token.Expiry = DateTimeOffset.UtcNow.AddSeconds(newToken.ExpiresIn).UtcDateTime;
 
             await SaveToken(token);
-
-            
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         public async Task RevokeToken(string accountId)
@@ -109,12 +129,17 @@ namespace WHMapper.Services.EveOAuthProvider.Services
                 throw new NullReferenceException("Token is null");
             }
 
+            if (string.IsNullOrEmpty(token.RefreshToken))
+            {
+                throw new InvalidOperationException("Refresh token is missing.");
+            }
+
             var refreshToken = Uri.EscapeDataString(token.RefreshToken);
             var content = new StringContent($"token_type_hint=refresh_token&token={refreshToken}", Encoding.UTF8, "application/x-www-form-urlencoded");
 
-            _options.Backchannel.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
-            var response = await _options.Backchannel.PostAsync(_options.RevokeTokenEndpoint, content);
-            _options.Backchannel.DefaultRequestHeaders.Authorization=null;
+            var request = new HttpRequestMessage(HttpMethod.Post, _options.RevokeTokenEndpoint) { Content = content };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+            var response = await _options.Backchannel.SendAsync(request);
             
             if (!response.IsSuccessStatusCode)
             {
@@ -127,7 +152,8 @@ namespace WHMapper.Services.EveOAuthProvider.Services
 
         private class ErrorResponse
         {
-            public string ErrorDescription { get; set; }
+            [JsonPropertyName("error_description")]
+            public string? ErrorDescription { get; set; }
         }
     }
 }

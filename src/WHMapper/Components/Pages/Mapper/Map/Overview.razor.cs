@@ -1362,10 +1362,7 @@ public partial class Overview : IAsyncDisposable
         Ship? currentShip = null;
         ShipEntity? currentShipInfos = null;
 
-        if (_currentShips.ContainsKey(accountID))
-        {
-            _currentShips.TryGetValue(accountID, out currentShip);
-        }
+        _currentShips.TryGetValue(accountID, out currentShip);
 
         if (currentShip == null)
         {
@@ -1505,16 +1502,10 @@ public partial class Overview : IAsyncDisposable
     #endregion
 
     #region Tracker Events
-    private async Task OnShipChanged(int accountID, Ship? oldShip, Ship newShip)
+    private Task OnShipChanged(int accountID, Ship? oldShip, Ship newShip)
     {
-        if (_currentShips.ContainsKey(accountID))
-        {
-            while (!_currentShips.TryRemove(accountID, out _))
-                await Task.Delay(1);
-        }
-
-        while (!_currentShips.TryAdd(accountID, newShip))
-            await Task.Delay(1);
+        _currentShips.AddOrUpdate(accountID, newShip, (_, _) => newShip);
+        return Task.CompletedTask;
     }
 
     private async Task OnSystemChanged(int accountID, EveLocation? oldLocation, EveLocation newLocation)
