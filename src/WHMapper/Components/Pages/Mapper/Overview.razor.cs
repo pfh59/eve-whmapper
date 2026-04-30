@@ -204,7 +204,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -246,6 +246,11 @@ public partial class Overview : IAsyncDisposable
         _semaphoreSlim.Dispose();
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
+    }
+
+    private void SafeReleaseSemaphore()
+    {
+        try { _semaphoreSlim.Release(); } catch (ObjectDisposedException) { }
     }
 
     private async Task<bool> InitRealTimeService()
@@ -309,7 +314,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
         
     }
@@ -333,7 +338,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -356,7 +361,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -380,7 +385,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -445,7 +450,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -489,7 +494,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -549,7 +554,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -580,7 +585,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -622,7 +627,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 
@@ -673,7 +678,7 @@ public partial class Overview : IAsyncDisposable
         }
         finally
         {
-            _semaphoreSlim.Release();
+            SafeReleaseSemaphore();
         }
     }
 

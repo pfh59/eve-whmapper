@@ -308,18 +308,27 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         }
     }
 
-    private async Task<HubConnection?> GetHubConnection(int accountID)
+    private Task<HubConnection?> GetHubConnection(int accountID)
     {
-        HubConnection? hubConnection = null;
+        _hubConnection.TryGetValue(accountID, out var hubConnection);
+        return Task.FromResult(hubConnection);
+    }
 
-        if (!_hubConnection.ContainsKey(accountID))
-            return hubConnection;
-        
-
-        while (!_hubConnection.TryGetValue(accountID, out hubConnection))
-            await Task.Delay(1);
-
-        return hubConnection;
+    private async Task SendSafeAsync(int accountID, string methodName, params object?[] args)
+    {
+        if (_disposed) return;
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
+        {
+            try
+            {
+                await hubConnection.SendCoreAsync(methodName, args);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogDebug(ex, "Connection became inactive before {Method} could be sent for account {AccountId}", methodName, accountID);
+            }
+        }
     }
 
     public async Task<bool> Stop(int accountID)
@@ -350,120 +359,79 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public async Task NotifyUserPosition(int accountID,int mapId,int wormholeId)
     {
-        
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendUserPosition", mapId, wormholeId);
-        }
+        await SendSafeAsync(accountID, "SendUserPosition", mapId, wormholeId);
     }
 
     public async Task NotifyWormoleAdded(int accountID,int mapId, int wormholeId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeAdded", mapId, wormholeId);
-        }
+        await SendSafeAsync(accountID, "SendWormholeAdded", mapId, wormholeId);
     }
 
     public async Task NotifyWormholeRemoved(int accountID,int mapId, int wormholeId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeRemoved", mapId, wormholeId);
-        }
+        await SendSafeAsync(accountID, "SendWormholeRemoved", mapId, wormholeId);
     }
 
     public async Task NotifyLinkAdded(int accountID,int mapId, int linkId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendLinkAdded", mapId, linkId);
-        }
+        await SendSafeAsync(accountID, "SendLinkAdded", mapId, linkId);
     }
 
     public async Task NotifyLinkRemoved(int accountID,int mapId, int linkId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendLinkRemoved", mapId, linkId);
-        }
+        await SendSafeAsync(accountID, "SendLinkRemoved", mapId, linkId);
     }
 
     public async Task NotifyWormholeMoved(int accountID,int mapId, int wormholeId, double posX, double posY)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeMoved", mapId, wormholeId, posX, posY);
-        }
+        await SendSafeAsync(accountID, "SendWormholeMoved", mapId, wormholeId, posX, posY);
     }
 
     public async Task NotifyLinkChanged(int accountID,int mapId, int linkId, SystemLinkEolStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus mass)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendLinkChanged", mapId, linkId, (int)eolStatus, size, (int)mass);
-        }
+        await SendSafeAsync(accountID, "SendLinkChanged", mapId, linkId, (int)eolStatus, size, (int)mass);
     }
 
     public async Task NotifyWormholeNameExtensionChanged(int accountID,int mapId, int wormholeId, char? extension)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeNameExtensionChanged", mapId, wormholeId, extension);
-        }
+        await SendSafeAsync(accountID, "SendWormholeNameExtensionChanged", mapId, wormholeId, extension);
     }
     
 
     public async Task NotifyWormholeSignaturesChanged(int accountID, int mapId, int wormholeId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeSignaturesChanged", mapId, wormholeId);
-        }
+        await SendSafeAsync(accountID, "SendWormholeSignaturesChanged", mapId, wormholeId);
     }
 
     public async Task NotifyWormholeLockChanged(int accountID,int mapId, int wormholeId, bool locked)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeLockChanged", mapId, wormholeId, locked);
-        }
+        await SendSafeAsync(accountID, "SendWormholeLockChanged", mapId, wormholeId, locked);
     }
 
     public async Task NotifyWormholeSystemStatusChanged(int accountID,int mapId, int wormholeId, WHSystemStatus systemStatus)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeSystemStatusChanged", mapId, wormholeId, systemStatus);
-        }
+        await SendSafeAsync(accountID, "SendWormholeSystemStatusChanged", mapId, wormholeId, systemStatus);
     }
 
     public async Task NotifyAlternameNameChanged(int accountID, int mapId, int wormholeId, string? alternateName)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendWormholeAlternateNameChanged", mapId, wormholeId, alternateName);
-        }
+        await SendSafeAsync(accountID, "SendWormholeAlternateNameChanged", mapId, wormholeId, alternateName);
     }
 
     public async Task<IDictionary<int, KeyValuePair<int, int>?>> GetConnectedUsersPosition(int accountID)
     {
+        if (_disposed) return new Dictionary<int, KeyValuePair<int, int>?>();
         HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null)
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
         {
-            return await hubConnection.InvokeAsync<IDictionary<int, KeyValuePair<int, int>?>>("GetConnectedUsersPosition");
+            try
+            {
+                return await hubConnection.InvokeAsync<IDictionary<int, KeyValuePair<int, int>?>>("GetConnectedUsersPosition");
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogDebug(ex, "Connection became inactive before GetConnectedUsersPosition could be invoked for account {AccountId}", accountID);
+            }
         }
 
         return new Dictionary<int, KeyValuePair<int, int>?>();
@@ -471,110 +439,62 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public async Task NotifyMapAdded(int accountID,int mapId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendMapAdded", mapId);
-        }
+        await SendSafeAsync(accountID, "SendMapAdded", mapId);
     }
 
     public async Task NotifyMapRemoved(int accountID,int mapId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendMapRemoved", mapId);
-        }
+        await SendSafeAsync(accountID, "SendMapRemoved", mapId);
     }
 
     public async Task NotifyMapNameChanged(int accountID,int mapId, string newName)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendMapNameChanged", mapId, newName);
-        }
+        await SendSafeAsync(accountID, "SendMapNameChanged", mapId, newName);
     }
 
     public async Task NotifyAllMapsRemoved(int accountID)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendAllMapsRemoved");
-        }
+        await SendSafeAsync(accountID, "SendAllMapsRemoved");
     }
 
     public async Task NotifyMapAccessesAdded(int accountID,int mapId, IEnumerable<int> accessIds)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendMapAccessesAdded", mapId, accessIds);
-        }
+        await SendSafeAsync(accountID, "SendMapAccessesAdded", mapId, accessIds);
     }
 
     public async Task NotifyMapAccessRemoved(int accountID,int mapId, int accessId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendMapAccessRemoved", mapId, accessId);
-        }
+        await SendSafeAsync(accountID, "SendMapAccessRemoved", mapId, accessId);
     }
 
     public async Task NotifyMapAllAccessesRemoved(int accountID,int mapId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendMapAllAccessesRemoved", mapId);
-        }
+        await SendSafeAsync(accountID, "SendMapAllAccessesRemoved", mapId);
     }
 
     public async Task NotifyUserOnMapConnected(int accountID,int mapId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendUserOnMapConnected", mapId);
-        }
+        await SendSafeAsync(accountID, "SendUserOnMapConnected", mapId);
     }
 
     public async Task NotifyUserOnMapDisconnected(int accountID,int mapId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendUserOnMapDisconnected", mapId);
-        }
+        await SendSafeAsync(accountID, "SendUserOnMapDisconnected", mapId);
     }
 
     public async Task NotifyInstanceAccessAdded(int accountID, int instanceId, int accessId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendInstanceAccessAdded", instanceId, accessId);
-        }
+        await SendSafeAsync(accountID, "SendInstanceAccessAdded", instanceId, accessId);
     }
 
     public async Task NotifyInstanceAccessRemoved(int accountID, int instanceId, int accessId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendInstanceAccessRemoved", instanceId, accessId);
-        }
+        await SendSafeAsync(accountID, "SendInstanceAccessRemoved", instanceId, accessId);
     }
 
     public async Task NotifyInstanceRemoved(int accountID, int instanceId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("SendInstanceRemoved", instanceId);
-        }
+        await SendSafeAsync(accountID, "SendInstanceRemoved", instanceId);
     }
 
     public async ValueTask DisposeAsync()
@@ -656,19 +576,11 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
 
     public async Task JoinMap(int accountID, int mapId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("JoinMap", mapId);
-        }
+        await SendSafeAsync(accountID, "JoinMap", mapId);
     }
 
     public async Task LeaveMap(int accountID, int mapId)
     {
-        HubConnection? hubConnection = await GetHubConnection(accountID);
-        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
-        {
-            await hubConnection.SendAsync("LeaveMap", mapId);
-        }
+        await SendSafeAsync(accountID, "LeaveMap", mapId);
     }
 }

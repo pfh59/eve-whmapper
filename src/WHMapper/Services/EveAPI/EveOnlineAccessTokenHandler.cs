@@ -27,12 +27,7 @@ namespace WHMapper.Services.EveAPI
                 throw new UnauthorizedAccessException("User ID is not found.");
             }
 
-            if (await _eveAPITokenProvider.IsTokenExpire(userId))
-            {
-                await _eveAPITokenProvider.RefreshAccessToken(userId);
-            }
-
-            var token = (await _eveAPITokenProvider.GetToken(userId))?.AccessToken;
+            var token = (await _eveAPITokenProvider.GetToken(userId, autoRefreshed: true))?.AccessToken;
             if (!string.IsNullOrEmpty(token))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
