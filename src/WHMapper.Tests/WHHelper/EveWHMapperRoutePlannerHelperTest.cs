@@ -90,6 +90,7 @@ public class EveWHMapperRoutePlannerHelperTest
             _eveMapperRoutePlannerHelper = new EveMapperRoutePlannerHelper(logger,
                 whRouteRepository,
                 null!,
+                null!,
                 sdeServices, eveScoutAPIServices);
         }
     }

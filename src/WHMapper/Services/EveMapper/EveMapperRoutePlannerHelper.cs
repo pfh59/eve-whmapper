@@ -1,8 +1,9 @@
 ﻿using FibonacciHeap;
+using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.EveAPI.Route.Enums;
 using WHMapper.Models.DTO.RoutePlanner;
 using WHMapper.Models.DTO.SDE;
-using WHMapper.Services.EveOAuthProvider.Services;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.EveScoutAPI;
 using WHMapper.Services.SDE;
 
@@ -12,26 +13,29 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
 {
     private readonly IWHRouteRepository _routeRepository;
     private readonly ILogger<EveMapperRoutePlannerHelper> _logger;
-    private readonly IEveUserInfosServices?  _eveUserInfosServices;
+    private readonly IEveMapperUserManagementService _userManagementService;
+    private readonly ClientUID _clientUID;
     private readonly ISDEService _sdeServices;
     private readonly IEveScoutAPIServices _eveScoutAPIService;
     private IEnumerable<SolarSystemJump> _solarSystemJumpConnections = null!;
 
 
-    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger, IWHRouteRepository routeRepository, IEveUserInfosServices eveUserInfosServices, ISDEService sdeServices, IEveScoutAPIServices eveScoutAPIServices)
+    public EveMapperRoutePlannerHelper(ILogger<EveMapperRoutePlannerHelper> logger, IWHRouteRepository routeRepository, IEveMapperUserManagementService userManagementService, ClientUID clientUID, ISDEService sdeServices, IEveScoutAPIServices eveScoutAPIServices)
     {
         _routeRepository = routeRepository;
         _logger = logger;
-        _eveUserInfosServices = eveUserInfosServices;
+        _userManagementService = userManagementService;
+        _clientUID = clientUID;
         _sdeServices = sdeServices;
         _eveScoutAPIService = eveScoutAPIServices;
     }
 
     public async Task<IEnumerable<EveRoute>?> GetMyRoutes(int mapId,int fromSolarSystemId, RouteType routeType, IEnumerable<RouteConnection>? extraConnections = null)
     {
-        if (_eveUserInfosServices == null)
+        var characterId = await GetPrimaryCharacterIdAsync();
+        if (characterId == null)
         {
-            _logger.LogError("EveUserInfosServices is null");
+            _logger.LogError("Primary account not found");
             return null;
         }
 
@@ -69,8 +73,13 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         }
         else
         {
-            var characterId = await _eveUserInfosServices.GetCharactedID();
-            whRoutes = await _routeRepository.GetRoutesByEveEntityId(mapId, characterId);
+            var characterId = await GetPrimaryCharacterIdAsync();
+            if (characterId == null)
+            {
+                _logger.LogError("Primary account not found");
+                return null;
+            }
+            whRoutes = await _routeRepository.GetRoutesByEveEntityId(mapId, characterId.Value);
         }
 
         foreach (var whRoute in whRoutes)
@@ -247,6 +256,16 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         return routePath.Reverse().ToArray();
     }
 
+    private async Task<int?> GetPrimaryCharacterIdAsync()
+    {
+        var clientId = _clientUID?.ClientId;
+        if (string.IsNullOrEmpty(clientId))
+            return null;
+
+        var primaryAccount = await _userManagementService.GetPrimaryAccountAsync(clientId);
+        return primaryAccount?.Id;
+    }
+
     private float getCost(RouteType type, float security)
     {
         switch (type)
@@ -278,13 +297,13 @@ public class EveMapperRoutePlannerHelper : IEveMapperRoutePlannerHelper
         }
         else
         {
-            if (_eveUserInfosServices == null)
+            var characterId = await GetPrimaryCharacterIdAsync();
+            if (characterId == null)
             {
-                _logger.LogError("EveUserInfosServices is null");
+                _logger.LogError("Primary account not found");
                 return null;
             }
-            var characterId = await _eveUserInfosServices.GetCharactedID();
-            route = await _routeRepository.Create(new WHRoute(mapId,soloarSystemId, characterId));
+            route = await _routeRepository.Create(new WHRoute(mapId,soloarSystemId, characterId.Value));
         }
 
         if (route == null)
