@@ -266,4 +266,78 @@ public class EveWHMapperRoutePlannerHelperTest
         await _whMapRepository.DeleteById(_defaultMAp.Id);
     }
 
+    [Fact, Priority(5)]
+    public async Task GetRoutesForAll_Returns_Null_When_Repository_Is_Null()
+    {
+        var helper = new EveMapperRoutePlannerHelper(
+            new NullLogger<EveMapperRoutePlannerHelper>(),
+            null!,
+            null!,
+            null!,
+            null!,
+            null!);
+
+        var result = await helper.GetRoutesForAll(1, SOLAR_SYSTEM_JITA_ID, RouteType.Shortest, null);
+        Assert.Null(result);
+    }
+
+    [Fact, Priority(6)]
+    public async Task Get_Route_Destination_Not_In_SDE()
+    {
+        if (_defaultMAp == null)
+        {
+            Assert.NotNull(_whMapRepository);
+            _defaultMAp = await _whMapRepository.Create(new WHMapper.Models.Db.WHMap("Default"));
+            Assert.NotNull(_defaultMAp);
+        }
+
+        // Add route to a WH system that is not in the SDE stargate jump list
+        var result = await _eveMapperRoutePlannerHelper.AddRoute(_defaultMAp.Id, SOLAR_SYSTEM_WH_ID, true);
+        Assert.NotNull(result);
+
+        // CalculateRoute will be called with toSolarSystemId=WH_ID which is absent from SDE → returns null
+        var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id, SOLAR_SYSTEM_JITA_ID, RouteType.Shortest, null);
+        Assert.NotNull(routes);
+        Assert.NotEmpty(routes);
+        var wh_route = routes.FirstOrDefault();
+        Assert.NotNull(wh_route);
+        Assert.False(wh_route.IsAvailable);
+        Assert.Equal(0, wh_route.RouteLength);
+        Assert.Equal(0, wh_route.JumpLength);
+
+        await _eveMapperRoutePlannerHelper.DeleteRoute(result.Id);
+
+        Assert.NotNull(_whMapRepository);
+        await _whMapRepository.DeleteById(_defaultMAp.Id);
+    }
+
+    [Fact, Priority(7)]
+    public async Task Get_Route_Insecure()
+    {
+        if (_defaultMAp == null)
+        {
+            Assert.NotNull(_whMapRepository);
+            _defaultMAp = await _whMapRepository.Create(new WHMapper.Models.Db.WHMap("Default"));
+            Assert.NotNull(_defaultMAp);
+        }
+
+        var result = await _eveMapperRoutePlannerHelper.AddRoute(_defaultMAp.Id, SOLAR_SYSTEM_AHBAZON_ID, true);
+        Assert.NotNull(result);
+
+        // RouteType.Insecure: high-sec systems cost 50000, low/null-sec cost 1 — exercises the Insecure branch in getCost
+        var routes = await _eveMapperRoutePlannerHelper.GetRoutesForAll(_defaultMAp.Id, SOLAR_SYSTEM_JITA_ID, RouteType.Insecure, null);
+        Assert.NotNull(routes);
+        Assert.NotEmpty(routes);
+        var route_insecure = routes.FirstOrDefault();
+        Assert.NotNull(route_insecure);
+        Assert.True(route_insecure.IsAvailable);
+        Assert.NotNull(route_insecure.Route);
+        Assert.True(route_insecure.RouteLength > 0);
+
+        await _eveMapperRoutePlannerHelper.DeleteRoute(result.Id);
+
+        Assert.NotNull(_whMapRepository);
+        await _whMapRepository.DeleteById(_defaultMAp.Id);
+    }
+
 }
