@@ -40,27 +40,44 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public override async Task OnConnectedAsync()
     {
         int accountID = CurrentAccountId();
-        _connections.Add(accountID, Context.ConnectionId);
-        
-        var previous = _connectedUserPosition.GetOrAdd(accountID, _ => null);
-        bool isNewUser = previous == null;
-        if (isNewUser)
+        if (accountID == 0)
         {
+            await base.OnConnectedAsync();
+            return;
+        }
+
+        int countAfterAdd = _connections.AddAndGetCount(accountID, Context.ConnectionId);
+        bool isFirstConnection = countAfterAdd == 1;
+
+        if (isFirstConnection)
+        {
+            _connectedUserPosition.TryAdd(accountID, null);
             meters.ConnectUser();
         }
 
         await base.OnConnectedAsync();
-        await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(accountID);
+
+        if (isFirstConnection)
+        {
+            await Clients.AllExcept(Context.ConnectionId).NotifyUserConnected(accountID);
+        }
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         int accountID = CurrentAccountId();
-        
-        _connections.Remove(accountID, Context.ConnectionId);
-        
-        if (!_connections.GetConnections(accountID).Any() && _connectedUserPosition.TryRemove(accountID, out _))
+        if (accountID == 0)
         {
+            await base.OnDisconnectedAsync(exception);
+            return;
+        }
+
+        int remaining = _connections.RemoveAndGetCount(accountID, Context.ConnectionId);
+        bool wasLastConnection = remaining == 0;
+
+        if (wasLastConnection)
+        {
+            _connectedUserPosition.TryRemove(accountID, out _);
             meters.DisconnectUser();
             await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(accountID);
         }
