@@ -127,13 +127,10 @@ public static class AuthenticationExtensions
                 policy.Requirements.Add(new EveMapperAccessRequirement()));
             options.AddPolicy("Admin", policy =>
                 policy.Requirements.Add(new EveMapperAdminRequirement()));
-            options.AddPolicy("Map", policy =>
-                policy.Requirements.Add(new EveMapperMapRequirement()));
         });
 
         services.AddScoped<IAuthorizationHandler, EveMapperAccessHandler>();
         services.AddScoped<IAuthorizationHandler, EveMapperAdminHandler>();
-        services.AddScoped<IAuthorizationHandler, EveMapperMapHandler>();
 
         return services;
     }
