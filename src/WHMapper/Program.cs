@@ -28,12 +28,26 @@ builder.Services.AddMapperServices();
 builder.Services.AddWHMapperTelemetry(builder.Configuration, builder.Environment.ApplicationName);
 
 // SignalR & Blazor
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    // Tolerate browser tab throttling: timers in background tabs can fire as slowly as ~1/min.
+    // Server waits up to 2 min for a client ping before treating the connection as dead,
+    // and pings the client every 15s.
+    options.ClientTimeoutInterval = TimeSpan.FromMinutes(2);
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+});
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+    {
+        // Retain disconnected Blazor circuits longer so a backgrounded tab can resume
+        // without "Circuit not initialized" forcing a full page reload.
+        options.DisconnectedCircuitMaxRetained = 100;
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
+    });
 
 builder.Services.AddMudServices(config =>
 {

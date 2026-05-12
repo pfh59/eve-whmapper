@@ -67,4 +67,33 @@ public class ConnectionMapping<T> where T : notnull
             }
         }
     }
+
+    public int AddAndGetCount(T key, string connectionId)
+    {
+        lock (_connections)
+        {
+            if (!_connections.TryGetValue(key, out var connections))
+            {
+                connections = new HashSet<string>();
+                _connections.Add(key, connections);
+            }
+            connections.Add(connectionId);
+            return connections.Count;
+        }
+    }
+
+    public int RemoveAndGetCount(T key, string connectionId)
+    {
+        lock (_connections)
+        {
+            if (!_connections.TryGetValue(key, out var connections))
+                return 0;
+
+            connections.Remove(connectionId);
+            int count = connections.Count;
+            if (count == 0)
+                _connections.Remove(key);
+            return count;
+        }
+    }
 }

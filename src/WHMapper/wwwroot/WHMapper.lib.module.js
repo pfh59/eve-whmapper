@@ -92,9 +92,12 @@ export function beforeWebStart(options) {
     };
 
     options.circuit.configureSignalR = (builder) => {
+        // Backgrounded browser tabs throttle JS timers (down to ~1/min in Chrome/Edge).
+        // Generous timeouts keep the circuit alive across short tab switches and
+        // give Page Visibility-driven reconnects time to succeed.
         builder
-            .withServerTimeout(30000)
-            .withKeepAliveInterval(10000);
+            .withServerTimeout(120000)
+            .withKeepAliveInterval(15000);
     };
 }
 
@@ -106,6 +109,7 @@ export function afterWebStarted(blazor) {
     registerCustomEvents(blazor);
     initReconnectModal();
     registerBrowserOfflineDetection();
+    registerPageVisibilityReconnect();
 }
 
 /**
@@ -125,6 +129,37 @@ export function afterServerStarted(blazor) {
     registerCustomEvents(blazor);
     initReconnectModal();
     registerBrowserOfflineDetection();
+    registerPageVisibilityReconnect();
+}
+
+/**
+ * On tab visibility change, proactively reconnect: backgrounded tabs throttle JS timers
+ * so SignalR keep-alives can be missed and the circuit drops silently. When the tab
+ * becomes visible again, force an immediate reconnect instead of waiting for the next
+ * scheduled retry — this avoids the frozen-page-on-return symptom.
+ */
+let pageVisibilityRegistered = false;
+function registerPageVisibilityReconnect() {
+    if (pageVisibilityRegistered) return;
+    pageVisibilityRegistered = true;
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        if (!window.Blazor || typeof window.Blazor.reconnect !== 'function') return;
+
+        // Trigger a reconnect immediately. Blazor.reconnect() resolves to:
+        //  - true  if the circuit is still valid and was reattached
+        //  - false if the server has discarded the circuit (must reload)
+        // If the circuit is still up, this is a no-op.
+        window.Blazor.reconnect().then((success) => {
+            if (success === false) {
+                console.warn('[WHMapper] Server discarded circuit on tab return — reloading');
+                location.reload();
+            }
+        }).catch((err) => {
+            console.warn('[WHMapper] Reconnect on visibility change threw:', err?.message);
+        });
+    });
 }
 
 /**
@@ -220,8 +255,11 @@ function startReconnectionLoop() {
                     reconnectionLoopRunning = false;
                     hideReconnectModal();
                 } else {
-                    // Reconnect returned false — schedule next attempt
-                    setTimeout(tryReconnect, delay);
+                    // Server has discarded the circuit — further reconnect attempts cannot succeed.
+                    // Reload the page rather than retrying indefinitely against a dead circuit.
+                    console.warn('[WHMapper] Circuit lost on server — reloading');
+                    reconnectionLoopRunning = false;
+                    location.reload();
                 }
             }).catch(function () {
                 setTimeout(tryReconnect, delay);
