@@ -141,6 +141,56 @@ public class ConnectionMappingTests
     }
 
     [Fact]
+    public void TryRemove_ExistingConnection_ReturnsTrueAndRemainingCount()
+    {
+        var mapping = new ConnectionMapping<int>();
+        mapping.AddAndGetCount(42, "conn-1");
+        mapping.AddAndGetCount(42, "conn-2");
+
+        bool removed = mapping.TryRemove(42, "conn-1", out int remaining);
+
+        Assert.True(removed);
+        Assert.Equal(1, remaining);
+    }
+
+    [Fact]
+    public void TryRemove_LastConnectionForKey_ReturnsTrueAndZero()
+    {
+        var mapping = new ConnectionMapping<int>();
+        mapping.AddAndGetCount(42, "conn-1");
+
+        bool removed = mapping.TryRemove(42, "conn-1", out int remaining);
+
+        Assert.True(removed);
+        Assert.Equal(0, remaining);
+        Assert.Empty(mapping.GetConnections(42));
+    }
+
+    [Fact]
+    public void TryRemove_UnknownKey_ReturnsFalse()
+    {
+        var mapping = new ConnectionMapping<int>();
+
+        bool removed = mapping.TryRemove(99, "conn-1", out int remaining);
+
+        Assert.False(removed);
+        Assert.Equal(0, remaining);
+    }
+
+    [Fact]
+    public void TryRemove_UnknownConnectionId_ReturnsFalse()
+    {
+        var mapping = new ConnectionMapping<int>();
+        mapping.AddAndGetCount(42, "conn-1");
+
+        bool removed = mapping.TryRemove(42, "conn-unknown", out int remaining);
+
+        Assert.False(removed);
+        Assert.Equal(0, remaining);
+        Assert.Single(mapping.GetConnections(42));
+    }
+
+    [Fact]
     public async Task AddRemoveAndGetCount_MixedConcurrentOperations_FinalCardinalIsCorrect()
     {
         var mapping = new ConnectionMapping<int>();

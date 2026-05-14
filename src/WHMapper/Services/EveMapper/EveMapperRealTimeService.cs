@@ -583,4 +583,40 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     {
         await SendSafeAsync(accountID, "LeaveMap", mapId);
     }
+
+    public async Task<int> GetTotalConnectedUsers(int accountID)
+    {
+        if (_disposed) return 0;
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
+        {
+            try
+            {
+                return await hubConnection.InvokeAsync<int>("GetTotalConnectedUsers");
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogDebug(ex, "Connection became inactive before GetTotalConnectedUsers could be invoked for account {AccountId}", accountID);
+            }
+        }
+        return 0;
+    }
+
+    public async Task<int> GetUserCountOnMap(int accountID, int mapId)
+    {
+        if (_disposed) return 0;
+        HubConnection? hubConnection = await GetHubConnection(accountID);
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
+        {
+            try
+            {
+                return await hubConnection.InvokeAsync<int>("GetUserCountOnMap", mapId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogDebug(ex, "Connection became inactive before GetUserCountOnMap could be invoked for account {AccountId}", accountID);
+            }
+        }
+        return 0;
+    }
 }

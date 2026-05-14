@@ -1,0 +1,23 @@
+@namespace WHMapper.Components.Pages.Mapper.Stats
+
+<div class="d-flex align-center @Class">
+    <MudTooltip Text="Players connected to the active map">
+        <MudChip T="string"
+                 Icon="@Icons.Material.Filled.Map"
+                 Size="Size.Small"
+                 Color="@(CurrentMapId.HasValue ? Color.Info : Color.Default)"
+                 Variant="Variant.Text"
+                 Disabled="@(!CurrentMapId.HasValue)">
+            @(CurrentMapId.HasValue ? MapUserCount.ToString() : "—")
+        </MudChip>
+    </MudTooltip>
+    <MudTooltip Text="Total connected players (all instances)">
+        <MudChip T="string"
+                 Icon="@Icons.Material.Filled.Group"
+                 Size="Size.Small"
+                 Color="Color.Primary"
+                 Variant="Variant.Text">
+            @TotalUserCount
+        </MudChip>
+    </MudTooltip>
+</div>

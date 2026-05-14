@@ -12,6 +12,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
 {
     private readonly static ConnectionMapping<int> _connections = new ConnectionMapping<int>();
     private readonly static ConcurrentDictionary<int, KeyValuePair<int,int>?> _connectedUserPosition = new ConcurrentDictionary<int, KeyValuePair<int,int>?>();
+    private readonly static ConcurrentDictionary<int, ConnectionMapping<int>> _mapConnections = new ConcurrentDictionary<int, ConnectionMapping<int>>();
 
 
     private string CurrentUser()
@@ -80,6 +81,15 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
             _connectedUserPosition.TryRemove(accountID, out _);
             meters.DisconnectUser();
             await Clients.AllExcept(Context.ConnectionId).NotifyUserDisconnected(accountID);
+        }
+
+        foreach (var entry in _mapConnections)
+        {
+            var mapId = entry.Key;
+            if (entry.Value.TryRemove(accountID, Context.ConnectionId, out int remainingOnMap) && remainingOnMap == 0)
+            {
+                await Clients.OthersInGroup($"map:{mapId}").NotifyUserOnMapDisconnected(accountID, mapId);
+            }
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -287,6 +297,8 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            var mapping = _mapConnections.GetOrAdd(mapId, _ => new ConnectionMapping<int>());
+            mapping.AddAndGetCount(accountID, Context.ConnectionId);
             await Clients.OthersInGroup($"map:{mapId}").NotifyUserOnMapConnected(accountID, mapId);
         }
     }
@@ -296,8 +308,22 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
         int accountID = CurrentAccountId();
         if(accountID != 0)
         {
+            if (_mapConnections.TryGetValue(mapId, out var mapping))
+            {
+                mapping.TryRemove(accountID, Context.ConnectionId, out _);
+            }
             await Clients.OthersInGroup($"map:{mapId}").NotifyUserOnMapDisconnected(accountID, mapId);
         }
+    }
+
+    public Task<int> GetTotalConnectedUsers()
+    {
+        return Task.FromResult(_connections.Count);
+    }
+
+    public Task<int> GetUserCountOnMap(int mapId)
+    {
+        return Task.FromResult(_mapConnections.TryGetValue(mapId, out var mapping) ? mapping.Count : 0);
     }
 
     public async Task SendInstanceAccessAdded(int instanceId, int accessId)

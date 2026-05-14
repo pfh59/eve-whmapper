@@ -96,4 +96,20 @@ public class ConnectionMapping<T> where T : notnull
             return count;
         }
     }
+
+    public bool TryRemove(T key, string connectionId, out int remainingCount)
+    {
+        remainingCount = 0;
+        lock (_connections)
+        {
+            if (!_connections.TryGetValue(key, out var connections))
+                return false;
+            if (!connections.Remove(connectionId))
+                return false;
+            remainingCount = connections.Count;
+            if (remainingCount == 0)
+                _connections.Remove(key);
+            return true;
+        }
+    }
 }
