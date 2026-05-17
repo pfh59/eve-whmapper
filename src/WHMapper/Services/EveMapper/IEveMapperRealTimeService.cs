@@ -468,4 +468,14 @@ public interface IEveMapperRealTimeService : IAsyncDisposable
     /// Leaves the SignalR group for the specified map.
     /// </summary>
     Task LeaveMap(int accountID, int mapId);
+
+    /// <summary>
+    /// Gets the total number of distinct accounts currently connected to the hub.
+    /// </summary>
+    Task<int> GetTotalConnectedUsers(int accountID);
+
+    /// <summary>
+    /// Gets the number of distinct accounts currently present on the given map.
+    /// </summary>
+    Task<int> GetUserCountOnMap(int accountID, int mapId);
 }

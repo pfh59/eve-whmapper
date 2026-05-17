@@ -288,12 +288,14 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         {
             var hasAccess = await accessHelper.IsEveMapperMapAccessAuthorized(account.Id, mapId);
             account.HasCurrentMapAccess = hasAccess;
-            
-            _logger.LogInformation("Account {AccountId} HasCurrentMapAccess for map {MapId}: {HasAccess}", 
+
+            _logger.LogInformation("Account {AccountId} HasCurrentMapAccess for map {MapId}: {HasAccess}",
                 account.Id, mapId, hasAccess);
         }
-        
-        // Notify listeners that the current map has changed
+    }
+
+    public async Task NotifyCurrentMapChangedAsync(string clientId, int mapId)
+    {
         if (CurrentMapChanged != null)
         {
             await CurrentMapChanged.Invoke(clientId, mapId);

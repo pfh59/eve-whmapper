@@ -205,7 +205,37 @@ public partial class Overview : IAsyncDisposable
         // CRITICAL: Subscribe to events FIRST before any tracking starts
         // This prevents race conditions where events fire before handlers are attached
         SubscribeToEvents();
-        
+
+        // When switching from a previously loaded map, release SignalR-side state so the
+        // old map's user count decrements for other clients and we stop receiving its updates.
+        if (_selectedWHMapId.HasValue && MapId.HasValue && _selectedWHMapId.Value != MapId.Value)
+        {
+            int previousMapId = _selectedWHMapId.Value;
+            try
+            {
+                WHMapperUser[]? previousAccounts = await GetAccountsAsync();
+                if (previousAccounts != null)
+                {
+                    foreach (var account in previousAccounts)
+                    {
+                        try
+                        {
+                            await EveMapperRealTime.NotifyUserOnMapDisconnected(account.Id, previousMapId);
+                            await EveMapperRealTime.LeaveMap(account.Id, previousMapId);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogWarning(ex, "Error leaving previous map {MapId} for account {AccountId}", previousMapId, account.Id);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Error retrieving accounts to leave previous map {MapId}", previousMapId);
+            }
+        }
+
         if (MapId.HasValue && (!_selectedWHMapId.HasValue || _selectedWHMapId.Value != MapId.Value))
         {
             if (await Restore(MapId.Value, cancellationToken))
@@ -282,6 +312,13 @@ public partial class Overview : IAsyncDisposable
                     }
 
                     await InitBlazorDiagramEvents();
+
+                    _selectedWHMapId = MapId.Value;
+
+                    // Notify listeners now that the SignalR-side state for this map is consistent.
+                    // Firing CurrentMapChanged earlier (e.g. from UpdateAccountsCurrentMapAccessAsync)
+                    // races against SendUserOnMapConnected and would leave the connected-users count stale.
+                    await UserManagement.NotifyCurrentMapChangedAsync(UID.ClientId, MapId.Value);
                 }
             }
         }
