@@ -1,7 +1,7 @@
 @namespace WHMapper.Components.Pages.Mapper.Stats
 
 <div class="d-flex align-center @Class">
-    <MudTooltip Text="Players connected to the active map">
+    <MudTooltip Text="Characters connected to the active map">
         <MudChip T="string"
                  Icon="@Icons.Material.Filled.Map"
                  Size="Size.Small"
@@ -11,7 +11,7 @@
             @(CurrentMapId.HasValue ? MapUserCount.ToString() : "—")
         </MudChip>
     </MudTooltip>
-    <MudTooltip Text="Total connected players (all instances)">
+    <MudTooltip Text="Total connected characters (all instances)">
         <MudChip T="string"
                  Icon="@Icons.Material.Filled.Group"
                  Size="Size.Small"

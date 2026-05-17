@@ -35,4 +35,10 @@ public interface IEveMapperUserManagementService
     /// <param name="clientId">The client identifier</param>
     /// <param name="mapId">The ID of the currently selected map</param>
     Task UpdateAccountsCurrentMapAccessAsync(string clientId, int mapId);
+
+    /// <summary>
+    /// Fires the <see cref="CurrentMapChanged"/> event for the given client/map.
+    /// Caller decides when SignalR-side map state is consistent before notifying listeners.
+    /// </summary>
+    Task NotifyCurrentMapChangedAsync(string clientId, int mapId);
 }
