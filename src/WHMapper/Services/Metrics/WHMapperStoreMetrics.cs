@@ -1,5 +1,6 @@
 using Humanizer;
 using System.Diagnostics.Metrics;
+using System.Reflection;
 using WHMapper.Repositories.WHJumpLogs;
 using WHMapper.Repositories.WHMaps;
 using WHMapper.Repositories.WHNotes;
@@ -58,7 +59,14 @@ public class WHMapperStoreMetrics
 
         var meter = meterFactory.Create(configuration["WHMapperStoreMeterName"] ??
                                         throw new ArgumentNullException(nameof(configuration), "WHMapperStore meter missing a name"));
-                                        
+
+        var version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown";
+        meter.CreateObservableGauge(
+            "app-info",
+            () => new Measurement<int>(1, new KeyValuePair<string, object?>("version", version)),
+            unit: null,
+            description: "WHMapper application info, value is always 1, version is exposed as a label");
+
         UsersConnectedCounter = meter.CreateCounter<int>("users-connected", "User", "Amount authenticated users connected");
         UsersDisconnectedCounter = meter.CreateCounter<int>("users-disconnected", "User", "Amount authenticated users disconnected");
         meter.CreateObservableGauge("total-users", () => _totalUsers, "User", "Total amount of authenticated users");
