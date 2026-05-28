@@ -46,7 +46,7 @@ public partial class EveSystemNode
     {
         get
         {
-            String systemStyle = "";
+            String systemStyle = "width:160px; height:85px;";
 
             if (Node.Selected)
             {
