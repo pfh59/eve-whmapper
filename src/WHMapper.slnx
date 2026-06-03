@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="WHMapper.Tests/WHMapper.Tests.csproj" />
+  <Project Path="WHMapper/WHMapper.csproj" />
+</Solution>
