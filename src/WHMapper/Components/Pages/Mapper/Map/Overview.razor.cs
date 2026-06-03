@@ -1098,7 +1098,7 @@ public partial class Overview : IAsyncDisposable
     /// avoiding overlaps with existing nodes using direct collision detection.
     /// Logic: Try each candidate position around the source node. As soon as a
     /// position has no collision, use it. If all positions collide, increase
-    /// distance and retry (left/right: x±5, top/bottom: y±5, diagonals: x±5 and y±5).
+    /// distance and retry (left/right: x±10, top/bottom: y±5, diagonals: x±10 and y±5).
     /// </summary>
     /// <param name="srcNode">The source node from which the new node will be connected</param>
     /// <param name="newNodeWidth">Expected width of the new node (defaults to source width if null)</param>
@@ -1107,7 +1107,6 @@ public partial class Overview : IAsyncDisposable
     private (double X, double Y) CalculateNewNodePosition(EveSystemNodeModel srcNode, double? newNodeWidth = null, double? newNodeHeight = null)
     {
         const double SPACING = 30; // Space between nodes
-        const double DISTANCE_INCREMENT = 5; // Distance increment on collision retry
         const int MAX_DISTANCE_ATTEMPTS = 50; // Max retries before giving up
 
         // Default position if no source node
@@ -1135,12 +1134,12 @@ public partial class Overview : IAsyncDisposable
             ((srcWidth - newWidth) / 2, srcHeight + SPACING, "Bottom"),
             // Top
             ((srcWidth - newWidth) / 2, -(newHeight + SPACING), "Top"),
+            // Left
+            (-(newWidth + SPACING), (srcHeight - newHeight) / 2, "Left"),
             // Bottom-Right
             (srcWidth + SPACING, srcHeight + SPACING, "Bottom-Right"),
             // Top-Right
             (srcWidth + SPACING, -(newHeight + SPACING), "Top-Right"),
-            // Left
-            (-(newWidth + SPACING), (srcHeight - newHeight) / 2, "Left"),
             // Bottom-Left
             (-(newWidth + SPACING), srcHeight + SPACING, "Bottom-Left"),
             // Top-Left
@@ -1152,34 +1151,8 @@ public partial class Overview : IAsyncDisposable
         {
             foreach (var (dx, dy, name) in directions)
             {
-                // Calculate the extra offset for this attempt based on direction type
-                double extraX = 0;
-                double extraY = 0;
-
-                if (attempt > 0)
-                {
-                    double offset = DISTANCE_INCREMENT * attempt;
-
-                    if (name == "Left" || name == "Right")
-                    {
-                        // Left/Right: extend x only
-                        extraX = dx > 0 ? offset : -offset;
-                    }
-                    else if (name == "Top" || name == "Bottom")
-                    {
-                        // Top/Bottom: extend y only
-                        extraY = dy > 0 ? offset : -offset;
-                    }
-                    else
-                    {
-                        // Diagonals: extend both x and y
-                        extraX = dx > 0 ? offset : -offset;
-                        extraY = dy > 0 ? offset : -offset;
-                    }
-                }
-
-                double candidateX = Math.Max(10, baseX + dx + extraX);
-                double candidateY = Math.Max(10, baseY + dy + extraY);
+                double candidateX = Math.Max(10, baseX + (dx*attempt));
+                double candidateY = Math.Max(10, baseY + (dy*attempt));
 
                 // Check collision against all existing nodes
                 if (!HasCollision(candidateX, candidateY, newWidth, newHeight, SPACING))
