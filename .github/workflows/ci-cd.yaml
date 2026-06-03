@@ -95,7 +95,7 @@ jobs:
       - name: Install SonarCloud scanners
         if: ${{ env.BASE_REPO == env.PR_HEAD_REPO }}
         run: |
-          dotnet tool install --global dotnet-sonarscanner
+          dotnet tool install --global dotnet-sonarscanner --version 10.4.1
           dotnet tool install --global dotnet-coverage
 
       - name: SonarCloud Build and Analyze 🚀 🧪
