@@ -3,101 +3,115 @@
 @using WHMapper.Models.DTO.EveMapper.Enums;
 
 
-<MudCard Outlined="true" Style="@systemStyle" Class="_class">
-    <MudCardHeader Class="mb-n5">
-        <CardHeaderAvatar>
-            <MudBadge Origin="Origin.TopRight" Overlap="true" Content=@Node.NameExtension Visible=@((Node.NameExtension!=null) ? true : false) Bordered="true" Color="Color.Dark">
-                <MudAvatar class="mt-1" Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")" Size="Size.Small" Variant="Variant.Outlined">@Node.SystemType.ToDescriptionString()</MudAvatar>
+<MudPaper Outlined="true" Style="@systemStyle">
+
+    <MudStack Row="false" Spacing="0" Style="height:100%;" Justify="Justify.SpaceBetween">
+
+        @* --- HEADER : badge à gauche / lock + effet à droite --- *@
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Spacing="0" Class="mt-2 ml-2 mr-2">
+            <MudBadge Origin="Origin.TopRight" Overlap="true"
+                      Content=@Node.NameExtension
+                      Visible=@((Node.NameExtension!=null) ? true : false)
+                      Bordered="true" Color="Color.Dark">
+                <MudAvatar Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")"
+                           Size="Size.Small" Variant="Variant.Outlined" Class="mt-1">
+                    @Node.SystemType.ToDescriptionString()
+                </MudAvatar>
             </MudBadge>
-        </CardHeaderAvatar>
-        <CardHeaderContent>
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
+                @if (Locked)
+                {
+                    <MudIcon Icon="@Icons.Material.Sharp.Lock" Size="Size.Small" />
+                }
+                @if (Node != null && Node.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
+                {
+                    <MudTooltip Text="@Node.Effect.ToString()" Arrow="true" Placement="Placement.Bottom">
+                        <ChildContent>
+                            <MudIcon Icon="@Icons.Material.Filled.Star" Style="@($"color:{_whEffectColor};")" Size="Size.Small"/>
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudPaper Class="d-flex flex-column flex-grow-1 gap-0 px-2 py-1" Elevation="0">
+                                <MudText Align="Align.Center" Typo="Typo.subtitle2">@Node.Effect.ToString()</MudText>
+                                @if (Node != null && Node.EffectDetails!=null)
+                                {
+                                    foreach (Models.DTO.EveMapper.EveSystemEffect effectInfo in Node.EffectDetails)
+                                    {
+                                        <MudText Align="Align.Left" Typo="Typo.caption">@effectInfo.Name. : @effectInfo.Value%</MudText>
+                                    }
+                                }
+                            </MudPaper>
+                        </TooltipContent>
+                    </MudTooltip>
+                }
+            </MudStack>
+        </MudStack>
+
+        @* --- CENTRE : nom / édition, largeur 100 % --- *@
+        <MudStack Row="true" Style="width:100%;" Spacing="0" Class="ml-2 mr-2">
             @if (_isEditingName)
             {
-                <MudTextField @bind-Value="_editedName"
-                      Immediate="true"
-                      @onblur="@(() => SaveName())"
-                      @onkeyup="@((e) => OnKeyUp(e))"
-                      Class="ml-n1 pr-2 mt-1"
-                      Style="font-weight:bold; width: 120px;"
-                      Variant="Variant.Outlined"
-                      Margin="Margin.Dense"
-                      AutoFocus="true" />
+                <MudTextField @bind-Value="_editedName" Typo="Typo.body2" Align="Align.Center"
+                              Immediate="true"
+                              @onblur="@(() => SaveName())"
+                              @onkeyup="@((e) => OnKeyUp(e))"
+                              Style="font-weight:bold; width:99%;"
+                              Variant="Variant.Text"
+                              Margin="Margin.Dense"
+                              AutoFocus="true" />
             }
             else
-            {   
+            {
                 @if(Node.AlternateName!=null)
                 {
-                    <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;" @ondblclick="StartEditingName">@Node.AlternateName</MudText>
-
+                    <MudText Typo="Typo.body2" Align="Align.Center"
+                             Style="font-weight:bold; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                             @ondblclick="StartEditingName">@Node.AlternateName</MudText>
                 }
                 else
                 {
-                    <MudText class="ml-n1 pr-2 mt-1" Typo="Typo.body2" Style="font-weight:bold;" @ondblclick="StartEditingName">@Node.Name</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center"
+                             Style="font-weight:bold; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                             @ondblclick="StartEditingName">@Node.Name</MudText>
                 }
             }
-        </CardHeaderContent>
-        <CardHeaderActions>
-            @if (Locked)
-            {
-                <MudIcon Icon="@Icons.Material.Sharp.Lock" Size="Size.Small" Style="margin-top:-3px" />
-            }
-            @if (Node != null && Node.Effect != WHMapper.Models.DTO.EveMapper.Enums.WHEffect.None)
-            {
-                <MudTooltip Text="@Node.Effect.ToString()" Arrow="true" Placement="Placement.Bottom">
-                    <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.Square" Style="@($"color:{_whEffectColor};")" Size="Size.Small"/>
-                    </ChildContent>
-                    <TooltipContent>
-                        <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
-                            @if (Node != null && Node.EffectDetails!=null)
-                            {
-                                foreach (var effectInfo in Node.EffectDetails)
-                                {
-                                    <MudText class="ml-1 mr-1" Typo="Typo.caption">@effectInfo.Name. : @effectInfo.Value%</MudText>
-                                }
-                            }
-                        </MudPaper>
-                    </TooltipContent>
-                </MudTooltip>
-            }
-        </CardHeaderActions>
-    </MudCardHeader>
+        </MudStack>
 
-    <MudCardContent Class="d-flex pa-1 pr-2 justify-space-between">
-        <div Class="d-flex justify-start">
-            @if (Node != null && Node.ConnectedUsers != null && Node.ConnectedUsers.FirstOrDefault() != null)
-            {
-                <MudTooltip Arrow="true" Placement="Placement.Bottom">
-                    <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Default Size="Size.Small" />
-                    </ChildContent>
-                    <TooltipContent>
-                        <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
-                            @foreach (var user in @Node.ConnectedUsers)
-                            {
-                                <MudText class="ml-1 mr-1" Typo="Typo.caption">@user</MudText>
-                            }
-                        </MudPaper>
-                    </TooltipContent>
-                </MudTooltip>
-            }
-            else
-            {
-                <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Transparent Size="Size.Small" />
-            }
-            <MudText Class="align-self-stretch ml-1 mt-1" Typo="Typo.caption">@Node?.ConnectedUsers?.FirstOrDefault()</MudText>
-        </div>
-        <div Class="d-flex justify-end">
-            @if (Node != null && Node.Statics != null && Node?.Statics.Count() > 0)
-            {
-                @foreach (var item in Node.Statics)
+        @* --- FOOTER : users connectés / statiques --- *@
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Spacing="0" class="mb-2 ml-2 mr-2">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                @if (Node != null && Node.ConnectedUsers != null && Node.ConnectedUsers.FirstOrDefault() != null)
                 {
-                    <MudText Class="align-self-stretch mt-1 ml-1" Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Destination)};")">@item.Destination.ToString()</MudText>
+                    <MudTooltip Arrow="true" Placement="Placement.Bottom">
+                        <ChildContent>
+                            <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Default Size="Size.Small" />
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
+                                @foreach (var user in @Node.ConnectedUsers)
+                                {
+                                    <MudText class="ml-1 mr-1" Typo="Typo.caption">@user</MudText>
+                                }
+                            </MudPaper>
+                        </TooltipContent>
+                    </MudTooltip>
                 }
-            }
-        </div>
-    </MudCardContent>
-</MudCard>
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Transparent Size="Size.Small" />
+                }
+                <MudText Typo="Typo.caption">@Node?.ConnectedUsers?.FirstOrDefault()</MudText>
+            </MudStack>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                @if (Node != null && Node.Statics != null && Node?.Statics.Count() > 0)
+                {
+                    @foreach (var item in Node.Statics)
+                    {
+                        <MudText Typo="Typo.body2" Style="@($"color:{WHColorHelper.GetSystemTypeColor(@item.Destination)};")">@item.Destination.ToString()</MudText>
+                    }
+                }
+            </MudStack>
+        </MudStack>
 
-
-
+    </MudStack>
+</MudPaper>
