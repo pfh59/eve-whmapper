@@ -11,7 +11,7 @@
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Spacing="0" Class="mt-2 ml-2 mr-2">
             <MudBadge Origin="Origin.TopRight" Overlap="true"
                       Content=@Node.NameExtension
-                      Visible=@((Node.NameExtension!=null) ? true : false)
+                      Visible=@(Node.NameExtension!=null)
                       Bordered="true" Color="Color.Dark">
                 <MudAvatar Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")"
                            Size="Size.Small" Variant="Variant.Outlined" Class="mt-1">
@@ -28,7 +28,7 @@
                 {
                     <MudTooltip Text="@Node.Effect.ToString()" Arrow="true" Placement="Placement.Bottom">
                         <ChildContent>
-                            <MudIcon Icon="@Icons.Material.Filled.Star" Style="@($"color:{_whEffectColor};")" Size="Size.Small"/>
+                            <MudIcon Icon="@Icons.Material.Filled.Square" Style="@($"color:{_whEffectColor};")" Size="Size.Small"/>
                         </ChildContent>
                         <TooltipContent>
                             <MudPaper Class="d-flex flex-column flex-grow-1 gap-0 px-2 py-1" Elevation="0">
@@ -90,7 +90,7 @@
                             <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
                                 @foreach (var user in @Node.ConnectedUsers)
                                 {
-                                    <MudText class="ml-1 mr-1" Typo="Typo.caption">@user</MudText>
+                                    <MudText class="ml-1 mr-1" Typo="Typo.caption" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@user</MudText>
                                 }
                             </MudPaper>
                         </TooltipContent>
