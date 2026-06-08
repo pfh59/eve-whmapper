@@ -2,9 +2,11 @@
 @using WHMapper.Components.Pages.Mapper.Setting
 @using WHMapper.Models.DTO
 @using WHMapper.Components.Pages.Instance
+@using WHMapper.Services.EveMapper
 @implements IDisposable
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
+@inject IEveMapperInstanceService InstanceService
 
 
 <AuthorizeView>
@@ -14,7 +16,10 @@
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                         <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" OnClick="OpenInstancesDialog">My Instances</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
+                        @if (!_instanceCreationLocked)
+                        {
+                            <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
+                        }
                         <MudMenuItem Icon="@Icons.Material.Filled.Settings" IconColor="Color.Default" OnClick="OpenUserSettingsDialog">Settings</MudMenuItem>
                         <MudForm action="authentication/logout" method="post">
                             <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
@@ -32,7 +37,10 @@
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                 <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" IconColor="Color.Default" Href="@GetLoginUrl()">Add Account</MudMenuItem>
                                 <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Default" OnClick="OpenInstancesDialog">My Instances</MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
+                                @if (!_instanceCreationLocked)
+                                {
+                                    <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
+                                }
                                 <MudMenuItem Icon="@Icons.Material.Filled.Settings" IconColor="Color.Default" OnClick="OpenUserSettingsDialog">Settings</MudMenuItem>
                                 <MudForm action="authentication/logout" method="post">
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
@@ -47,7 +55,10 @@
                     <NotAuthorized>
                         @* User is authenticated but has no instance access - show registration option *@
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                                <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
+                                @if (!_instanceCreationLocked)
+                                {
+                                    <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
+                                }
                                 <MudForm action="authentication/logout" method="post">
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
                                     <input type="hidden" name="ReturnUrl" value="/" />
@@ -78,6 +89,7 @@
 
 @code
 {    private string? _antiForgeryToken;
+    private bool _instanceCreationLocked = false;
 
     [Inject]
     private ClientUID UID {get; set;} = null!;
@@ -88,11 +100,14 @@
     [Inject]
     private IAntiforgery Antiforgery { get; set; } = null!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var tokens = Antiforgery.GetAndStoreTokens(HttpContextAccessor.HttpContext!);
         _antiForgeryToken = tokens.RequestToken;
         Navigation.LocationChanged += OnLocationChanged;
+
+        // In single-tenant mode, once an instance exists, creation is locked
+        _instanceCreationLocked = await InstanceService.IsInstanceCreationLockedAsync();
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

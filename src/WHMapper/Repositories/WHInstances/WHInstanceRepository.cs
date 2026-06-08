@@ -110,6 +110,12 @@ namespace WHMapper.Repositories.WHInstances
                 .FirstOrDefaultAsync(x => x.OwnerEveEntityId == ownerEveEntityId);
         }
 
+        public async Task<bool> AnyAsync()
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.DbWHInstances.AnyAsync();
+        }
+
         public async Task<IEnumerable<WHInstance>?> GetInstancesForAdminAsync(int characterId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
