@@ -90,7 +90,7 @@
                             <MudPaper Class="d-flex flex-column flex-grow-1 gap-0" Elevation="0">
                                 @foreach (var user in @Node.ConnectedUsers)
                                 {
-                                    <MudText class="ml-1 mr-1" Typo="Typo.caption" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@user</MudText>
+                                    <MudText class="ml-1 mr-1" Typo="Typo.caption" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px;">@user</MudText>
                                 }
                             </MudPaper>
                         </TooltipContent>
@@ -100,7 +100,7 @@
                 {
                     <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Transparent Size="Size.Small" />
                 }
-                <MudText Typo="Typo.caption">@Node?.ConnectedUsers?.FirstOrDefault()</MudText>
+                <MudText Typo="Typo.caption" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px;">@Node?.ConnectedUsers?.FirstOrDefault()</MudText>
             </MudStack>
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                 @if (Node != null && Node.Statics != null && Node?.Statics.Count() > 0)

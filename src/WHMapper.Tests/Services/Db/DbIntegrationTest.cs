@@ -1004,6 +1004,10 @@ public class DbIntegrationTest
         ));
         Assert.NotNull(instance);
 
+        // Test AnyAsync
+        var any = await repo.AnyAsync();
+        Assert.True(any);
+
         // Test GetByOwnerAsync
         var byOwner = await repo.GetByOwnerAsync(EVE_CHARACTERE_ID);
         Assert.NotNull(byOwner);
