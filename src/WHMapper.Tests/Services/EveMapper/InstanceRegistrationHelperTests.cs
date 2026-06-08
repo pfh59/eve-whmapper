@@ -200,6 +200,7 @@ public class InstanceRegistrationHelperTests
         };
 
         var expectedInstance = new WHInstance("My Instance", 42, "Test Pilot", WHAccessEntity.Character, 42, "Test Pilot");
+        instanceService.Setup(x => x.IsInstanceCreationLockedAsync()).ReturnsAsync(false);
         instanceService.Setup(x => x.CanRegisterAsync(42)).ReturnsAsync(true);
         instanceService.Setup(x => x.CreateInstanceAsync(
             "My Instance", null, 42, "Test Pilot", WHAccessEntity.Character, 42, "Test Pilot"))
@@ -227,6 +228,7 @@ public class InstanceRegistrationHelperTests
         };
 
         var expectedInstance = new WHInstance("Corp Instance", 100, "Test Corp", WHAccessEntity.Corporation, 42, "Test Pilot");
+        instanceService.Setup(x => x.IsInstanceCreationLockedAsync()).ReturnsAsync(false);
         instanceService.Setup(x => x.CanRegisterAsync(100)).ReturnsAsync(true);
         instanceService.Setup(x => x.CreateInstanceAsync(
             "Corp Instance", null, 100, "Test Corp", WHAccessEntity.Corporation, 42, "Test Pilot"))
@@ -254,6 +256,7 @@ public class InstanceRegistrationHelperTests
         };
 
         var expectedInstance = new WHInstance("Alliance Instance", 200, "Test Alliance", WHAccessEntity.Alliance, 42, "Test Pilot");
+        instanceService.Setup(x => x.IsInstanceCreationLockedAsync()).ReturnsAsync(false);
         instanceService.Setup(x => x.CanRegisterAsync(200)).ReturnsAsync(true);
         instanceService.Setup(x => x.CreateInstanceAsync(
             "Alliance Instance", null, 200, "Test Alliance", WHAccessEntity.Alliance, 42, "Test Pilot"))
@@ -278,6 +281,7 @@ public class InstanceRegistrationHelperTests
             CharacterName = "Test Pilot"
         };
 
+        instanceService.Setup(x => x.IsInstanceCreationLockedAsync()).ReturnsAsync(false);
         instanceService.Setup(x => x.CanRegisterAsync(42)).ReturnsAsync(true);
         instanceService.Setup(x => x.CreateInstanceAsync(
             "Test", null, 42, "Test Pilot", WHAccessEntity.Character, 42, "Test Pilot"))
@@ -301,6 +305,7 @@ public class InstanceRegistrationHelperTests
             CharacterName = "Test Pilot"
         };
 
+        instanceService.Setup(x => x.IsInstanceCreationLockedAsync()).ReturnsAsync(false);
         instanceService.Setup(x => x.CanRegisterAsync(42)).ReturnsAsync(true);
         instanceService.Setup(x => x.CreateInstanceAsync(
             "Test", "A description", 42, "Test Pilot", WHAccessEntity.Character, 42, "Test Pilot"))
@@ -360,12 +365,36 @@ public class InstanceRegistrationHelperTests
             CharacterName = "Test Pilot"
         };
 
+        instanceService.Setup(x => x.IsInstanceCreationLockedAsync()).ReturnsAsync(false);
         instanceService.Setup(x => x.CanRegisterAsync(42)).ReturnsAsync(false);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => sut.RegisterInstanceAsync(context, "Test", null, WHAccessEntity.Character));
 
         Assert.Equal("An instance already exists for this entity", ex.Message);
+    }
+
+    [Theory]
+    [AutoMoqData]
+    public async Task RegisterInstance_WhenServerLocked_ThrowsPermissionDenied(
+        [Frozen] Mock<IEveMapperInstanceService> instanceService,
+        InstanceRegistrationHelper sut)
+    {
+        var context = new InstanceRegistrationContext
+        {
+            CharacterId = 42,
+            CharacterName = "Test Pilot"
+        };
+
+        instanceService.Setup(x => x.IsInstanceCreationLockedAsync()).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => sut.RegisterInstanceAsync(context, "Test", null, WHAccessEntity.Character));
+
+        Assert.Equal("Permission denied: instance creation is locked on this server", ex.Message);
+        instanceService.Verify(x => x.CreateInstanceAsync(
+            It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<string>(),
+            It.IsAny<WHAccessEntity>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
     }
 
     [Theory]

@@ -14,6 +14,7 @@ public partial class Home : ComponentBase, IAsyncDisposable
     private string _init_process_msg = string.Empty;
     private bool _disposed = false;
     private bool _isWaitingForOtherInitialization = false;
+    private bool _instanceCreationLocked = false;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -39,6 +40,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
 
+    [Inject]
+    private IEveMapperInstanceService InstanceService { get; set; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
         if (SDEServices.IsExtractionSuccesful())
@@ -59,6 +63,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
 
         // Subscribe to primary account changes to refresh authorization state
         UserManagement.PrimaryAccountChanged += OnPrimaryAccountChanged;
+
+        // In single-tenant mode, once an instance exists, creation is locked
+        _instanceCreationLocked = await InstanceService.IsInstanceCreationLockedAsync();
 
         await base.OnInitializedAsync();
     }

@@ -8,6 +8,8 @@ using WHMapper.Repositories.WHMaps;
 using WHMapper.Services.EveMapper;
 using Xunit;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 
 namespace WHMapper.Tests.Services.EveMapper
 {
@@ -30,7 +32,29 @@ namespace WHMapper.Tests.Services.EveMapper
                 _loggerMock.Object,
                 _instanceRepoMock.Object,
                 _mapRepoMock.Object,
-                _mapAccessRepoMock.Object
+                _mapAccessRepoMock.Object,
+                BuildConfiguration(singleTenantMode: false)
+            );
+        }
+
+        private static IConfiguration BuildConfiguration(bool singleTenantMode)
+        {
+            return new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["Instances:SingleTenantMode"] = singleTenantMode.ToString()
+                })
+                .Build();
+        }
+
+        private EveMapperInstanceService BuildService(bool singleTenantMode)
+        {
+            return new EveMapperInstanceService(
+                _loggerMock.Object,
+                _instanceRepoMock.Object,
+                _mapRepoMock.Object,
+                _mapAccessRepoMock.Object,
+                BuildConfiguration(singleTenantMode)
             );
         }
 
@@ -126,6 +150,79 @@ namespace WHMapper.Tests.Services.EveMapper
             // Assert
             Assert.Null(result);
             _instanceRepoMock.Verify(r => r.DeleteById(instance.Id), Times.Once);
+        }
+
+        [Fact]
+        public async Task IsInstanceCreationLockedAsync_ReturnsFalse_WhenSingleTenantModeDisabled()
+        {
+            // Arrange: single-tenant off, even if instances exist
+            var service = BuildService(singleTenantMode: false);
+
+            // Act
+            var locked = await service.IsInstanceCreationLockedAsync();
+
+            // Assert
+            Assert.False(locked);
+            _instanceRepoMock.Verify(r => r.AnyAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task IsInstanceCreationLockedAsync_ReturnsFalse_WhenSingleTenantModeAndNoInstance()
+        {
+            // Arrange
+            var service = BuildService(singleTenantMode: true);
+            _instanceRepoMock.Setup(r => r.AnyAsync()).ReturnsAsync(false);
+
+            // Act
+            var locked = await service.IsInstanceCreationLockedAsync();
+
+            // Assert
+            Assert.False(locked);
+        }
+
+        [Fact]
+        public async Task IsInstanceCreationLockedAsync_ReturnsTrue_WhenSingleTenantModeAndInstanceExists()
+        {
+            // Arrange
+            var service = BuildService(singleTenantMode: true);
+            _instanceRepoMock.Setup(r => r.AnyAsync()).ReturnsAsync(true);
+
+            // Act
+            var locked = await service.IsInstanceCreationLockedAsync();
+
+            // Assert
+            Assert.True(locked);
+        }
+
+        [Fact]
+        public async Task CreateInstanceAsync_ReturnsNull_WhenServerLocked()
+        {
+            // Arrange: single-tenant mode with an existing instance => locked
+            var service = BuildService(singleTenantMode: true);
+            _instanceRepoMock.Setup(r => r.AnyAsync()).ReturnsAsync(true);
+
+            // Act
+            var result = await service.CreateInstanceAsync("New", null, 999, "Owner", WHAccessEntity.Character, 200, "Creator");
+
+            // Assert
+            Assert.Null(result);
+            _instanceRepoMock.Verify(r => r.GetByOwnerAsync(It.IsAny<int>()), Times.Never);
+            _instanceRepoMock.Verify(r => r.Create(It.IsAny<WHInstance>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CanRegisterAsync_ReturnsFalse_WhenServerLocked()
+        {
+            // Arrange
+            var service = BuildService(singleTenantMode: true);
+            _instanceRepoMock.Setup(r => r.AnyAsync()).ReturnsAsync(true);
+
+            // Act
+            var canRegister = await service.CanRegisterAsync(999);
+
+            // Assert
+            Assert.False(canRegister);
+            _instanceRepoMock.Verify(r => r.GetByOwnerAsync(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]

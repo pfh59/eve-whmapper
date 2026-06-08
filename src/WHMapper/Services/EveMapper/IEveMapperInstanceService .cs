@@ -124,6 +124,12 @@ namespace WHMapper.Services.EveMapper
         /// </summary>
         Task<bool> CanRegisterAsync(int ownerEveEntityId);
 
+        /// <summary>
+        /// Checks whether instance creation is locked on this server.
+        /// True when single-tenant mode is enabled and at least one instance already exists.
+        /// </summary>
+        Task<bool> IsInstanceCreationLockedAsync();
+
         #region Map Access Management
 
         /// <summary>

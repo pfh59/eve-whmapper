@@ -10,6 +10,11 @@ namespace WHMapper.Repositories.WHInstances
         Task<WHInstance?> GetByOwnerAsync(int ownerEveEntityId);
 
         /// <summary>
+        /// Checks whether at least one instance exists on the server
+        /// </summary>
+        Task<bool> AnyAsync();
+
+        /// <summary>
         /// Gets all instances where a character is an administrator
         /// </summary>
         Task<IEnumerable<WHInstance>?> GetInstancesForAdminAsync(int characterId);

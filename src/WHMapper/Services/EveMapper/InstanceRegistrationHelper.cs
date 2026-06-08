@@ -101,6 +101,9 @@ public class InstanceRegistrationHelper : IInstanceRegistrationHelper
                 throw new InvalidOperationException("Invalid owner type selected");
         }
 
+        if (await _instanceService.IsInstanceCreationLockedAsync())
+            throw new InvalidOperationException("Permission denied: instance creation is locked on this server");
+
         if (!await _instanceService.CanRegisterAsync(ownerEntityId))
             throw new InvalidOperationException("An instance already exists for this entity");
 

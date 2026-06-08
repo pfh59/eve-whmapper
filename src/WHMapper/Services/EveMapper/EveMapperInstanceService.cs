@@ -15,17 +15,20 @@ namespace WHMapper.Services.EveMapper
         private readonly IWHInstanceRepository _instanceRepository;
         private readonly IWHMapRepository _mapRepository;
         private readonly IWHMapAccessRepository _mapAccessRepository;
+        private readonly bool _singleTenantMode;
 
         public EveMapperInstanceService(
             ILogger<EveMapperInstanceService> logger,
             IWHInstanceRepository instanceRepository,
             IWHMapRepository mapRepository,
-            IWHMapAccessRepository mapAccessRepository)
+            IWHMapAccessRepository mapAccessRepository,
+            IConfiguration configuration)
         {
             _logger = logger;
             _instanceRepository = instanceRepository;
             _mapRepository = mapRepository;
             _mapAccessRepository = mapAccessRepository;
+            _singleTenantMode = configuration.GetValue<bool>("Instances:SingleTenantMode");
         }
 
         public async Task<WHInstance?> CreateInstanceAsync(
@@ -39,6 +42,13 @@ namespace WHMapper.Services.EveMapper
         {
             try
             {
+                // Single-tenant mode: block creation once the dedicated instance exists
+                if (await IsInstanceCreationLockedAsync())
+                {
+                    _logger.LogWarning("Permission denied: instance creation is locked (single-tenant mode) - owner {OwnerId}", ownerEntityId);
+                    return null;
+                }
+
                 // Check if an instance already exists for this owner
                 var existingInstance = await _instanceRepository.GetByOwnerAsync(ownerEntityId);
                 if (existingInstance != null)
@@ -294,8 +304,19 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<bool> CanRegisterAsync(int ownerEveEntityId)
         {
+            if (await IsInstanceCreationLockedAsync())
+                return false;
+
             var existingInstance = await _instanceRepository.GetByOwnerAsync(ownerEveEntityId);
             return existingInstance == null;
+        }
+
+        public async Task<bool> IsInstanceCreationLockedAsync()
+        {
+            if (!_singleTenantMode)
+                return false;
+
+            return await _instanceRepository.AnyAsync();
         }
 
         #region Map Access Management
