@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WHMapper.Hubs;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.Metrics;
 
 namespace WHMapper.Tests.Hubs;
@@ -50,11 +51,20 @@ public class WHMapperNotificationHubTests : IDisposable
         var mapConnectionsField = hubType.GetField("_mapConnections", BindingFlags.NonPublic | BindingFlags.Static);
         var mapConnections = mapConnectionsField!.GetValue(null)!;
         mapConnections.GetType().GetMethod("Clear")!.Invoke(mapConnections, null);
+
+        var authorizedMapsField = hubType.GetField("_authorizedMaps", BindingFlags.NonPublic | BindingFlags.Static);
+        var authorizedMaps = authorizedMapsField!.GetValue(null)!;
+        authorizedMaps.GetType().GetMethod("Clear")!.Invoke(authorizedMaps, null);
     }
 
-    private WHMapperNotificationHub CreateHub(int accountId, string connectionId)
+    private WHMapperNotificationHub CreateHub(int accountId, string connectionId, bool mapAccessAuthorized = true)
     {
-        var hub = new WHMapperNotificationHub(_meters);
+        var accessHelperMock = new Mock<IEveMapperAccessHelper>();
+        accessHelperMock
+            .Setup(h => h.IsEveMapperMapAccessAuthorized(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(mapAccessAuthorized);
+
+        var hub = new WHMapperNotificationHub(_meters, accessHelperMock.Object);
 
         var contextMock = new Mock<HubCallerContext>();
         contextMock.Setup(c => c.UserIdentifier).Returns(accountId == 0 ? null : $"prefix:scheme:{accountId}");
@@ -66,6 +76,13 @@ public class WHMapperNotificationHubTests : IDisposable
         clientsMock.Setup(c => c.AllExcept(It.IsAny<IReadOnlyList<string>>())).Returns(notifTarget.Object);
         clientsMock.Setup(c => c.OthersInGroup(It.IsAny<string>())).Returns(notifTarget.Object);
         hub.Clients = clientsMock.Object;
+
+        var groupsMock = new Mock<IGroupManager>();
+        groupsMock.Setup(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        groupsMock.Setup(g => g.RemoveFromGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        hub.Groups = groupsMock.Object;
 
         return hub;
     }
@@ -233,6 +250,7 @@ public class WHMapperNotificationHubTests : IDisposable
     {
         var hub = CreateHub(accountId: 123, connectionId: "conn-1");
         await hub.OnConnectedAsync();
+        await hub.JoinMap(42);
 
         await hub.SendUserOnMapConnected(42);
 
@@ -246,6 +264,8 @@ public class WHMapperNotificationHubTests : IDisposable
         var hub2 = CreateHub(accountId: 123, connectionId: "conn-2");
         await hub1.OnConnectedAsync();
         await hub2.OnConnectedAsync();
+        await hub1.JoinMap(42);
+        await hub2.JoinMap(42);
 
         await hub1.SendUserOnMapConnected(42);
         await hub2.SendUserOnMapConnected(42);
@@ -260,6 +280,8 @@ public class WHMapperNotificationHubTests : IDisposable
         var hubB = CreateHub(accountId: 222, connectionId: "conn-B");
         await hubA.OnConnectedAsync();
         await hubB.OnConnectedAsync();
+        await hubA.JoinMap(42);
+        await hubB.JoinMap(42);
 
         await hubA.SendUserOnMapConnected(42);
         await hubB.SendUserOnMapConnected(42);
@@ -272,6 +294,7 @@ public class WHMapperNotificationHubTests : IDisposable
     {
         var hub = CreateHub(accountId: 123, connectionId: "conn-1");
         await hub.OnConnectedAsync();
+        await hub.JoinMap(42);
         await hub.SendUserOnMapConnected(42);
 
         await hub.SendUserOnMapDisconnected(42);
@@ -284,6 +307,7 @@ public class WHMapperNotificationHubTests : IDisposable
     {
         var hub = CreateHub(accountId: 123, connectionId: "conn-1");
         await hub.OnConnectedAsync();
+        await hub.JoinMap(42);
         await hub.SendUserOnMapConnected(42);
 
         await hub.OnDisconnectedAsync(null);
@@ -298,6 +322,8 @@ public class WHMapperNotificationHubTests : IDisposable
         var hub2 = CreateHub(accountId: 123, connectionId: "conn-2");
         await hub1.OnConnectedAsync();
         await hub2.OnConnectedAsync();
+        await hub1.JoinMap(42);
+        await hub2.JoinMap(42);
         await hub1.SendUserOnMapConnected(42);
         await hub2.SendUserOnMapConnected(42);
 
@@ -311,12 +337,39 @@ public class WHMapperNotificationHubTests : IDisposable
     {
         var hub = CreateHub(accountId: 123, connectionId: "conn-1");
         await hub.OnConnectedAsync();
+        await hub.JoinMap(42);
+        await hub.JoinMap(99);
 
         await hub.SendUserOnMapConnected(42);
         await hub.SendUserOnMapConnected(99);
 
         Assert.Equal(1, await hub.GetUserCountOnMap(42));
         Assert.Equal(1, await hub.GetUserCountOnMap(99));
+    }
+
+    [Fact]
+    public async Task JoinMap_AccessNotAuthorized_ThrowsAndDoesNotJoin()
+    {
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1", mapAccessAuthorized: false);
+        await hub.OnConnectedAsync();
+
+        await Assert.ThrowsAsync<HubException>(() => hub.JoinMap(42));
+
+        // Presence updates from an unauthorized connection must be ignored.
+        await hub.SendUserOnMapConnected(42);
+        Assert.Equal(0, await hub.GetUserCountOnMap(42));
+    }
+
+    [Fact]
+    public async Task SendUserOnMapConnected_WithoutJoiningMap_IsIgnored()
+    {
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1");
+        await hub.OnConnectedAsync();
+
+        // No JoinMap call -> connection was never authorized for this map.
+        await hub.SendUserOnMapConnected(42);
+
+        Assert.Equal(0, await hub.GetUserCountOnMap(42));
     }
 
     [Fact]

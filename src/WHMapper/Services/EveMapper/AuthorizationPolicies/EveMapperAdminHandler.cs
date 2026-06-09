@@ -23,28 +23,36 @@ namespace WHMapper.Services.EveMapper.AuthorizationPolicies
         {
             var characterId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
-            if (string.IsNullOrEmpty(characterId))
+            if (string.IsNullOrEmpty(characterId) || !int.TryParse(characterId, out int authenticatedCharacterId))
                 return;
 
-            // Try to get the primary account from the user management service
-            // This handles multi-account scenarios where the user selects which account to use
+            // Multi-account handling: a single browser (client_uid) may group several authenticated
+            // EVE characters and act on behalf of a selected "primary" account.
+            // The client_uid cookie is client-supplied and must NOT be trusted on its own: only honor
+            // the primary-account decision once the authenticated identity is proven to belong to that
+            // group. Otherwise a fixed/guessed client_uid pointing at an admin primary account would
+            // let any authenticated character inherit admin rights.
             var clientId = await _browserClientIdProvider.GetClientIdAsync();
-            if (!string.IsNullOrEmpty(clientId))
+            if (!string.IsNullOrWhiteSpace(clientId))
             {
-                var primaryAccount = await _userManagementService.GetPrimaryAccountAsync(clientId);
-                if (primaryAccount != null)
+                var accounts = await _userManagementService.GetAccountsAsync(clientId);
+                if (accounts.Any(a => a.Id == authenticatedCharacterId))
                 {
-                    // Check access for the primary account only
-                    if (await _eveMapperAccessHelper.IsEveMapperAdminAccessAuthorized(primaryAccount.Id))
+                    var primaryAccount = await _userManagementService.GetPrimaryAccountAsync(clientId);
+                    if (primaryAccount != null)
                     {
-                        context.Succeed(requirement);
+                        // Check access for the primary account only
+                        if (await _eveMapperAccessHelper.IsEveMapperAdminAccessAuthorized(primaryAccount.Id))
+                        {
+                            context.Succeed(requirement);
+                        }
+                        return;
                     }
-                    return;
                 }
             }
 
-            // Fallback: if no primary account is set, check the authenticated character
-            if (await _eveMapperAccessHelper.IsEveMapperAdminAccessAuthorized(Convert.ToInt32(characterId)))
+            // Fallback: check the authenticated character directly
+            if (await _eveMapperAccessHelper.IsEveMapperAdminAccessAuthorized(authenticatedCharacterId))
             {
                 context.Succeed(requirement);
             }

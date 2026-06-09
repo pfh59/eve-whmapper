@@ -3,16 +3,25 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Services.EveJwkExtensions;
+using WHMapper.Services.EveMapper;
 using WHMapper.Services.Metrics;
 
 namespace WHMapper.Hubs;
 
 [Authorize(AuthenticationSchemes = EveOnlineJwkDefaults.AuthenticationScheme)]
-public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMapperNotificationHub>
+public class WHMapperNotificationHub(WHMapperStoreMetrics meters, IEveMapperAccessHelper accessHelper) : Hub<IWHMapperNotificationHub>
 {
     private readonly static ConnectionMapping<int> _connections = new ConnectionMapping<int>();
     private readonly static ConcurrentDictionary<int, KeyValuePair<int,int>?> _connectedUserPosition = new ConcurrentDictionary<int, KeyValuePair<int,int>?>();
     private readonly static ConcurrentDictionary<int, ConnectionMapping<int>> _mapConnections = new ConcurrentDictionary<int, ConnectionMapping<int>>();
+
+    // Tracks, per SignalR connection, the set of map ids the connection has been authorized to join.
+    // Populated in JoinMap after a server-side access check and consulted by every map-scoped Send*
+    // method so a client cannot broadcast into (or receive from) a map group it was never granted.
+    private readonly static ConcurrentDictionary<string, ConcurrentDictionary<int, byte>> _authorizedMaps = new ConcurrentDictionary<string, ConcurrentDictionary<int, byte>>();
+
+    private bool IsConnectionAuthorizedForMap(int mapId)
+        => _authorizedMaps.TryGetValue(Context.ConnectionId, out var maps) && maps.ContainsKey(mapId);
 
 
     private string CurrentUser()
@@ -92,22 +101,42 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
             }
         }
 
+        _authorizedMaps.TryRemove(Context.ConnectionId, out _);
+
         await base.OnDisconnectedAsync(exception);
     }
 
     public async Task JoinMap(int mapId)
     {
+        int accountID = CurrentAccountId();
+        if (accountID == 0)
+            throw new HubException("Unauthorized.");
+
+        // Server-side access check: the authenticated character must be allowed on this map
+        // (instance-level + map-level access). Never trust the client-supplied mapId on its own.
+        if (!await accessHelper.IsEveMapperMapAccessAuthorized(accountID, mapId))
+            throw new HubException("Access to the requested map is not authorized.");
+
+        var maps = _authorizedMaps.GetOrAdd(Context.ConnectionId, _ => new ConcurrentDictionary<int, byte>());
+        maps[mapId] = 0;
+
         await Groups.AddToGroupAsync(Context.ConnectionId, $"map:{mapId}");
     }
 
     public async Task LeaveMap(int mapId)
     {
+        if (_authorizedMaps.TryGetValue(Context.ConnectionId, out var maps))
+            maps.TryRemove(mapId, out _);
+
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"map:{mapId}");
     }
 
     public async Task SendUserPosition(int mapId,int wormholeId)
     {
         int accountID = CurrentAccountId();
+        if (accountID == 0 || !IsConnectionAuthorizedForMap(mapId))
+            return;
+
         _connectedUserPosition.AddOrUpdate(
             accountID,
             new KeyValuePair<int, int>(mapId, wormholeId),
@@ -119,7 +148,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeAdded(int mapId, int wowrmholeId)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             meters.AddSystem();
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormoleAdded(accountID, mapId, wowrmholeId);
@@ -130,7 +159,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeRemoved(int mapId, int wowrmholeId)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             meters.DeleteSystem();
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeRemoved(accountID, mapId, wowrmholeId);
@@ -140,7 +169,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendLinkAdded(int mapId, int linkId)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             meters.AddLink();
             await Clients.OthersInGroup($"map:{mapId}").NotifyLinkAdded(accountID, mapId, linkId);
@@ -150,7 +179,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendLinkRemoved(int mapId, int linkId)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             meters.DeleteLink();
             await Clients.OthersInGroup($"map:{mapId}").NotifyLinkRemoved(accountID, mapId, linkId);
@@ -160,7 +189,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeMoved(int mapId, int wowrmholeId, double posX, double posY)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormoleMoved(accountID, mapId, wowrmholeId, posX, posY);
         }
@@ -170,7 +199,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendLinkChanged(int mapId, int linkId, int eolStatus, SystemLinkSize size, int mass)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             await Clients.OthersInGroup($"map:{mapId}").NotifyLinkChanged(accountID, mapId, linkId, eolStatus, size, mass);
         }
@@ -179,7 +208,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeNameExtensionChanged(int mapId, int wowrmholeId,char? extension)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeNameExtensionChanged(accountID, mapId, wowrmholeId,extension);
         }
@@ -189,7 +218,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeSignaturesChanged(int mapId, int wowrmholeId)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeSignaturesChanged(accountID, mapId, wowrmholeId);
         }
@@ -198,7 +227,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeLockChanged(int mapId, int wormholeId, bool locked)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeLockChanged(accountID, mapId, wormholeId, locked);
         }
@@ -207,7 +236,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeSystemStatusChanged(int mapId, int wormholeId, WHSystemStatus systemStatus)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeSystemStatusChanged(accountID, mapId, wormholeId, systemStatus);
         }
@@ -216,7 +245,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendWormholeAlternateNameChanged(int mapId, int wormholeId, string? alternateName)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             await Clients.OthersInGroup($"map:{mapId}").NotifyWormholeAlternateNameChanged(accountID, mapId, wormholeId, alternateName);
         }
@@ -295,7 +324,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendUserOnMapConnected(int mapId)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             var mapping = _mapConnections.GetOrAdd(mapId, _ => new ConnectionMapping<int>());
             mapping.AddAndGetCount(accountID, Context.ConnectionId);
@@ -306,7 +335,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters) : Hub<IWHMappe
     public async Task SendUserOnMapDisconnected(int mapId)
     {
         int accountID = CurrentAccountId();
-        if(accountID != 0)
+        if(accountID != 0 && IsConnectionAuthorizedForMap(mapId))
         {
             if (_mapConnections.TryGetValue(mapId, out var mapping))
             {
