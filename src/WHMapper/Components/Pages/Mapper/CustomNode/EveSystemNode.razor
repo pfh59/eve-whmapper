@@ -79,7 +79,7 @@
 
         @* --- FOOTER : users connectés / statiques --- *@
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Spacing="0" class="mb-2 ml-2 mr-2">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Style="min-width:0; overflow:hidden;">
                 @if (Node != null && Node.ConnectedUsers != null && Node.ConnectedUsers.FirstOrDefault() != null)
                 {
                     <MudTooltip Arrow="true" Placement="Placement.Bottom">
@@ -100,9 +100,9 @@
                 {
                     <MudIcon Icon="@Icons.Material.Filled.Group" Color=Color.Transparent Size="Size.Small" />
                 }
-                <MudText Typo="Typo.caption" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px;">@Node?.ConnectedUsers?.FirstOrDefault()</MudText>
+                <MudText Typo="Typo.caption" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;">@Node?.ConnectedUsers?.FirstOrDefault()</MudText>
             </MudStack>
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Style="flex-shrink:0;">
                 @if (Node != null && Node.Statics != null && Node?.Statics.Count() > 0)
                 {
                     @foreach (var item in Node.Statics)
