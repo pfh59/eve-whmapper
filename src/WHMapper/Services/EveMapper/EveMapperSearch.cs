@@ -95,7 +95,7 @@ namespace WHMapper.Services.EveMapper
                                 Result<Character> characterResult = await _eveAPIServices.CharacterServices.GetCharacter(characterId);
                                 if (characterResult.IsSuccess && characterResult.Data != null)
                                     while (!eveEntityResults.TryAdd(new CharacterEntity(characterId, characterResult.Data), 100, token))
-                                        await Task.Delay(1);
+                                        await Task.Delay(1, token);
 
                                 await Task.Yield();
                             });
@@ -114,7 +114,7 @@ namespace WHMapper.Services.EveMapper
                                 Result<Corporation> corpo = await _eveAPIServices.CorporationServices.GetCorporation(corpoId);
                                 if (corpo.IsSuccess && corpo.Data != null)
                                     while (!eveEntityResults.TryAdd(new CorporationEntity(corpoId, corpo.Data), 100, token))
-                                        await Task.Delay(1);
+                                        await Task.Delay(1, token);
 
                                 await Task.Yield();
                             });
@@ -132,7 +132,7 @@ namespace WHMapper.Services.EveMapper
                                 Result<Alliance> alliance = await _eveAPIServices.AllianceServices.GetAlliance(allianceId);
                                 if (alliance.IsSuccess && alliance.Data != null)
                                     while (!eveEntityResults.TryAdd(new AllianceEntity(allianceId, alliance.Data), 100, token))
-                                        await Task.Delay(1);
+                                        await Task.Delay(1, token);
 
                                 await Task.Yield();
                             });

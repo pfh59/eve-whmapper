@@ -132,6 +132,26 @@ public partial class Overview : IAsyncDisposable
 
     private CancellationTokenSource _cts = new();
 
+    /// <summary>
+    /// Acquires the semaphore unless the component is being disposed.
+    /// Returns false when the wait was cancelled so callers can skip their work.
+    /// </summary>
+    private async Task<bool> TryAcquireSemaphoreAsync(SemaphoreSlim semaphore)
+    {
+        try
+        {
+            await semaphore.WaitAsync(_cts.Token);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch (ObjectDisposedException)
+        {
+            return false;
+        }
+    }
 
     private async Task<WHMapperUser[]?> GetAccountsAsync()
     {
@@ -187,7 +207,7 @@ public partial class Overview : IAsyncDisposable
             _cts = new CancellationTokenSource();
         }
 
-        _ = Task.Run(() => LoadMapAsync(_cts.Token));
+        _ = Task.Run(() => LoadMapAsync(_cts.Token), _cts.Token);
 
         Logger.LogInformation("OnParametersSetAsync completed with MapId: {MapId}", MapId);
 
@@ -651,7 +671,8 @@ public partial class Overview : IAsyncDisposable
     #region Diagram Selection
     private async Task OnDiagramSelectionChanged(Blazor.Diagrams.Core.Models.Base.SelectableModel? item)
     {
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             await InvokeAsync(() =>
@@ -726,7 +747,8 @@ public partial class Overview : IAsyncDisposable
     #region Diagram Keyboard Events
     private async Task OnDiagramKeyDown(Blazor.Diagrams.Core.Events.KeyboardEventArgs eventArgs)
     {
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             if (await HandleLinkSystemKey(eventArgs) ||
@@ -910,7 +932,8 @@ public partial class Overview : IAsyncDisposable
         if (item == null || item.GetType() != typeof(EveSystemNodeModel))
             return;
 
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             var node = (EveSystemNodeModel)item;
@@ -976,7 +999,7 @@ public partial class Overview : IAsyncDisposable
                 {
                     await EveMapperRealTime.NotifyWormholeLockChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked);
                 }
-            });
+            }, _cts.Token);
         }
     }
 
@@ -991,7 +1014,7 @@ public partial class Overview : IAsyncDisposable
                 {
                     await EveMapperRealTime.NotifyWormholeSystemStatusChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus);
                 }
-            });
+            }, _cts.Token);
         }
     }
 
@@ -1016,7 +1039,7 @@ public partial class Overview : IAsyncDisposable
                     {
                         await EveMapperRealTime.NotifyAlternameNameChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.AlternateName);
                     }
-                });
+                }, _cts.Token);
             }
         }
     }
@@ -1519,7 +1542,8 @@ public partial class Overview : IAsyncDisposable
         EveSystemNodeModel? srcNode = null;
         EveSystemNodeModel? targetNode = null;
 
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             if (oldLocation != null)
@@ -1997,7 +2021,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnUserDisconnected(int accountID)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
@@ -2023,7 +2048,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnUserPositionChanged(int accountID, int mapId, int wormholeId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2060,7 +2086,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeAdded(int accountID, int mapId, int whId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2094,7 +2121,8 @@ public partial class Overview : IAsyncDisposable
     }
     private async Task OnWormholeRemoved(int accountID, int mapId, int whId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2125,7 +2153,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeMoved(int accountID, int mapId, int whId, double posX, double posY)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2155,7 +2184,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnLinkAdded(int accountID, int mapId, int linkId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2195,7 +2225,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnLinkRemoved(int accountID, int mapId, int linkId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2234,7 +2265,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnLinkChanged(int accountID, int mapId, int linkId, SystemLinkEolStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus massStatus)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2269,7 +2301,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeLockChanged(int accountID, int mapId, int whId, bool locked)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2292,7 +2325,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeSystemStatusChanged(int accountID, int mapId, int whId, WHSystemStatus systemStatus)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2318,7 +2352,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeNameExtensionChanged(int accountID, int mapId, int whId, char? extension)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2344,7 +2379,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeAlternateNameChanged(int accountID, int mapId, int whId, string? name)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();

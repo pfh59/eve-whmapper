@@ -90,7 +90,7 @@ public partial class Overview : ComponentBase,IDisposable
                 _cts.Dispose();
                 _cts = new CancellationTokenSource();
             }
-            Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync(_cts.Token)), Task.Run(() => LoadCurrentUserNameAsync()));
+            Task.WhenAll(Task.Run(() => Restore(), _cts.Token), Task.Run(() => HandleTimerAsync(_cts.Token), _cts.Token), Task.Run(() => LoadCurrentUserNameAsync(), _cts.Token));
         }
 
         return base.OnParametersSetAsync();
@@ -309,7 +309,7 @@ public partial class Overview : ComponentBase,IDisposable
         ((WHSignature)element).Updated = DateTime.UtcNow;
         ((WHSignature)element).UpdatedBy = _currentUser;
 
-        Task.Run(() => UpdateSignature(element));
+        Task.Run(() => UpdateSignature(element), _cts.Token);
 
         _isEditingSignature = false;
         StateHasChanged();

@@ -58,7 +58,7 @@ namespace WHMapper.Services.EveMapper
 
             LoadEffectsFromJson();
 
-            _initWormholeTypesTask = Task.Run(InitWormholeTypeList);
+            _initWormholeTypesTask = Task.Run(InitWormholeTypeList, CancellationToken.None);
         }
 
         private async Task EnsureWormholeTypesInitializedAsync()

@@ -67,7 +67,7 @@ public partial class Overview : IAsyncDisposable
             _cts = new CancellationTokenSource();
         }
 
-        _ = Task.Run(async () => await LoadAccountsAsync(_cts.Token));
+        _ = Task.Run(async () => await LoadAccountsAsync(_cts.Token), _cts.Token);
         Logger.LogInformation("User Overview component OnParametersSetAsync done");
 
         await base.OnParametersSetAsync();
