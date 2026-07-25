@@ -41,11 +41,9 @@ public class EveMapperUserManagementServiceTest
         _mockWHMapRepository = new Mock<IWHMapRepository>();
         _mockAccessHelper = new Mock<IEveMapperAccessHelper>();
 
-        // Setup the scoped service provider to return the IWHMapRepository
         _mockScopedServiceProvider.Setup(sp => sp.GetService(typeof(IWHMapRepository))).Returns(_mockWHMapRepository.Object);
         _mockScopedServiceProvider.Setup(sp => sp.GetService(typeof(IEveMapperAccessHelper))).Returns(_mockAccessHelper.Object);
 
-        // Setup the service scope to return the scoped service provider
         _mockServiceScope.Setup(s => s.ServiceProvider).Returns(_mockScopedServiceProvider.Object);
         _mockServiceScopeFactory.Setup(f => f.CreateScope()).Returns(_mockServiceScope.Object);
         _mockServiceProvider.Setup(sp => sp.GetService(typeof(IServiceScopeFactory))).Returns(_mockServiceScopeFactory.Object);
@@ -73,7 +71,6 @@ public class EveMapperUserManagementServiceTest
         // Act
         var result = await _service.GetAccountsAsync(clientId);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(2, result.Length);
         Assert.Contains(result, user => user.Id == 1);
@@ -89,7 +86,6 @@ public class EveMapperUserManagementServiceTest
         // Act
         var result = await _service.GetAccountsAsync(clientId);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Empty(result);
     }
@@ -464,7 +460,6 @@ public async Task SetPrimaryAccountAsync_ShouldThrowException_WhenAccountDoesNot
         // Act
         var result = await _service.GetPrimaryAccountAsync(clientId);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(456, result.Id);
         Assert.True(result.IsPrimary);
@@ -491,7 +486,6 @@ public async Task SetPrimaryAccountAsync_ShouldThrowException_WhenAccountDoesNot
         // Act
         var result = await _service.GetPrimaryAccountAsync(clientId);
 
-        // Assert
         Assert.Null(result);
     }
 
@@ -545,7 +539,6 @@ public async Task SetPrimaryAccountAsync_ShouldThrowException_WhenAccountDoesNot
         // Act
         await _service.UpdateAccountsMapAccessAsync(clientId);
 
-        // Assert
         Assert.True(users[0].HasMapAccess); // primary always true
         Assert.True(users[1].HasMapAccess); // secondary has access to at least one map
     }
@@ -573,7 +566,6 @@ public async Task SetPrimaryAccountAsync_ShouldThrowException_WhenAccountDoesNot
         // Act
         await _service.UpdateAccountsMapAccessAsync(clientId);
 
-        // Assert
         Assert.True(users[0].HasMapAccess);
         Assert.False(users[1].HasMapAccess);
     }
@@ -614,7 +606,6 @@ public async Task SetPrimaryAccountAsync_ShouldThrowException_WhenAccountDoesNot
         // Act
         await _service.UpdateAccountsCurrentMapAccessAsync(clientId, mapId);
 
-        // Assert
         Assert.True(users[0].HasCurrentMapAccess);
         Assert.False(users[1].HasCurrentMapAccess);
     }
@@ -643,7 +634,6 @@ public async Task SetPrimaryAccountAsync_ShouldThrowException_WhenAccountDoesNot
         // Act
         var ex = await Record.ExceptionAsync(() => _service.UpdateAccountsCurrentMapAccessAsync(clientId, mapId));
 
-        // Assert
         Assert.Null(ex); // Should not throw
     }
     

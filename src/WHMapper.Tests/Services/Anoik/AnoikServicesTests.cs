@@ -38,7 +38,7 @@ namespace WHMapper.Tests.Services.Anoik
         {
             string? parameter = null;
             var service = new AnoikServices(logger, anoikDataSupplier);
-            Assert.ThrowsAny<ArgumentNullException>(() => service.GetSystemId(parameter));
+            Assert.ThrowsAny<ArgumentNullException>(() => service.GetSystemId(parameter!));
         }
 
         [Theory]

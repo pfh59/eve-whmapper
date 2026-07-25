@@ -48,7 +48,7 @@ public class SdeServiceManagerIntegrationTests
 
         ICacheService cacheService = new CacheService(new NullLogger<CacheService>(), _distriCache);
 
-        HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")) };
+        HttpClient httpClient = new HttpClient() { BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")!) };
         ISDEDataSupplier sDEDataSupplier = new SdeDataSupplier(new NullLogger<SdeDataSupplier>(), httpClient);
 
         SDEServiceManager = new SDEServiceManager(new NullLogger<SDEServiceManager>(), sDEDataSupplier, cacheService);

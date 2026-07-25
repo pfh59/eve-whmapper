@@ -7,15 +7,15 @@ public class Portrait
 {
 
     [JsonPropertyName("px128x128")]
-    public string Picture128x128 { get; set; }
+    public string Picture128x128 { get; set; } = string.Empty;
 
     [JsonPropertyName("px256x256")]
-    public string Picture256x256 { get; set; }
+    public string Picture256x256 { get; set; } = string.Empty;
 
     [JsonPropertyName("px512x512")]
-    public string Picture512x512 { get; set; }
+    public string Picture512x512 { get; set; } = string.Empty;
 
     [JsonPropertyName("px64x64")]
-    public string Picture64x64 { get; set; }
+    public string Picture64x64 { get; set; } = string.Empty;
 
 }

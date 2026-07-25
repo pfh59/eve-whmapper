@@ -51,11 +51,11 @@
         <MudStack Row="true" Style="width:100%;" Spacing="0" Class="ml-2 mr-2">
             @if (_isEditingName)
             {
-                <MudTextField @bind-Value="_editedName" Typo="Typo.body2" Align="Align.Center"
+                <MudTextField @bind-Value="_editedName" Typo="Typo.body2"
                               Immediate="true"
                               @onblur="@(() => SaveName())"
                               @onkeyup="@((e) => OnKeyUp(e))"
-                              Style="font-weight:bold; width:99%;"
+                              Style="font-weight:bold; width:99%; text-align:center;"
                               Variant="Variant.Text"
                               Margin="Margin.Dense"
                               AutoFocus="true" />

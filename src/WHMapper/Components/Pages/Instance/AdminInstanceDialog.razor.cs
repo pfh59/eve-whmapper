@@ -252,7 +252,7 @@ public partial class AdminInstanceDialog
             {
                 foreach (var removedAccessId in mapAccess.Value)
                 {
-                    await RealTimeService.NotifyMapAccessRemoved(_characterId, mapAccess.Key, removedAccessId);
+                    await RealTimeService.NotifyMapAccessRemoved(_characterId, InstanceId, mapAccess.Key, removedAccessId);
                 }
             }
             

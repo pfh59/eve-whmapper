@@ -28,9 +28,6 @@ namespace WHMapper.Services.EveMapper
             int creatorCharacterId,
             string creatorCharacterName);
 
-        /// <summary>
-        /// Gets an instance by ID
-        /// </summary>
         Task<WHInstance?> GetInstanceAsync(int instanceId);
 
         /// <summary>
@@ -43,9 +40,6 @@ namespace WHMapper.Services.EveMapper
         /// </summary>
         Task<IEnumerable<WHInstance>?> GetAdministeredInstancesAsync(int characterId);
 
-        /// <summary>
-        /// Gets all instances accessible by a character
-        /// </summary>
         Task<IEnumerable<WHInstance>?> GetAccessibleInstancesAsync(int characterId, int? corporationId, int? allianceId);
 
         /// <summary>
@@ -68,9 +62,6 @@ namespace WHMapper.Services.EveMapper
         /// </summary>
         Task<bool> RemoveAdminAsync(int instanceId, int characterIdToRemove, int requestingCharacterId);
 
-        /// <summary>
-        /// Gets all admins of an instance
-        /// </summary>
         Task<IEnumerable<WHInstanceAdmin>?> GetAdminsAsync(int instanceId);
 
         /// <summary>
@@ -94,9 +85,6 @@ namespace WHMapper.Services.EveMapper
         /// <returns>A tuple containing: success flag, and dictionary of removed map accesses (mapId -> list of accessIds)</returns>
         Task<(bool Success, IDictionary<int, IEnumerable<int>> RemovedMapAccesses)> RemoveAccessAsync(int instanceId, int accessId, int requestingCharacterId);
 
-        /// <summary>
-        /// Gets all access entries for an instance
-        /// </summary>
         Task<IEnumerable<WHInstanceAccess>?> GetAccessesAsync(int instanceId);
 
         /// <summary>
@@ -114,9 +102,6 @@ namespace WHMapper.Services.EveMapper
         /// </summary>
         Task<bool> DeleteMapAsync(int instanceId, int mapId, int requestingCharacterId);
 
-        /// <summary>
-        /// Gets all maps in an instance
-        /// </summary>
         Task<IEnumerable<WHMap>?> GetMapsAsync(int instanceId);
 
         /// <summary>
@@ -132,9 +117,6 @@ namespace WHMapper.Services.EveMapper
 
         #region Map Access Management
 
-        /// <summary>
-        /// Gets all access entries for a specific map
-        /// </summary>
         Task<IEnumerable<WHMapAccess>?> GetMapAccessesAsync(int instanceId, int mapId, int requestingCharacterId);
 
         /// <summary>

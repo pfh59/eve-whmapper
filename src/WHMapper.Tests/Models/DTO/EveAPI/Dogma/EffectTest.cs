@@ -9,10 +9,8 @@ public class EffectTest
     [Fact]
     public void Constructor_ShouldInitializePropertiesWithDefaultValues()
     {
-        // Arrange & Act
         var effect = new Effect();
 
-        // Assert
         Assert.Equal(string.Empty, effect.Description);
         Assert.False(effect.DisallowAutoRepeat);
         Assert.Equal(0, effect.DischargeAttributeId);
@@ -86,7 +84,6 @@ public class EffectTest
         effect.RangeChance = rangeChance;
         effect.TrackingSpeedAttributeId = trackingSpeedAttributeId;
 
-        // Assert
         Assert.Equal(description, effect.Description);
         Assert.True(effect.DisallowAutoRepeat);
         Assert.Equal(dischargeAttributeId, effect.DischargeAttributeId);
@@ -143,7 +140,6 @@ public class EffectTest
         var json = JsonSerializer.Serialize(effect);
         var deserializedEffect = JsonSerializer.Deserialize<Effect>(json);
 
-        // Assert
         Assert.NotNull(deserializedEffect);
         Assert.Equal(effect.Description, deserializedEffect!.Description);
         Assert.Equal(effect.DisallowAutoRepeat, deserializedEffect.DisallowAutoRepeat);

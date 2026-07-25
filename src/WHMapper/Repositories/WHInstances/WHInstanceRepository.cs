@@ -265,14 +265,12 @@ namespace WHMapper.Repositories.WHInstances
         {
             using var context = await _contextFactory.CreateDbContextAsync();
             
-            // Check if user is an admin
             var isAdmin = await context.DbWHInstanceAdmins
                 .AnyAsync(x => x.WHInstanceId == instanceId && x.EveCharacterId == characterId);
             
             if (isAdmin)
                 return true;
 
-            // Check access entries
             return await context.DbWHInstanceAccesses
                 .AnyAsync(x => x.WHInstanceId == instanceId && (
                     (x.EveEntityId == characterId && x.EveEntity == WHAccessEntity.Character) ||

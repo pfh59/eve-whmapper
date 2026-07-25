@@ -44,9 +44,6 @@ namespace WHMapper.Repositories.WHInstances
         /// </summary>
         Task<bool> IsInstanceAdminAsync(int instanceId, int characterId);
 
-        /// <summary>
-        /// Gets all access entries for an instance
-        /// </summary>
         Task<IEnumerable<WHInstanceAccess>?> GetInstanceAccessesAsync(int instanceId);
 
         /// <summary>

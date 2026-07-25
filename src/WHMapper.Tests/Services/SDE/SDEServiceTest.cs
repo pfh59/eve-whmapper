@@ -35,7 +35,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.GetSolarSystemList();
 
-            // Assert
             Assert.NotNull(result);
             Assert.Single(result);
             Assert.Equal("TestSystem", result.First().Name);
@@ -52,7 +51,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.GetSolarSystemList();
 
-            // Assert
             Assert.NotNull(result);
             Assert.Empty(result);
         }
@@ -68,7 +66,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.GetSolarSystemList();
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -87,7 +84,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.SearchSystemById(1);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(1, result.SolarSystemID);
         }
@@ -107,7 +103,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.SearchSystemById(2);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -127,7 +122,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.SearchSystem("Test");
 
-            // Assert
             Assert.NotNull(result);
             Assert.Single(result);
             Assert.Equal("TestSystem", result.First().Name);
@@ -139,7 +133,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.SearchSystem("");
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -154,7 +147,6 @@ namespace WHMapper.Tests.Services.SDE
             // Act
             var result = await _sdeService.SearchSystem("Test");
 
-            // Assert
             Assert.Null(result);
         }
     }

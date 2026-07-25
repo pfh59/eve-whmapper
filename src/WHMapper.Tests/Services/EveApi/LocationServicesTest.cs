@@ -53,7 +53,6 @@ namespace WHMapper.Tests.Services.EveAPI.Locations
             // Act
             var result = await locationServices.GetLocation();
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(expectedLocation.SolarSystemId, result?.Data?.SolarSystemId);
         }
@@ -122,7 +121,6 @@ namespace WHMapper.Tests.Services.EveAPI.Locations
             // Act
             var result = await locationServices.GetCurrentShip();
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(expectedShip.ShipTypeId, result?.Data?.ShipTypeId);
             Assert.Equal(expectedShip.ShipName, result?.Data?.ShipName);
@@ -137,7 +135,6 @@ namespace WHMapper.Tests.Services.EveAPI.Locations
             // Act
             var result = await locationServices.GetCurrentShip();
 
-            // Assert
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
             Assert.Equal(result.StatusCode,  (int)HttpStatusCode.Unauthorized);
@@ -164,7 +161,6 @@ namespace WHMapper.Tests.Services.EveAPI.Locations
             // Act
             var result = await locationServices.GetCurrentShip();
 
-            // Assert
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
             Assert.Equal(result.StatusCode,  (int)HttpStatusCode.BadRequest);

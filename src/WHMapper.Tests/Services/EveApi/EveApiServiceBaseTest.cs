@@ -61,7 +61,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse>(RequestSecurity.Public, RequestMethod.Get, "/test");
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(123, result.Data.Id);
@@ -82,7 +81,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse>(RequestSecurity.Public, RequestMethod.Get, "/test");
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Data);
     }
@@ -102,7 +100,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse>(RequestSecurity.Public, RequestMethod.Get, "/test");
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("Failed to deserialize response", result.ErrorMessage);
         Assert.Equal(200, result.StatusCode);
@@ -124,7 +121,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse>(RequestSecurity.Public, RequestMethod.Get, "/test");
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(0, result.Data.Id);
@@ -147,7 +143,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse>(RequestSecurity.Public, RequestMethod.Post, "/test");
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(456, result.Data.Id);
@@ -170,7 +165,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse>(RequestSecurity.Public, RequestMethod.Put, "/test");
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(789, result.Data.Id);
@@ -192,7 +186,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse>(RequestSecurity.Public, RequestMethod.Get, "/test");
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(999, result.Data.Id);
@@ -214,7 +207,6 @@ public class EveApiServiceBaseTest
         // Act
         var result = await service.Execute<TestResponse[]>(RequestSecurity.Public, RequestMethod.Get, "/test");
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(2, result.Data.Length);

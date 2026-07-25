@@ -58,7 +58,6 @@ public class EveWHMapperEntityTest
 
     public EveWHMapperEntityTest()
     {
-        //Create DB Context
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()

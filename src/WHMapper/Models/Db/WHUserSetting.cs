@@ -4,7 +4,6 @@ namespace WHMapper.Models.Db
 {
     public class WHUserSetting
     {
-        // Default constants
         public const string DEFAULT_KEY_LINK = "KeyL";
         public const string DEFAULT_KEY_DELETE = "Delete";
         public const string DEFAULT_KEY_INCREMENT_EXTENSION = "NumpadAdd";

@@ -21,7 +21,6 @@ public class MapAdminTests
         // Act
         var mapAdmin = new MapAdmin(whMap);
 
-        // Assert
         Assert.Equal(1, mapAdmin.Id);
         Assert.Equal("Test Map", mapAdmin.Name);
         Assert.NotNull(mapAdmin.WHMapAccesses);
@@ -33,9 +32,8 @@ public class MapAdminTests
     public void Constructor_ShouldHandleNullWHMap()
     {
         // Act
-        var mapAdmin = new MapAdmin(null);
+        var mapAdmin = new MapAdmin(null!);
 
-        // Assert
         Assert.Equal(-1, mapAdmin.Id);
         Assert.Equal(string.Empty, mapAdmin.Name);
         Assert.Null(mapAdmin.WHMapAccesses);
@@ -51,7 +49,6 @@ public class MapAdminTests
         // Act
         var mapAdmin = new MapAdmin(whMap);
 
-        // Assert
         Assert.False(mapAdmin.ShowAccessDetails);
     }
 
@@ -65,7 +62,6 @@ public class MapAdminTests
         // Act
         mapAdmin.ShowAccessDetails = true;
 
-        // Assert
         Assert.True(mapAdmin.ShowAccessDetails);
     }
 }

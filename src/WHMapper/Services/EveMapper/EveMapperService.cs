@@ -20,10 +20,11 @@ public class EveMapperService : IEveMapperService
 
     private async Task<TEntity?> Get<TEntity, TEveApiEntity>(
         int key,
-        Func<IEveAPIServices, Task<TEveApiEntity>> getEveApiEntityAction,
+        Func<IEveAPIServices, Task<TEveApiEntity?>> getEveApiEntityAction,
         Func<TEveApiEntity, TEntity> entityMap
     )
         where TEntity : AEveEntity
+        where TEveApiEntity : class
     {
         try
         {
@@ -36,7 +37,7 @@ public class EveMapperService : IEveMapperService
 
             // Get from api if cache is empty
             var apiResult = await getEveApiEntityAction.Invoke(_eveApiService);
-            if (EqualityComparer<TEveApiEntity>.Default.Equals(apiResult, default(TEveApiEntity)))
+            if (apiResult is null)
             {
                 _logger.LogWarning("{entityname} with Id {key} not found", typeof(TEntity).Name, key);
                 return null;
@@ -44,7 +45,7 @@ public class EveMapperService : IEveMapperService
             else
             {
                 // Add to cache (fire and forget) and return the entity
-                var entity = entityMap(apiResult!);
+                var entity = entityMap(apiResult);
                 if (entity != null)
                 {
                     await _cacheService.AddAsync(entity);

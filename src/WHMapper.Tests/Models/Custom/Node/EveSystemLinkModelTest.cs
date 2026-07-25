@@ -40,7 +40,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             var linkModel = new EveSystemLinkModel(whLink, sourceNode, targetNode);
 
-            // Assert
             Assert.NotNull(linkModel.SourceMarker);
             Assert.NotNull(linkModel.TargetMarker);
             Assert.Single(linkModel.Labels);
@@ -58,7 +57,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             var result = linkModel.Id;
 
-            // Assert
             Assert.Equal(42, result);
         }
 
@@ -77,7 +75,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.EndOfLifeStatus = status;
 
-            // Assert
             Assert.Equal(status, linkModel.EndOfLifeStatus);
         }
 
@@ -121,7 +118,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.IsEoL = true;
 
-            // Assert
             Assert.Equal(SystemLinkEolStatus.EOL4h, linkModel.EndOfLifeStatus);
         }
 
@@ -137,7 +133,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.IsEoL = false;
 
-            // Assert
             Assert.Equal(SystemLinkEolStatus.Normal, linkModel.EndOfLifeStatus);
         }
 
@@ -153,7 +148,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.Size = SystemLinkSize.Small;
 
-            // Assert
             Assert.Equal(SystemLinkSize.Small, linkModel.Size);
             Assert.Single(linkModel.Labels);
             Assert.Equal("S", ((LinkLabelModel)linkModel.Labels[0]).Content);
@@ -171,7 +165,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.Size = SystemLinkSize.Medium;
 
-            // Assert
             Assert.Equal(SystemLinkSize.Medium, linkModel.Size);
             Assert.Single(linkModel.Labels);
             Assert.Equal("M", ((LinkLabelModel)linkModel.Labels[0]).Content);
@@ -189,7 +182,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.Size = SystemLinkSize.Large;
 
-            // Assert
             Assert.Equal(SystemLinkSize.Large, linkModel.Size);
             Assert.Empty(linkModel.Labels);
         }
@@ -206,7 +198,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.Size = SystemLinkSize.XLarge;
 
-            // Assert
             Assert.Equal(SystemLinkSize.XLarge, linkModel.Size);
             Assert.Single(linkModel.Labels);
             Assert.Equal("XL", ((LinkLabelModel)linkModel.Labels[0]).Content);
@@ -227,7 +218,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.MassStatus = status;
 
-            // Assert
             Assert.Equal(status, linkModel.MassStatus);
         }
 
@@ -240,7 +230,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             var targetNode = CreateNodeModel();
             var linkModel = new EveSystemLinkModel(whLink, sourceNode, targetNode);
 
-            // Assert
             Assert.False(linkModel.IsRouteWaypoint);
         }
 
@@ -256,7 +245,6 @@ namespace WHMapper.Tests.Models.Custom.Node
             // Act
             linkModel.IsRouteWaypoint = true;
 
-            // Assert
             Assert.True(linkModel.IsRouteWaypoint);
         }
     }

@@ -57,7 +57,6 @@ public partial class Overview : ComponentBase,IDisposable
     [Parameter]
     public int? CurrentPrimaryUserId { get; set; } = null!;
 
-    private WHSignature? _selectedSignature;
     private WHSignature _signatureBeforeEdit = null!;
 
     private bool _isEditingSignature = false;
@@ -66,7 +65,7 @@ public partial class Overview : ComponentBase,IDisposable
     private DateTime _currentDateTime;
     private bool _disposed = false;
 
-    private MudTable<WHSignature?> _signatureTable { get; set; } =null!;
+    private MudTable<WHSignature> _signatureTable { get; set; } =null!;
 
     private string? _currentUser = null!;
 
@@ -91,7 +90,7 @@ public partial class Overview : ComponentBase,IDisposable
                 _cts.Dispose();
                 _cts = new CancellationTokenSource();
             }
-            Task.WhenAll(Task.Run(() => Restore()), Task.Run(() => HandleTimerAsync(_cts.Token)), Task.Run(() => LoadCurrentUserNameAsync()));
+            Task.WhenAll(Task.Run(() => Restore(), _cts.Token), Task.Run(() => HandleTimerAsync(_cts.Token), _cts.Token), Task.Run(() => LoadCurrentUserNameAsync(), _cts.Token));
         }
 
         return base.OnParametersSetAsync();
@@ -183,7 +182,7 @@ public partial class Overview : ComponentBase,IDisposable
         if(attribute is null)
             return value.ToString();
 
-        DisplayAttribute displayAttribute = (DisplayAttribute)attribute!;    
+        DisplayAttribute displayAttribute = (DisplayAttribute)attribute;
 
         return displayAttribute.ShortName ?? displayAttribute.Name ?? value.ToString();
     }
@@ -310,7 +309,7 @@ public partial class Overview : ComponentBase,IDisposable
         ((WHSignature)element).Updated = DateTime.UtcNow;
         ((WHSignature)element).UpdatedBy = _currentUser;
 
-        Task.Run(() => UpdateSignature(element));
+        Task.Run(() => UpdateSignature(element), _cts.Token);
 
         _isEditingSignature = false;
         StateHasChanged();

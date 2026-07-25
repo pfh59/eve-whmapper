@@ -9,10 +9,8 @@ public class AttributeTest
     [Fact]
     public void Constructor_ShouldInitializePropertiesWithDefaultValues()
     {
-        // Arrange & Act
         var attribute = new WHMapper.Models.DTO.EveAPI.Dogma.Attribute();
 
-        // Assert
         Assert.Equal(0, attribute.AttributeId);
         Assert.Equal(0f, attribute.DefaultValue);
         Assert.Equal(string.Empty, attribute.Description);
@@ -53,7 +51,6 @@ public class AttributeTest
         attribute.Stackable = stackable;
         attribute.UnitId = unitId;
 
-        // Assert
         Assert.Equal(attributeId, attribute.AttributeId);
         Assert.Equal(defaultValue, attribute.DefaultValue);
         Assert.Equal(description, attribute.Description);
@@ -88,7 +85,6 @@ public class AttributeTest
         var json = JsonSerializer.Serialize(attribute);
         var deserializedAttribute = JsonSerializer.Deserialize<WHMapper.Models.DTO.EveAPI.Dogma.Attribute>(json);
 
-        // Assert
         Assert.NotNull(deserializedAttribute);
         Assert.Equal(attribute.AttributeId, deserializedAttribute!.AttributeId);
         Assert.Equal(attribute.DefaultValue, deserializedAttribute.DefaultValue);

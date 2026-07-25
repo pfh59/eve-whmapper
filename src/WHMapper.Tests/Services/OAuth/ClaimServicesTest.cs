@@ -29,9 +29,7 @@ public class ClaimServicesTest
     [Fact]
     public async Task ExtractClaimsFromEVEToken_ValidToken_ReturnsClaims()
     {
-        // Act
         var result = await _claimServices.ExtractClaimsFromEVEToken(_token);
-        // Assert
         Assert.Contains(result, claim => claim.Type == ClaimTypes.Name && claim.Value == "Skototounta");
     }
 
@@ -39,7 +37,7 @@ public class ClaimServicesTest
     public async Task ExtractClaimsFromEVEToken_NullOrEmptyToken_ThrowsArgumentNullException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _claimServices.ExtractClaimsFromEVEToken(null));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _claimServices.ExtractClaimsFromEVEToken(null!));
         await Assert.ThrowsAsync<ArgumentNullException>(() => _claimServices.ExtractClaimsFromEVEToken(string.Empty));
     }
 
@@ -48,7 +46,7 @@ public class ClaimServicesTest
     {
         // Arrange
         var token = "invalid-token";
-        _mockTokenHandler.Setup(handler => handler.ReadJsonWebToken(token)).Returns((JsonWebToken)null);
+        _mockTokenHandler.Setup(handler => handler.ReadJsonWebToken(token)).Returns((JsonWebToken)null!);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => _claimServices.ExtractClaimsFromEVEToken(token));

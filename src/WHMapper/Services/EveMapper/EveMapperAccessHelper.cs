@@ -112,11 +112,57 @@ namespace WHMapper.Services.EveMapper
         }
 
         /// <summary>
+        /// Check if a user has access to a specific instance, without considering map-level restrictions.
+        /// </summary>
+        public async Task<bool> IsEveMapperInstanceAccessAuthorized(int eveCharacterId, int instanceId)
+        {
+            var characterResult = await _characterServices.GetCharacter(eveCharacterId);
+            if (!characterResult.IsSuccess || characterResult.Data == null)
+                return false;
+
+            var character = characterResult.Data;
+
+            return await _instanceRepo.HasInstanceAccessAsync(
+                instanceId,
+                eveCharacterId,
+                character.CorporationId > 0 ? character.CorporationId : null,
+                character.AllianceId > 0 ? character.AllianceId : null);
+        }
+
+        /// <summary>
+        /// Ids of every instance the character can access, through character, corporation or alliance.
+        /// </summary>
+        public async Task<IEnumerable<int>> GetAccessibleInstanceIdsAsync(int eveCharacterId)
+        {
+            var characterResult = await _characterServices.GetCharacter(eveCharacterId);
+            if (!characterResult.IsSuccess || characterResult.Data == null)
+                return Enumerable.Empty<int>();
+
+            var character = characterResult.Data;
+
+            var instances = await _instanceRepo.GetAccessibleInstancesAsync(
+                eveCharacterId,
+                character.CorporationId > 0 ? character.CorporationId : null,
+                character.AllianceId > 0 ? character.AllianceId : null);
+
+            return instances?.Select(i => i.Id).ToArray() ?? Enumerable.Empty<int>();
+        }
+
+        /// <summary>
         /// Checks if a character is an admin of a specific instance
         /// </summary>
         public async Task<bool> IsInstanceAdminAuthorized(int eveCharacterId, int instanceId)
         {
             return await _instanceRepo.IsInstanceAdminAsync(instanceId, eveCharacterId);
+        }
+
+        /// <summary>
+        /// Returns the instance a map belongs to, or null when the map is unknown or orphaned.
+        /// </summary>
+        public async Task<int?> GetMapInstanceIdAsync(int mapId)
+        {
+            var map = await _mapRepo.GetById(mapId);
+            return map?.WHInstanceId;
         }
     }
 }

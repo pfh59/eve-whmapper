@@ -49,7 +49,6 @@ namespace WHMapper.Services.EveMapper
                     return null;
                 }
 
-                // Check if an instance already exists for this owner
                 var existingInstance = await _instanceRepository.GetByOwnerAsync(ownerEntityId);
                 if (existingInstance != null)
                 {
@@ -57,7 +56,6 @@ namespace WHMapper.Services.EveMapper
                     return null;
                 }
 
-                // Create the instance
                 var instance = new WHInstance(
                     name,
                     ownerEntityId,
@@ -75,7 +73,6 @@ namespace WHMapper.Services.EveMapper
                     return null;
                 }
 
-                // Add the creator as the owner admin
                 var admin = await _instanceRepository.AddInstanceAdminAsync(
                     createdInstance.Id,
                     creatorCharacterId,
@@ -143,7 +140,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<bool> DeleteInstanceAsync(int instanceId, int requestingCharacterId)
         {
-            // Only owner can delete
             if (!await IsOwnerAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to delete instance {InstanceId} but is not owner", 
@@ -156,7 +152,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<WHInstanceAdmin?> AddAdminAsync(int instanceId, int characterId, string characterName, int requestingCharacterId)
         {
-            // Only existing admin can add new admin
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to add admin to instance {InstanceId} but is not admin",
@@ -169,7 +164,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<bool> RemoveAdminAsync(int instanceId, int characterIdToRemove, int requestingCharacterId)
         {
-            // Only admin can remove other admins
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to remove admin from instance {InstanceId} but is not admin",
@@ -201,7 +195,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<WHInstanceAccess?> AddAccessAsync(int instanceId, int eveEntityId, string eveEntityName, WHAccessEntity entityType, int requestingCharacterId)
         {
-            // Only admin can add access
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to add access to instance {InstanceId} but is not admin",
@@ -217,7 +210,6 @@ namespace WHMapper.Services.EveMapper
         {
             var emptyResult = new Dictionary<int, IEnumerable<int>>();
             
-            // Only admin can remove access
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to remove access from instance {InstanceId} but is not admin",
@@ -225,7 +217,6 @@ namespace WHMapper.Services.EveMapper
                 return (false, emptyResult);
             }
 
-            // Get the access to find the entity details before removing
             var accesses = await _instanceRepository.GetInstanceAccessesAsync(instanceId);
             var accessToRemove = accesses?.FirstOrDefault(a => a.Id == accessId);
             
@@ -264,7 +255,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<WHMap?> CreateMapAsync(int instanceId, string mapName, int requestingCharacterId)
         {
-            // Only admin can create maps
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to create map in instance {InstanceId} but is not admin",
@@ -278,7 +268,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<bool> DeleteMapAsync(int instanceId, int mapId, int requestingCharacterId)
         {
-            // Only admin can delete maps
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to delete map from instance {InstanceId} but is not admin",
@@ -286,7 +275,6 @@ namespace WHMapper.Services.EveMapper
                 return false;
             }
 
-            // Verify map belongs to instance
             var map = await _mapRepository.GetById(mapId);
             if (map == null || map.WHInstanceId != instanceId)
             {
@@ -323,7 +311,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<IEnumerable<WHMapAccess>?> GetMapAccessesAsync(int instanceId, int mapId, int requestingCharacterId)
         {
-            // Only admin can view map accesses
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to view map accesses for map {MapId} but is not admin",
@@ -331,7 +318,6 @@ namespace WHMapper.Services.EveMapper
                 return null;
             }
 
-            // Verify map belongs to instance
             var map = await _mapRepository.GetById(mapId);
             if (map == null || map.WHInstanceId != instanceId)
             {
@@ -344,7 +330,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<WHMapAccess?> AddMapAccessAsync(int instanceId, int mapId, int eveEntityId, string eveEntityName, WHAccessEntity entityType, int requestingCharacterId)
         {
-            // Only admin can add map access
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to add map access for map {MapId} but is not admin",
@@ -352,7 +337,6 @@ namespace WHMapper.Services.EveMapper
                 return null;
             }
 
-            // Verify map belongs to instance
             var map = await _mapRepository.GetById(mapId);
             if (map == null || map.WHInstanceId != instanceId)
             {
@@ -366,7 +350,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<bool> RemoveMapAccessAsync(int instanceId, int mapId, int accessId, int requestingCharacterId)
         {
-            // Only admin can remove map access
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to remove map access from map {MapId} but is not admin",
@@ -374,7 +357,6 @@ namespace WHMapper.Services.EveMapper
                 return false;
             }
 
-            // Verify map belongs to instance
             var map = await _mapRepository.GetById(mapId);
             if (map == null || map.WHInstanceId != instanceId)
             {
@@ -387,7 +369,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<bool> ClearMapAccessesAsync(int instanceId, int mapId, int requestingCharacterId)
         {
-            // Only admin can clear map accesses
             if (!await IsAdminAsync(instanceId, requestingCharacterId))
             {
                 _logger.LogWarning("Character {CharacterId} attempted to clear map accesses for map {MapId} but is not admin",
@@ -395,7 +376,6 @@ namespace WHMapper.Services.EveMapper
                 return false;
             }
 
-            // Verify map belongs to instance
             var map = await _mapRepository.GetById(mapId);
             if (map == null || map.WHInstanceId != instanceId)
             {
@@ -408,7 +388,6 @@ namespace WHMapper.Services.EveMapper
 
         public async Task<bool> HasMapAccessAsync(int instanceId, int mapId, int characterId, int? corporationId, int? allianceId)
         {
-            // First check if user has instance access
             var hasInstanceAccess = await HasAccessAsync(instanceId, characterId, corporationId, allianceId);
             if (!hasInstanceAccess)
                 return false;
@@ -417,7 +396,6 @@ namespace WHMapper.Services.EveMapper
             if (await IsAdminAsync(instanceId, characterId))
                 return true;
 
-            // Check map-level access
             return await _mapAccessRepository.HasMapAccessAsync(mapId, characterId, corporationId, allianceId);
         }
 

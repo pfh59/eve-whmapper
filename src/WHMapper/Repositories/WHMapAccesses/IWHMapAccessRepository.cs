@@ -4,9 +4,6 @@ namespace WHMapper.Repositories.WHMapAccesses
 {
     public interface IWHMapAccessRepository : IDefaultRepository<WHMapAccess, int>
     {
-        /// <summary>
-        /// Gets all access entries for a specific map
-        /// </summary>
         Task<IEnumerable<WHMapAccess>?> GetMapAccessesAsync(int mapId);
 
         /// <summary>
@@ -34,9 +31,6 @@ namespace WHMapper.Repositories.WHMapAccesses
         /// </summary>
         Task<bool> ClearMapAccessesAsync(int mapId);
 
-        /// <summary>
-        /// Gets the count of access entries for a map
-        /// </summary>
         Task<int> GetMapAccessCountAsync(int mapId);
 
         /// <summary>

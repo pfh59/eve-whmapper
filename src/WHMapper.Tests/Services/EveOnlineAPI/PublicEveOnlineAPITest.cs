@@ -108,21 +108,18 @@ public class PublicEveOnlineAPITest
     public async Task Get_Universe_System_Constellation_Region_Star_And_Stargate()
     {
         Assert.NotNull(_eveUniverseApi);
-        //getsystems
         var systemsResult = await _eveUniverseApi.GetSystems();
         int[]? systems = systemsResult?.Data;
         Assert.NotNull(systems);
         Assert.NotEmpty(systems);
         Assert.Contains(systems, item => SOLAR_SYSTEM_JITA_ID==item);
 
-        //constellations
         var constellationsResult = await _eveUniverseApi.GetContellations();
         int[]? constellations = constellationsResult?.Data;
         Assert.NotNull(constellations);
         Assert.NotEmpty(constellations);
         Assert.Contains(constellations, item => CONSTELLATION_ID == item);
 
-        //regions
         var regionsResult = await _eveUniverseApi.GetRegions();
         int[]? regions = regionsResult?.Data;
         Assert.NotNull(regions);
@@ -208,14 +205,12 @@ public class PublicEveOnlineAPITest
         Assert.NotNull(sunGroups);
         Assert.Equal(SUN_GROUP_NAME, sunGroups.Name);
 
-        //planet
         Assert.Contains<int>(GROUP_PLANET_ID, groups);
         var planetGroupsResult = await _eveUniverseApi.GetGroup(GROUP_PLANET_ID);
         var planetGroups = planetGroupsResult?.Data;
         Assert.NotNull(planetGroups);
         Assert.Equal(PLANET_GROUP_NAME, planetGroups.Name);
 
-        //wormhole
         //has been removed ??? but always accessible if you get group with GROUP_WORMHOLE_ID
         // Assert.Contains<int>(GROUP_WORMHOLE_ID, groups);
         var whGroupsResult = await _eveUniverseApi.GetGroup(GROUP_WORMHOLE_ID);

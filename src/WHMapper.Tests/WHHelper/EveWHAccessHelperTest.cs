@@ -23,7 +23,6 @@ public class EveWHAccessHelperTest
     private int EVE_CHARACTERE_ID2 = 153110579;
 
     private int EVE_CORPO_ID = 1344654522;
-    private int EVE_ALLIANCE_ID = 1354830081;
 
     IDbContextFactory<WHMapperContext>? _contextFactory;
     private IEveMapperAccessHelper? _accessHelper;
@@ -36,7 +35,6 @@ public class EveWHAccessHelperTest
     public EveWHAccessHelperTest()
     {
 
-        //Create DB Context
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()
@@ -123,7 +121,6 @@ public class EveWHAccessHelperTest
         var noAccess = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID2);
         Assert.False(noAccess);
 
-        // Cleanup
         await _whInstanceRepository.DeleteById(createdInstance.Id);
     }
 
@@ -153,7 +150,6 @@ public class EveWHAccessHelperTest
         var noAccess = await _accessHelper.IsEveMapperUserAccessAuthorized(EVE_CHARACTERE_ID2);
         Assert.False(noAccess);
 
-        // Cleanup
         await _whInstanceRepository.DeleteById(createdInstance.Id);
     }
 
@@ -186,7 +182,6 @@ public class EveWHAccessHelperTest
         var nowAdmin = await _accessHelper.IsEveMapperAdminAccessAuthorized(EVE_CHARACTERE_ID2);
         Assert.True(nowAdmin);
 
-        // Cleanup
         await _whInstanceRepository.DeleteById(createdInstance.Id);
     }
 
@@ -221,7 +216,6 @@ public class EveWHAccessHelperTest
         var noAccess = await _accessHelper.IsEveMapperMapAccessAuthorized(EVE_CHARACTERE_ID2, map.Id);
         Assert.False(noAccess);
 
-        // Cleanup
         await _whMapRepository.DeleteById(map.Id);
         await _whInstanceRepository.DeleteById(createdInstance.Id);
     }

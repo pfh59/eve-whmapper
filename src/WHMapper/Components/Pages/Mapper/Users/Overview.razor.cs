@@ -49,14 +49,10 @@ public partial class Overview : IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        // Subscribe to primary account changes
         EveMapperUserManagementService.PrimaryAccountChanged += OnPrimaryAccountChangedHandler;
-        // Subscribe to current map changes
         EveMapperUserManagementService.CurrentMapChanged += OnCurrentMapChangedHandler;
-        // Subscribe to navigation changes
         Navigation.LocationChanged += OnLocationChanged;
         
-        // Check initial location
         UpdateInstancesPageState(Navigation.Uri);
         
         await base.OnInitializedAsync();
@@ -71,7 +67,7 @@ public partial class Overview : IAsyncDisposable
             _cts = new CancellationTokenSource();
         }
 
-        _ = Task.Run(async () => await LoadAccountsAsync(_cts.Token));
+        _ = Task.Run(async () => await LoadAccountsAsync(_cts.Token), _cts.Token);
         Logger.LogInformation("User Overview component OnParametersSetAsync done");
 
         await base.OnParametersSetAsync();
@@ -88,7 +84,6 @@ public partial class Overview : IAsyncDisposable
 
         if (EveMapperUserManagementService != null && UID != null && !String.IsNullOrEmpty(UID.ClientId))
         {
-            // Update map access status for all accounts based on primary account's maps
             await EveMapperUserManagementService.UpdateAccountsMapAccessAsync(UID.ClientId);
             
             Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
@@ -153,7 +148,6 @@ public partial class Overview : IAsyncDisposable
         {
             Logger.LogInformation("Setting primary account to {AccountId}", accountId);
             
-            // Stop tracking for all accounts before switching primary
             foreach (var account in Accounts)
             {
                 if (account.Tracking)
@@ -163,7 +157,6 @@ public partial class Overview : IAsyncDisposable
                 }
             }
             
-            // Set the new primary account - this will trigger OnPrimaryAccountChangedHandler
             // which will reload maps and manage tracking based on map access
             await EveMapperUserManagementService.SetPrimaryAccountAsync(UID.ClientId, accountId.ToString());
             StateHasChanged();
@@ -179,10 +172,8 @@ public partial class Overview : IAsyncDisposable
 
         Logger.LogInformation("Primary account changed to {AccountId}, updating tracking status", newPrimaryAccountId);
         
-        // Reload accounts to get updated HasMapAccess status
         Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
         
-        // Manage tracking based on map access
         foreach (var account in Accounts)
         {
             if (account.IsPrimary)
@@ -214,7 +205,6 @@ public partial class Overview : IAsyncDisposable
         
         await InvokeAsync(StateHasChanged);
         
-        // Notify parent to reload maps
         if (OnPrimaryAccountChanged.HasDelegate)
         {
             await OnPrimaryAccountChanged.InvokeAsync(newPrimaryAccountId);
@@ -230,7 +220,6 @@ public partial class Overview : IAsyncDisposable
 
         Logger.LogInformation("Current map changed to {MapId}, updating tracking status based on map access", mapId);
         
-        // Reload accounts to get updated HasCurrentMapAccess status
         Accounts = await EveMapperUserManagementService.GetAccountsAsync(UID.ClientId);
         
         // Don't manage tracking if we're on instances page
@@ -240,7 +229,6 @@ public partial class Overview : IAsyncDisposable
             return;
         }
         
-        // Manage tracking based on current map access
         foreach (var account in Accounts)
         {
             if (account.HasCurrentMapAccess)
@@ -298,7 +286,6 @@ public partial class Overview : IAsyncDisposable
     {
         Logger.LogInformation("Navigating to instances page - pausing tracking for all accounts");
         
-        // Save current tracking state and stop all tracking
         _savedTrackingState.Clear();
         foreach (var account in Accounts)
         {
@@ -316,7 +303,6 @@ public partial class Overview : IAsyncDisposable
     {
         Logger.LogInformation("Returning from instances page - restoring tracking state");
         
-        // Restore tracking state from before navigating to instances
         foreach (var account in Accounts)
         {
             if (_savedTrackingState.TryGetValue(account.Id, out var wasTracking) && wasTracking)
@@ -340,19 +326,16 @@ public partial class Overview : IAsyncDisposable
             return;
         _disposed = true;
         
-        // Unsubscribe from events
         EveMapperUserManagementService.PrimaryAccountChanged -= OnPrimaryAccountChangedHandler;
         EveMapperUserManagementService.CurrentMapChanged -= OnCurrentMapChangedHandler;
         Navigation.LocationChanged -= OnLocationChanged;
         
-        // Cancel pending operations
         if (_cts != null && !_cts.IsCancellationRequested)
         {
             _cts.Cancel();
         }
         _cts?.Dispose();
 
-        // Stop services for all accounts
         foreach (var account in Accounts)
         {
             try

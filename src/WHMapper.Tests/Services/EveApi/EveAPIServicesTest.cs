@@ -47,7 +47,6 @@ public class EveAPIServicesTest
         // Act
         var services = new EveAPIServices(httpClient);
 
-        // Assert
         Assert.NotNull(services.LocationServices);
         Assert.NotNull(services.UniverseServices);
         Assert.NotNull(services.UserInterfaceServices);
@@ -69,7 +68,6 @@ public class EveAPIServicesTest
         // Act
         var services = new EveAPIServices(httpClient);
 
-        // Assert
         Assert.IsAssignableFrom<ILocationServices>(services.LocationServices);
         Assert.IsAssignableFrom<IUniverseServices>(services.UniverseServices);
         Assert.IsAssignableFrom<IUserInterfaceServices>(services.UserInterfaceServices);
@@ -100,10 +98,8 @@ public class EveAPIServicesTest
         var services = new EveAPIServices(httpClient);
         var userToken = CreateTestUserToken();
 
-        // Act
         await services.SetEveCharacterAuthenticatication(userToken);
 
-        // Assert
         Assert.NotNull(services.LocationServices);
         Assert.NotNull(services.SearchServices);
         Assert.NotNull(services.DogmaServices);
@@ -137,7 +133,6 @@ public class EveAPIServicesTest
         var originalAssetsServices = services.AssetsServices;
         var originalUserInterfaceServices = services.UserInterfaceServices;
 
-        // Act
         await services.SetEveCharacterAuthenticatication(userToken);
 
         // Assert - Authenticated services should be new instances
@@ -162,7 +157,6 @@ public class EveAPIServicesTest
         var originalCharacterServices = services.CharacterServices;
         var originalRouteServices = services.RouteServices;
 
-        // Act
         await services.SetEveCharacterAuthenticatication(userToken);
 
         // Assert - Non-authenticated services should remain the same instances
@@ -187,14 +181,12 @@ public class EveAPIServicesTest
             Expiry = DateTime.UtcNow.AddHours(2)
         };
 
-        // Act
         await services.SetEveCharacterAuthenticatication(userToken1);
         var servicesAfterFirstCall = services.LocationServices;
 
         await services.SetEveCharacterAuthenticatication(userToken2);
         var servicesAfterSecondCall = services.LocationServices;
 
-        // Assert
         Assert.NotSame(servicesAfterFirstCall, servicesAfterSecondCall);
     }
 
@@ -229,7 +221,6 @@ public class EveAPIServicesTest
         var services = new EveAPIServices(httpClient);
         var userToken = CreateTestUserToken();
 
-        // Act
         await services.SetEveCharacterAuthenticatication(userToken);
 
         // Assert - Services should still implement their respective interfaces
@@ -248,10 +239,8 @@ public class EveAPIServicesTest
         var services = new EveAPIServices(httpClient);
         var userToken = CreateTestUserToken();
 
-        // Act
         var task = services.SetEveCharacterAuthenticatication(userToken);
 
-        // Assert
         Assert.True(task.IsCompleted);
         Assert.Equal(Task.CompletedTask, task);
     }

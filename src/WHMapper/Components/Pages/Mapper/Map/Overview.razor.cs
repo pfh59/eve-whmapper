@@ -132,6 +132,26 @@ public partial class Overview : IAsyncDisposable
 
     private CancellationTokenSource _cts = new();
 
+    /// <summary>
+    /// Acquires the semaphore unless the component is being disposed.
+    /// Returns false when the wait was cancelled so callers can skip their work.
+    /// </summary>
+    private async Task<bool> TryAcquireSemaphoreAsync(SemaphoreSlim semaphore)
+    {
+        try
+        {
+            await semaphore.WaitAsync(_cts.Token);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch (ObjectDisposedException)
+        {
+            return false;
+        }
+    }
 
     private async Task<WHMapperUser[]?> GetAccountsAsync()
     {
@@ -170,7 +190,6 @@ public partial class Overview : IAsyncDisposable
             Snackbar?.Add("Map Initialization error", Severity.Error);
         }
 
-        // Load real user settings and apply to the already-created diagram
         var primaryAccount = await GetPrimaryAccountAsync();
         _userSettings = await UserSettingService.GetSettingsAsync(primaryAccount?.Id ?? 0);
         ApplyUserSettingsToDiagram();
@@ -188,7 +207,7 @@ public partial class Overview : IAsyncDisposable
             _cts = new CancellationTokenSource();
         }
 
-        _ = Task.Run(() => LoadMapAsync(_cts.Token));
+        _ = Task.Run(() => LoadMapAsync(_cts.Token), _cts.Token);
 
         Logger.LogInformation("OnParametersSetAsync completed with MapId: {MapId}", MapId);
 
@@ -240,8 +259,10 @@ public partial class Overview : IAsyncDisposable
         {
             if (await Restore(MapId.Value, cancellationToken))
             {
-                // Update current map access for all accounts
-                await UserManagement.UpdateAccountsCurrentMapAccessAsync(UID.ClientId, MapId.Value);
+                if (!string.IsNullOrEmpty(UID.ClientId))
+                    await UserManagement.UpdateAccountsCurrentMapAccessAsync(UID.ClientId, MapId.Value);
+                else
+                    Logger.LogWarning("LoadMapAsync: no client id, skipping current map access update");
                 
                 WHMapperUser[]? accounts = await GetAccountsAsync();
                 if (accounts != null)
@@ -254,7 +275,6 @@ public partial class Overview : IAsyncDisposable
                             return;
                         }
 
-                        // Check if account has access to this specific map
                         if (!account.HasCurrentMapAccess)
                         {
                             Logger.LogInformation("Account {AccountId} does not have access to map {MapId}, disabling tracking", account.Id, MapId.Value);
@@ -265,6 +285,10 @@ public partial class Overview : IAsyncDisposable
                             }
                             continue; // Skip this account for user position and tracking
                         }
+
+                        // Join first: positions are scoped server-side to the maps this connection
+                        // has been authorized to join, so joining has to happen before reading them.
+                        await EveMapperRealTime.JoinMap(account.Id, MapId.Value);
 
                         IDictionary<int, KeyValuePair<int, int>?> usersPosition = await EveMapperRealTime.GetConnectedUsersPosition(account.Id);
                         try
@@ -298,7 +322,6 @@ public partial class Overview : IAsyncDisposable
                             Logger.LogError(ex, "On NotifyUserPosition error");
                         }
 
-                        await EveMapperRealTime.JoinMap(account.Id, MapId.Value);
                         await EveMapperRealTime.NotifyUserOnMapConnected(account.Id, MapId.Value);
                         if (account.Tracking)
                         {
@@ -318,7 +341,10 @@ public partial class Overview : IAsyncDisposable
                     // Notify listeners now that the SignalR-side state for this map is consistent.
                     // Firing CurrentMapChanged earlier (e.g. from UpdateAccountsCurrentMapAccessAsync)
                     // races against SendUserOnMapConnected and would leave the connected-users count stale.
-                    await UserManagement.NotifyCurrentMapChangedAsync(UID.ClientId, MapId.Value);
+                    if (!string.IsNullOrEmpty(UID.ClientId))
+                        await UserManagement.NotifyCurrentMapChangedAsync(UID.ClientId, MapId.Value);
+                    else
+                        Logger.LogWarning("LoadMapAsync: no client id, skipping current map changed notification");
                 }
             }
         }
@@ -363,7 +389,6 @@ public partial class Overview : IAsyncDisposable
             return;
         _disposed = true;
         
-        // Cancel pending operations
         if (!_cts.IsCancellationRequested)
         {
             _cts.Cancel();
@@ -372,7 +397,6 @@ public partial class Overview : IAsyncDisposable
 
         UserSettingService.OnSettingsChanged -= OnUserSettingsChangedAsync;
 
-        // Unsubscribe from TrackerServices events
         // Note: Do NOT dispose TrackerServices here - it's a scoped service managed by DI
         // and must remain active for the lifetime of the user session
         if (TrackerServices != null)
@@ -383,7 +407,6 @@ public partial class Overview : IAsyncDisposable
             TrackerServices.TrackingShipRetryRequested -= OnTrackingShipRetryRequested;
         }
 
-        // Unsubscribe from EveMapperRealTime events
         if (EveMapperRealTime != null)
         {
             await LeaveMapGroupsAsync();
@@ -648,7 +671,8 @@ public partial class Overview : IAsyncDisposable
     #region Diagram Selection
     private async Task OnDiagramSelectionChanged(Blazor.Diagrams.Core.Models.Base.SelectableModel? item)
     {
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             await InvokeAsync(() =>
@@ -723,7 +747,8 @@ public partial class Overview : IAsyncDisposable
     #region Diagram Keyboard Events
     private async Task OnDiagramKeyDown(Blazor.Diagrams.Core.Events.KeyboardEventArgs eventArgs)
     {
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             if (await HandleLinkSystemKey(eventArgs) ||
@@ -907,7 +932,8 @@ public partial class Overview : IAsyncDisposable
         if (item == null || item.GetType() != typeof(EveSystemNodeModel))
             return;
 
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             var node = (EveSystemNodeModel)item;
@@ -973,7 +999,7 @@ public partial class Overview : IAsyncDisposable
                 {
                     await EveMapperRealTime.NotifyWormholeLockChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.Locked);
                 }
-            });
+            }, _cts.Token);
         }
     }
 
@@ -988,7 +1014,7 @@ public partial class Overview : IAsyncDisposable
                 {
                     await EveMapperRealTime.NotifyWormholeSystemStatusChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.SystemStatus);
                 }
-            });
+            }, _cts.Token);
         }
     }
 
@@ -996,7 +1022,6 @@ public partial class Overview : IAsyncDisposable
     {
         if (whNodeModel != null)
         {
-            //save name extension to db
             var wh = await DbWHSystems.GetById(whNodeModel.IdWH);
             if (wh != null)
             {
@@ -1014,7 +1039,7 @@ public partial class Overview : IAsyncDisposable
                     {
                         await EveMapperRealTime.NotifyAlternameNameChanged(primaryAccount.Id, whNodeModel.IdWHMap, whNodeModel.IdWH, whNodeModel.AlternateName);
                     }
-                });
+                }, _cts.Token);
             }
         }
     }
@@ -1061,9 +1086,9 @@ public partial class Overview : IAsyncDisposable
             }
 
             var whLink = _blazorDiagram.Links.FirstOrDefault(x =>
-            ((((EveSystemNodeModel)x.Source!.Model!).IdWH == src.IdWH) && (((EveSystemNodeModel)x.Target!.Model!).IdWH == target.IdWH))
+            ((((EveSystemNodeModel)x.Source.Model!).IdWH == src.IdWH) && (((EveSystemNodeModel)x.Target.Model!).IdWH == target.IdWH))
             ||
-            ((((EveSystemNodeModel)x.Source!.Model!).IdWH == target.IdWH) && (((EveSystemNodeModel)x.Target!.Model!).IdWH == src.IdWH)));
+            ((((EveSystemNodeModel)x.Source.Model).IdWH == target.IdWH) && (((EveSystemNodeModel)x.Target.Model!).IdWH == src.IdWH)));
 
             return Task.FromResult(whLink as EveSystemLinkModel);
         }
@@ -1113,36 +1138,25 @@ public partial class Overview : IAsyncDisposable
         if (srcNode?.Position == null || srcNode.Size == null)
             return (0, 0);
 
-        // Source node dimensions
         double srcWidth = srcNode.Size.Width;
         double srcHeight = srcNode.Size.Height;
 
-        // New node dimensions (use source dimensions as default estimate)
         double newWidth = newNodeWidth ?? srcWidth;
         double newHeight = newNodeHeight ?? srcHeight;
 
-        // Base position = source node position
         double baseX = srcNode.Position.X;
         double baseY = srcNode.Position.Y;
 
         // 8 candidate positions around the source node (direction name + base displacement)
         var directions = new (double dx, double dy, string name)[]
         {
-            // Right
             (srcWidth + SPACING, (srcHeight - newHeight) / 2, "Right"),
-            // Bottom
             ((srcWidth - newWidth) / 2, srcHeight + SPACING, "Bottom"),
-            // Top
             ((srcWidth - newWidth) / 2, -(newHeight + SPACING), "Top"),
-            // Left
             (-(newWidth + SPACING), (srcHeight - newHeight) / 2, "Left"),
-            // Bottom-Right
             (srcWidth + SPACING, srcHeight + SPACING, "Bottom-Right"),
-            // Top-Right
             (srcWidth + SPACING, -(newHeight + SPACING), "Top-Right"),
-            // Bottom-Left
             (-(newWidth + SPACING), srcHeight + SPACING, "Bottom-Left"),
-            // Top-Left
             (-(newWidth + SPACING), -(newHeight + SPACING), "Top-Left"),
         };
 
@@ -1154,7 +1168,6 @@ public partial class Overview : IAsyncDisposable
                 double candidateX = Math.Max(10, baseX + (dx*attempt));
                 double candidateY = Math.Max(10, baseY + (dy*attempt));
 
-                // Check collision against all existing nodes
                 if (!HasCollision(candidateX, candidateY, newWidth, newHeight, SPACING))
                 {
                     return (candidateX, candidateY);
@@ -1350,9 +1363,8 @@ public partial class Overview : IAsyncDisposable
         if (srcEntity != null && targetEntity != null && await MapperServices.IsRouteViaWH(srcEntity, targetEntity))
         {
             //get whClass an determine if another connection to another wh with same class exist from previous system. 
-            // Increment extension value in that case
             EveSystemType whClass = await MapperServices.GetWHClass(targetEntity);
-            var sameWHClassWHList = _blazorDiagram?.Links?.Where(x => ((EveSystemNodeModel)(x.Target!.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId == srcEntity.Id);
+            var sameWHClassWHList = _blazorDiagram?.Links?.Where(x => ((EveSystemNodeModel)(x.Target.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source.Model!).SolarSystemId == srcEntity.Id);
 
             if (sameWHClassWHList != null)
                 countSameWHClassLink = sameWHClassWHList.Count();
@@ -1520,10 +1532,18 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnSystemChanged(int accountID, EveLocation? oldLocation, EveLocation newLocation)
     {
+        if (!MapId.HasValue)
+        {
+            Logger.LogWarning("OnSystemChanged: no map loaded, ignoring system change");
+            return;
+        }
+        int mapId = MapId.Value;
+
         EveSystemNodeModel? srcNode = null;
         EveSystemNodeModel? targetNode = null;
 
-        await _semaphoreSlim.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim))
+            return;
         try
         {
             if (oldLocation != null)
@@ -1533,13 +1553,11 @@ public partial class Overview : IAsyncDisposable
 
             if (targetNode == null)//location not exist on map
             {
-                //get extension if needed
 
                 char? extension = null;
                 if (oldLocation != null)
                     extension = await GetTargetExtension(oldLocation, newLocation);
 
-                //Calculate optimal position avoiding overlaps with existing nodes
                 double nodePositionX = 0;
                 double nodePositionY = 0;
                 if (srcNode != null)
@@ -1549,27 +1567,24 @@ public partial class Overview : IAsyncDisposable
                     nodePositionY = newPosition.Y;
                 }
 
-                if (await AddSystemNode(MapId.Value, newLocation, accountID, extension, nodePositionX, nodePositionY))//add system node if system is not already added
+                if (await AddSystemNode(mapId, newLocation, accountID, extension, nodePositionX, nodePositionY))//add system node if system is not already added
                 {
                     targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
 
 
-                    if (srcNode != null && targetNode != null && !await IsLinkExist(srcNode, targetNode))
+                    if (srcNode != null && targetNode != null && !await IsLinkExist(srcNode, targetNode)
+                        && !await AddSystemNodeLink(mapId, srcNode, targetNode, accountID))//create if new target system added from src
                     {
-                        if (!await AddSystemNodeLink(MapId.Value, srcNode, targetNode, accountID))//create if new target system added from src
-                        {
-                            Logger.LogError("Add Wormhole Link error");
-                            Snackbar?.Add("Add Wormhole Link error", Severity.Error);
-                        }
+                        Logger.LogError("Add Wormhole Link error");
+                        Snackbar?.Add("Add Wormhole Link error", Severity.Error);
                     }
                 }
             }
             else// tartget system already added
             {
-                //check if link already exist, if not create if
                 if (srcNode != null && targetNode != null && !await IsLinkExist(srcNode, targetNode))
                 {
-                    if (!await AddSystemNodeLink(MapId.Value, srcNode, targetNode, accountID))//create if new target system added from src
+                    if (!await AddSystemNodeLink(mapId, srcNode, targetNode, accountID))//create if new target system added from src
                     {
                         Logger.LogError("Add Wormhole Link error");
                         Snackbar?.Add("Add Wormhole Link error", Severity.Error);
@@ -1590,12 +1605,10 @@ public partial class Overview : IAsyncDisposable
                 }
             }
 
-            //update user position
             CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
             if (user != null)
             {
-                //remove user from old system if exist
-                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
+                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).ConnectedUsers.Contains(user.Name));
                 if (userSystem != null)
                 {
                     await userSystem.RemoveConnectedUser(user.Name);
@@ -1669,7 +1682,6 @@ public partial class Overview : IAsyncDisposable
                     return false;
                 }
 
-                // Set the destination waypoint using the EveServices
                 await EveServices.SetEveCharacterAuthenticatication(token);
                 await EveServices.UserInterfaceServices.SetWaypoint(solarSystemId, false, true);
                 return true;
@@ -1896,7 +1908,6 @@ public partial class Overview : IAsyncDisposable
                     link = await DbWHSystemLinks.Update(SelectedSystemLink.Id, link);
                     if (link != null)
                     {
-                        //update link size on diagram (refresh link
                         SelectedSystemLink.Size = link.Size;
                         SelectedSystemLink.Refresh();
                         WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
@@ -2008,14 +2019,15 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnUserDisconnected(int accountID)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
             if (user == null)
                 throw new NullReferenceException("User not found");
 
-            EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
+            EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).ConnectedUsers.Contains(user.Name));
             if (userSystem != null)
             {
                 await userSystem.RemoveConnectedUser(user.Name);
@@ -2034,7 +2046,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnUserPositionChanged(int accountID, int mapId, int wormholeId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2044,14 +2057,14 @@ public partial class Overview : IAsyncDisposable
                 if (user == null)
                     throw new NullReferenceException("User not found");
 
-                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
+                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).ConnectedUsers.Contains(user.Name));
                 if (userSystem != null && userSystem.IdWH != wormholeId)
                 {
                     await userSystem.RemoveConnectedUser(user.Name);
                     userSystem.Refresh();
                 }
 
-                EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.IdWH == wormholeId);
+                EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
                 if (systemToAddUser != null && systemToAddUser.ConnectedUsers != null && !systemToAddUser.ConnectedUsers.Contains(user.Name))
                 {
                     await systemToAddUser.AddConnectedUser(user.Name);
@@ -2071,7 +2084,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeAdded(int accountID, int mapId, int whId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2105,7 +2119,8 @@ public partial class Overview : IAsyncDisposable
     }
     private async Task OnWormholeRemoved(int accountID, int mapId, int whId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2136,7 +2151,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeMoved(int accountID, int mapId, int whId, double posX, double posY)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2166,7 +2182,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnLinkAdded(int accountID, int mapId, int linkId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             WHMapperUser[]? accounts = await GetAccountsAsync();
@@ -2206,7 +2223,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnLinkRemoved(int accountID, int mapId, int linkId)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2245,7 +2263,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnLinkChanged(int accountID, int mapId, int linkId, SystemLinkEolStatus eolStatus, SystemLinkSize size, SystemLinkMassStatus massStatus)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2280,7 +2299,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeLockChanged(int accountID, int mapId, int whId, bool locked)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2303,7 +2323,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeSystemStatusChanged(int accountID, int mapId, int whId, WHSystemStatus systemStatus)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2329,7 +2350,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeNameExtensionChanged(int accountID, int mapId, int whId, char? extension)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();
@@ -2355,7 +2377,8 @@ public partial class Overview : IAsyncDisposable
 
     private async Task OnWormholeAlternateNameChanged(int accountID, int mapId, int whId, string? name)
     {
-        await _semaphoreSlim2.WaitAsync();
+        if (!await TryAcquireSemaphoreAsync(_semaphoreSlim2))
+            return;
         try
         {
             var accounts = await GetAccountsAsync();

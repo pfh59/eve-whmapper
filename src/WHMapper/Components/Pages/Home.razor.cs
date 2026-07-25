@@ -58,10 +58,8 @@ public partial class Home : ComponentBase, IAsyncDisposable
             SDEInitializationState.OnInitializationCompleted += OnSDEInitializationCompleted;
         }
 
-        // Subscribe to instance access events
         await InitRealTimeServiceEvents();
 
-        // Subscribe to primary account changes to refresh authorization state
         UserManagement.PrimaryAccountChanged += OnPrimaryAccountChanged;
 
         // In single-tenant mode, once an instance exists, creation is locked
@@ -97,7 +95,6 @@ public partial class Home : ComponentBase, IAsyncDisposable
             {
                 if (_isWaitingForOtherInitialization)
                 {
-                    // Wait for the other initialization to complete
                     await WaitForOtherInitializationAsync();
                 }
                 else
@@ -133,7 +130,6 @@ public partial class Home : ComponentBase, IAsyncDisposable
         {
             await SDEInitializationState.WaitForInitializationAsync();
             
-            // Verify the SDE was successfully extracted
             if (SDEServices.IsExtractionSuccesful())
             {
                 await SetLoading(false);
@@ -147,7 +143,6 @@ public partial class Home : ComponentBase, IAsyncDisposable
         }
         catch (TaskCanceledException)
         {
-            // Handle cancellation gracefully
             await SetLoading(false);
         }
     }
@@ -186,12 +181,10 @@ public partial class Home : ComponentBase, IAsyncDisposable
             if (primaryAccount.Id == accountID)
                 return;
 
-            // Refresh the page to re-evaluate the authorization
             // The policy will check if we now have access
             Snackbar.Add("You have been granted access to an instance! Refreshing...", Severity.Success);
             await InvokeAsync(async () =>
             {
-                // Force page reload to re-evaluate authorization
                 await JSRuntime.InvokeVoidAsync("window.location.replace", "/");
             });
         }
@@ -218,12 +211,10 @@ public partial class Home : ComponentBase, IAsyncDisposable
             if (primaryAccount.Id == accountID)
                 return;
 
-            // Refresh the page to re-evaluate the authorization
             // The policy will check if we still have access
             Snackbar.Add("Your access to an instance has been revoked. Refreshing...", Severity.Warning);
             await InvokeAsync(async () =>
             {
-                // Force page reload to re-evaluate authorization
                 await JSRuntime.InvokeVoidAsync("window.location.replace", "/");
             });
         }
@@ -237,11 +228,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
     {
         try
         {
-            // Only react to changes for our client
             if (clientId != UID.ClientId)
                 return;
 
-            // Force page reload to re-evaluate authorization
             // The new primary account may have different instance access
             await InvokeAsync(async () =>
             {
@@ -266,10 +255,8 @@ public partial class Home : ComponentBase, IAsyncDisposable
             RealTimeService.InstanceAccessRemoved -= OnInstanceAccessRemoved;
         }
 
-        // Unsubscribe from primary account changes
         UserManagement.PrimaryAccountChanged -= OnPrimaryAccountChanged;
 
-        // Unsubscribe from SDE initialization events
         SDEInitializationState.OnProgressChanged -= OnSDEProgressChanged;
         SDEInitializationState.OnInitializationCompleted -= OnSDEInitializationCompleted;
 
@@ -303,11 +290,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
 
     private async Task DownloadExtractImportSDE()
     {
-        // Try to acquire the initialization lock
         if (!SDEInitializationState.TryAcquireInitializationLock())
         {
             // Another user started initialization between our check and now
-            // Subscribe to progress updates and wait
             _isWaitingForOtherInitialization = true;
             _init_process_msg = SDEInitializationState.CurrentProgressMessage;
             SDEInitializationState.OnProgressChanged += OnSDEProgressChanged;
@@ -356,7 +341,6 @@ public partial class Home : ComponentBase, IAsyncDisposable
         }
         finally
         {
-            // Always release the lock when done
             SDEInitializationState.ReleaseInitializationLock();
         }
     }
