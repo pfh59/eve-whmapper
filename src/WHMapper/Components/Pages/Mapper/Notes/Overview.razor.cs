@@ -74,7 +74,7 @@ public partial class Overview : IDisposable
         if (_timer == null)
         {
             _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
-            Task.Run(() => HandleTimerAsync());
+            Task.Run(() => HandleTimerAsync(), CancellationToken.None);
         }
         return Task.CompletedTask;
     }

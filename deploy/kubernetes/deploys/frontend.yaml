@@ -18,6 +18,9 @@ spec:
       containers:
         - name: evemapper-app
           image: ghcr.io/pfh59/eve-whmapper:latest
+          resources:
+            requests:
+              memory: "512Mi"
           envFrom:
           - configMapRef:
               name: evemapper-config-map

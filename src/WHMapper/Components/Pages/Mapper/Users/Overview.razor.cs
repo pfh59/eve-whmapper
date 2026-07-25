@@ -332,7 +332,7 @@ public partial class Overview : IAsyncDisposable
         
         if (_cts != null && !_cts.IsCancellationRequested)
         {
-            _cts.Cancel();
+            await _cts.CancelAsync();
         }
         _cts?.Dispose();
 
