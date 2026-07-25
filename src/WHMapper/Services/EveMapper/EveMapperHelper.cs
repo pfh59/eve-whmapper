@@ -289,7 +289,7 @@ namespace WHMapper.Services.EveMapper
                 await EnsureWormholeTypesInitializedAsync();
                 if (whStatics!=null && whStatics.Any() && _whTypes != null && _whTypes.Any()) 
                 {
-                    statics = whStatics.Select(x => _whTypes.FirstOrDefault<WormholeType>(y => String.Equals(y.Name,x.Key,StringComparison.OrdinalIgnoreCase))).Where(y => y != null).ToList<WormholeType>();
+                    statics = whStatics.Select(x => _whTypes.FirstOrDefault(y => String.Equals(y.Name,x.Key,StringComparison.OrdinalIgnoreCase))).OfType<WormholeType>().ToList();
                 }
 
                 res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, whClass, whEffect, effectDetails, statics);

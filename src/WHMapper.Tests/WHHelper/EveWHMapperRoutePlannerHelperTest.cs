@@ -98,9 +98,7 @@ public class EveWHMapperRoutePlannerHelperTest
         };
     }
 
-    // ===========================================================
     // AddRoute
-    // ===========================================================
 
     [Fact]
     public async Task AddRoute_Global_True_CallsCreateWithoutEntityId()
@@ -167,9 +165,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.Null(result);
     }
 
-    // ===========================================================
     // DeleteRoute
-    // ===========================================================
 
     [Fact]
     public async Task DeleteRoute_ReturnsTrue_WhenRepositoryReturnsTrue()
@@ -194,9 +190,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.False(result);
     }
 
-    // ===========================================================
     // GetMyRoutes
-    // ===========================================================
 
     [Fact]
     public async Task GetMyRoutes_NoClientId_ReturnsNull()
@@ -245,9 +239,7 @@ public class EveWHMapperRoutePlannerHelperTest
         _routeRepoMock.Verify(r => r.GetRoutesForAll(It.IsAny<int>()), Times.Never);
     }
 
-    // ===========================================================
     // GetRoutesForAll
-    // ===========================================================
 
     [Fact]
     public async Task GetRoutesForAll_RepositoryNull_ReturnsNull()
@@ -313,9 +305,7 @@ public class EveWHMapperRoutePlannerHelperTest
         Assert.Equal(string.Empty, route.DestinationName);
     }
 
-    // ===========================================================
     // GetTheraRoutes / GetTurnurRoutes
-    // ===========================================================
 
     [Fact]
     public async Task GetTheraRoutes_NoEntries_ReturnsEmpty()
@@ -422,9 +412,7 @@ public class EveWHMapperRoutePlannerHelperTest
         _eveScoutMock.Verify(e => e.GetTheraSystemsAsync(), Times.Never);
     }
 
-    // ===========================================================
     // CalculateRoute (via GetRoutesForAll)
-    // ===========================================================
 
     private void SetupSingleDestination(int destinationSystemId)
     {

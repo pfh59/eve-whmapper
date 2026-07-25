@@ -11,21 +11,12 @@ namespace WHMapper.Models.Db
         [Key]
         public int Id { get; set; }
 
-        /// <summary>
-        /// The instance this admin belongs to
-        /// </summary>
         [Required]
         public int WHInstanceId { get; set; }
 
-        /// <summary>
-        /// The EVE character ID of the admin
-        /// </summary>
         [Required]
         public int EveCharacterId { get; set; }
 
-        /// <summary>
-        /// The EVE character name of the admin
-        /// </summary>
         [Required]
         public string EveCharacterName { get; set; } = string.Empty;
 
@@ -34,9 +25,6 @@ namespace WHMapper.Models.Db
         /// </summary>
         public bool IsOwner { get; set; } = false;
 
-        /// <summary>
-        /// Date when the admin was added
-        /// </summary>
         public DateTime AddedAt { get; set; } = DateTime.UtcNow;
 
         [Obsolete("EF Requires it")]

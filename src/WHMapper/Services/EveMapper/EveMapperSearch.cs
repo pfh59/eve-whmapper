@@ -62,7 +62,12 @@ namespace WHMapper.Services.EveMapper
                         CancellationToken = cancellationToken
                     };
 
-                    
+
+                    if (string.IsNullOrEmpty(_UID.ClientId))
+                    {
+                        _logger.LogError("Search {Value}, No client id to search", value);
+                        return null;
+                    }
                     var defaultAccount = await _userManagement.GetPrimaryAccountAsync(_UID.ClientId);
                     if (defaultAccount == null)
                     {

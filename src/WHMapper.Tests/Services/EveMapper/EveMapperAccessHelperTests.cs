@@ -72,7 +72,6 @@ namespace WHMapper.Tests.Services.EveMapper
         [Theory, AutoMoqData]
         public async Task IfCharacterNotFound_WhenGettingAccess_ReturnsFalse(
             [Frozen] Mock<ICharacterServices> characterServices,
-            [Frozen] Mock<IWHInstanceRepository> instanceRepository,
             EveMapperAccessHelper sut)
         {
             characterServices.Setup(x => x.GetCharacter(It.IsAny<int>()))

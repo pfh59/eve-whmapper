@@ -283,7 +283,7 @@ namespace WHMapper.Services.SDE
             {
                 var jumpSystemList = system.Stargates?.Values
                     .Select(stargate => collectionOfSolarSystems.FirstOrDefault(x => x.Stargates.ContainsKey(stargate.Destination)))
-                    .Where(s => s != null)
+                    .OfType<SDESolarSystem>()
                     .Select(s => new SolarSystem(s.SolarSystemID, s.Security))
                     .ToList() ?? new List<SolarSystem>();
 

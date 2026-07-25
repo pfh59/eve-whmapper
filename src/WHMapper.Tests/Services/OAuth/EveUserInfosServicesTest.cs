@@ -35,7 +35,6 @@ public class EveUserInfosServicesTest
         // Act
         var result = await _eveUserInfosServices.GetUserName();
 
-        // Assert
         Assert.Equal("TestUser", result);
     }
 
@@ -51,7 +50,6 @@ public class EveUserInfosServicesTest
         // Act
         var result = await _eveUserInfosServices.GetUserName();
 
-        // Assert
         Assert.Equal(IEveUserInfosServices.ANONYMOUS_USERNAME, result);
     }
 
@@ -67,10 +65,8 @@ public class EveUserInfosServicesTest
         _mockAuthenticationStateProvider.Setup(provider => provider.GetAuthenticationStateAsync())
             .ReturnsAsync(authState);
 
-        // Act
         var result = await _eveUserInfosServices.GetCharactedID();
 
-        // Assert
         Assert.Equal(12345, result);
     }
 
@@ -86,10 +82,8 @@ public class EveUserInfosServicesTest
         _mockAuthenticationStateProvider.Setup(provider => provider.GetAuthenticationStateAsync())
             .ReturnsAsync(authState);
 
-        // Act
         var result = await _eveUserInfosServices.GetCharactedID();
 
-        // Assert
         Assert.Equal(0, result);
     }
 
@@ -102,10 +96,8 @@ public class EveUserInfosServicesTest
         _mockAuthenticationStateProvider.Setup(provider => provider.GetAuthenticationStateAsync())
             .ReturnsAsync(authState);
 
-        // Act
         var result = await _eveUserInfosServices.GetCharactedID();
 
-        // Assert
         Assert.Equal(0, result);
     }
 }

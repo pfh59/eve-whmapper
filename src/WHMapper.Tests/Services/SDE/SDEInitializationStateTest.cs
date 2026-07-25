@@ -224,7 +224,7 @@ public class SDEInitializationStateTest
 
         await Task.WhenAll(tasks);
 
-        Assert.Single(results.Where(r => r));
+        Assert.Single(results, r => r);
         Assert.Equal(9, results.Count(r => !r));
     }
 

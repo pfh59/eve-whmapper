@@ -57,7 +57,6 @@ public partial class Overview : ComponentBase,IDisposable
     [Parameter]
     public int? CurrentPrimaryUserId { get; set; } = null!;
 
-    private WHSignature? _selectedSignature;
     private WHSignature _signatureBeforeEdit = null!;
 
     private bool _isEditingSignature = false;
@@ -66,7 +65,7 @@ public partial class Overview : ComponentBase,IDisposable
     private DateTime _currentDateTime;
     private bool _disposed = false;
 
-    private MudTable<WHSignature?> _signatureTable { get; set; } =null!;
+    private MudTable<WHSignature> _signatureTable { get; set; } =null!;
 
     private string? _currentUser = null!;
 

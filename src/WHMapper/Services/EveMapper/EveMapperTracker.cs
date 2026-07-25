@@ -61,7 +61,6 @@ public class EveMapperTracker : IEveMapperTracker
         
         _logger.LogInformation("EveMapperTracker instance {InstanceId} disposing...", _instanceId);
         
-        // Cancel all tracking tokens
         foreach (var kvp in _ctss)
         {
             try
@@ -78,7 +77,6 @@ public class EveMapperTracker : IEveMapperTracker
             }
         }
         
-        // Wait for all tasks to complete with timeout
         var allTasks = _trackingTasks.Values.SelectMany(t => t).ToArray();
         if (allTasks.Length > 0)
         {
@@ -101,7 +99,6 @@ public class EveMapperTracker : IEveMapperTracker
             }
         }
         
-        // Dispose all CancellationTokenSources
         foreach (var kvp in _ctss)
         {
             try
@@ -143,14 +140,12 @@ public class EveMapperTracker : IEveMapperTracker
         {
             _logger.LogInformation("[{InstanceId}] StartTracking called for account {AccountId}", _instanceId, accountID);
 
-            // Stop existing tracking first if any
             if (_ctss.ContainsKey(accountID))
             {
                 _logger.LogInformation("[{InstanceId}] Stopping existing tracking for account {AccountId} before starting new one", _instanceId, accountID);
                 await StopTrackingInternal(accountID);
             }
 
-            // Create new CancellationTokenSource
             var cts = new CancellationTokenSource();
             if (!_ctss.TryAdd(accountID, cts))
             {
@@ -161,7 +156,6 @@ public class EveMapperTracker : IEveMapperTracker
 
             await ClearTracking(accountID);
             
-            // Start tracking tasks and store references
             var locationTask = Task.Run(() => HandleTrackLocationAsync(accountID, cts.Token), cts.Token);
             var shipTask = Task.Run(() => HandleTrackShipAsync(accountID, cts.Token), cts.Token);
             
@@ -197,7 +191,6 @@ public class EveMapperTracker : IEveMapperTracker
     {
         _logger.LogInformation("[{InstanceId}] StopTrackingInternal called for account {AccountId}", _instanceId, accountID);
 
-        // Cancel the token
         if (_ctss.TryRemove(accountID, out var cts))
         {
             if (cts != null)
@@ -215,7 +208,6 @@ public class EveMapperTracker : IEveMapperTracker
                     }
                 }
                 
-                // Wait for tasks to complete
                 if (_trackingTasks.TryRemove(accountID, out var tasks))
                 {
                     try

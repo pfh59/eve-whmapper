@@ -437,39 +437,39 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
         return new Dictionary<int, KeyValuePair<int, int>?>();
     }
 
-    public async Task NotifyMapAdded(int accountID,int mapId)
+    public async Task NotifyMapAdded(int accountID, int instanceId, int mapId)
     {
-        await SendSafeAsync(accountID, "SendMapAdded", mapId);
+        await SendSafeAsync(accountID, "SendMapAdded", instanceId, mapId);
     }
 
-    public async Task NotifyMapRemoved(int accountID,int mapId)
+    public async Task NotifyMapRemoved(int accountID, int instanceId, int mapId)
     {
-        await SendSafeAsync(accountID, "SendMapRemoved", mapId);
+        await SendSafeAsync(accountID, "SendMapRemoved", instanceId, mapId);
     }
 
-    public async Task NotifyMapNameChanged(int accountID,int mapId, string newName)
+    public async Task NotifyMapNameChanged(int accountID, int instanceId, int mapId, string newName)
     {
-        await SendSafeAsync(accountID, "SendMapNameChanged", mapId, newName);
+        await SendSafeAsync(accountID, "SendMapNameChanged", instanceId, mapId, newName);
     }
 
-    public async Task NotifyAllMapsRemoved(int accountID)
+    public async Task NotifyAllMapsRemoved(int accountID, int instanceId)
     {
-        await SendSafeAsync(accountID, "SendAllMapsRemoved");
+        await SendSafeAsync(accountID, "SendAllMapsRemoved", instanceId);
     }
 
-    public async Task NotifyMapAccessesAdded(int accountID,int mapId, IEnumerable<int> accessIds)
+    public async Task NotifyMapAccessesAdded(int accountID, int instanceId, int mapId, IEnumerable<int> accessIds)
     {
-        await SendSafeAsync(accountID, "SendMapAccessesAdded", mapId, accessIds);
+        await SendSafeAsync(accountID, "SendMapAccessesAdded", instanceId, mapId, accessIds);
     }
 
-    public async Task NotifyMapAccessRemoved(int accountID,int mapId, int accessId)
+    public async Task NotifyMapAccessRemoved(int accountID, int instanceId, int mapId, int accessId)
     {
-        await SendSafeAsync(accountID, "SendMapAccessRemoved", mapId, accessId);
+        await SendSafeAsync(accountID, "SendMapAccessRemoved", instanceId, mapId, accessId);
     }
 
-    public async Task NotifyMapAllAccessesRemoved(int accountID,int mapId)
+    public async Task NotifyMapAllAccessesRemoved(int accountID, int instanceId, int mapId)
     {
-        await SendSafeAsync(accountID, "SendMapAllAccessesRemoved", mapId);
+        await SendSafeAsync(accountID, "SendMapAllAccessesRemoved", instanceId, mapId);
     }
 
     public async Task NotifyUserOnMapConnected(int accountID,int mapId)
@@ -582,6 +582,16 @@ public class EveMapperRealTimeService : IEveMapperRealTimeService
     public async Task LeaveMap(int accountID, int mapId)
     {
         await SendSafeAsync(accountID, "LeaveMap", mapId);
+    }
+
+    public async Task JoinInstance(int accountID, int instanceId)
+    {
+        await SendSafeAsync(accountID, "JoinInstance", instanceId);
+    }
+
+    public async Task LeaveInstance(int accountID, int instanceId)
+    {
+        await SendSafeAsync(accountID, "LeaveInstance", instanceId);
     }
 
     public async Task<int> GetTotalConnectedUsers(int accountID)

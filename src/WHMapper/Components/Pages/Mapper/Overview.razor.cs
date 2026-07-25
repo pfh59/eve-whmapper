@@ -93,7 +93,6 @@ public partial class Overview : IAsyncDisposable
             Snackbar?.Add("RealTimeService Initialization error", Severity.Error);
         }
 
-        // Subscribe to primary account changes to reload maps
         UserManagement.PrimaryAccountChanged += OnPrimaryAccountChanged;
 
         await base.OnInitializedAsync();
@@ -130,7 +129,7 @@ public partial class Overview : IAsyncDisposable
             WHMaps.Clear();
             
             // Load maps based on primary account's access, not the authenticated user
-            if (PrimaryAccount == null)
+            if (PrimaryAccount == null && !string.IsNullOrEmpty(UID.ClientId))
             {
                 PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
             }
@@ -145,7 +144,6 @@ public partial class Overview : IAsyncDisposable
     
             foreach (var map in allMaps)
             {
-                // Check if the primary account has access to this map
                 if (await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id))
                 {
                     WHMaps.Add(map);
@@ -181,10 +179,8 @@ public partial class Overview : IAsyncDisposable
             _loading = true;
             await InvokeAsync(StateHasChanged);
             
-            // Update the primary account reference
             PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
             
-            // Reload maps for the new primary account
             if (!await RestoreMaps())
             {
                 Snackbar?.Add("Error reloading maps after primary account change", Severity.Error);
@@ -214,7 +210,6 @@ public partial class Overview : IAsyncDisposable
             return ValueTask.CompletedTask;
         _disposed = true;
         
-        // Unsubscribe from primary account changes
         UserManagement.PrimaryAccountChanged -= OnPrimaryAccountChanged;
         
         // Note: Do NOT dispose TrackerServices here - it's a scoped service managed by DI
@@ -290,7 +285,6 @@ public partial class Overview : IAsyncDisposable
         await _semaphoreSlim.WaitAsync();
         try
         {
-            //Check if map is already in the list
             if(WHMaps.Any(m=>m.Id==mapId))
             {
                 return;
@@ -299,7 +293,6 @@ public partial class Overview : IAsyncDisposable
             var map = await DbWHMaps.GetById(mapId);
             if (map != null && PrimaryAccount != null)
             {
-                // Check if the primary account has access to this map
                 if (await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id))
                 {
                     WHMaps.Add(map);
@@ -410,7 +403,6 @@ public partial class Overview : IAsyncDisposable
                 return;
             }
             
-            // Check if the primary account has access to this map
             var hasAccess = await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, mapWithAccessUpdated.Id);
             
 
@@ -467,14 +459,12 @@ public partial class Overview : IAsyncDisposable
                 {
                     map.WHMapAccesses.Remove(accessToRemove);
 
-                    // Check if the primary account still has access to this map
                     var hasAccess = await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id);
                     if (!hasAccess)
                     {
                         var mapName = map.Name;
                         WHMaps.Remove(map);
                         
-                        // Reset selection if needed
                         if (_selectedWHMap?.Id == mapId)
                         {
                             _selectedWHMap = WHMaps.FirstOrDefault();
@@ -508,14 +498,12 @@ public partial class Overview : IAsyncDisposable
             {
                 map.WHMapAccesses.Clear();
                 
-                // Check if the primary account still has access to this map
                 var hasAccess = await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id);
                 if (!hasAccess)
                 {
                     var mapName = map.Name;
                     WHMaps.Remove(map);
                     
-                    // Reset selection if needed
                     if (_selectedWHMap?.Id == mapId)
                     {
                         _selectedWHMap = WHMaps.FirstOrDefault();
@@ -569,7 +557,6 @@ public partial class Overview : IAsyncDisposable
                 return;
             }
 
-            // Reload maps as user may now have access to new maps
             var previousMapCount = WHMaps.Count;
             await RestoreMaps();
             
@@ -600,17 +587,13 @@ public partial class Overview : IAsyncDisposable
                 return;
             }
 
-            // Store current maps before reload
             var previousMaps = WHMaps.Select(m => m.Id).ToList();
             
-            // Reload maps as user may have lost access
             await RestoreMaps();
             
-            // Check if any maps were lost
             var lostMaps = previousMaps.Except(WHMaps.Select(m => m.Id)).ToList();
             if (lostMaps.Any())
             {
-                // Reset selection if needed
                 if (_selectedWHMap != null && lostMaps.Contains(_selectedWHMap.Id))
                 {
                     _selectedWHMap = WHMaps.FirstOrDefault();
@@ -642,7 +625,6 @@ public partial class Overview : IAsyncDisposable
                 return;
             }
 
-            // Store current maps before reload
             var previousMapCount = WHMaps.Count;
 
             // Reload maps - maps from the deleted instance will no longer exist
@@ -650,7 +632,6 @@ public partial class Overview : IAsyncDisposable
 
             if (WHMaps.Count < previousMapCount)
             {
-                // Reset selection if the current map was in the deleted instance
                 if (_selectedWHMap != null && !WHMaps.Any(m => m.Id == _selectedWHMap.Id))
                 {
                     _selectedWHMap = WHMaps.FirstOrDefault();
@@ -687,9 +668,8 @@ public partial class Overview : IAsyncDisposable
     #region Map Tab Events
         private Task CloseMapTab(MudTabPanel panel)
         {
-            if(panel!=null)
+            if(panel?.ID is int mapId)
             {
-                int mapId = (int)panel.ID;
                 var map = WHMaps.FirstOrDefault(m => m.Id == mapId);
                 if(map!=null)
                 {

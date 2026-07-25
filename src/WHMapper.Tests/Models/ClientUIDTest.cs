@@ -8,10 +8,8 @@ public class ClientUIDTest
     [Fact]
     public void ClientUID_ShouldInitializeWithDefaultValues()
     {
-        // Arrange & Act
         var clientUID = new ClientUID();
 
-        // Assert
         Assert.NotNull(clientUID.ClientId);
         Assert.Equal(string.Empty, clientUID.ClientId);
     }
@@ -26,7 +24,6 @@ public class ClientUIDTest
         // Act
         clientUID.ClientId = testClientId;
 
-        // Assert
         Assert.Equal(testClientId, clientUID.ClientId);
     }
 
@@ -39,7 +36,6 @@ public class ClientUIDTest
         // Act
         clientUID.ClientId = null;
 
-        // Assert
         Assert.Null(clientUID.ClientId);
     }
 
@@ -52,7 +48,6 @@ public class ClientUIDTest
         // Act
         clientUID.ClientId = string.Empty;
 
-        // Assert
         Assert.Equal(string.Empty, clientUID.ClientId);
     }
 }

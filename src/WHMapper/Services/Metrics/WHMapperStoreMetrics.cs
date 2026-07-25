@@ -15,39 +15,31 @@ public class WHMapperStoreMetrics
 {
     private readonly ILogger<WHMapperStoreMetrics> _logger;
 
-    // WHMapperStoreMetrics
-    // Users Metrics
     private Counter<int> UsersConnectedCounter { get; }
     private Counter<int> UsersDisconnectedCounter { get; }
     private int _totalUsers = 0;
 
-    //Systems Metrics
     private Counter<int> SystemsAddedCounter { get; }
     private Counter<int> SystemsDeletedCounter { get; }
     private int _totalSystems = 0;
 
 
-    //Links Metrics
     private Counter<int> LinksAddedCounter { get; }
     private Counter<int> LinksDeletedCounter { get; }
     private int _totalLinks = 0;
 
-    //Maps Metrics
     private Counter<int> MapsCreatedCounter { get; }
     private Counter<int> MapsDeletedCounter { get; }
     private int _totalMaps = 0;
 
-    //Signatures Metrics
     private Counter<int> SignaturesCreatedCounter { get; }
     private Counter<int> SignaturesDeletedCounter { get; }
     private int _totalSignatures = 0;
 
-    //Notes Metrics
     private Counter<int> NotesCreatedCounter { get; }
     private Counter<int> NotesDeletedCounter { get; }
     private int _totalNotes = 0;
 
-    //Jump Logs Metrics
     private Counter<int> JumpLogsCreatedCounter { get; }
     private Counter<int> JumpLogsDeletedCounter { get; }
     private int _totalJumpLogs = 0;
@@ -116,7 +108,6 @@ public class WHMapperStoreMetrics
         }
     }
 
-    //WHMAPPER Metrics
     public void ConnectUser()
     {
         UsersConnectedCounter.Add(1);
@@ -128,7 +119,6 @@ public class WHMapperStoreMetrics
         Interlocked.Decrement(ref _totalUsers);
     }
     
-    //Maps Metrics
     public void CreateMap()
     {
         MapsCreatedCounter.Add(1);
@@ -145,7 +135,6 @@ public class WHMapperStoreMetrics
         Interlocked.Add(ref _totalMaps, -delCount);
     }
 
-    //Systems Metrics
     public void AddSystem()
     {
         SystemsAddedCounter.Add(1);
@@ -162,7 +151,6 @@ public class WHMapperStoreMetrics
         Interlocked.Add(ref _totalSystems, -delCount);
     }
 
-    //Links Metrics
     public void AddLink()
     {
         LinksAddedCounter.Add(1);
@@ -180,7 +168,6 @@ public class WHMapperStoreMetrics
         Interlocked.Add(ref _totalLinks, -delCount);
     }
 
-    //Signatures Metrics
     public void CreateSignature()
     {
         SignaturesCreatedCounter.Add(1);
@@ -197,7 +184,6 @@ public class WHMapperStoreMetrics
         Interlocked.Add(ref _totalSignatures, -delCount);
     }
 
-    //Notes Metrics
     public void CreateNote()
     {
         NotesCreatedCounter.Add(1);
@@ -214,7 +200,6 @@ public class WHMapperStoreMetrics
         Interlocked.Add(ref _totalNotes, -delCount);
     }
 
-    //Jump Logs Metrics
     public void CreateJumpLog()
     {
         JumpLogsCreatedCounter.Add(1);

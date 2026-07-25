@@ -112,7 +112,6 @@ namespace WHMapper.Repositories.WHMapAccesses
             if (!hasRestrictions)
                 return true;
 
-            // Check if the entity has explicit access
             return await context.DbWHMapAccesses.AnyAsync(x =>
                 x.WHMapId == mapId && (
                     (x.EveEntityId == characterId && x.EveEntity == WHAccessEntity.Character) ||
@@ -181,20 +180,17 @@ namespace WHMapper.Repositories.WHMapAccesses
             
             try
             {
-                // Get all maps for this instance
                 var mapIds = await context.DbWHMaps
                     .Where(m => m.WHInstanceId == instanceId)
                     .Select(m => m.Id)
                     .ToListAsync();
 
-                // Find all map accesses for this entity in these maps
                 var accessesToRemove = await context.DbWHMapAccesses
                     .Where(a => mapIds.Contains(a.WHMapId) && a.EveEntityId == eveEntityId && a.EveEntity == eveEntity)
                     .ToListAsync();
 
                 if (accessesToRemove.Any())
                 {
-                    // Group by map ID for the result
                     result = accessesToRemove
                         .GroupBy(a => a.WHMapId)
                         .ToDictionary(g => g.Key, g => g.Select(a => a.Id).AsEnumerable());

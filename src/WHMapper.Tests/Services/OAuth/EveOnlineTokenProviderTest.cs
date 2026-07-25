@@ -73,7 +73,6 @@ public class EveOnlineTokenProviderTest
         // Act
         var retrievedToken = await _tokenProvider.GetToken("test-account-id");
 
-        // Assert
         Assert.Equal(token, retrievedToken);
     }
 
@@ -83,7 +82,6 @@ public class EveOnlineTokenProviderTest
         // Act
         var retrievedToken = await _tokenProvider.GetToken("non-existing-account-id");
 
-        // Assert
         Assert.Null(retrievedToken);
     }
 
@@ -112,7 +110,6 @@ public class EveOnlineTokenProviderTest
         // Act
         var isExpired = await _tokenProvider.IsTokenExpire("test-account-id");
 
-        // Assert
         Assert.True(isExpired);
     }
 
@@ -126,7 +123,6 @@ public class EveOnlineTokenProviderTest
         // Act
         var isExpired = await _tokenProvider.IsTokenExpire("test-account-id");
 
-        // Assert
         Assert.False(isExpired);
     }
 
@@ -156,6 +152,7 @@ public class EveOnlineTokenProviderTest
 
         // Assert
         var refreshedToken = await _tokenProvider.GetToken("test-account-id");
+        Assert.NotNull(refreshedToken);
         Assert.Equal(newToken.AccessToken, refreshedToken.AccessToken);
         Assert.Equal(newToken.RefreshToken, refreshedToken.RefreshToken);
     }

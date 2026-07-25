@@ -46,6 +46,14 @@ public class ConnectionMapping<T> where T : notnull
         }
     }
 
+    public IEnumerable<T> GetKeys()
+    {
+        lock (_connections)
+        {
+            return _connections.Keys.ToList();
+        }
+    }
+
     public void Remove(T key, string connectionId)
     {
         lock (_connections)

@@ -122,7 +122,6 @@ public partial class InstancesDialog
         var dialog = await DialogService.ShowAsync<AdminInstanceDialog>("Manage Instance", parameters, options);
         await dialog.Result;
         
-        // Reload instances after admin dialog closes in case of changes
         await LoadInstancesAsync();
 
         // Auto-close if no instances remain (e.g. last instance was deleted)
@@ -148,7 +147,6 @@ public partial class InstancesDialog
         var dialog = await DialogService.ShowAsync<RegisterInstanceDialog>("Create Instance", options);
         await dialog.Result;
         
-        // Reload instances after creation dialog closes
         await LoadInstancesAsync();
         StateHasChanged();
     }

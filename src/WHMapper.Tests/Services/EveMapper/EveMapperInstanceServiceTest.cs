@@ -72,7 +72,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.GetInstanceAsync(instanceId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(instanceId, result.Id);
             Assert.Equal("TestInstance", result.Name);
@@ -89,7 +88,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.GetInstanceAsync(instanceId);
 
-            // Assert
             Assert.Null(result);
             _instanceRepoMock.Verify(r => r.GetById(instanceId), Times.Once);
         }
@@ -102,10 +100,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var existingInstance = new WHInstance("Existing", ownerEntityId, "Owner", WHAccessEntity.Character, 200, "Creator") { Id = 1 };
             _instanceRepoMock.Setup(r => r.GetByOwnerAsync(ownerEntityId)).ReturnsAsync(existingInstance);
 
-            // Act
             var result = await _service.CreateInstanceAsync("New", null, ownerEntityId, "Owner", WHAccessEntity.Character, 200, "Creator");
 
-            // Assert
             Assert.Null(result);
             _instanceRepoMock.Verify(r => r.GetByOwnerAsync(ownerEntityId), Times.Once);
         }
@@ -121,10 +117,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.AddInstanceAdminAsync(instance.Id, 201, "Creator", true)).ReturnsAsync(new Mock<WHInstanceAdmin>().Object);
             _instanceRepoMock.Setup(r => r.AddInstanceAccessAsync(It.IsAny<WHInstanceAccess>())).ReturnsAsync(new WHInstanceAccess(instance.Id, ownerEntityId, "Owner", WHAccessEntity.Character));
 
-            // Act
             var result = await _service.CreateInstanceAsync("New", "desc", ownerEntityId, "Owner", WHAccessEntity.Character, 201, "Creator");
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(instance.Id, result.Id);
             _instanceRepoMock.Verify(r => r.GetByOwnerAsync(ownerEntityId), Times.Once);
@@ -144,10 +138,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.AddInstanceAdminAsync(instance.Id, 202, "Creator", true)).ReturnsAsync((WHInstanceAdmin?)null);
             _instanceRepoMock.Setup(r => r.DeleteById(instance.Id)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.CreateInstanceAsync("New", null, ownerEntityId, "Owner", WHAccessEntity.Character, 202, "Creator");
 
-            // Assert
             Assert.Null(result);
             _instanceRepoMock.Verify(r => r.DeleteById(instance.Id), Times.Once);
         }
@@ -161,7 +153,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var locked = await service.IsInstanceCreationLockedAsync();
 
-            // Assert
             Assert.False(locked);
             _instanceRepoMock.Verify(r => r.AnyAsync(), Times.Never);
         }
@@ -176,7 +167,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var locked = await service.IsInstanceCreationLockedAsync();
 
-            // Assert
             Assert.False(locked);
         }
 
@@ -190,7 +180,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var locked = await service.IsInstanceCreationLockedAsync();
 
-            // Assert
             Assert.True(locked);
         }
 
@@ -201,10 +190,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var service = BuildService(singleTenantMode: true);
             _instanceRepoMock.Setup(r => r.AnyAsync()).ReturnsAsync(true);
 
-            // Act
             var result = await service.CreateInstanceAsync("New", null, 999, "Owner", WHAccessEntity.Character, 200, "Creator");
 
-            // Assert
             Assert.Null(result);
             _instanceRepoMock.Verify(r => r.GetByOwnerAsync(It.IsAny<int>()), Times.Never);
             _instanceRepoMock.Verify(r => r.Create(It.IsAny<WHInstance>()), Times.Never);
@@ -220,7 +207,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var canRegister = await service.CanRegisterAsync(999);
 
-            // Assert
             Assert.False(canRegister);
             _instanceRepoMock.Verify(r => r.GetByOwnerAsync(It.IsAny<int>()), Times.Never);
         }
@@ -237,7 +223,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.UpdateInstanceAsync(instanceId, "Updated", "NewDesc");
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal("Updated", result.Name);
             Assert.Equal("NewDesc", result.Description);
@@ -254,7 +239,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.UpdateInstanceAsync(instanceId, "Name", "Desc");
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -266,10 +250,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 300;
             _instanceRepoMock.Setup(r => r.GetById(instanceId)).ReturnsAsync(new WHInstance("Name", 104, "Owner", WHAccessEntity.Character, 301, "Creator") { Id = instanceId });
 
-            // Act
             var result = await _service.DeleteInstanceAsync(instanceId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -283,10 +265,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.GetById(instanceId)).ReturnsAsync(instance);
             _instanceRepoMock.Setup(r => r.DeleteById(instanceId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.DeleteInstanceAsync(instanceId, creatorCharacterId);
 
-            // Assert
             Assert.True(result);
             _instanceRepoMock.Verify(r => r.DeleteById(instanceId), Times.Once);
         }
@@ -299,10 +279,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 400;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.AddAdminAsync(instanceId, 401, "NewAdmin", requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -315,10 +293,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _instanceRepoMock.Setup(r => r.AddInstanceAdminAsync(instanceId, 501, "NewAdmin", false)).ReturnsAsync(new Mock<WHInstanceAdmin>().Object);
 
-            // Act
             var result = await _service.AddAdminAsync(instanceId, 501, "NewAdmin", requestingCharacterId);
 
-            // Assert
             Assert.NotNull(result);
             _instanceRepoMock.Verify(r => r.AddInstanceAdminAsync(instanceId, 501, "NewAdmin", false), Times.Once);
         }
@@ -331,10 +307,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 600;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.RemoveAdminAsync(instanceId, 601, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -347,10 +321,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _instanceRepoMock.Setup(r => r.RemoveInstanceAdminAsync(instanceId, 701)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.RemoveAdminAsync(instanceId, 701, requestingCharacterId);
 
-            // Assert
             Assert.True(result);
             _instanceRepoMock.Verify(r => r.RemoveInstanceAdminAsync(instanceId, 701), Times.Once);
         }
@@ -363,10 +335,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 800;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.AddAccessAsync(instanceId, 801, "Entity", WHAccessEntity.Corporation, requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -379,10 +349,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _instanceRepoMock.Setup(r => r.AddInstanceAccessAsync(It.IsAny<WHInstanceAccess>())).ReturnsAsync(new WHInstanceAccess(instanceId, 901, "Entity", WHAccessEntity.Corporation));
 
-            // Act
             var result = await _service.AddAccessAsync(instanceId, 901, "Entity", WHAccessEntity.Corporation, requestingCharacterId);
 
-            // Assert
             Assert.NotNull(result);
             _instanceRepoMock.Verify(r => r.AddInstanceAccessAsync(It.IsAny<WHInstanceAccess>()), Times.Once);
         }
@@ -395,10 +363,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 1000;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var (success, removed) = await _service.RemoveAccessAsync(instanceId, 1001, requestingCharacterId);
 
-            // Assert
             Assert.False(success);
             Assert.Empty(removed);
         }
@@ -412,10 +378,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _instanceRepoMock.Setup(r => r.GetInstanceAccessesAsync(instanceId)).ReturnsAsync(new List<WHInstanceAccess>());
 
-            // Act
             var (success, removed) = await _service.RemoveAccessAsync(instanceId, 1101, requestingCharacterId);
 
-            // Assert
             Assert.False(success);
             Assert.Empty(removed);
         }
@@ -435,10 +399,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _mapAccessRepoMock.Setup(r => r.RemoveMapAccessesByEntityAsync(instanceId, access.EveEntityId, access.EveEntity)).ReturnsAsync(removedMapAccesses);
             _instanceRepoMock.Setup(r => r.RemoveInstanceAccessAsync(instanceId, accessId)).ReturnsAsync(true);
 
-            // Act
             var (success, removed) = await _service.RemoveAccessAsync(instanceId, accessId, requestingCharacterId);
 
-            // Assert
             Assert.True(success);
             Assert.Equal(removedMapAccesses, removed);
         }
@@ -453,7 +415,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.CanRegisterAsync(ownerEntityId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -467,7 +428,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.CanRegisterAsync(ownerEntityId);
 
-            // Assert
             Assert.True(result);
         }
 
@@ -480,10 +440,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var instance = new WHInstance("Name", 1502, "Owner", WHAccessEntity.Character, characterId, "Creator") { Id = instanceId };
             _instanceRepoMock.Setup(r => r.GetById(instanceId)).ReturnsAsync(instance);
 
-            // Act
             var result = await _service.IsOwnerAsync(instanceId, characterId);
 
-            // Assert
             Assert.True(result);
         }
 
@@ -496,10 +454,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var instance = new WHInstance("Name", 1602, "Owner", WHAccessEntity.Character, 1603, "Creator") { Id = instanceId };
             _instanceRepoMock.Setup(r => r.GetById(instanceId)).ReturnsAsync(instance);
 
-            // Act
             var result = await _service.IsOwnerAsync(instanceId, characterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -511,10 +467,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var characterId = 1701;
             _instanceRepoMock.Setup(r => r.GetById(instanceId)).ReturnsAsync((WHInstance?)null);
 
-            // Act
             var result = await _service.IsOwnerAsync(instanceId, characterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -529,7 +483,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.GetInstanceByOwnerAsync(ownerEntityId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(ownerEntityId, result.OwnerEveEntityId);
         }
@@ -544,7 +497,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.GetInstanceByOwnerAsync(ownerEntityId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -560,10 +512,8 @@ namespace WHMapper.Tests.Services.EveMapper
             };
             _instanceRepoMock.Setup(r => r.GetInstancesForAdminAsync(characterId)).ReturnsAsync(instances);
 
-            // Act
             var result = await _service.GetAdministeredInstancesAsync(characterId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
         }
@@ -581,10 +531,8 @@ namespace WHMapper.Tests.Services.EveMapper
             };
             _instanceRepoMock.Setup(r => r.GetAccessibleInstancesAsync(characterId, corpId, allianceId)).ReturnsAsync(instances);
 
-            // Act
             var result = await _service.GetAccessibleInstancesAsync(characterId, corpId, allianceId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Single(result);
         }
@@ -604,7 +552,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.GetAdminsAsync(instanceId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
         }
@@ -617,10 +564,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var characterId = 2301;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, characterId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.IsAdminAsync(instanceId, characterId);
 
-            // Assert
             Assert.True(result);
         }
 
@@ -632,10 +577,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var characterId = 2401;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, characterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.IsAdminAsync(instanceId, characterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -654,7 +597,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.GetAccessesAsync(instanceId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
         }
@@ -669,10 +611,8 @@ namespace WHMapper.Tests.Services.EveMapper
             int? allianceId = 2603;
             _instanceRepoMock.Setup(r => r.HasInstanceAccessAsync(instanceId, characterId, corpId, allianceId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.HasAccessAsync(instanceId, characterId, corpId, allianceId);
 
-            // Assert
             Assert.True(result);
         }
 
@@ -686,10 +626,8 @@ namespace WHMapper.Tests.Services.EveMapper
             int? allianceId = 2703;
             _instanceRepoMock.Setup(r => r.HasInstanceAccessAsync(instanceId, characterId, corpId, allianceId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.HasAccessAsync(instanceId, characterId, corpId, allianceId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -701,10 +639,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 2801;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.CreateMapAsync(instanceId, "MapName", requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -718,10 +654,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.Create(It.IsAny<WHMap>())).ReturnsAsync(map);
 
-            // Act
             var result = await _service.CreateMapAsync(instanceId, "NewMap", requestingCharacterId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal("NewMap", result.Name);
             _mapRepoMock.Verify(r => r.Create(It.IsAny<WHMap>()), Times.Once);
@@ -736,10 +670,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 3002;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.DeleteMapAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -753,10 +685,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync((WHMap?)null);
 
-            // Act
             var result = await _service.DeleteMapAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -771,10 +701,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
 
-            // Act
             var result = await _service.DeleteMapAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -790,10 +718,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
             _mapRepoMock.Setup(r => r.DeleteById(mapId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.DeleteMapAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.True(result);
             _mapRepoMock.Verify(r => r.DeleteById(mapId), Times.Once);
         }
@@ -813,7 +739,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.GetMapsAsync(instanceId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
         }
@@ -827,10 +752,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 3502;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.GetMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -844,10 +767,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync((WHMap?)null);
 
-            // Act
             var result = await _service.GetMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -862,10 +783,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
 
-            // Act
             var result = await _service.GetMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -886,10 +805,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
             _mapAccessRepoMock.Setup(r => r.GetMapAccessesAsync(mapId)).ReturnsAsync(accesses);
 
-            // Act
             var result = await _service.GetMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
         }
@@ -903,10 +820,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 3902;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.AddMapAccessAsync(instanceId, mapId, 3903, "Entity", WHAccessEntity.Character, requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -920,10 +835,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync((WHMap?)null);
 
-            // Act
             var result = await _service.AddMapAccessAsync(instanceId, mapId, 4003, "Entity", WHAccessEntity.Character, requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -938,10 +851,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
 
-            // Act
             var result = await _service.AddMapAccessAsync(instanceId, mapId, 4103, "Entity", WHAccessEntity.Character, requestingCharacterId);
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -958,10 +869,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
             _mapAccessRepoMock.Setup(r => r.AddMapAccessAsync(It.IsAny<WHMapAccess>())).ReturnsAsync(access);
 
-            // Act
             var result = await _service.AddMapAccessAsync(instanceId, mapId, 4203, "Entity", WHAccessEntity.Character, requestingCharacterId);
 
-            // Assert
             Assert.NotNull(result);
             _mapAccessRepoMock.Verify(r => r.AddMapAccessAsync(It.IsAny<WHMapAccess>()), Times.Once);
         }
@@ -976,10 +885,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 4303;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.RemoveMapAccessAsync(instanceId, mapId, accessId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -994,10 +901,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync((WHMap?)null);
 
-            // Act
             var result = await _service.RemoveMapAccessAsync(instanceId, mapId, accessId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1013,10 +918,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
 
-            // Act
             var result = await _service.RemoveMapAccessAsync(instanceId, mapId, accessId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1033,10 +936,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
             _mapAccessRepoMock.Setup(r => r.RemoveMapAccessAsync(mapId, accessId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.RemoveMapAccessAsync(instanceId, mapId, accessId, requestingCharacterId);
 
-            // Assert
             Assert.True(result);
             _mapAccessRepoMock.Verify(r => r.RemoveMapAccessAsync(mapId, accessId), Times.Once);
         }
@@ -1050,10 +951,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var requestingCharacterId = 4702;
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.ClearMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1067,10 +966,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync((WHMap?)null);
 
-            // Act
             var result = await _service.ClearMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1085,10 +982,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
 
-            // Act
             var result = await _service.ClearMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1104,10 +999,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _mapRepoMock.Setup(r => r.GetById(mapId)).ReturnsAsync(map);
             _mapAccessRepoMock.Setup(r => r.ClearMapAccessesAsync(mapId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.ClearMapAccessesAsync(instanceId, mapId, requestingCharacterId);
 
-            // Assert
             Assert.True(result);
             _mapAccessRepoMock.Verify(r => r.ClearMapAccessesAsync(mapId), Times.Once);
         }
@@ -1123,10 +1016,8 @@ namespace WHMapper.Tests.Services.EveMapper
             int? allianceId = 5104;
             _instanceRepoMock.Setup(r => r.HasInstanceAccessAsync(instanceId, characterId, corpId, allianceId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.HasMapAccessAsync(instanceId, mapId, characterId, corpId, allianceId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1142,10 +1033,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.HasInstanceAccessAsync(instanceId, characterId, corpId, allianceId)).ReturnsAsync(true);
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, characterId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.HasMapAccessAsync(instanceId, mapId, characterId, corpId, allianceId);
 
-            // Assert
             Assert.True(result);
         }
 
@@ -1162,10 +1051,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, characterId)).ReturnsAsync(false);
             _mapAccessRepoMock.Setup(r => r.HasMapAccessAsync(mapId, characterId, corpId, allianceId)).ReturnsAsync(true);
 
-            // Act
             var result = await _service.HasMapAccessAsync(instanceId, mapId, characterId, corpId, allianceId);
 
-            // Assert
             Assert.True(result);
             _mapAccessRepoMock.Verify(r => r.HasMapAccessAsync(mapId, characterId, corpId, allianceId), Times.Once);
         }
@@ -1183,10 +1070,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, characterId)).ReturnsAsync(false);
             _mapAccessRepoMock.Setup(r => r.HasMapAccessAsync(mapId, characterId, corpId, allianceId)).ReturnsAsync(false);
 
-            // Act
             var result = await _service.HasMapAccessAsync(instanceId, mapId, characterId, corpId, allianceId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1200,7 +1085,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.MapHasAccessRestrictionsAsync(mapId);
 
-            // Assert
             Assert.True(result);
         }
 
@@ -1214,7 +1098,6 @@ namespace WHMapper.Tests.Services.EveMapper
             // Act
             var result = await _service.MapHasAccessRestrictionsAsync(mapId);
 
-            // Assert
             Assert.False(result);
         }
 
@@ -1226,10 +1109,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _instanceRepoMock.Setup(r => r.GetByOwnerAsync(ownerEntityId)).ReturnsAsync((WHInstance?)null);
             _instanceRepoMock.Setup(r => r.Create(It.IsAny<WHInstance>())).ReturnsAsync((WHInstance?)null);
 
-            // Act
             var result = await _service.CreateInstanceAsync("Name", "Desc", ownerEntityId, "Owner", WHAccessEntity.Character, 5701, "Creator");
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -1240,10 +1121,8 @@ namespace WHMapper.Tests.Services.EveMapper
             var ownerEntityId = 5800;
             _instanceRepoMock.Setup(r => r.GetByOwnerAsync(ownerEntityId)).ThrowsAsync(new Exception("Test exception"));
 
-            // Act
             var result = await _service.CreateInstanceAsync("Name", "Desc", ownerEntityId, "Owner", WHAccessEntity.Character, 5801, "Creator");
 
-            // Assert
             Assert.Null(result);
         }
 
@@ -1262,10 +1141,8 @@ namespace WHMapper.Tests.Services.EveMapper
             _mapAccessRepoMock.Setup(r => r.RemoveMapAccessesByEntityAsync(instanceId, access.EveEntityId, access.EveEntity)).ReturnsAsync(emptyMapAccesses);
             _instanceRepoMock.Setup(r => r.RemoveInstanceAccessAsync(instanceId, accessId)).ReturnsAsync(true);
 
-            // Act
             var (success, removed) = await _service.RemoveAccessAsync(instanceId, accessId, requestingCharacterId);
 
-            // Assert
             Assert.True(success);
             Assert.Empty(removed);
         }

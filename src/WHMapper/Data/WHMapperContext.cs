@@ -28,18 +28,15 @@ namespace WHMapper.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Instance configuration
             modelBuilder.Entity<WHInstance>().ToTable("Instances");
             modelBuilder.Entity<WHInstance>().HasIndex(x => new { x.OwnerEveEntityId, x.OwnerType }).IsUnique(true);
             modelBuilder.Entity<WHInstance>().HasMany(x => x.WHMaps).WithOne().HasForeignKey(x => x.WHInstanceId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<WHInstance>().HasMany(x => x.Administrators).WithOne().HasForeignKey(x => x.WHInstanceId).IsRequired().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<WHInstance>().HasMany(x => x.InstanceAccesses).WithOne().HasForeignKey(x => x.WHInstanceId).IsRequired().OnDelete(DeleteBehavior.Cascade);
 
-            // Instance Admin configuration
             modelBuilder.Entity<WHInstanceAdmin>().ToTable("InstanceAdmins");
             modelBuilder.Entity<WHInstanceAdmin>().HasIndex(x => new { x.WHInstanceId, x.EveCharacterId }).IsUnique(true);
 
-            // Instance Access configuration
             modelBuilder.Entity<WHInstanceAccess>().ToTable("InstanceAccesses");
             modelBuilder.Entity<WHInstanceAccess>().HasIndex(x => new { x.WHInstanceId, x.EveEntityId, x.EveEntity }).IsUnique(true);
 
@@ -49,7 +46,6 @@ namespace WHMapper.Data
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHSystemLinks).WithOne().HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<WHMap>().HasMany(x => x.WHMapAccesses).WithOne(x => x.WHMap).HasForeignKey(x => x.WHMapId).IsRequired().OnDelete(DeleteBehavior.Cascade);
 
-            // Map Access configuration
             modelBuilder.Entity<WHMapAccess>().ToTable("MapAccesses");
             modelBuilder.Entity<WHMapAccess>().HasIndex(x => new { x.WHMapId, x.EveEntityId, x.EveEntity }).IsUnique(true);
 

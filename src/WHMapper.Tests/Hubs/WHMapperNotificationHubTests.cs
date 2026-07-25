@@ -55,14 +55,40 @@ public class WHMapperNotificationHubTests : IDisposable
         var authorizedMapsField = hubType.GetField("_authorizedMaps", BindingFlags.NonPublic | BindingFlags.Static);
         var authorizedMaps = authorizedMapsField!.GetValue(null)!;
         authorizedMaps.GetType().GetMethod("Clear")!.Invoke(authorizedMaps, null);
+
+        var authorizedInstancesField = hubType.GetField("_authorizedInstances", BindingFlags.NonPublic | BindingFlags.Static);
+        var authorizedInstances = authorizedInstancesField!.GetValue(null)!;
+        authorizedInstances.GetType().GetMethod("Clear")!.Invoke(authorizedInstances, null);
     }
 
-    private WHMapperNotificationHub CreateHub(int accountId, string connectionId, bool mapAccessAuthorized = true)
+    // Notification sink of the last hub built, so tests can assert what was broadcast.
+    private Mock<IWHMapperNotificationHub> _lastNotificationTarget = new();
+
+    private WHMapperNotificationHub CreateHub(
+        int accountId,
+        string connectionId,
+        bool mapAccessAuthorized = true,
+        bool instanceAccessAuthorized = true,
+        bool isInstanceAdmin = true,
+        IEnumerable<int>? accessibleInstanceIds = null,
+        int? mapInstanceId = 7)
     {
         var accessHelperMock = new Mock<IEveMapperAccessHelper>();
         accessHelperMock
             .Setup(h => h.IsEveMapperMapAccessAuthorized(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(mapAccessAuthorized);
+        accessHelperMock
+            .Setup(h => h.IsEveMapperInstanceAccessAuthorized(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(instanceAccessAuthorized);
+        accessHelperMock
+            .Setup(h => h.IsInstanceAdminAuthorized(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(isInstanceAdmin);
+        accessHelperMock
+            .Setup(h => h.GetAccessibleInstanceIdsAsync(It.IsAny<int>()))
+            .ReturnsAsync(accessibleInstanceIds ?? Array.Empty<int>());
+        accessHelperMock
+            .Setup(h => h.GetMapInstanceIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(mapInstanceId);
 
         var hub = new WHMapperNotificationHub(_meters, accessHelperMock.Object);
 
@@ -72,9 +98,11 @@ public class WHMapperNotificationHubTests : IDisposable
         hub.Context = contextMock.Object;
 
         var notifTarget = new Mock<IWHMapperNotificationHub>();
+        _lastNotificationTarget = notifTarget;
         var clientsMock = new Mock<IHubCallerClients<IWHMapperNotificationHub>>();
         clientsMock.Setup(c => c.AllExcept(It.IsAny<IReadOnlyList<string>>())).Returns(notifTarget.Object);
         clientsMock.Setup(c => c.OthersInGroup(It.IsAny<string>())).Returns(notifTarget.Object);
+        clientsMock.Setup(c => c.Clients(It.IsAny<IReadOnlyList<string>>())).Returns(notifTarget.Object);
         hub.Clients = clientsMock.Object;
 
         var groupsMock = new Mock<IGroupManager>();
@@ -329,7 +357,9 @@ public class WHMapperNotificationHubTests : IDisposable
 
         await hub1.OnDisconnectedAsync(null);
 
-        Assert.Equal(1, await hub1.GetUserCountOnMap(42));
+        // Queried through the surviving connection: a disconnected connection loses its map
+        // authorization and can no longer read map-scoped counts.
+        Assert.Equal(1, await hub2.GetUserCountOnMap(42));
     }
 
     [Fact]
@@ -358,6 +388,130 @@ public class WHMapperNotificationHubTests : IDisposable
         // Presence updates from an unauthorized connection must be ignored.
         await hub.SendUserOnMapConnected(42);
         Assert.Equal(0, await hub.GetUserCountOnMap(42));
+    }
+
+    [Fact]
+    public async Task JoinInstance_AccessNotAuthorized_ThrowsAndDoesNotJoin()
+    {
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1", instanceAccessAuthorized: false);
+        await hub.OnConnectedAsync();
+
+        await Assert.ThrowsAsync<HubException>(() => hub.JoinInstance(7));
+
+        // An unauthorized connection must not be able to broadcast into that instance either.
+        await hub.SendMapAdded(7, 42);
+        _lastNotificationTarget.Verify(t => t.NotifyMapAdded(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendMapAdded_WithoutJoiningInstance_IsIgnored()
+    {
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1");
+        await hub.OnConnectedAsync();
+
+        // No JoinInstance/JoinMap call -> the connection was never authorized for instance 7.
+        await hub.SendMapAdded(7, 42);
+
+        _lastNotificationTarget.Verify(t => t.NotifyMapAdded(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendMapAccessRemoved_NotInstanceAdmin_IsIgnored()
+    {
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1", isInstanceAdmin: false);
+        await hub.OnConnectedAsync();
+        await hub.JoinInstance(7);
+
+        await hub.SendMapAccessRemoved(7, 42, 5);
+
+        _lastNotificationTarget.Verify(
+            t => t.NotifyMapAccessRemoved(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendMapAccessRemoved_InstanceAdmin_BroadcastsToInstanceGroup()
+    {
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1");
+        await hub.OnConnectedAsync();
+        await hub.JoinInstance(7);
+
+        await hub.SendMapAccessRemoved(7, 42, 5);
+
+        _lastNotificationTarget.Verify(t => t.NotifyMapAccessRemoved(123, 42, 5), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendInstanceRemoved_NotAdminAtJoinTime_IsIgnored()
+    {
+        // Admin status is captured when joining; a plain member must not be able to forge the event.
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1", isInstanceAdmin: false);
+        await hub.OnConnectedAsync();
+        await hub.JoinInstance(7);
+
+        await hub.SendInstanceRemoved(7);
+
+        _lastNotificationTarget.Verify(t => t.NotifyInstanceRemoved(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task JoinMap_AlsoJoinsOwningInstance()
+    {
+        var hub = CreateHub(accountId: 123, connectionId: "conn-1", mapInstanceId: 7);
+        await hub.OnConnectedAsync();
+        await hub.JoinMap(42);
+
+        // Instance membership was derived server-side from the map, so the broadcast goes through.
+        await hub.SendMapAccessRemoved(7, 42, 5);
+
+        _lastNotificationTarget.Verify(t => t.NotifyMapAccessRemoved(123, 42, 5), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetConnectedUsersPosition_ExcludesMapsTheConnectionCannotSee()
+    {
+        var owner = CreateHub(accountId: 123, connectionId: "conn-1");
+        await owner.OnConnectedAsync();
+        await owner.JoinMap(42);
+        await owner.SendUserPosition(42, 1000);
+
+        var stranger = CreateHub(accountId: 456, connectionId: "conn-2");
+        await stranger.OnConnectedAsync();
+        await stranger.JoinMap(99);
+
+        var visible = await stranger.GetConnectedUsersPosition();
+
+        Assert.DoesNotContain(123, visible.Keys);
+    }
+
+    [Fact]
+    public async Task GetConnectedUsersPosition_IncludesUsersOnASharedMap()
+    {
+        var owner = CreateHub(accountId: 123, connectionId: "conn-1");
+        await owner.OnConnectedAsync();
+        await owner.JoinMap(42);
+        await owner.SendUserPosition(42, 1000);
+
+        var peer = CreateHub(accountId: 456, connectionId: "conn-2");
+        await peer.OnConnectedAsync();
+        await peer.JoinMap(42);
+
+        var visible = await peer.GetConnectedUsersPosition();
+
+        Assert.Equal(new KeyValuePair<int, int>(42, 1000), visible[123]);
+    }
+
+    [Fact]
+    public async Task GetUserCountOnMap_WithoutJoiningMap_ReturnsZero()
+    {
+        var member = CreateHub(accountId: 123, connectionId: "conn-1");
+        await member.OnConnectedAsync();
+        await member.JoinMap(42);
+        await member.SendUserOnMapConnected(42);
+
+        var stranger = CreateHub(accountId: 456, connectionId: "conn-2");
+        await stranger.OnConnectedAsync();
+
+        Assert.Equal(0, await stranger.GetUserCountOnMap(42));
     }
 
     [Fact]

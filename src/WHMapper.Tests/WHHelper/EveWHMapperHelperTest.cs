@@ -95,7 +95,6 @@ public class EveWHMapperHelperTest
 
     public EveWHMapperHelperTest()
     {
-        //Create DB Context
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()
@@ -144,7 +143,7 @@ public class EveWHMapperHelperTest
             IFileSystem fileSystem = new FileSystem();
 
             var sdeHttpClient = httpclientfactory.CreateClient();
-            sdeHttpClient.BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl"));
+            sdeHttpClient.BaseAddress = new Uri(configuration.GetValue<string>("SdeDataSupplier:BaseUrl")!);
             ISDEDataSupplier dataSupplier = new SdeDataSupplier(loggerSdeDataSupplier, sdeHttpClient);
 
             ISDEService sDEServices = new SDEService(loggerSDE, cacheService);

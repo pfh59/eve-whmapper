@@ -92,8 +92,7 @@ public partial class MapAccessDialog : ComponentBase
             {
                 Snackbar.Add($"Granted map access to {instanceAccess.EveEntityName}", Severity.Success);
                 
-                // Notify all connected users about the new map access
-                await RealTimeService.NotifyMapAccessesAdded(_characterId, Map.Id, new[] { result.Id });
+                await RealTimeService.NotifyMapAccessesAdded(_characterId, InstanceId, Map.Id, new[] { result.Id });
                 
                 await LoadMapAccessesAsync();
                 StateHasChanged();
@@ -132,8 +131,7 @@ public partial class MapAccessDialog : ComponentBase
                 {
                     Snackbar.Add("Map access removed successfully", Severity.Success);
                     
-                    // Notify all connected users about the removed map access
-                    await RealTimeService.NotifyMapAccessRemoved(_characterId, Map.Id, accessId);
+                    await RealTimeService.NotifyMapAccessRemoved(_characterId, InstanceId, Map.Id, accessId);
                     
                     await LoadMapAccessesAsync();
                     StateHasChanged();
@@ -172,8 +170,7 @@ public partial class MapAccessDialog : ComponentBase
                 {
                     Snackbar.Add("All map access restrictions removed", Severity.Success);
                     
-                    // Notify all connected users that all map accesses have been removed
-                    await RealTimeService.NotifyMapAllAccessesRemoved(_characterId, Map.Id);
+                    await RealTimeService.NotifyMapAllAccessesRemoved(_characterId, InstanceId, Map.Id);
                     
                     await LoadMapAccessesAsync();
                     StateHasChanged();

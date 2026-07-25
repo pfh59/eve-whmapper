@@ -64,7 +64,6 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         var user = new WHMapperUser(id, portrait?.Picture64x64 ?? string.Empty);
 
 
-        // Check if the user is already in the list
         if (_whMapperUsers.TryGetValue(clientId, out WHMapperUser[]? users) && users.Any(user => user.Id == id))
         {
             await _tokenProvider.SaveToken(token);
@@ -72,7 +71,6 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
             return;
         }
 
-        // Add or update the user list
         _whMapperUsers.AddOrUpdate(clientId, new[] { user }, (_, existingUsers) => existingUsers.Append(user).ToArray());
 
         await _tokenProvider.SaveToken(token);
@@ -101,7 +99,6 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
             var updatedUsers = users.Where(user => user.Id != id).ToArray();
             _whMapperUsers.AddOrUpdate(clientId, updatedUsers, (_, _) => updatedUsers);
 
-            // Only clear the token if the user exists
             if (users.Any(user => user.Id == id))
             {
                 await _tokenProvider.ClearToken(accountId);
@@ -175,7 +172,6 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
             throw new ArgumentNullException(nameof(accountId), "Account not found");
         }
 
-        //set all accouts IsPrimary to false
         accounts.ToList().ForEach(account => account.IsPrimary = false);
         
 
@@ -184,10 +180,8 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
 
         account.IsPrimary = true;
         
-        // Update map access for all accounts based on the new primary account
         await UpdateAccountsMapAccessAsync(clientId);
         
-        // Notify listeners that the primary account has changed
         if (PrimaryAccountChanged != null)
         {
             await PrimaryAccountChanged.Invoke(clientId, id);
@@ -217,7 +211,6 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         // Primary account always has map access
         primaryAccount.HasMapAccess = true;
 
-        // Get accessible maps for the primary account using a scoped service
         using var scope = _serviceProvider.CreateScope();
         var mapRepo = scope.ServiceProvider.GetRequiredService<IWHMapRepository>();
         var accessHelper = scope.ServiceProvider.GetRequiredService<IEveMapperAccessHelper>();
@@ -234,7 +227,6 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
             return;
         }
 
-        // Get the maps that the primary account has access to
         var primaryAccessibleMapIds = new List<int>();
         foreach (var map in allMaps)
         {
@@ -247,7 +239,6 @@ public class EveMapperUserManagementService : IEveMapperUserManagementService
         _logger.LogInformation("Primary account {PrimaryAccountId} has access to {MapCount} maps", 
             primaryAccount.Id, primaryAccessibleMapIds.Count);
 
-        // Check each secondary account's access to the primary's maps
         foreach (var account in accounts.Where(a => !a.IsPrimary))
         {
             bool hasAccessToAnyPrimaryMap = false;

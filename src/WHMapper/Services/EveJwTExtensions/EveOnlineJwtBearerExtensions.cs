@@ -7,8 +7,11 @@ namespace WHMapper.Services.EveJwkExtensions
 {
     public static class EveOnlineJwtBearerExtensions
     {
-        public static AuthenticationBuilder AddEveOnlineJwtBearer([NotNull] this AuthenticationBuilder builder)
+        public static AuthenticationBuilder AddEveOnlineJwtBearer([NotNull] this AuthenticationBuilder builder, string applicationClientId)
         {
+            if (string.IsNullOrWhiteSpace(applicationClientId))
+                throw new InvalidOperationException("EveSSO ClientId is required to validate hub access tokens.");
+
             HttpClient httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(EveOnlineJwkDefaults.SSOUrl);
             httpClient.DefaultRequestHeaders.Host = EveOnlineJwkDefaults.EVE_HOST;
@@ -24,6 +27,7 @@ namespace WHMapper.Services.EveJwkExtensions
                 ValidateIssuer = true,
                 ValidIssuer = EveOnlineJwkDefaults.ValideIssuer,
                 ValidateIssuerSigningKey = true,
+                RequireExpirationTime = true,
 
                 IssuerSigningKey = jwk,
                 ClockSkew = TimeSpan.FromSeconds(2), // CCP's servers seem slightly ahead (~1s)
@@ -38,6 +42,15 @@ namespace WHMapper.Services.EveJwkExtensions
                 {
                     OnTokenValidated = context =>
                     {
+                        // ValidAudience is "EVE Online", present in every CCP token, so it would
+                        // also accept tokens minted for any other EVE application. "azp" is the
+                        // client id the token was actually issued to.
+                        var authorizedParty = context.Principal?.FindFirst("azp")?.Value;
+                        if (!string.Equals(authorizedParty, applicationClientId, StringComparison.Ordinal))
+                        {
+                            context.Fail("Token was not issued to this application.");
+                        }
+
                         return Task.CompletedTask;
                     },
                     OnAuthenticationFailed = context =>

@@ -92,7 +92,7 @@ public static class AuthenticationExtensions
             options.AccessDeniedPath = "/Forbidden/";
             options.ExpireTimeSpan = TimeSpan.FromDays(7);
         })
-        .AddEveOnlineJwtBearer();
+        .AddEveOnlineJwtBearer(evessoConf["ClientId"] ?? throw new InvalidOperationException("ClientId is not configured in EveSSO settings."));
 
         services.ConfigureEveCookieRefresh(CookieAuthenticationDefaults.AuthenticationScheme, EVEOnlineAuthenticationDefaults.AuthenticationScheme);
 

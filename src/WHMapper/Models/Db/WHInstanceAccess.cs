@@ -12,9 +12,6 @@ namespace WHMapper.Models.Db
         [Key]
         public int Id { get; set; }
 
-        /// <summary>
-        /// The instance this access belongs to
-        /// </summary>
         [Required]
         public int WHInstanceId { get; set; }
 
@@ -24,21 +21,12 @@ namespace WHMapper.Models.Db
         [Required]
         public int EveEntityId { get; set; }
 
-        /// <summary>
-        /// The name of the EVE entity
-        /// </summary>
         [Required]
         public string EveEntityName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// The type of EVE entity
-        /// </summary>
         [Required]
         public WHAccessEntity EveEntity { get; set; }
 
-        /// <summary>
-        /// Date when the access was granted
-        /// </summary>
         public DateTime GrantedAt { get; set; } = DateTime.UtcNow;
 
         [Obsolete("EF Requires it")]
