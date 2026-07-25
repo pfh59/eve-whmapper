@@ -160,11 +160,11 @@ namespace WHMapper.Services.EveMapper
             if (system_constellation == null)
                 throw new InvalidDataException("Constellation not found");
 
-            var system_region = await _eveMapperEntity.GetRegion(system_constellation!.RegionId);
+            var system_region = await _eveMapperEntity.GetRegion(system_constellation.RegionId);
             if (system_region == null)
                 throw new InvalidDataException("Region not found");
 
-            return await GetWHClass(system_region!.Name, system_constellation!.Name, whSystem.Name, whSystem.SecurityStatus);
+            return await GetWHClass(system_region.Name, system_constellation.Name, whSystem.Name, whSystem.SecurityStatus);
         }
 
     public Task<EveSystemType> GetWHClass(string regionName, string constellationName, string systemName, float securityStatus)
@@ -234,7 +234,7 @@ namespace WHMapper.Services.EveMapper
             WHEffect effect = WHEffect.None;
             if (IsWormhole(systemName))//WH system
             {
-                IEnumerable<SDESolarSystem>? sdeWormholesInfos = await _sdeServices!.SearchSystem(systemName);
+                IEnumerable<SDESolarSystem>? sdeWormholesInfos = await _sdeServices.SearchSystem(systemName);
                 SDESolarSystem? sdeInfos = sdeWormholesInfos?.FirstOrDefault();
 
                 if (sdeInfos != null && sdeInfos.SecondarySun != null)
@@ -279,12 +279,12 @@ namespace WHMapper.Services.EveMapper
 
             if (IsWormhole(wh.Name))//WH system
             {
-                EveSystemType whClass = await GetWHClass(system_region!.Name, system_constellation.Name, system.Name, system.SecurityStatus);
+                EveSystemType whClass = await GetWHClass(system_region.Name, system_constellation.Name, system.Name, system.SecurityStatus);
                 WHEffect whEffect = await GetSystemEffect(system.Name);
                 IList<EveSystemEffect>? effectDetails = GetWHEffectDetails(whEffect, whClass);
                 IList<WormholeType>? statics = null;
 
-                IEnumerable<KeyValuePair<string, string>>? whStatics = await _anoikServices!.GetSystemStatics(wh.Name);
+                IEnumerable<KeyValuePair<string, string>>? whStatics = await _anoikServices.GetSystemStatics(wh.Name);
                 
                 await EnsureWormholeTypesInitializedAsync();
                 if (whStatics!=null && whStatics.Any() && _whTypes != null && _whTypes.Any()) 
@@ -294,7 +294,7 @@ namespace WHMapper.Services.EveMapper
 
                 res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, whClass, whEffect, effectDetails, statics);
             }
-            else if (system_region!.Name == REGION_POCHVVEN_NAME)//trig system
+            else if (system_region.Name == REGION_POCHVVEN_NAME)//trig system
             {
                 res = new EveSystemNodeModel(wh, note, system_region.Name, system_constellation.Name, EveSystemType.Pochven, WHEffect.None, null, null);
             }

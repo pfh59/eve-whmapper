@@ -1086,9 +1086,9 @@ public partial class Overview : IAsyncDisposable
             }
 
             var whLink = _blazorDiagram.Links.FirstOrDefault(x =>
-            ((((EveSystemNodeModel)x.Source!.Model!).IdWH == src.IdWH) && (((EveSystemNodeModel)x.Target!.Model!).IdWH == target.IdWH))
+            ((((EveSystemNodeModel)x.Source.Model!).IdWH == src.IdWH) && (((EveSystemNodeModel)x.Target.Model!).IdWH == target.IdWH))
             ||
-            ((((EveSystemNodeModel)x.Source!.Model!).IdWH == target.IdWH) && (((EveSystemNodeModel)x.Target!.Model!).IdWH == src.IdWH)));
+            ((((EveSystemNodeModel)x.Source.Model).IdWH == target.IdWH) && (((EveSystemNodeModel)x.Target.Model!).IdWH == src.IdWH)));
 
             return Task.FromResult(whLink as EveSystemLinkModel);
         }
@@ -1364,7 +1364,7 @@ public partial class Overview : IAsyncDisposable
         {
             //get whClass an determine if another connection to another wh with same class exist from previous system. 
             EveSystemType whClass = await MapperServices.GetWHClass(targetEntity);
-            var sameWHClassWHList = _blazorDiagram?.Links?.Where(x => ((EveSystemNodeModel)(x.Target!.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source!.Model!).SolarSystemId == srcEntity.Id);
+            var sameWHClassWHList = _blazorDiagram?.Links?.Where(x => ((EveSystemNodeModel)(x.Target.Model!)).SystemType == whClass && ((EveSystemNodeModel)x.Source.Model!).SolarSystemId == srcEntity.Id);
 
             if (sameWHClassWHList != null)
                 countSameWHClassLink = sameWHClassWHList.Count();
@@ -1572,13 +1572,11 @@ public partial class Overview : IAsyncDisposable
                     targetNode = await GetNodeBySolarSystemId(newLocation.SolarSystemId);
 
 
-                    if (srcNode != null && targetNode != null && !await IsLinkExist(srcNode, targetNode))
+                    if (srcNode != null && targetNode != null && !await IsLinkExist(srcNode, targetNode)
+                        && !await AddSystemNodeLink(mapId, srcNode, targetNode, accountID))//create if new target system added from src
                     {
-                        if (!await AddSystemNodeLink(mapId, srcNode, targetNode, accountID))//create if new target system added from src
-                        {
-                            Logger.LogError("Add Wormhole Link error");
-                            Snackbar?.Add("Add Wormhole Link error", Severity.Error);
-                        }
+                        Logger.LogError("Add Wormhole Link error");
+                        Snackbar?.Add("Add Wormhole Link error", Severity.Error);
                     }
                 }
             }
@@ -1610,7 +1608,7 @@ public partial class Overview : IAsyncDisposable
             CharacterEntity? user = await eveMapperService.GetCharacter(accountID);
             if (user != null)
             {
-                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
+                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).ConnectedUsers.Contains(user.Name));
                 if (userSystem != null)
                 {
                     await userSystem.RemoveConnectedUser(user.Name);
@@ -2029,7 +2027,7 @@ public partial class Overview : IAsyncDisposable
             if (user == null)
                 throw new NullReferenceException("User not found");
 
-            EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
+            EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).ConnectedUsers.Contains(user.Name));
             if (userSystem != null)
             {
                 await userSystem.RemoveConnectedUser(user.Name);
@@ -2059,14 +2057,14 @@ public partial class Overview : IAsyncDisposable
                 if (user == null)
                     throw new NullReferenceException("User not found");
 
-                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.ConnectedUsers.Contains(user.Name));
+                EveSystemNodeModel? userSystem = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).ConnectedUsers.Contains(user.Name));
                 if (userSystem != null && userSystem.IdWH != wormholeId)
                 {
                     await userSystem.RemoveConnectedUser(user.Name);
                     userSystem.Refresh();
                 }
 
-                EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x)!.IdWH == wormholeId);
+                EveSystemNodeModel? systemToAddUser = (EveSystemNodeModel?)_blazorDiagram?.Nodes?.FirstOrDefault(x => ((EveSystemNodeModel)x).IdWH == wormholeId);
                 if (systemToAddUser != null && systemToAddUser.ConnectedUsers != null && !systemToAddUser.ConnectedUsers.Contains(user.Name))
                 {
                     await systemToAddUser.AddConnectedUser(user.Name);

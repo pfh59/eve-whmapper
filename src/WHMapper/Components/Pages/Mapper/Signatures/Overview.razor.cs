@@ -182,7 +182,7 @@ public partial class Overview : ComponentBase,IDisposable
         if(attribute is null)
             return value.ToString();
 
-        DisplayAttribute displayAttribute = (DisplayAttribute)attribute!;    
+        DisplayAttribute displayAttribute = (DisplayAttribute)attribute;
 
         return displayAttribute.ShortName ?? displayAttribute.Name ?? value.ToString();
     }

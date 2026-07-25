@@ -327,10 +327,10 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters, IEveMapperAcce
     /// </summary>
     public Task<IDictionary<int, KeyValuePair<int, int>?>> GetConnectedUsersPosition()
     {
-        IDictionary<int, KeyValuePair<int, int>?> visible = new Dictionary<int, KeyValuePair<int, int>?>();
+        Dictionary<int, KeyValuePair<int, int>?> visible = new Dictionary<int, KeyValuePair<int, int>?>();
 
         if (CurrentAccountId() == 0)
-            return Task.FromResult(visible);
+            return Task.FromResult<IDictionary<int, KeyValuePair<int, int>?>>(visible);
 
         foreach (var entry in _connectedUserPosition)
         {
@@ -339,7 +339,7 @@ public class WHMapperNotificationHub(WHMapperStoreMetrics meters, IEveMapperAcce
                 visible[entry.Key] = entry.Value;
         }
 
-        return Task.FromResult(visible);
+        return Task.FromResult<IDictionary<int, KeyValuePair<int, int>?>>(visible);
     }
 
     public async Task SendMapAdded(int instanceId, int mapId)
