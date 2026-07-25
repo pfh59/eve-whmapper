@@ -85,7 +85,7 @@ namespace WHMapper.Services.SDE
                 _logger.LogInformation("Waiting for SDE initialization to complete");
                 
                 // Wait for either completion or cancellation
-                using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
+                using var registration = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
                 
                 try
                 {

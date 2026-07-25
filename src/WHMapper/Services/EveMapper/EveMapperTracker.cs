@@ -68,7 +68,7 @@ public class EveMapperTracker : IEveMapperTracker
                 if (kvp.Value != null && !kvp.Value.IsCancellationRequested)
                 {
                     _logger.LogInformation("Cancelling tracking for account {AccountId}", kvp.Key);
-                    kvp.Value.Cancel();
+                    await kvp.Value.CancelAsync();
                 }
             }
             catch (Exception ex)
@@ -200,7 +200,7 @@ public class EveMapperTracker : IEveMapperTracker
                     _logger.LogInformation("[{InstanceId}] Cancelling CTS for account {AccountId}", _instanceId, accountID);
                     try
                     {
-                        cts.Cancel();
+                        await cts.CancelAsync();
                     }
                     catch (ObjectDisposedException)
                     {
