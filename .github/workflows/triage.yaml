@@ -7,8 +7,19 @@ on:
 jobs:
   remove-triage-label:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - name: Remove needs-triage label
-        uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: needs-triage
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          labels="$(gh issue view "$ISSUE_NUMBER" --json labels --jq '.labels[].name')"
+          if grep -qxF 'needs-triage' <<< "$labels"; then
+            gh issue edit "$ISSUE_NUMBER" --remove-label needs-triage
+          else
+            echo "Issue #$ISSUE_NUMBER has no needs-triage label, nothing to do."
+          fi
