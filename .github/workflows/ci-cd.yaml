@@ -8,7 +8,14 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore: ['**.md', '.vscode/**','docs/**','deploy/**']
-  
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   DOTNET_VERSION: '10.0.x'
   REGISTRY: ghcr.io
@@ -22,6 +29,7 @@ env:
 jobs:
   build_test_package:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       id-token: write
       contents: read
@@ -58,6 +66,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup JDK 22 🦴
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
@@ -106,10 +115,10 @@ jobs:
           ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
           ConnectionStrings__RedisConnection: "localhost:6379"
         run: |
-          dotnet sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.verbose=false
+          dotnet sonarscanner begin /k:"pfh59_eve-whmapper" /o:"pfh59" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.verbose=false
           dotnet build src/WHMapper -c Release
           dotnet coverage collect "dotnet test src/WHMapper.Tests -c Release" -f xml -o "coverage.xml"
-          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet sonarscanner end
 
       # Artifact generation (only on push to main)
       - name: Generate artifacts
@@ -176,9 +185,9 @@ jobs:
   build_test_docker_image:
     if: github.event.pull_request.base.repo.clone_url == github.event.pull_request.head.repo.clone_url
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [build_test_package]
     permissions:
-      packages: write
       contents: read
       pull-requests: write
 
@@ -189,6 +198,7 @@ jobs:
           ref: ${{ env.SHA }}
           lfs: true
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
@@ -223,9 +233,9 @@ jobs:
           load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      
+          cache-from: type=gha,scope=shared
+          cache-to: type=gha,mode=max,scope=shared
+
       - name: Docker Scout analysis
         id: docker-scout
         if: ${{ github.event_name == 'pull_request' }}
@@ -249,6 +259,7 @@ jobs:
       attestations: write
 
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -267,6 +278,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+          persist-credentials: false
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
@@ -307,7 +319,9 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-from: |
+            type=gha,scope=shared
+            type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
 
       - name: Attest the image
@@ -336,12 +350,12 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: [prepare_docker_image_ghcr]
     permissions:
-      id-token: write
       packages: write
       contents: read
-      
+
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 10
+
     steps:
       - name: Download digests
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -392,18 +406,18 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: [build_test_package, build_test_docker_image]
     permissions:
-      id-token: write
-      packages: write
       contents: read
 
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 20
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: true
           fetch-depth: 0
+          persist-credentials: false
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
@@ -447,5 +461,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha,scope=shared
+            type=gha,scope=dockerhub-multi
+          cache-to: type=gha,mode=max,scope=dockerhub-multi
