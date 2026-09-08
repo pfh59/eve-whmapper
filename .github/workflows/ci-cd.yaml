@@ -23,14 +23,14 @@ env:
   REGISTRY_DOCKERHUB: docker.io
   SHA: ${{ github.event.pull_request.head.sha || github.event.after }}
   COMPARE_TAG: dev
-  # Repository secrets are not exposed to fork PRs, nor to Dependabot PRs, which run
-  # with the separate `dependabot` secrets scope: there they resolve to an empty string.
-  HAS_SECRETS: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name && github.actor != 'dependabot[bot]') }}
 
 jobs:
   build_test_package:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Empty on fork and Dependabot PRs: neither has access to repository secrets.
+      HAS_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
     permissions:
       id-token: write
       contents: read
@@ -80,21 +80,21 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      # Fork/Dependabot PR - basic build/test without SonarCloud
-      - name: Build for fork/Dependabot PR 🚀
-        if: ${{ env.HAS_SECRETS != 'true' }}
+      # No SonarCloud token - basic build/test only
+      - name: Build without SonarCloud 🚀
+        if: ${{ env.HAS_SONAR_TOKEN != 'true' }}
         run: dotnet build src/WHMapper -c Release
 
-      - name: Test for fork/Dependabot PR 🧪
-        if: ${{ env.HAS_SECRETS != 'true' }}
+      - name: Test without SonarCloud 🧪
+        if: ${{ env.HAS_SONAR_TOKEN != 'true' }}
         env:
           ConnectionStrings__DatabaseConnection: "server=localhost;port=5432;database=whmappertest;User Id=postgres;"
           ConnectionStrings__RedisConnection: "localhost:6379"
         run: dotnet test src/WHMapper.Tests -c Release --no-build --verbosity normal
            
-      # Internal PR/Push - full analysis with SonarCloud
+      # SonarCloud token available - full analysis
       - name: Cache SonarCloud data
-        if: ${{ env.HAS_SECRETS == 'true' }}
+        if: ${{ env.HAS_SONAR_TOKEN == 'true' }}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.sonar/cache
@@ -103,13 +103,13 @@ jobs:
             ${{ runner.os }}-sonar-
       
       - name: Install SonarCloud scanners
-        if: ${{ env.HAS_SECRETS == 'true' }}
+        if: ${{ env.HAS_SONAR_TOKEN == 'true' }}
         run: |
           dotnet tool install --global dotnet-sonarscanner --version 10.4.1
           dotnet tool install --global dotnet-coverage
 
       - name: SonarCloud Build and Analyze 🚀 🧪
-        if: ${{ env.HAS_SECRETS == 'true' }}
+        if: ${{ env.HAS_SONAR_TOKEN == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -188,6 +188,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [build_test_package]
+    env:
+      # Empty on fork and Dependabot PRs: neither has access to repository secrets.
+      HAS_DOCKERHUB_CREDENTIALS: ${{ secrets.DOCKERHUB_USER != '' && secrets.DOCKERHUB_PASSWORD != '' }}
     permissions:
       contents: read
       pull-requests: write
@@ -217,7 +220,7 @@ jobs:
             type=sha,prefix=,suffix=,format=short
 
       - name: Authenticate to registry ${{ env.REGISTRY_DOCKERHUB }}
-        if: ${{ env.HAS_SECRETS == 'true' }}
+        if: ${{ env.HAS_DOCKERHUB_CREDENTIALS == 'true' }}
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ env.REGISTRY_DOCKERHUB }}
@@ -240,7 +243,7 @@ jobs:
 
       - name: Docker Scout analysis
         id: docker-scout
-        if: ${{ github.event_name == 'pull_request' && env.HAS_SECRETS == 'true' }}
+        if: ${{ github.event_name == 'pull_request' && env.HAS_DOCKERHUB_CREDENTIALS == 'true' }}
         uses: docker/scout-action@7c6b6c3f7844478ace1ffd4e7aef649053d1f87d # v1.24.0
         with:
           command: compare
