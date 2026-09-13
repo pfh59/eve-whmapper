@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.EveMapper;
@@ -10,6 +11,16 @@ namespace WHMapper.Services.WHSignatures
 {
     public class WHSignatureHelper : IWHSignatureHelper
     {
+        /// <summary>
+        /// Signal strength, in percent, of a signature fully probed.
+        /// </summary>
+        private const double FULL_SIGNAL_STRENGTH = 100.0;
+
+        /// <summary>
+        /// Zero-based column of the signal strength in a probe scanner line, such as <c>100,0%</c>.
+        /// </summary>
+        private const int SIGNAL_STRENGTH_COLUMN = 4;
+
         private readonly IWHSignatureRepository _dbWHSignatures;
 
         public WHSignatureHelper(IWHSignatureRepository sigRepo)
@@ -123,7 +134,7 @@ namespace WHMapper.Services.WHSignatures
             return signatures;
         }
 
-        public async Task<bool> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted)
+        public async Task<WHSignatureImportResult> ImportScanResult(string scanUser, int currentSystemScannedId, string? scanResult, bool lazyDeleted)
         {
             if (!await ValidateScanResult(scanResult))
                 throw new Exception("Bad signatures format");
@@ -137,7 +148,7 @@ namespace WHMapper.Services.WHSignatures
                 throw new Exception("Current System is nullable");
 
             var currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
-            if (currentSystemSigs == null) return false;
+            if (currentSystemSigs == null) return WHSignatureImportResult.None;
 
 
             bool sigUpdated = false, sigAdded = false;
@@ -146,25 +157,75 @@ namespace WHMapper.Services.WHSignatures
             {
                 await DeleteSignatures(currentSystemSigs, sigs);
                 currentSystemSigs = await _dbWHSignatures.GetByWHId(currentSystemScannedId);
-                if (currentSystemSigs == null) return false;
+                if (currentSystemSigs == null) return WHSignatureImportResult.None;
             }
 
-            sigUpdated = await UpdateSignatures(currentSystemSigs, sigs);
-            sigAdded = await AddNewSignatures(currentSystemSigs, sigs, currentSystemScannedId);
+            var fullyScannedNames = GetFullyScannedSignatureNames(scanResult);
+            (sigUpdated, int changedCount) = await UpdateSignatures(currentSystemSigs, sigs, fullyScannedNames);
+            (sigAdded, int createdCount) = await AddNewSignatures(currentSystemSigs, sigs, currentSystemScannedId, fullyScannedNames);
 
-            return sigUpdated || sigAdded;
+            return new WHSignatureImportResult(sigUpdated || sigAdded, createdCount, changedCount);
         }
 
-        private async Task<bool> UpdateSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs)
+        /// <summary>
+        /// Returns the names of the signatures whose scan line is at <see cref="FULL_SIGNAL_STRENGTH"/>.
+        /// </summary>
+        /// <remarks>
+        /// Lines are split like <see cref="ParseScanResult"/>. A line without a readable signal strength is ignored.
+        /// </remarks>
+        /// <returns>The names; empty when the scan result is empty.</returns>
+        private static HashSet<string> GetFullyScannedSignatureNames(string? scanResult)
         {
-            var sigsToUpdate = currentSystemSigs.IntersectBy(sigs.Select(x => x.Name), y => y.Name);
-            if (!sigsToUpdate.Any()) return false;
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            if (string.IsNullOrEmpty(scanResult))
+                return names;
 
+            foreach (string line in scanResult.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] columns = line.Split('\t');
+                if (columns.Length > SIGNAL_STRENGTH_COLUMN
+                    && TryParseSignalStrength(columns[SIGNAL_STRENGTH_COLUMN], out double strength)
+                    && strength >= FULL_SIGNAL_STRENGTH)
+                {
+                    names.Add(columns[0]);
+                }
+            }
+
+            return names;
+        }
+
+        /// <summary>
+        /// Parses a signal strength such as <c>100,0%</c> or <c>100.0 %</c>, whatever the client decimal separator.
+        /// </summary>
+        /// <returns>False when the value is not a number.</returns>
+        private static bool TryParseSignalStrength(string value, out double strength)
+        {
+            string normalized = new string(value.Where(c => !char.IsWhiteSpace(c) && c != '%').ToArray()).Replace(',', '.');
+            return double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out strength);
+        }
+
+        /// <summary>
+        /// Refreshes every existing signature found in the scan and counts those whose content changed from a
+        /// fully probed scan line.
+        /// </summary>
+        /// <param name="fullyScannedNames">Names of the signatures at 100% signal strength in the scan.</param>
+        /// <returns>
+        /// Whether every matched signature was saved, and the number of fully probed signatures whose name, group
+        /// or type changed; the count is 0 when the save failed.
+        /// </returns>
+        private async Task<(bool Saved, int ChangedCount)> UpdateSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs, IReadOnlySet<string> fullyScannedNames)
+        {
+            var sigsToUpdate = currentSystemSigs.IntersectBy(sigs.Select(x => x.Name), y => y.Name).ToList();
+            if (!sigsToUpdate.Any()) return (false, 0);
+
+            int changedCount = 0;
             foreach (var sig in sigsToUpdate)
             {
                 var sigParse = sigs.FirstOrDefault(x => x.Name == sig.Name);
                 if (sigParse != null)
                 {
+                    var contentBeforeImport = new Models.Db.WHSignature(sig.WHId, sig.Name, sig.Group, sig.Type);
+
                     sig.Updated = sigParse.Updated;
                     sig.UpdatedBy = sigParse.UpdatedBy;
                     if(sigParse.Group != WHSignatureGroup.Unknow)
@@ -172,20 +233,34 @@ namespace WHMapper.Services.WHSignatures
                         sig.Group = sigParse.Group;
                         sig.Type = String.IsNullOrEmpty(sig.Type) ? sigParse.Type : sig.Type;
                     }
+
+                    // Refreshing Updated and UpdatedBy alone is not a change of content.
+                    if (!sig.HasSameContent(contentBeforeImport) && fullyScannedNames.Contains(sig.Name))
+                        changedCount++;
                 }
             }
 
             var resUpdate = await _dbWHSignatures.Update(sigsToUpdate);
-            return resUpdate != null && resUpdate.Count() == sigsToUpdate.Count();
+            bool saved = resUpdate != null && resUpdate.Count() == sigsToUpdate.Count;
+            return (saved, saved ? changedCount : 0);
         }
 
-        private async Task<bool> AddNewSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs, int currentSystemScannedId)
+        /// <summary>
+        /// Creates the signatures of the scan that do not exist in the system yet.
+        /// </summary>
+        /// <param name="fullyScannedNames">Names of the signatures at 100% signal strength in the scan.</param>
+        /// <returns>
+        /// Whether every new signature was saved, and the number of fully probed signatures created; the count is 0
+        /// when the save failed.
+        /// </returns>
+        private async Task<(bool Saved, int CreatedCount)> AddNewSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs, int currentSystemScannedId, IReadOnlySet<string> fullyScannedNames)
         {
-            var sigsToAdd = sigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name);
-            if (!sigsToAdd.Any()) return false;
+            var sigsToAdd = sigs.ExceptBy(currentSystemSigs.Select(x => x.Name), y => y.Name).ToList();
+            if (!sigsToAdd.Any()) return (false, 0);
 
             var resAdd = await _dbWHSignatures.Create(sigsToAdd);
-            return resAdd != null && resAdd.Count() == sigsToAdd.Count();
+            bool saved = resAdd != null && resAdd.Count() == sigsToAdd.Count;
+            return (saved, saved ? sigsToAdd.Count(x => fullyScannedNames.Contains(x.Name)) : 0);
         }
 
         private async Task DeleteSignatures(IEnumerable<Models.Db.WHSignature> currentSystemSigs, IEnumerable<Models.Db.WHSignature> sigs)

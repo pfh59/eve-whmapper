@@ -47,6 +47,25 @@ namespace WHMapper.Repositories.WHMaps
         }
 
 
+        public async Task<int?> GetInstanceIdAsync(int mapId)
+        {
+            using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                try
+                {
+                    return await context.DbWHMaps
+                        .Where(x => x.Id == mapId)
+                        .Select(x => x.WHInstanceId)
+                        .SingleOrDefaultAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Impossible to get WHInstanceId of WHMap : {MapId}", mapId);
+                    return null;
+                }
+            }
+        }
+
         protected override async Task<WHMap?> ACreate(WHMap item)
         {
             using (var context = await _contextFactory.CreateDbContextAsync())

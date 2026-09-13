@@ -1,0 +1,5 @@
+/* Highlights the viewer's own row. ::deep is required because the rows are rendered by MudTable. */
+.whm-stats ::deep .whm-stats-own-row {
+    background-color: var(--mud-palette-action-default-hover);
+    font-weight: 600;
+}

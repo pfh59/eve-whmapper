@@ -1,4 +1,5 @@
 using WHMapper.Models.DTO;
+using WHMapper.Repositories.WHActivityLogs;
 using WHMapper.Repositories.WHInstances;
 using WHMapper.Repositories.WHJumpLogs;
 using WHMapper.Repositories.WHMapAccesses;
@@ -11,9 +12,11 @@ using WHMapper.Repositories.WHUserSettings;
 using WHMapper.Services.BrowserClientIdProvider;
 using WHMapper.Services.BrowserClientIdProvider.Extension;
 using WHMapper.Services.EveMapper;
+using WHMapper.Services.WHActivityLogs;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
+using WHMapper.Services.WHStatistics;
 using WHMapper.Services.WHUserSettings;
 
 namespace WHMapper.Extensions;
@@ -33,6 +36,7 @@ public static class MapperServiceExtensions
         services.AddScoped<IWHInstanceRepository, WHInstanceRepository>();
         services.AddScoped<IWHMapAccessRepository, WHMapAccessRepository>();
         services.AddScoped<IWHUserSettingRepository, WHUserSettingRepository>();
+        services.AddScoped<IWHActivityLogRepository, WHActivityLogRepository>();
 
         // Mapper services
         services.AddSingleton<IBrowserClientIdProvider, BrowserClientIdProvider>();
@@ -52,6 +56,8 @@ public static class MapperServiceExtensions
         services.AddScoped<IEveMapperRealTimeService, EveMapperRealTimeService>();
         services.AddScoped<IPasteServices, PasteServices>();
         services.AddScoped<IWHUserSettingService, WHUserSettingService>();
+        services.AddScoped<IWHActivityLogService, WHActivityLogService>();
+        services.AddScoped<IWHStatisticsService, WHStatisticsService>();
 
         return services;
     }

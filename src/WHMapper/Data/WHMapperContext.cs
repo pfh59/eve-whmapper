@@ -21,6 +21,10 @@ namespace WHMapper.Data
         public DbSet<WHMapAccess> DbWHMapAccesses { get; set; } = null!;
         public DbSet<WHUserSetting> DbWHUserSettings { get; set; } = null!;
 
+        // Activity log tables
+        public DbSet<WHActivityType> DbWHActivityTypes { get; set; } = null!;
+        public DbSet<WHActivityLog> DbWHActivityLogs { get; set; } = null!;
+
         public WHMapperContext(DbContextOptions<WHMapperContext> options) : base(options)
 		{
 
@@ -78,6 +82,22 @@ namespace WHMapper.Data
 
             modelBuilder.Entity<WHUserSetting>().ToTable("UserSettings");
             modelBuilder.Entity<WHUserSetting>().HasIndex(x => x.EveCharacterId).IsUnique(true);
+
+            modelBuilder.Entity<WHActivityType>().ToTable("ActivityTypes");
+            modelBuilder.Entity<WHActivityType>().Property(x => x.Id).ValueGeneratedNever();
+            modelBuilder.Entity<WHActivityType>().HasIndex(x => x.Code).IsUnique(true);
+            // Ids are explicit so they match WHActivityTypeIds on every deployment.
+            modelBuilder.Entity<WHActivityType>().HasData(
+                new WHActivityType(WHActivityTypeIds.SignatureCreated, "SignatureCreated", "Signature created"),
+                new WHActivityType(WHActivityTypeIds.SignatureUpdated, "SignatureUpdated", "Signature updated"),
+                new WHActivityType(WHActivityTypeIds.SystemOpened, "SystemOpened", "System opened"));
+
+            modelBuilder.Entity<WHActivityLog>().ToTable("ActivityLogs");
+            // Restrict: an activity type still referenced by the history cannot be deleted.
+            modelBuilder.Entity<WHActivityLog>().HasOne<WHActivityType>().WithMany().HasForeignKey(x => x.WHActivityTypeId).IsRequired().OnDelete(DeleteBehavior.Restrict);
+            // No foreign key to maps or systems: deleting them must not delete the history.
+            modelBuilder.Entity<WHActivityLog>().HasIndex(x => new { x.WHInstanceId, x.ActivityDate });
+            modelBuilder.Entity<WHActivityLog>().HasIndex(x => new { x.WHMapId, x.ActivityDate });
         }
     }
 }
