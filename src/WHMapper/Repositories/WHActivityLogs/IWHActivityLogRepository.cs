@@ -23,10 +23,4 @@ public interface IWHActivityLogRepository : IDefaultRepository<WHActivityLog, in
     /// <param name="fromUtc">Inclusive lower bound of the activity date; null to include every retained activity.</param>
     /// <returns>One entry per character and activity type with at least one activity; empty on failure.</returns>
     Task<IReadOnlyList<WHActivityCount>> GetCountsByCharacterAsync(int instanceId, IReadOnlyCollection<int> mapIds, IReadOnlyCollection<int> activityTypeIds, DateTime? fromUtc);
-
-    /// <summary>
-    /// Deletes activities recorded strictly before a cutoff date.
-    /// </summary>
-    /// <returns>Number of deleted activities; 0 on failure.</returns>
-    Task<int> DeleteOlderThanAsync(DateTime cutoffUtc);
 }

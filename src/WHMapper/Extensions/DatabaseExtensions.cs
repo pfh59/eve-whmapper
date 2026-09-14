@@ -70,32 +70,4 @@ public static class DatabaseExtensions
         }
     }
 
-    /// <summary>
-    /// Deletes activities older than the configured retention period of the activity log.
-    /// </summary>
-    /// <remarks>
-    /// A failure is logged and does not stop the application startup.
-    /// </remarks>
-    public static async Task PurgeExpiredActivityLogsAsync(this WebApplication app)
-    {
-        using var scope = app.Services.CreateScope();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-        try
-        {
-            var activityLogService = scope.ServiceProvider.GetRequiredService<IWHActivityLogService>();
-            if (activityLogService.RetentionDays <= 0)
-            {
-                logger.LogInformation("Activity log retention is disabled; no activity purged.");
-                return;
-            }
-
-            int deletedCount = await activityLogService.PurgeExpiredAsync();
-            logger.LogInformation("{DeletedCount} activities older than {RetentionDays} days purged.", deletedCount, activityLogService.RetentionDays);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to purge expired activities, but application will continue.");
-        }
-    }
 }

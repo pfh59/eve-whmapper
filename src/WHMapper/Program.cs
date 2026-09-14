@@ -79,7 +79,6 @@ var app = builder.Build();
 
 // Startup tasks
 await app.MigrateDatabaseAsync();
-await app.PurgeExpiredActivityLogsAsync();
 await app.InitializeMetricsAsync();
 
 // Middleware pipeline

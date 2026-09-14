@@ -10,28 +10,15 @@ namespace WHMapper.Services.WHActivityLogs;
 /// </summary>
 public class WHActivityLogService : IWHActivityLogService
 {
-    /// <summary>
-    /// Configuration key holding the retention period of the activity log, in days.
-    /// </summary>
-    public const string RETENTION_DAYS_CONFIG_KEY = "ActivityLog:RetentionDays";
-
-    /// <summary>
-    /// Retention period applied when <see cref="RETENTION_DAYS_CONFIG_KEY"/> is not configured.
-    /// </summary>
-    public const int DEFAULT_RETENTION_DAYS = 180;
-
     private readonly IWHActivityLogRepository _activityLogRepository;
     private readonly IWHMapRepository _mapRepository;
     private readonly ILogger<WHActivityLogService> _logger;
 
-    public int RetentionDays { get; }
-
-    public WHActivityLogService(IWHActivityLogRepository activityLogRepository, IWHMapRepository mapRepository, IConfiguration configuration, ILogger<WHActivityLogService> logger)
+    public WHActivityLogService(IWHActivityLogRepository activityLogRepository, IWHMapRepository mapRepository, ILogger<WHActivityLogService> logger)
     {
         _activityLogRepository = activityLogRepository;
         _mapRepository = mapRepository;
         _logger = logger;
-        RetentionDays = configuration.GetValue(RETENTION_DAYS_CONFIG_KEY, DEFAULT_RETENTION_DAYS);
     }
 
     public async Task RecordAsync(int characterId, int activityTypeId, int mapId, int occurrences = 1)
@@ -66,13 +53,5 @@ public class WHActivityLogService : IWHActivityLogService
     {
         await RecordAsync(characterId, WHActivityTypeIds.SignatureCreated, mapId, importResult.FullyScannedCreatedCount);
         await RecordAsync(characterId, WHActivityTypeIds.SignatureUpdated, mapId, importResult.FullyScannedChangedCount);
-    }
-
-    public async Task<int> PurgeExpiredAsync()
-    {
-        if (RetentionDays <= 0)
-            return 0;
-
-        return await _activityLogRepository.DeleteOlderThanAsync(DateTime.UtcNow.AddDays(-RetentionDays));
     }
 }
