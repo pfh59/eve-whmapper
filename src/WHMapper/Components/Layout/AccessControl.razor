@@ -20,6 +20,7 @@
                         {
                             <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
                         }
+                        <MudMenuItem Icon="@Icons.Material.Filled.BarChart" IconColor="Color.Default" OnClick="OpenStatisticsDialog">Statistics</MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Filled.Settings" IconColor="Color.Default" OnClick="OpenUserSettingsDialog">Settings</MudMenuItem>
                         <MudForm action="authentication/logout" method="post">
                             <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
@@ -41,6 +42,7 @@
                                 {
                                     <MudMenuItem Icon="@Icons.Material.Filled.AppRegistration" IconColor="Color.Default" OnClick="OpenCreateInstanceDialog">Create Instance</MudMenuItem>
                                 }
+                                <MudMenuItem Icon="@Icons.Material.Filled.BarChart" IconColor="Color.Default" OnClick="OpenStatisticsDialog">Statistics</MudMenuItem>
                                 <MudMenuItem Icon="@Icons.Material.Filled.Settings" IconColor="Color.Default" OnClick="OpenUserSettingsDialog">Settings</MudMenuItem>
                                 <MudForm action="authentication/logout" method="post">
                                     <input type="hidden" name="__RequestVerificationToken" value="@_antiForgeryToken" /> 
@@ -159,5 +161,18 @@
         };
 
         await DialogService.ShowAsync<UserSettingsDialog>("Settings", options);
+    }
+
+    private async Task OpenStatisticsDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.ExtraLarge,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        await DialogService.ShowAsync<WHMapper.Components.Pages.Mapper.Stats.StatisticsDialog>("Statistics", options);
     }
 }

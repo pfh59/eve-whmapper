@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.EveMapper;
+using WHMapper.Services.WHActivityLogs;
 
 namespace WHMapper.Components.Pages.Mapper.Signatures;
 
@@ -27,6 +28,9 @@ public partial class Import
     [Inject]
     private IWHColorHelper ColorHelper { get; set; } = null!;
 
+    [Inject]
+    private IWHActivityLogService ActivityLogService { get; set; } = null!;
+
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -35,6 +39,9 @@ public partial class Import
 
     [Parameter]
     public int CurrentPrimaryUserId { get; set; }
+
+    [Parameter]
+    public int CurrentMapId { get; set; }
 
     private IEnumerable<WHSignature>? _currentSystemSigs = null!;
     private string _scanUser = String.Empty;
@@ -124,8 +131,10 @@ public partial class Import
         {
             try
             {
-                if (await SignatureHelper.ImportScanResult(_scanUser, CurrentSystemNodeId, ScanResult, _lazyDeleted))
+                var importResult = await SignatureHelper.ImportScanResult(_scanUser, CurrentSystemNodeId, ScanResult, _lazyDeleted);
+                if (importResult.Persisted)
                 {
+                    await ActivityLogService.RecordSignatureImportAsync(CurrentPrimaryUserId, CurrentMapId, importResult);
                     Snackbar.Add("Signatures successfully added/updated", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(true));
                 }

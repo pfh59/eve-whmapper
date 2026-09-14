@@ -1,0 +1,129 @@
+@using WHMapper.Models.DTO.Statistics
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.BarChart" />
+            <MudText Typo="Typo.h6">Statistics</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <div class="whm-stats">
+            <MudGrid Spacing="2" Class="mb-2">
+                @if (_instances.Count > 1)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int" Label="Instance" Value="@_selectedInstanceId" ValueChanged="OnInstanceChangedAsync"
+                                   ToStringFunc="FormatInstanceName" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@_loading">
+                            @foreach (var instance in _instances)
+                            {
+                                <MudSelectItem T="int" Value="@instance.Id">@instance.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                }
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Map" Value="@_selectedMapId" ValueChanged="OnMapChangedAsync"
+                               ToStringFunc="FormatMapName" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@_loading">
+                        <MudSelectItem T="int" Value="@ALL_MAPS_ID">@ALL_MAPS_LABEL</MudSelectItem>
+                        @foreach (var map in _maps)
+                        {
+                            <MudSelectItem T="int" Value="@map.Id">@map.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            @if (_loading || _reports == null)
+            {
+                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Class="pa-6">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                </MudStack>
+            }
+            else
+            {
+                <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true">
+                    <MudTabPanel Text="Top Probers">
+                        <MudGrid Spacing="2" Class="mt-1">
+                            @foreach (var period in PERIODS)
+                            {
+                                var probers = _reports[period].Probers;
+                                <MudItem xs="12" lg="4">
+                                    <MudPaper Outlined="true" Class="pa-2">
+                                        <MudText Typo="Typo.subtitle1">@FormatPeriod(period)</MudText>
+                                        @if (probers.Count == 0)
+                                        {
+                                            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">No signature activity for this period.</MudAlert>
+                                        }
+                                        else
+                                        {
+                                            <MudChart T="double" ChartType="ChartType.StackedBar" ChartLabels="@_proberCharts[period].Labels" ChartSeries="@_proberCharts[period].Series"
+                                                      ChartOptions="@_proberChartOptions" Width="100%" Height="260px" />
+                                            <MudTable T="WHProberRank" Items="@probers" Dense="true" Hover="true" Elevation="0"
+                                                      RowClassFunc="@GetProberRowClass" Class="mt-2">
+                                                <HeaderContent>
+                                                    <MudTh>#</MudTh>
+                                                    <MudTh>Pilot</MudTh>
+                                                    <MudTh>Created</MudTh>
+                                                    <MudTh>Updated</MudTh>
+                                                    <MudTh>Total</MudTh>
+                                                </HeaderContent>
+                                                <RowTemplate>
+                                                    <MudTd DataLabel="#">@context.Rank</MudTd>
+                                                    <MudTd DataLabel="Pilot">@context.CharacterName</MudTd>
+                                                    <MudTd DataLabel="Created">@context.Created</MudTd>
+                                                    <MudTd DataLabel="Updated">@context.Updated</MudTd>
+                                                    <MudTd DataLabel="Total">@context.Total</MudTd>
+                                                </RowTemplate>
+                                            </MudTable>
+                                        }
+                                    </MudPaper>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Top Explorers">
+                        <MudGrid Spacing="2" Class="mt-1">
+                            @foreach (var period in PERIODS)
+                            {
+                                var explorers = _reports[period].Explorers;
+                                <MudItem xs="12" lg="4">
+                                    <MudPaper Outlined="true" Class="pa-2">
+                                        <MudText Typo="Typo.subtitle1">@FormatPeriod(period)</MudText>
+                                        @if (explorers.Count == 0)
+                                        {
+                                            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">No system opened for this period.</MudAlert>
+                                        }
+                                        else
+                                        {
+                                            <MudChart T="double" ChartType="ChartType.Bar" ChartLabels="@_explorerCharts[period].Labels" ChartSeries="@_explorerCharts[period].Series"
+                                                      ChartOptions="@_explorerChartOptions" Width="100%" Height="260px" />
+                                            <MudTable T="WHExplorerRank" Items="@explorers" Dense="true" Hover="true" Elevation="0"
+                                                      RowClassFunc="@GetExplorerRowClass" Class="mt-2">
+                                                <HeaderContent>
+                                                    <MudTh>#</MudTh>
+                                                    <MudTh>Pilot</MudTh>
+                                                    <MudTh>Systems opened</MudTh>
+                                                </HeaderContent>
+                                                <RowTemplate>
+                                                    <MudTd DataLabel="#">@context.Rank</MudTd>
+                                                    <MudTd DataLabel="Pilot">@context.CharacterName</MudTd>
+                                                    <MudTd DataLabel="Systems opened">@context.SystemsOpened</MudTd>
+                                                </RowTemplate>
+                                            </MudTable>
+                                        }
+                                    </MudPaper>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </MudTabPanel>
+                </MudTabs>
+            }
+
+            <MudText Typo="Typo.caption" Class="mt-2 d-block">@RetentionCaption</MudText>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>

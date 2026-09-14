@@ -22,6 +22,7 @@ using WHMapper.Models.DTO.EveMapper;
 using WHMapper.Models.DTO;
 using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Components.Pages.Mapper.CustomNode;
+using WHMapper.Services.WHActivityLogs;
 using WHMapper.Services.WHUserSettings;
 
 namespace WHMapper.Components.Pages.Mapper.Map;
@@ -106,6 +107,9 @@ public partial class Overview : IAsyncDisposable
 
     [Inject]
     private IWHUserSettingService UserSettingService { get; set; } = null!;
+
+    [Inject]
+    private IWHActivityLogService ActivityLogService { get; set; } = null!;
 
     private WHUserSetting _userSettings = WHUserSetting.CreateDefault(0);
 
@@ -1263,6 +1267,7 @@ public partial class Overview : IAsyncDisposable
 
                 _blazorDiagram?.Nodes?.Add(newSystemNode);
                 await EveMapperRealTime.NotifyWormoleAdded(accountID, mapId.Value, newWHSystem.Id);
+                await ActivityLogService.RecordAsync(accountID, WHActivityTypeIds.SystemOpened, mapId.Value);
 
                 return true;
             }

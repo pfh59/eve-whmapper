@@ -81,6 +81,30 @@ namespace WHMapper.Models.Db
 
         }
 
+        /// <summary>
+        /// Indicates whether this signature has the same name, group and type as another signature.
+        /// </summary>
+        /// <remarks>
+        /// A null type and an empty type are considered equal. Audit fields are ignored.
+        /// </remarks>
+        public bool HasSameContent(WHSignature other)
+        {
+            return Name == other.Name
+                && Group == other.Group
+                && string.Equals(Type ?? string.Empty, other.Type ?? string.Empty, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Indicates whether the group is known and the type is set, as for a signature probed to 100%.
+        /// </summary>
+        /// <remarks>
+        /// A method rather than a property, so Entity Framework never maps it.
+        /// </remarks>
+        public bool IsIdentified()
+        {
+            return Group != WHSignatureGroup.Unknow && !string.IsNullOrWhiteSpace(Type);
+        }
+
 
     }
 

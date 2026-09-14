@@ -6,6 +6,7 @@ using MudBlazor;
 using WHMapper.Models.Db;
 using WHMapper.Repositories.WHSignatures;
 using WHMapper.Services.EveMapper;
+using WHMapper.Services.WHActivityLogs;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
 
@@ -45,6 +46,9 @@ public partial class Overview : ComponentBase,IDisposable
 
     [Inject]
     private IEveMapperService EveMapperServices { get; set; } = null!;
+
+    [Inject]
+    private IWHActivityLogService ActivityLogService { get; set; } = null!;
 
     private IEnumerable<WHSignature> Signatures { get; set; } = null!;
 
@@ -200,6 +204,7 @@ public partial class Overview : ComponentBase,IDisposable
         var parameters = new DialogParameters();
         parameters.Add("CurrentSystemNodeId", CurrentSystemNodeId);
         parameters.Add("CurrentPrimaryUserId", CurrentPrimaryUserId);
+        parameters.Add("CurrentMapId", CurrentMapId);
 
         var dialog = await DialogService.ShowAsync<Import>("Import Scan Dialog", parameters, disableBackdropClick);
         DialogResult? result = await dialog.Result;
@@ -309,17 +314,28 @@ public partial class Overview : ComponentBase,IDisposable
         ((WHSignature)element).Updated = DateTime.UtcNow;
         ((WHSignature)element).UpdatedBy = _currentUser;
 
-        Task.Run(() => UpdateSignature(element), _cts.Token);
+        // Compared before Task.Run: the backup is replaced as soon as another signature enters edit mode.
+        // Only a change that leaves the signature identified (group and type known) counts as probing activity.
+        bool isProbingActivity = _signatureBeforeEdit != null
+            && !((WHSignature)element).HasSameContent(_signatureBeforeEdit)
+            && ((WHSignature)element).IsIdentified();
+
+        Task.Run(() => UpdateSignature(element, isProbingActivity), _cts.Token);
 
         _isEditingSignature = false;
         StateHasChanged();
     }
 
-    private async Task UpdateSignature(object element)
+    private async Task UpdateSignature(object element, bool isProbingActivity)
     {
         var res = await DbWHSignatures.Update(((WHSignature)element).Id, ((WHSignature)element));
         if(res!=null && res.Id== ((WHSignature)element).Id)
+        {
             Snackbar.Add("Signature successfully updated", Severity.Success);
+
+            if (isProbingActivity && CurrentPrimaryUserId.HasValue && CurrentMapId.HasValue)
+                await ActivityLogService.RecordAsync(CurrentPrimaryUserId.Value, WHActivityTypeIds.SignatureUpdated, CurrentMapId.Value);
+        }
         else
             Snackbar.Add("No signature updated", Severity.Error);
     }
@@ -350,8 +366,13 @@ public partial class Overview : ComponentBase,IDisposable
         {
             try
             {
-                if (_currentUser != null && await SignatureHelper.ImportScanResult(_currentUser, CurrentSystemNodeId.Value, text, false))
+                var importResult = _currentUser != null
+                    ? await SignatureHelper.ImportScanResult(_currentUser, CurrentSystemNodeId.Value, text, false)
+                    : null;
+
+                if (importResult != null && importResult.Persisted)
                 {
+                    await ActivityLogService.RecordSignatureImportAsync(CurrentPrimaryUserId.Value, CurrentMapId.Value, importResult);
                     await EveMapperRealTimeService.NotifyWormholeSignaturesChanged(CurrentPrimaryUserId.Value,CurrentMapId.Value, CurrentSystemNodeId.Value);
                     await Restore();
                     Snackbar?.Add("Signatures successfully added/updated", Severity.Success);

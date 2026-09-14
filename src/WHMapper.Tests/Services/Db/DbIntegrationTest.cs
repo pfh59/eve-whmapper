@@ -14,6 +14,8 @@ using WHMapper.Repositories.WHSystemLinks;
 using WHMapper.Repositories.WHSystems;
 using WHMapper.Repositories.WHMapAccesses;
 using WHMapper.Repositories.WHUserSettings;
+using WHMapper.Repositories.WHActivityLogs;
+using Npgsql;
 
 using Xunit.Priority;
 
@@ -1535,5 +1537,99 @@ public class DbIntegrationTest
         var resFinal = await repo.GetAll();
         Assert.NotNull(resFinal);
         Assert.Empty(resFinal);
+    }
+
+    [Fact, Priority(89)]
+    public async Task CRUD_WHActivityLog()
+    {
+        Assert.NotNull(_contextFactory);
+
+        const int INSTANCE_ID = 1;
+        // Maps 11 and 12 do not exist: inserts succeed because the activity log has no foreign key to maps.
+        const int MAP_ID = 11;
+        const int OTHER_MAP_ID = 12;
+        int[] allActivityTypeIds = { WHActivityTypeIds.SignatureCreated, WHActivityTypeIds.SignatureUpdated, WHActivityTypeIds.SystemOpened };
+
+        IWHActivityLogRepository repo = new WHActivityLogRepository(new NullLogger<WHActivityLogRepository>(), _contextFactory);
+
+        // Seeded activity types
+        using (var context = _contextFactory.CreateDbContext())
+        {
+            var activityTypes = await context.DbWHActivityTypes.OrderBy(x => x.Id).ToListAsync();
+            Assert.Equal(allActivityTypeIds, activityTypes.Select(x => x.Id));
+            Assert.All(activityTypes, x => Assert.True(x.IsActive));
+        }
+
+        // GetAll => empty
+        var resEmpty = await repo.GetAll();
+        Assert.NotNull(resEmpty);
+        Assert.Empty(resEmpty);
+
+        var created = await repo.CreateRange(new[]
+        {
+            new WHActivityLog(EVE_CHARACTERE_ID, WHActivityTypeIds.SignatureCreated, INSTANCE_ID, MAP_ID),
+            new WHActivityLog(EVE_CHARACTERE_ID, WHActivityTypeIds.SignatureCreated, INSTANCE_ID, MAP_ID),
+            new WHActivityLog(EVE_CHARACTERE_ID, WHActivityTypeIds.SignatureUpdated, INSTANCE_ID, OTHER_MAP_ID),
+            new WHActivityLog(EVE_CHARACTERE_ID2, WHActivityTypeIds.SystemOpened, INSTANCE_ID, MAP_ID),
+            new WHActivityLog(EVE_CHARACTERE_ID2, WHActivityTypeIds.SystemOpened, INSTANCE_ID, MAP_ID) { ActivityDate = DateTime.UtcNow.AddDays(-40) },
+            // Activity not tied to a map
+            new WHActivityLog(EVE_CHARACTERE_ID2, WHActivityTypeIds.SystemOpened, null, null)
+        });
+        Assert.True(created);
+        Assert.Equal(6, await repo.GetCountAsync());
+
+        // Unknown activity type rejected by the foreign key
+        var createdWithUnknownType = await repo.CreateRange(new[] { new WHActivityLog(EVE_CHARACTERE_ID, 999, INSTANCE_ID, MAP_ID) });
+        Assert.False(createdWithUnknownType);
+        Assert.Equal(6, await repo.GetCountAsync());
+
+        // Counts per character and activity type, without cutoff
+        var counts = await repo.GetCountsByCharacterAsync(INSTANCE_ID, new[] { MAP_ID, OTHER_MAP_ID }, allActivityTypeIds, null);
+        Assert.Equal(2, counts.Single(x => x.CharacterId == EVE_CHARACTERE_ID && x.ActivityTypeId == WHActivityTypeIds.SignatureCreated).Count);
+        Assert.Equal(1, counts.Single(x => x.CharacterId == EVE_CHARACTERE_ID && x.ActivityTypeId == WHActivityTypeIds.SignatureUpdated).Count);
+        // The activity not tied to a map is excluded
+        Assert.Equal(2, counts.Single(x => x.CharacterId == EVE_CHARACTERE_ID2 && x.ActivityTypeId == WHActivityTypeIds.SystemOpened).Count);
+
+        // Map filter
+        var mapCounts = await repo.GetCountsByCharacterAsync(INSTANCE_ID, new[] { MAP_ID }, allActivityTypeIds, null);
+        Assert.DoesNotContain(mapCounts, x => x.ActivityTypeId == WHActivityTypeIds.SignatureUpdated);
+
+        // Activity type filter
+        var createdCounts = await repo.GetCountsByCharacterAsync(INSTANCE_ID, new[] { MAP_ID, OTHER_MAP_ID }, new[] { WHActivityTypeIds.SignatureCreated }, null);
+        Assert.All(createdCounts, x => Assert.Equal(WHActivityTypeIds.SignatureCreated, x.ActivityTypeId));
+
+        // Cutoff excludes the 40-day-old activity
+        var recentCounts = await repo.GetCountsByCharacterAsync(INSTANCE_ID, new[] { MAP_ID, OTHER_MAP_ID }, allActivityTypeIds, DateTime.UtcNow.AddDays(-30));
+        Assert.Equal(1, recentCounts.Single(x => x.CharacterId == EVE_CHARACTERE_ID2 && x.ActivityTypeId == WHActivityTypeIds.SystemOpened).Count);
+
+        // Instance filter
+        var otherInstanceCounts = await repo.GetCountsByCharacterAsync(INSTANCE_ID + 1, new[] { MAP_ID, OTHER_MAP_ID }, allActivityTypeIds, null);
+        Assert.Empty(otherInstanceCounts);
+
+        // A referenced activity type cannot be deleted
+        using (var context = _contextFactory.CreateDbContext())
+        {
+            var exception = await Record.ExceptionAsync(() => context.DbWHActivityTypes.Where(x => x.Id == WHActivityTypeIds.SignatureCreated).ExecuteDeleteAsync());
+            var postgresException = exception as PostgresException ?? exception?.InnerException as PostgresException;
+            Assert.NotNull(postgresException);
+            Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, postgresException.SqlState);
+        }
+
+        // The activity log is append-only
+        var firstActivity = (await repo.GetAll())!.First();
+        Assert.Null(await repo.Update(firstActivity.Id, firstActivity));
+
+        // Purge removes only activities older than the cutoff
+        var deletedCount = await repo.DeleteOlderThanAsync(DateTime.UtcNow.AddDays(-30));
+        Assert.Equal(1, deletedCount);
+        Assert.Equal(5, await repo.GetCountAsync());
+
+        // Clean
+        foreach (var activity in (await repo.GetAll())!)
+        {
+            Assert.True(await repo.DeleteById(activity.Id));
+        }
+        Assert.False(await repo.DeleteById(-10));
+        Assert.Equal(0, await repo.GetCountAsync());
     }
 }
