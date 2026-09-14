@@ -16,7 +16,7 @@ public enum WHStatisticsPeriod
     Last30Days,
 
     /// <summary>
-    /// Every activity still retained in the activity log.
+    /// Every activity recorded in the activity log.
     /// </summary>
     AllTime
 }

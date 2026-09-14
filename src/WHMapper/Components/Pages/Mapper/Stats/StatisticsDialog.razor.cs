@@ -5,7 +5,6 @@ using WHMapper.Models.Db;
 using WHMapper.Models.DTO;
 using WHMapper.Models.DTO.Statistics;
 using WHMapper.Services.EveMapper;
-using WHMapper.Services.WHActivityLogs;
 using WHMapper.Services.WHStatistics;
 
 namespace WHMapper.Components.Pages.Mapper.Stats;
@@ -46,9 +45,6 @@ public partial class StatisticsDialog
     private IWHStatisticsService StatisticsService { get; set; } = null!;
 
     [Inject]
-    private IWHActivityLogService ActivityLogService { get; set; } = null!;
-
-    [Inject]
     private IEveMapperUserManagementService UserManagement { get; set; } = null!;
 
     [Inject]
@@ -85,10 +81,6 @@ public partial class StatisticsDialog
     /// Labels and series drawn on one chart.
     /// </summary>
     private sealed record ChartData(string[] Labels, List<ChartSeries<double>> Series);
-
-    private string RetentionCaption => ActivityLogService.RetentionDays > 0
-        ? $"History is kept for {ActivityLogService.RetentionDays} days."
-        : "History is kept indefinitely.";
 
     protected override async Task OnInitializedAsync()
     {

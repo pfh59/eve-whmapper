@@ -1619,11 +1619,6 @@ public class DbIntegrationTest
         var firstActivity = (await repo.GetAll())!.First();
         Assert.Null(await repo.Update(firstActivity.Id, firstActivity));
 
-        // Purge removes only activities older than the cutoff
-        var deletedCount = await repo.DeleteOlderThanAsync(DateTime.UtcNow.AddDays(-30));
-        Assert.Equal(1, deletedCount);
-        Assert.Equal(5, await repo.GetCountAsync());
-
         // Clean
         foreach (var activity in (await repo.GetAll())!)
         {

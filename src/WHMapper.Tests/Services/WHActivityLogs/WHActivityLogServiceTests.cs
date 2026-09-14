@@ -1,5 +1,3 @@
-using System.Globalization;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using WHMapper.Models.Db;
@@ -91,46 +89,11 @@ public class WHActivityLogServiceTests
         Assert.Equal(1, _storedActivities.Count(x => x.WHActivityTypeId == WHActivityTypeIds.SignatureUpdated));
     }
 
-    [Fact]
-    public void RetentionDays_WhenNotConfigured_IsDefault()
+    private WHActivityLogService CreateService()
     {
-        Assert.Equal(WHActivityLogService.DEFAULT_RETENTION_DAYS, CreateService().RetentionDays);
-    }
-
-    [Fact]
-    public async Task PurgeExpiredAsync_WhenRetentionIsZero_DeletesNothing()
-    {
-        int deletedCount = await CreateService(retentionDays: 0).PurgeExpiredAsync();
-
-        Assert.Equal(0, deletedCount);
-        _activityLogRepositoryMock.Verify(r => r.DeleteOlderThanAsync(It.IsAny<DateTime>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task PurgeExpiredAsync_WhenRetentionIsSet_DeletesOlderThanCutoff()
-    {
-        DateTime expectedCutoff = DateTime.UtcNow.AddDays(-90);
-        _activityLogRepositoryMock
-            .Setup(r => r.DeleteOlderThanAsync(It.Is<DateTime>(d => Math.Abs((d - expectedCutoff).TotalMinutes) < 1)))
-            .ReturnsAsync(4);
-
-        int deletedCount = await CreateService(retentionDays: 90).PurgeExpiredAsync();
-
-        Assert.Equal(4, deletedCount);
-    }
-
-    private WHActivityLogService CreateService(int? retentionDays = null)
-    {
-        var settings = new Dictionary<string, string?>();
-        if (retentionDays.HasValue)
-            settings[WHActivityLogService.RETENTION_DAYS_CONFIG_KEY] = retentionDays.Value.ToString(CultureInfo.InvariantCulture);
-
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
-
         return new WHActivityLogService(
             _activityLogRepositoryMock.Object,
             _mapRepositoryMock.Object,
-            configuration,
             NullLogger<WHActivityLogService>.Instance);
     }
 }

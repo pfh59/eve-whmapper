@@ -69,22 +69,6 @@ public class WHActivityLogRepository : ADefaultRepository<WHMapperContext, WHAct
         }
     }
 
-    public async Task<int> DeleteOlderThanAsync(DateTime cutoffUtc)
-    {
-        using (var context = await _contextFactory.CreateDbContextAsync())
-        {
-            try
-            {
-                return await context.DbWHActivityLogs.Where(x => x.ActivityDate < cutoffUtc).ExecuteDeleteAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Impossible to delete WHActivityLog older than : {CutoffUtc}", cutoffUtc);
-                return 0;
-            }
-        }
-    }
-
     protected override async Task<WHActivityLog?> ACreate(WHActivityLog item)
     {
         using (var context = await _contextFactory.CreateDbContextAsync())

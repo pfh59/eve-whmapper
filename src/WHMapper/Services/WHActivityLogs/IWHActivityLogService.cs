@@ -3,15 +3,10 @@ using WHMapper.Models.DTO.EveMapper;
 namespace WHMapper.Services.WHActivityLogs;
 
 /// <summary>
-/// Records activities performed by characters and applies the retention of the activity log.
+/// Records activities performed by characters in the activity log, which keeps them indefinitely.
 /// </summary>
 public interface IWHActivityLogService
 {
-    /// <summary>
-    /// Number of days an activity is kept before being purged; 0 or less keeps activities indefinitely.
-    /// </summary>
-    int RetentionDays { get; }
-
     /// <summary>
     /// Records one or more activities of the same activity type, performed by a character on a map.
     /// </summary>
@@ -34,10 +29,4 @@ public interface IWHActivityLogService
     /// <param name="mapId">Map of the scanned system.</param>
     /// <param name="importResult">Outcome of the import.</param>
     Task RecordSignatureImportAsync(int characterId, int mapId, WHSignatureImportResult importResult);
-
-    /// <summary>
-    /// Deletes activities older than <see cref="RetentionDays"/>.
-    /// </summary>
-    /// <returns>Number of deleted activities; 0 when retention is disabled.</returns>
-    Task<int> PurgeExpiredAsync();
 }
