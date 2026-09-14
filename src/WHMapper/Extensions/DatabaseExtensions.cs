@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using Microsoft.AspNetCore.DataProtection;
 using WHMapper.Data;
 using WHMapper.Services.Cache;
+using WHMapper.Services.WHActivityLogs;
 
 namespace WHMapper.Extensions;
 
