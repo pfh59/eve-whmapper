@@ -12,6 +12,7 @@ using WHMapper.Repositories.WHUserSettings;
 using WHMapper.Services.BrowserClientIdProvider;
 using WHMapper.Services.BrowserClientIdProvider.Extension;
 using WHMapper.Services.EveMapper;
+using WHMapper.Services.MapLayout;
 using WHMapper.Services.WHActivityLogs;
 using WHMapper.Services.WHColor;
 using WHMapper.Services.WHSignature;
@@ -56,6 +57,8 @@ public static class MapperServiceExtensions
         services.AddScoped<IEveMapperRealTimeService, EveMapperRealTimeService>();
         services.AddScoped<IPasteServices, PasteServices>();
         services.AddScoped<IWHUserSettingService, WHUserSettingService>();
+        services.AddScoped<IMapLayoutStorage, ProtectedLocalStorageMapLayoutStorage>();
+        services.AddScoped<IMapLayoutService, MapLayoutService>();
         services.AddScoped<IWHActivityLogService, WHActivityLogService>();
         services.AddScoped<IWHStatisticsService, WHStatisticsService>();
 

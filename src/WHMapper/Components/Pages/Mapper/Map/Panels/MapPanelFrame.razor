@@ -1,0 +1,29 @@
+@using WHMapper.Models.DTO.MapLayout
+
+<MudPaper Class="whm-panel" Elevation="8" Outlined="true" Width="@Width" Style="@PositionStyle"
+          @onpointerdown="@(() => OnActivated.InvokeAsync(PanelId))">
+    <MudToolBar Dense="true" Gutters="false" Class="whm-panel__titlebar px-1">
+        @* Buttons stay outside the swipe area so pressing them never starts a move. *@
+        <MudSwipeArea @ref="_swipeArea" Class="@DragAreaClass"
+                      OnSwipeMove="@OnSwipeMoveAsync"
+                      OnSwipeEnd="@(_ => EndMoveAsync())"
+                      OnSwipeCancel="@(_ => EndMoveAsync())"
+                      OnSwipeLeave="@(_ => EndMoveAsync())">
+            <MudIcon Icon="@Icon" Size="Size.Small" Class="mr-1" />
+            <MudText Typo="Typo.subtitle2">@Title</MudText>
+        </MudSwipeArea>
+        <MudTooltip Text="@(IsCollapsed ? "Expand" : "Collapse")">
+            <MudIconButton Size="Size.Small"
+                           Icon="@(IsCollapsed ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ExpandLess)"
+                           OnClick="@(() => OnToggleCollapse.InvokeAsync(PanelId))" />
+        </MudTooltip>
+        <MudTooltip Text="Close">
+            <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Close"
+                           OnClick="@(() => OnClose.InvokeAsync(PanelId))" />
+        </MudTooltip>
+    </MudToolBar>
+
+    <MudCollapse Expanded="@(!IsCollapsed)">
+        @ChildContent
+    </MudCollapse>
+</MudPaper>

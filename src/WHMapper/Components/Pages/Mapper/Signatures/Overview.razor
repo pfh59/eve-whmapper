@@ -1,7 +1,6 @@
 @using WHMapper.Models.DTO.EveMapper;
 @using WHMapper.Models.DTO.EveMapper.Enums
 
-<MudPaper hidden="@(CurrentSystemNodeId == null)" Outlined="true" Class="d-flex align-stretch">
 <MudTable T="WHMapper.Models.Db.WHSignature" @ref="_signatureTable" Outlined="true" Items="@Signatures" Breakpoint="Breakpoint.Xs" Height="325px"
         Dense=true Hover=false Bordered=true Striped=true AllowUnsorted=false SortLabel="Sort By"  Virtualize="true" 
         Loading="@(Signatures==null)" LoadingProgressColor="Color.Info"
@@ -108,5 +107,4 @@
         <MudTd DataLabel="Updated by" Style="text-align:center;text-overflow: ellipsis;">@context.UpdatedBy</MudTd>
     </RowEditingTemplate>
 </MudTable>
-</MudPaper>
 

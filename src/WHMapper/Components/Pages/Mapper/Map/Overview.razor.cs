@@ -38,6 +38,13 @@ public partial class Overview : IAsyncDisposable
 
     private bool _loading = true;
 
+    /// <summary>
+    /// Primary account id, resolved once during initialization.
+    /// Bound by the render path, which must never block on <see cref="GetPrimaryAccountAsync"/>.
+    /// </summary>
+    private int? _primaryUserId = null;
+
+
     private EveSystemNodeModel? _selectedSystemNode = null;
     private EveSystemNodeModel? SelectedSystemNode
     {
@@ -129,6 +136,7 @@ public partial class Overview : IAsyncDisposable
 
     [Inject]
     IWHNoteRepository DbNotes { get; set; } = null!;
+
     #endregion
 
     [Parameter]
@@ -195,6 +203,7 @@ public partial class Overview : IAsyncDisposable
         }
 
         var primaryAccount = await GetPrimaryAccountAsync();
+        _primaryUserId = primaryAccount?.Id;
         _userSettings = await UserSettingService.GetSettingsAsync(primaryAccount?.Id ?? 0);
         ApplyUserSettingsToDiagram();
         UserSettingService.OnSettingsChanged += OnUserSettingsChangedAsync;

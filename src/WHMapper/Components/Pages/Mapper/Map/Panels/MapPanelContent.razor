@@ -1,0 +1,36 @@
+@using Blazor.Diagrams.Core.Layers
+@using WHMapper.Models.Custom.Node
+@using WHMapper.Models.DTO.MapLayout
+
+@* Guards mirror the overlay applicability rules and satisfy the non-nullable panel parameters. *@
+@{
+    var node = SelectedSystemNode;
+    var link = SelectedSystemLink;
+}
+
+@switch (PanelId)
+{
+    case MapPanelId.SystemInfos:
+        <WHMapper.Components.Pages.Mapper.SystemInfos.Overview CurrentMapId="@MapId" CurrentSystemNode="@node" />
+        break;
+
+    case MapPanelId.Notes when node is not null:
+        <WHMapper.Components.Pages.Mapper.Notes.Overview CurrentMapId="@MapId" CurrentSystemNode="@node" />
+        break;
+
+    case MapPanelId.Signatures:
+        <WHMapper.Components.Pages.Mapper.Signatures.Overview CurrentMapId="@MapId"
+                                                             CurrentSystemNodeId="@node?.IdWH"
+                                                             CurrentPrimaryUserId="@PrimaryUserId" />
+        break;
+
+    case MapPanelId.RoutePlanner when node is not null && Links is not null:
+        <WHMapper.Components.Pages.Mapper.RoutePlanner.Overview CurrentMapId="@MapId"
+                                                               CurrentSystemNode="@node"
+                                                               CurrentLinks="@Links" />
+        break;
+
+    case MapPanelId.LinkInfos when link is not null:
+        <WHMapper.Components.Pages.Mapper.LinkInfos.Overview CurrentSystemLink="@link" />
+        break;
+}
