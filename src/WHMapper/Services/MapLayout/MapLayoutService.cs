@@ -60,7 +60,11 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
             if (!Enum.TryParse<MapPanelId>(storedPanel.PanelId, ignoreCase: true, out var panelId)
                 || panels.FirstOrDefault(p => p.Id == panelId) is not { } panel)
             {
-                _logger.LogDebug("Ignoring unknown stored panel {PanelId}", storedPanel.PanelId);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Ignoring unknown stored panel {PanelId}", storedPanel.PanelId);
+                }
+
                 continue;
             }
 
@@ -141,12 +145,12 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
 
         _pendingSaves.AddOrUpdate(
             mapId,
-            _ => StartSave(mapId, snapshot),
-            (_, existing) =>
+            key => StartSave(key, snapshot),
+            (key, existing) =>
             {
                 existing.Cancellation.Cancel();
                 existing.Cancellation.Dispose();
-                return StartSave(mapId, snapshot);
+                return StartSave(key, snapshot);
             });
 
         return Task.CompletedTask;
@@ -168,7 +172,7 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
     {
         if (_pendingSaves.TryRemove(mapId, out var pending))
         {
-            pending.Cancellation.Cancel();
+            await pending.Cancellation.CancelAsync();
             pending.Cancellation.Dispose();
         }
 
@@ -180,10 +184,10 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
     public ValueTask DisposeAsync()
     {
         // No final flush: the circuit is usually gone by now and ProtectedLocalStorage would throw.
-        foreach (var pending in _pendingSaves.Values)
+        foreach (var cancellation in _pendingSaves.Values.Select(pending => pending.Cancellation))
         {
-            pending.Cancellation.Cancel();
-            pending.Cancellation.Dispose();
+            cancellation.Cancel();
+            cancellation.Dispose();
         }
 
         _pendingSaves.Clear();

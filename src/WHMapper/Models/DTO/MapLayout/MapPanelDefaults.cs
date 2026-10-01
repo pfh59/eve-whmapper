@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace WHMapper.Models.DTO.MapLayout;
 
 /// <summary>
@@ -20,24 +22,24 @@ public static class MapPanelDefaults
     private const double DEFAULT_HEIGHT = 200;
 
     /// <summary>Widths sized so the content needs no horizontal scrollbar.</summary>
-    private static readonly IReadOnlyDictionary<MapPanelId, double> WIDTHS = new Dictionary<MapPanelId, double>
+    private static readonly FrozenDictionary<MapPanelId, double> WIDTHS = new Dictionary<MapPanelId, double>
     {
         [MapPanelId.SystemInfos] = 320,
         [MapPanelId.Notes] = 320,
         [MapPanelId.Signatures] = 1060,
         [MapPanelId.RoutePlanner] = 340,
         [MapPanelId.LinkInfos] = 780
-    };
+    }.ToFrozenDictionary();
 
     /// <summary>Approximate rendered heights, only used to anchor default positions to the bottom edge.</summary>
-    private static readonly IReadOnlyDictionary<MapPanelId, double> NOMINAL_HEIGHTS = new Dictionary<MapPanelId, double>
+    private static readonly FrozenDictionary<MapPanelId, double> NOMINAL_HEIGHTS = new Dictionary<MapPanelId, double>
     {
         [MapPanelId.SystemInfos] = 260,
         [MapPanelId.Notes] = 140,
         [MapPanelId.Signatures] = 370,
         [MapPanelId.RoutePlanner] = 370,
         [MapPanelId.LinkInfos] = 370
-    };
+    }.ToFrozenDictionary();
 
     /// <summary>
     /// Gets the width of a panel, in pixels.

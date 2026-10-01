@@ -1,4 +1,5 @@
 using AutoFixture.Xunit2;
+using Microsoft.Extensions.Logging;
 using Moq;
 using WHMapper.Models.DTO.MapLayout;
 using WHMapper.Services.MapLayout;
@@ -187,12 +188,24 @@ public class MapLayoutServiceTests
     }
 
     [Theory, AutoMoqData]
-    public void Merge_IgnoresUnknownPanelId(MapLayoutService sut)
+    public void Merge_IgnoresUnknownPanelId(
+        [Frozen] Mock<ILogger<MapLayoutService>> loggerMock,
+        MapLayoutService sut)
     {
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Debug)).Returns(true);
+
         var merged = Merge(sut, new MapPanelLayoutDto("SomeRemovedPanel", 0, 0, false, false));
 
         Assert.Equal(Enum.GetValues<MapPanelId>().Length, merged.Count);
         Assert.All(merged, panel => Assert.True(panel.IsUserVisible));
+        loggerMock.Verify(
+            l => l.Log(
+                LogLevel.Debug,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Theory, AutoMoqData]

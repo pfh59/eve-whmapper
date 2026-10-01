@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using Moq;
 using WHMapper.Models.DTO.MapLayout;
 using WHMapper.Services.MapLayout;
 
@@ -12,14 +13,15 @@ public class ProtectedLocalStorageMapLayoutStorageTests
     private const int MAP_ID = 42;
 
     private readonly FakeLocalStorageJsRuntime _jsRuntime = new();
+    private readonly Mock<ILogger<ProtectedLocalStorageMapLayoutStorage>> _loggerMock = new();
     private readonly ProtectedLocalStorage _protectedLocalStorage;
     private readonly ProtectedLocalStorageMapLayoutStorage _sut;
 
     public ProtectedLocalStorageMapLayoutStorageTests()
     {
+        _loggerMock.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _protectedLocalStorage = new ProtectedLocalStorage(_jsRuntime, new EphemeralDataProtectionProvider());
-        _sut = new ProtectedLocalStorageMapLayoutStorage(
-            _protectedLocalStorage, NullLogger<ProtectedLocalStorageMapLayoutStorage>.Instance);
+        _sut = new ProtectedLocalStorageMapLayoutStorage(_protectedLocalStorage, _loggerMock.Object);
     }
 
     private static MapLayoutDto Layout() =>
@@ -97,6 +99,15 @@ public class ProtectedLocalStorageMapLayoutStorageTests
         Assert.Null(await _sut.GetAsync(MAP_ID));
         await _sut.SetAsync(MAP_ID, Layout());
         await _sut.RemoveAsync(MAP_ID);
+
+        _loggerMock.Verify(
+            l => l.Log(
+                LogLevel.Debug,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<JSDisconnectedException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Exactly(3));
     }
 
     /// <summary>In-memory stand-in for the browser's <c>localStorage</c>.</summary>

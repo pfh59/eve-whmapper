@@ -51,7 +51,10 @@ public sealed class ProtectedLocalStorageMapLayoutStorage : IMapLayoutStorage
         }
         catch (JSDisconnectedException ex)
         {
-            _logger.LogDebug(ex, "Circuit disconnected while reading the layout of map {MapId}", mapId);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(ex, "Circuit disconnected while reading the layout of map {MapId}", mapId);
+            }
         }
 
         return null;
@@ -66,7 +69,10 @@ public sealed class ProtectedLocalStorageMapLayoutStorage : IMapLayoutStorage
         }
         catch (JSDisconnectedException ex)
         {
-            _logger.LogDebug(ex, "Circuit disconnected while saving the layout of map {MapId}", mapId);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(ex, "Circuit disconnected while saving the layout of map {MapId}", mapId);
+            }
         }
     }
 
@@ -79,7 +85,10 @@ public sealed class ProtectedLocalStorageMapLayoutStorage : IMapLayoutStorage
         }
         catch (JSDisconnectedException ex)
         {
-            _logger.LogDebug(ex, "Circuit disconnected while removing the layout of map {MapId}", mapId);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(ex, "Circuit disconnected while removing the layout of map {MapId}", mapId);
+            }
         }
     }
 

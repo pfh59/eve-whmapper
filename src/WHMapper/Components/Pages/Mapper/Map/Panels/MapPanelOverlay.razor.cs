@@ -83,8 +83,11 @@ public partial class MapPanelOverlay : IAsyncDisposable
     }
 
     /// <inheritdoc />
-    public async ValueTask DisposeAsync() =>
+    public async ValueTask DisposeAsync()
+    {
         await BrowserViewportService.UnsubscribeAsync(_viewportObserverId);
+        GC.SuppressFinalize(this);
+    }
 
     private void UpdateContainerSize(BrowserWindowSize? windowSize)
     {
