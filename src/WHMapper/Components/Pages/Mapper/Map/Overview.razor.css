@@ -1,0 +1,68 @@
+/* ---------- layering ---------- */
+.whm-map-root {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    /* Dragging on the map or a panel must not highlight text; Safari still needs the prefix. */
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.whm-map-root ::deep :is(input, textarea) {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.whm-map-canvas-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+/* ---------- panel overlay ---------- */
+/* ::deep because these classes sit on MudBlazor components, which never get this file's scope attribute. */
+
+/* Click-through: only the dock and the panels take pointer events, the map gets the rest. */
+.whm-map-root ::deep .whm-map-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1; /* below the MudBlazor popover band */
+    background-color: transparent;
+    pointer-events: none;
+}
+
+.whm-map-root ::deep .whm-panel-dock {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 1000; /* above every panel (<= 999) */
+    pointer-events: auto;
+}
+
+.whm-map-root ::deep .whm-panel {
+    pointer-events: auto;
+}
+
+.whm-map-root ::deep .whm-panel__titlebar {
+    background-color: var(--mud-palette-background-gray);
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+.whm-map-root ::deep .whm-panel__drag {
+    flex: 1 1 auto;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    cursor: grab;
+    touch-action: none; /* otherwise touch devices turn the drag into a scroll */
+}
+
+/* MudSwipeArea has no pointer capture: while moving, a viewport-wide layer of the area keeps
+   receiving the pointer when it outruns the title bar. */
+.whm-map-root ::deep .whm-panel__drag--moving::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    cursor: grabbing;
+}

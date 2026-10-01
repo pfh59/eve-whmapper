@@ -36,8 +36,30 @@ public partial class Overview
         private string LastJumpLogShipName { get; set; } = string.Empty;
         private DateTime? LastJumpLogDate { get; set; } = null;
 
+        private const string NO_SHIP_USED_LABEL = "No ship used";
+
+        /// <summary>Keeps date and time columns on one line.</summary>
+        private const string NO_WRAP_STYLE = "white-space: nowrap;";
+
+        /// <summary>Caps character and ship names (up to 37 chars in EVE) so the panel never scrolls horizontally.</summary>
+        private const string TRUNCATED_NAME_STYLE = "max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
+
         private bool _isLoading = true;
         private bool _showing = false;
+
+        /// <summary>
+        /// Character names of the whole jump history, resolved once per restore.
+        /// </summary>
+        /// <remarks>
+        /// The jump log table is virtualized: resolving names from the row template would block a
+        /// thread-pool thread per visible row, on every render.
+        /// </remarks>
+        private IReadOnlyDictionary<int, string> _characterNames = new Dictionary<int, string>();
+
+        /// <summary>
+        /// Ship names of the whole jump history, resolved once per restore.
+        /// </summary>
+        private IReadOnlyDictionary<int, string> _shipNames = new Dictionary<int, string>();
 
         override protected Task OnParametersSetAsync()
         {
@@ -57,7 +79,9 @@ public partial class Overview
                         LastJumpLogCharacterName = string.Empty;
                         LastJumpLogShipName = string.Empty;
                         LastJumpLogDate = null;
-                
+                        _characterNames = new Dictionary<int, string>();
+                        _shipNames = new Dictionary<int, string>();
+
                         if (CurrentSystemLink != null)
                         {
                                 SystemLink = await DbSystemLink.GetById(CurrentSystemLink.Id);
@@ -65,22 +89,24 @@ public partial class Overview
                                 {
                                         var JumpHistory = SystemLink.JumpHistory.OrderBy(x => x.JumpDate).ToList();
 
+                                        await ResolveJumpLogNamesAsync(JumpHistory);
+
                                         var firstJump = JumpHistory.FirstOrDefault();
                                         if(firstJump!=null)
                                         {
                                                 _showing=true;
-                                                FirstJumpLogCharacterName = await GetJumpLogCharacterName(firstJump);
+                                                FirstJumpLogCharacterName = GetJumpLogCharacterName(firstJump);
                                                 FirstJumpLogDate = firstJump.JumpDate;
-                                                FirstJumpLogShipName = await GetJumpLogShipName(firstJump);
+                                                FirstJumpLogShipName = GetJumpLogShipName(firstJump);
                                         }
 
                                         var lastJump = JumpHistory.LastOrDefault();
                                         if(lastJump!=null)
-                                        {      
+                                        {
                                                 _showing=true;
-                                                LastJumpLogCharacterName = await GetJumpLogCharacterName(lastJump);
+                                                LastJumpLogCharacterName = GetJumpLogCharacterName(lastJump);
                                                 LastJumpLogDate = lastJump.JumpDate;
-                                                LastJumpLogShipName = await GetJumpLogShipName(lastJump);
+                                                LastJumpLogShipName = GetJumpLogShipName(lastJump);
 
                                         }
                                 }
@@ -99,48 +125,47 @@ public partial class Overview
                 }
         }
 
-        private async Task<string> GetJumpLogCharacterName(WHJumpLog jumplog)
+        /// <summary>
+        /// Resolves every distinct character and ship of the jump history in one pass.
+        /// </summary>
+        private async Task ResolveJumpLogNamesAsync(IReadOnlyCollection<WHJumpLog> jumpHistory)
         {
-                if (jumplog == null)
-                {
-                        Logger.LogError("Jumplog is null");
-                        return string.Empty;
-                }
+                var characterIds = jumpHistory.Select(x => x.CharacterId).Distinct().ToList();
+                var shipTypeIds = jumpHistory
+                        .Where(x => x.ShipTypeId.HasValue)
+                        .Select(x => x.ShipTypeId!.Value)
+                        .Distinct()
+                        .ToList();
 
-                var character = await EveMapperEntity.GetCharacter(jumplog.CharacterId);
+                var characters = await Task.WhenAll(characterIds.Select(EveMapperEntity.GetCharacter));
+                var ships = await Task.WhenAll(shipTypeIds.Select(EveMapperEntity.GetShip));
 
-                if (character == null)
-                {
-                        Logger.LogError("Character is null");
-                        return string.Empty;
-                }
+                _characterNames = characterIds
+                        .Zip(characters, (id, character) => (Id: id, character?.Name))
+                        .Where(entry => !string.IsNullOrEmpty(entry.Name))
+                        .ToDictionary(entry => entry.Id, entry => entry.Name!);
 
-                return character.Name;
+                _shipNames = shipTypeIds
+                        .Zip(ships, (id, ship) => (Id: id, ship?.Name))
+                        .Where(entry => !string.IsNullOrEmpty(entry.Name))
+                        .ToDictionary(entry => entry.Id, entry => entry.Name!);
         }
 
-        private async Task<string> GetJumpLogShipName(WHJumpLog jumplog)
-        {
-                if (jumplog == null)
-                {
-                        Logger.LogError("Jumplog is null");
-                        return string.Empty;
-                }
+        /// <summary>
+        /// Gets the character name of a jump from the pre-resolved cache.
+        /// </summary>
+        /// <returns>Empty when the character could not be resolved.</returns>
+        private string GetJumpLogCharacterName(WHJumpLog jumplog) =>
+                _characterNames.GetValueOrDefault(jumplog.CharacterId, string.Empty);
 
-                if(jumplog.ShipTypeId==null)
-                {
-                        return "No ship used";
-                }
-
-                var shipInfos = await EveMapperEntity.GetShip(jumplog.ShipTypeId.Value);
-
-                if (shipInfos == null)
-                {
-                        Logger.LogError("Ship is null");
-                        return string.Empty;
-                }
-
-                return shipInfos.Name;
-        }
+        /// <summary>
+        /// Gets the ship name of a jump from the pre-resolved cache.
+        /// </summary>
+        /// <returns>A "no ship" label when the jump carries no ship, empty when it is unresolved.</returns>
+        private string GetJumpLogShipName(WHJumpLog jumplog) =>
+                jumplog.ShipTypeId is null
+                        ? NO_SHIP_USED_LABEL
+                        : _shipNames.GetValueOrDefault(jumplog.ShipTypeId.Value, string.Empty);
 
         private static string GetEOLStatusLabel(SystemLinkEolStatus status)
         {

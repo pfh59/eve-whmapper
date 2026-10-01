@@ -2,7 +2,7 @@
 @using WHMapper.Models.DTO.EveAPI.Route.Enums;
 
 
-<MudPaper Class="d-flex flex-column pa-2" hidden="@(CurrentSystemNode == null)" Outlined="true" MinWidth="300px" Height="325px">
+<MudPaper Class="d-flex flex-column pa-2" Elevation="0" Height="325px">
     <MudRadioGroup Class="flex-none d-flex" @bind-Value="SelectedRoutePlannerTab">
         <MudRadio Class="ma-0"  Value="0" Color="Color.Primary" Size="Size.Small">Custom</MudRadio>
         <MudRadio Class="ma-0"  Value="1" Color="Color.Secondary" Size="Size.Small">Thera</MudRadio>
@@ -154,5 +154,5 @@
             }
         }
         </MudPaper>
-    }        
+    }
 </MudPaper>

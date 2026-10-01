@@ -1,0 +1,26 @@
+@using WHMapper.Models.DTO.MapLayout
+
+<MudPaper Class="whm-panel-dock" Elevation="4" Outlined="true">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="pa-1">
+        @foreach (var panel in Panels)
+        {
+            var applicable = IsApplicable(panel.Id);
+            <MudTooltip Text="@BuildTooltip(panel, applicable)">
+                <MudIconButton Size="Size.Small"
+                               Icon="@MapPanelPresentation.GetIcon(panel.Id)"
+                               Color="@(panel.IsUserVisible ? Color.Primary : Color.Default)"
+                               Disabled="@(!applicable)"
+                               OnClick="@(() => OnToggle.InvokeAsync(panel.Id))" />
+            </MudTooltip>
+        }
+
+        @if (Panels.Count > 0)
+        {
+            <MudDivider Vertical="true" FlexItem="true" Class="mx-1" />
+            <MudTooltip Text="Reset panel layout">
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.RestartAlt"
+                               OnClick="@(() => OnResetLayout.InvokeAsync())" />
+            </MudTooltip>
+        }
+    </MudStack>
+</MudPaper>

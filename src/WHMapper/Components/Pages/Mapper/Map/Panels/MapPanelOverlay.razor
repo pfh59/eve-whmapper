@@ -1,0 +1,23 @@
+@using WHMapper.Models.DTO.MapLayout
+
+<MudPaper Class="whm-map-overlay" Elevation="0" Square="true">
+    <MapPanelDock Panels="@_panels" IsApplicable="@IsPanelApplicable"
+                  OnToggle="@TogglePanelVisibilityAsync" OnResetLayout="@ResetLayoutAsync" />
+
+    @foreach (var panel in VisiblePanels)
+    {
+        <MapPanelFrame @key="panel.Id" PanelId="@panel.Id" X="@panel.X" Y="@panel.Y"
+                       ZOrder="@panel.ZOrder" IsCollapsed="@panel.IsCollapsed"
+                       OnClose="@ClosePanelAsync"
+                       OnToggleCollapse="@ToggleCollapseAsync"
+                       OnActivated="@BringPanelToFront"
+                       OnMove="@MovePanel"
+                       OnMoveEnded="@PersistLayoutAsync">
+            <MapPanelContent PanelId="@panel.Id" MapId="@MapId"
+                             SelectedSystemNode="@SelectedSystemNode"
+                             SelectedSystemLink="@SelectedSystemLink"
+                             PrimaryUserId="@PrimaryUserId"
+                             Links="@Links" />
+        </MapPanelFrame>
+    }
+</MudPaper>

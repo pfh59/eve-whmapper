@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveMapper.Enums;
-using WHMapper.Repositories.WHNotes;
 using WHMapper.Services.WHColor;
 
 
@@ -29,9 +28,6 @@ public partial class Overview : ComponentBase
     private string _linkToAnoik = string.Empty;
     private string _systemType = string.Empty;
     private float _secStatus = 0;
-
-    [Inject]
-    private IWHNoteRepository DbWHNotes { get; set; } = null!;
 
     [Inject]
     private IWHColorHelper WHColorHelper { get; set; } = null!;
