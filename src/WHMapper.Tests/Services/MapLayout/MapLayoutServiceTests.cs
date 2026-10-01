@@ -198,14 +198,7 @@ public class MapLayoutServiceTests
 
         Assert.Equal(Enum.GetValues<MapPanelId>().Length, merged.Count);
         Assert.All(merged, panel => Assert.True(panel.IsUserVisible));
-        loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Debug,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception?>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        loggerMock.VerifyLog(LogLevel.Debug, Times.Once());
     }
 
     [Theory, AutoMoqData]

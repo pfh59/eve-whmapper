@@ -100,14 +100,7 @@ public class ProtectedLocalStorageMapLayoutStorageTests
         await _sut.SetAsync(MAP_ID, Layout());
         await _sut.RemoveAsync(MAP_ID);
 
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Debug,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<JSDisconnectedException>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Exactly(3));
+        _loggerMock.VerifyLog(LogLevel.Debug, Times.Exactly(3));
     }
 
     /// <summary>In-memory stand-in for the browser's <c>localStorage</c>.</summary>
