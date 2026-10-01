@@ -230,6 +230,28 @@ public class MapLayoutServiceTests
     }
 
     [Theory, AutoMoqData]
+    public void BringToFront_WhenPanelIsAlreadyOnTop_KeepsZOrders(MapLayoutService sut)
+    {
+        var panels = sut.BringToFront(Defaults(sut), MapPanelId.Notes);
+        var zOrders = panels.Select(p => p.ZOrder).ToList();
+
+        var result = sut.BringToFront(panels, MapPanelId.Notes);
+
+        Assert.Equal(zOrders, result.Select(p => p.ZOrder));
+    }
+
+    [Theory, AutoMoqData]
+    public void BringToFront_WhenPanelIsMissing_KeepsZOrders(MapLayoutService sut)
+    {
+        var panels = Defaults(sut).Where(p => p.Id != MapPanelId.Notes).ToList();
+        var zOrders = panels.Select(p => p.ZOrder).ToList();
+
+        var result = sut.BringToFront(panels, MapPanelId.Notes);
+
+        Assert.Equal(zOrders, result.Select(p => p.ZOrder));
+    }
+
+    [Theory, AutoMoqData]
     public void Close_HidesOnlyTheTargetedPanel(MapLayoutService sut)
     {
         var result = sut.Close(Defaults(sut), MapPanelId.Notes);
@@ -338,6 +360,21 @@ public class MapLayoutServiceTests
         await sut.ScheduleSaveAsync(MAP_ID, Defaults(sut));
         await sut.ResetAsync(MAP_ID, CONTAINER_WIDTH, CONTAINER_HEIGHT);
         await sut.FlushAsync(MAP_ID);
+
+        storageMock.Verify(s => s.SetAsync(It.IsAny<int>(), It.IsAny<MapLayoutDto>()), Times.Never);
+    }
+
+    [Theory, AutoMoqData]
+    public async Task DisposeAsync_CancelsPendingSaves(
+        [Frozen] Mock<IMapLayoutStorage> storageMock,
+        MapLayoutService sut)
+    {
+        await sut.ScheduleSaveAsync(MAP_ID, Defaults(sut));
+        await sut.ScheduleSaveAsync(MAP_ID + 1, Defaults(sut));
+
+        await sut.DisposeAsync();
+        // Outlast the debounce so a save that survived the dispose would have been written.
+        await Task.Delay(MapLayoutService.LAYOUT_SAVE_DEBOUNCE_MS * 2);
 
         storageMock.Verify(s => s.SetAsync(It.IsAny<int>(), It.IsAny<MapLayoutDto>()), Times.Never);
     }
