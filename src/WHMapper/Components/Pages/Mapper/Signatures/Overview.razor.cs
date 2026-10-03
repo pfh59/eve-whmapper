@@ -65,9 +65,11 @@ public partial class Overview : ComponentBase,IDisposable
 
     private bool _isEditingSignature = false;
 
-    private CancellationTokenSource _cts = new();
+    private readonly CancellationTokenSource _cts = new();
     private DateTime _currentDateTime;
     private bool _disposed = false;
+    private int? _loadedSystemNodeId;
+    private bool _timerStarted;
 
     private MudTable<WHSignature> _signatureTable { get; set; } =null!;
 
@@ -82,22 +84,22 @@ public partial class Overview : ComponentBase,IDisposable
             PasteServices.Pasted += OnPaste;
     }
 
-    protected override Task OnParametersSetAsync()
-    {   
+    protected override async Task OnParametersSetAsync()
+    {
+        // Parent re-renders re-set parameters; only a node change needs a reload.
+        if (CurrentSystemNodeId == null || CurrentSystemNodeId == _loadedSystemNodeId)
+            return;
+
+        _loadedSystemNodeId = CurrentSystemNodeId;
         _isEditingSignature = false;
 
-
-        if(CurrentSystemNodeId != null)
+        if (!_timerStarted)
         {
-            if (_cts.IsCancellationRequested)
-            {
-                _cts.Dispose();
-                _cts = new CancellationTokenSource();
-            }
-            Task.WhenAll(Task.Run(() => Restore(), _cts.Token), Task.Run(() => HandleTimerAsync(_cts.Token), _cts.Token), Task.Run(() => LoadCurrentUserNameAsync(), _cts.Token));
+            _timerStarted = true;
+            _ = Task.Run(() => HandleTimerAsync(_cts.Token), _cts.Token);
         }
 
-        return base.OnParametersSetAsync();
+        await Task.WhenAll(Restore(), LoadCurrentUserNameAsync());
     }
     private async Task LoadCurrentUserNameAsync()
     {
@@ -234,6 +236,10 @@ public partial class Overview : ComponentBase,IDisposable
         {
             Signatures = new List<WHSignature>();
         }
+
+        // Callers outside the lifecycle (realtime, paste, dialogs) need an explicit render.
+        if (!_disposed)
+            await InvokeAsync(StateHasChanged);
     }
     protected async Task DeleteSignature(int id)
     {
