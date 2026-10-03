@@ -2,7 +2,7 @@
 @using WHMapper.Models.Custom.Node
 @using WHMapper.Models.DTO.MapLayout
 
-@* Guards mirror the overlay applicability rules and satisfy the non-nullable panel parameters. *@
+@* Node panels show a hint until a system has been selected; guards also satisfy the non-nullable panel parameters. *@
 @{
     var node = SelectedSystemNode;
     var link = SelectedSystemLink;
@@ -10,6 +10,10 @@
 
 @switch (PanelId)
 {
+    case not MapPanelId.LinkInfos when node is null:
+        <MudText Typo="Typo.body2" Class="pa-3">@MapPanelPresentation.GetUnavailableHint(PanelId)</MudText>
+        break;
+
     case MapPanelId.SystemInfos:
         <WHMapper.Components.Pages.Mapper.SystemInfos.Overview CurrentMapId="@MapId" CurrentSystemNode="@node" />
         break;

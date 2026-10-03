@@ -6,7 +6,8 @@
 
     @foreach (var panel in VisiblePanels)
     {
-        <MapPanelFrame @key="panel.Id" PanelId="@panel.Id" X="@panel.X" Y="@panel.Y"
+        <MapPanelFrame @key="panel.Id" PanelId="@panel.Id" Subtitle="@GetSubtitle(panel.Id)"
+                       IsMasked="@IsMasked(panel.Id)" X="@panel.X" Y="@panel.Y"
                        ZOrder="@panel.ZOrder" IsCollapsed="@panel.IsCollapsed"
                        OnClose="@ClosePanelAsync"
                        OnToggleCollapse="@ToggleCollapseAsync"
@@ -14,8 +15,8 @@
                        OnMove="@MovePanel"
                        OnMoveEnded="@PersistLayoutAsync">
             <MapPanelContent PanelId="@panel.Id" MapId="@MapId"
-                             SelectedSystemNode="@SelectedSystemNode"
-                             SelectedSystemLink="@SelectedSystemLink"
+                             SelectedSystemNode="@DisplayedNode"
+                             SelectedSystemLink="@DisplayedLink"
                              PrimaryUserId="@PrimaryUserId"
                              Links="@Links" />
         </MapPanelFrame>

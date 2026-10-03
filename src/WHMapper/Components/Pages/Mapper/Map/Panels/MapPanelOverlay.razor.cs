@@ -49,17 +49,67 @@ public partial class MapPanelOverlay : IAsyncDisposable
     private double _containerWidth = MapPanelDefaults.FALLBACK_CONTAINER_WIDTH;
     private double _containerHeight = MapPanelDefaults.FALLBACK_CONTAINER_HEIGHT;
 
+    private EveSystemNodeModel? _lastSelectedNode;
+    private EveSystemLinkModel? _lastSelectedLink;
+    private bool _lastSelectionIsLink;
+    private int? _lastSelectedNodeMapId;
+
     private IEnumerable<MapPanelLayout> VisiblePanels =>
         _panels.Where(panel => panel.IsUserVisible && IsPanelApplicable(panel.Id));
 
+    /// <summary>System shown by the node panels: the selection, else the last selected one.</summary>
+    private EveSystemNodeModel? DisplayedNode => SelectedSystemNode ?? _lastSelectedNode;
+
+    /// <summary>Connection shown by the link panel: the selection, else the last selected one.</summary>
+    private EveSystemLinkModel? DisplayedLink => SelectedSystemLink ?? _lastSelectedLink;
+
+    /// <summary>Whether a panel shows a remembered item that is no longer selected.</summary>
+    private bool IsMasked(MapPanelId panelId) => panelId == MapPanelId.LinkInfos
+        ? SelectedSystemLink is null
+        : SelectedSystemNode is null;
+
+    /// <summary>Whether the link panel replaces the node panels: a link is selected, or was the last selection.</summary>
+    private bool IsLinkMode => SelectedSystemLink is not null
+        || (SelectedSystemNode is null && _lastSelectionIsLink && _lastSelectedLink is not null);
+
     /// <summary>
-    /// Tells whether a panel is relevant to the current selection, independently of its user visibility.
+    /// Tells whether a panel has something to show, independently of its user visibility.
+    /// Either the connection panel or the node panels are shown, following the last selection;
+    /// nothing is shown before a first selection.
     /// </summary>
     private bool IsPanelApplicable(MapPanelId panelId) => panelId switch
     {
-        MapPanelId.LinkInfos => SelectedSystemLink is not null,
-        _ => SelectedSystemNode is not null
+        MapPanelId.LinkInfos => IsLinkMode,
+        _ => !IsLinkMode && DisplayedNode is not null
     };
+
+    private string? GetSubtitle(MapPanelId panelId) =>
+        panelId == MapPanelId.LinkInfos ? null : DisplayedNode?.Name;
+
+    protected override void OnParametersSet()
+    {
+        // The remembered system and link belong to one map.
+        if (_lastSelectedNodeMapId != MapId)
+        {
+            _lastSelectedNodeMapId = MapId;
+            _lastSelectedNode = null;
+            _lastSelectedLink = null;
+            _lastSelectionIsLink = false;
+        }
+
+        if (SelectedSystemNode is not null)
+        {
+            _lastSelectedNode = SelectedSystemNode;
+            _lastSelectionIsLink = false;
+        }
+
+        // A link wins when both are set: it is the only panel shown then.
+        if (SelectedSystemLink is not null)
+        {
+            _lastSelectedLink = SelectedSystemLink;
+            _lastSelectionIsLink = true;
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

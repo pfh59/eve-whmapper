@@ -44,6 +44,22 @@
     pointer-events: auto;
 }
 
+.whm-map-root ::deep .whm-panel__body {
+    position: relative; /* anchors the mask */
+}
+
+.whm-map-root ::deep .whm-panel__mask {
+    /* Softly veils the stale content and swallows pointer events. */
+    background-color: color-mix(in srgb, var(--mud-palette-surface) 55%, transparent);
+    backdrop-filter: grayscale(1) blur(1px);
+    animation: whm-panel-mask-in 0.25s ease-out;
+}
+
+@keyframes whm-panel-mask-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .whm-map-root ::deep .whm-panel__titlebar {
     background-color: var(--mud-palette-background-gray);
     border-bottom: 1px solid var(--mud-palette-lines-default);

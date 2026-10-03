@@ -24,6 +24,9 @@
     </MudToolBar>
 
     <MudCollapse Expanded="@(!IsCollapsed)">
-        @ChildContent
+        <div class="whm-panel__body">
+            @ChildContent
+            <MudOverlay Visible="@IsMasked" Absolute="true" DarkBackground="false" Class="whm-panel__mask" />
+        </div>
     </MudCollapse>
 </MudPaper>

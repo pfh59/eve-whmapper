@@ -27,6 +27,14 @@ public partial class MapPanelFrame
     [Parameter]
     public int ZOrder { get; set; }
 
+    /// <summary>Complement of the title, e.g. the displayed system name.</summary>
+    [Parameter]
+    public string? Subtitle { get; set; }
+
+    /// <summary>Whether a mask blocks interaction with the body, e.g. when it shows a stale selection.</summary>
+    [Parameter]
+    public bool IsMasked { get; set; }
+
     /// <summary>Whether only the title bar is shown.</summary>
     [Parameter]
     public bool IsCollapsed { get; set; }
@@ -58,7 +66,9 @@ public partial class MapPanelFrame
     private MudSwipeArea? _swipeArea;
     private bool _isMoving;
 
-    private string Title => MapPanelPresentation.GetTitle(PanelId);
+    private string Title => string.IsNullOrEmpty(Subtitle)
+        ? MapPanelPresentation.GetTitle(PanelId)
+        : $"{MapPanelPresentation.GetTitle(PanelId)} - {Subtitle}";
 
     private string Icon => MapPanelPresentation.GetIcon(PanelId);
 
