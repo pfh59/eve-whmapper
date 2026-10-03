@@ -121,13 +121,10 @@ namespace WHMapper.Repositories.WHSignatures
         {
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
-                if (!await context.DbWHSignatures.AnyAsync())
-                    return await context.DbWHSignatures.ToListAsync();
-                else
-                {
-                    return await context.DbWHSignatures.Where(x => x.WHId == whid).OrderBy(x => x.Id)
-                            .ToListAsync();
-                }
+                return await context.DbWHSignatures.AsNoTracking()
+                    .Where(x => x.WHId == whid)
+                    .OrderBy(x => x.Id)
+                    .ToListAsync();
             }
         }
 

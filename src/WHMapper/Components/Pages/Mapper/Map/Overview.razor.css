@@ -47,6 +47,16 @@
 .whm-map-root ::deep .whm-panel__titlebar {
     background-color: var(--mud-palette-background-gray);
     border-bottom: 1px solid var(--mud-palette-lines-default);
+    min-height: 28px;
+    height: 28px;
+}
+
+.whm-map-root ::deep .whm-panel__titlebar .mud-icon-button {
+    padding: 2px;
+}
+
+.whm-map-root ::deep .whm-panel__titlebar .mud-icon-size-small {
+    font-size: 1rem;
 }
 
 .whm-map-root ::deep .whm-panel__drag {

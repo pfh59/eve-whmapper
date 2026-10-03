@@ -10,7 +10,7 @@
                       OnSwipeCancel="@(_ => EndMoveAsync())"
                       OnSwipeLeave="@(_ => EndMoveAsync())">
             <MudIcon Icon="@Icon" Size="Size.Small" Class="mr-1" />
-            <MudText Typo="Typo.subtitle2">@Title</MudText>
+            <MudText Typo="Typo.body2">@Title</MudText>
         </MudSwipeArea>
         <MudTooltip Text="@(IsCollapsed ? "Expand" : "Collapse")">
             <MudIconButton Size="Size.Small"
