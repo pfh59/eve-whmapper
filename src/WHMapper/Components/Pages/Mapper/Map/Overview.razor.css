@@ -84,11 +84,33 @@
     touch-action: none; /* otherwise touch devices turn the drag into a scroll */
 }
 
-/* MudSwipeArea has no pointer capture: while moving, a viewport-wide layer of the area keeps
-   receiving the pointer when it outruns the title bar. */
-.whm-map-root ::deep .whm-panel__drag--moving::before {
+.whm-map-root ::deep .whm-panel__resize {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    z-index: 6; /* above the body mask (MudOverlay, 5) */
+    cursor: nwse-resize;
+    touch-action: none;
+    background: linear-gradient(135deg,
+        transparent 55%, var(--mud-palette-text-disabled) 55% 62%,
+        transparent 62% 75%, var(--mud-palette-text-disabled) 75% 82%,
+        transparent 82%);
+}
+
+/* MudSwipeArea has no pointer capture: while moving or resizing, a viewport-wide layer of the area
+   keeps receiving the pointer when it outruns the title bar or the grip. */
+.whm-map-root ::deep :is(.whm-panel__drag--moving, .whm-panel__resize--active)::before {
     content: "";
     position: fixed;
     inset: 0;
+}
+
+.whm-map-root ::deep .whm-panel__drag--moving::before {
     cursor: grabbing;
+}
+
+.whm-map-root ::deep .whm-panel__resize--active::before {
+    cursor: nwse-resize;
 }

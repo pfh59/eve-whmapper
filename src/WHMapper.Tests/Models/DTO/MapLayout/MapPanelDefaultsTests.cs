@@ -16,6 +16,19 @@ public class MapPanelDefaultsTests
     }
 
     [Fact]
+    public void GetDefaultSize_OnlySizesTheSignaturesPanel()
+    {
+        Assert.All(
+            Enum.GetValues<MapPanelId>().Where(id => id != MapPanelId.Signatures),
+            id => Assert.Null(MapPanelDefaults.GetDefaultSize(id)));
+
+        var size = MapPanelDefaults.GetDefaultSize(MapPanelId.Signatures);
+        Assert.NotNull(size);
+        Assert.Equal(MapPanelDefaults.GetWidth(MapPanelId.Signatures), size.Value.Width);
+        Assert.True(size.Value.Height >= MapPanelDefaults.MIN_RESIZABLE_HEIGHT);
+    }
+
+    [Fact]
     public void GetWidth_WhenPanelIsUnknown_ReturnsAPositiveWidth()
     {
         Assert.True(MapPanelDefaults.GetWidth(UNKNOWN_PANEL_ID) > 0);

@@ -53,6 +53,13 @@ public class MapLayoutServiceTests
     }
 
     [Theory, AutoMoqData]
+    public void CreateDefaultLayout_SizesOnlyTheResizablePanels(MapLayoutService sut)
+    {
+        Assert.All(Defaults(sut), panel => Assert.Equal(MapPanelDefaults.GetDefaultSize(panel.Id), panel.Size));
+        Assert.NotNull(Panel(Defaults(sut), MapPanelId.Signatures).Size);
+    }
+
+    [Theory, AutoMoqData]
     public void MoveBy_AppliesOffset(MapLayoutService sut)
     {
         var panels = Defaults(sut);
@@ -131,6 +138,73 @@ public class MapLayoutServiceTests
     }
 
     [Theory, AutoMoqData]
+    public void ResizeBy_AppliesOffset(MapLayoutService sut)
+    {
+        var panels = Defaults(sut);
+        var signatures = Panel(panels, MapPanelId.Signatures);
+        var size = signatures.Size!.Value;
+
+        sut.ResizeBy(panels, MapPanelId.Signatures, -100, 50, CONTAINER_WIDTH, CONTAINER_HEIGHT);
+
+        Assert.Equal(new MapPanelSize(size.Width - 100, size.Height + 50), signatures.Size);
+        Assert.Equal(size.Width - 100, signatures.Width);
+    }
+
+    [Theory, AutoMoqData]
+    public void ResizeBy_KeepsTheMinimumSize(MapLayoutService sut)
+    {
+        var result = sut.ResizeBy(Defaults(sut), MapPanelId.Signatures, -99_999, -99_999, CONTAINER_WIDTH, CONTAINER_HEIGHT);
+
+        Assert.Equal(
+            new MapPanelSize(MapPanelDefaults.MIN_RESIZABLE_WIDTH, MapPanelDefaults.MIN_RESIZABLE_HEIGHT),
+            Panel(result, MapPanelId.Signatures).Size);
+    }
+
+    [Theory, AutoMoqData]
+    public void ResizeBy_KeepsThePanelWithinTheMapSize(MapLayoutService sut)
+    {
+        var result = sut.ResizeBy(Defaults(sut), MapPanelId.Signatures, 99_999, 99_999, CONTAINER_WIDTH, CONTAINER_HEIGHT);
+
+        Assert.Equal(
+            new MapPanelSize(CONTAINER_WIDTH, CONTAINER_HEIGHT - MapPanelDefaults.TITLE_BAR_HEIGHT),
+            Panel(result, MapPanelId.Signatures).Size);
+    }
+
+    [Theory, AutoMoqData]
+    public void ResizeBy_WhenNarrowed_KeepsPanelGrabbable(MapLayoutService sut)
+    {
+        var panels = sut.MoveBy(Defaults(sut), MapPanelId.Signatures, -99_999, 0, CONTAINER_WIDTH, CONTAINER_HEIGHT);
+
+        var signatures = Panel(
+            sut.ResizeBy(panels, MapPanelId.Signatures, -300, 0, CONTAINER_WIDTH, CONTAINER_HEIGHT),
+            MapPanelId.Signatures);
+
+        Assert.Equal(MapPanelDefaults.MIN_VISIBLE_WIDTH - signatures.Width, signatures.X);
+    }
+
+    [Theory, AutoMoqData]
+    public void ResizeBy_WhenPanelIsNotResizable_KeepsItContentSized(MapLayoutService sut)
+    {
+        var result = sut.ResizeBy(Defaults(sut), MapPanelId.Notes, 100, 100, CONTAINER_WIDTH, CONTAINER_HEIGHT);
+
+        var notes = Panel(result, MapPanelId.Notes);
+        Assert.Null(notes.Size);
+        Assert.Equal(MapPanelDefaults.GetWidth(MapPanelId.Notes), notes.Width);
+    }
+
+    [Theory, AutoMoqData]
+    public void ResizeBy_IgnoresNonFiniteOffsets(MapLayoutService sut)
+    {
+        var panels = Defaults(sut);
+        var signatures = Panel(panels, MapPanelId.Signatures);
+        var size = signatures.Size;
+
+        sut.ResizeBy(panels, MapPanelId.Signatures, double.NaN, double.PositiveInfinity, CONTAINER_WIDTH, CONTAINER_HEIGHT);
+
+        Assert.Equal(size, signatures.Size);
+    }
+
+    [Theory, AutoMoqData]
     public void Merge_WhenNothingStored_ReturnsDefaults(MapLayoutService sut)
     {
         var merged = sut.Merge(null, CONTAINER_WIDTH, CONTAINER_HEIGHT);
@@ -162,6 +236,51 @@ public class MapLayoutServiceTests
         Assert.Equal(240, signatures.Y);
         Assert.False(signatures.IsUserVisible);
         Assert.True(signatures.IsCollapsed);
+    }
+
+    [Theory, AutoMoqData]
+    public void Merge_AppliesStoredSize(MapLayoutService sut)
+    {
+        var signatures = Panel(
+            Merge(sut, new MapPanelLayoutDto(nameof(MapPanelId.Signatures), 120, 240, true, false, 700, 400)),
+            MapPanelId.Signatures);
+
+        Assert.Equal(new MapPanelSize(700, 400), signatures.Size);
+    }
+
+    [Theory, AutoMoqData]
+    public void Merge_ClampsStoredSizeIntoASmallerMap(MapLayoutService sut)
+    {
+        var signatures = Panel(
+            Merge(sut, new MapPanelLayoutDto(nameof(MapPanelId.Signatures), 0, 0, true, false, 5_000, 5_000)),
+            MapPanelId.Signatures);
+
+        Assert.Equal(
+            new MapPanelSize(CONTAINER_WIDTH, CONTAINER_HEIGHT - MapPanelDefaults.TITLE_BAR_HEIGHT),
+            signatures.Size);
+    }
+
+    [Theory, AutoMoqData]
+    public void Merge_WhenStoredSizeIsMissingOrNonFinite_KeepsDefaultSize(MapLayoutService sut)
+    {
+        var expected = MapPanelDefaults.GetDefaultSize(MapPanelId.Signatures);
+
+        Assert.Equal(expected, Panel(
+            Merge(sut, new MapPanelLayoutDto(nameof(MapPanelId.Signatures), 0, 0, true, false)),
+            MapPanelId.Signatures).Size);
+        Assert.Equal(expected, Panel(
+            Merge(sut, new MapPanelLayoutDto(nameof(MapPanelId.Signatures), 0, 0, true, false, double.NaN, 400)),
+            MapPanelId.Signatures).Size);
+    }
+
+    [Theory, AutoMoqData]
+    public void Merge_IgnoresStoredSizeOfANonResizablePanel(MapLayoutService sut)
+    {
+        var notes = Panel(
+            Merge(sut, new MapPanelLayoutDto(nameof(MapPanelId.Notes), 0, 0, true, false, 700, 400)),
+            MapPanelId.Notes);
+
+        Assert.Null(notes.Size);
     }
 
     [Theory, AutoMoqData]
@@ -334,6 +453,25 @@ public class MapLayoutServiceTests
 
         storageMock.Verify(
             s => s.SetAsync(MAP_ID, It.Is<MapLayoutDto>(dto => dto.Version == MapLayoutService.CURRENT_LAYOUT_VERSION)),
+            Times.Once);
+    }
+
+    [Theory, AutoMoqData]
+    public async Task ScheduleSaveAsync_WritesTheSizeOfResizablePanelsOnly(
+        [Frozen] Mock<IMapLayoutStorage> storageMock,
+        MapLayoutService sut)
+    {
+        var panels = sut.ResizeBy(Defaults(sut), MapPanelId.Signatures, -100, 50, CONTAINER_WIDTH, CONTAINER_HEIGHT);
+        var size = Panel(panels, MapPanelId.Signatures).Size!.Value;
+
+        await sut.ScheduleSaveAsync(MAP_ID, panels);
+        await sut.FlushAsync(MAP_ID);
+
+        storageMock.Verify(
+            s => s.SetAsync(MAP_ID, It.Is<MapLayoutDto>(dto =>
+                dto.Panels.Single(p => p.PanelId == nameof(MapPanelId.Signatures)).Width == size.Width
+                && dto.Panels.Single(p => p.PanelId == nameof(MapPanelId.Signatures)).Height == size.Height
+                && dto.Panels.Where(p => p.PanelId != nameof(MapPanelId.Signatures)).All(p => p.Width == null && p.Height == null))),
             Times.Once);
     }
 

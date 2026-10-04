@@ -61,6 +61,10 @@ public partial class Overview : ComponentBase,IDisposable
     [Parameter]
     public int? CurrentPrimaryUserId { get; set; } = null!;
 
+    /// <summary>Height of the table as a CSS length; <c>null</c> to fit the rows.</summary>
+    [Parameter]
+    public string? Height { get; set; }
+
     private WHSignature _signatureBeforeEdit = null!;
 
     private bool _isEditingSignature = false;

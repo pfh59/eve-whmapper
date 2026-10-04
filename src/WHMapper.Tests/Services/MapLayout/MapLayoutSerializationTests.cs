@@ -12,7 +12,7 @@ public class MapLayoutSerializationTests
         var original = new MapLayoutDto(
             MapLayoutService.CURRENT_LAYOUT_VERSION,
             [
-                new MapPanelLayoutDto(nameof(MapPanelId.Signatures), 120.5, 240.25, true, false),
+                new MapPanelLayoutDto(nameof(MapPanelId.Signatures), 120.5, 240.25, true, false, 700.5, 400),
                 new MapPanelLayoutDto(nameof(MapPanelId.Notes), 10, 20, false, true)
             ]);
 
@@ -21,6 +21,19 @@ public class MapLayoutSerializationTests
         Assert.NotNull(restored);
         Assert.Equal(original.Version, restored.Version);
         Assert.Equal(original.Panels, restored.Panels);
+    }
+
+    [Fact]
+    public void MapLayoutDto_PayloadWithoutSize_DeserializesWithNullSize()
+    {
+        const string PAYLOAD_WITHOUT_SIZE =
+            """{"Version":4,"Panels":[{"PanelId":"Signatures","X":1,"Y":2,"Visible":true,"Collapsed":false}]}""";
+
+        var restored = JsonSerializer.Deserialize<MapLayoutDto>(PAYLOAD_WITHOUT_SIZE);
+
+        var panel = Assert.Single(restored!.Panels);
+        Assert.Null(panel.Width);
+        Assert.Null(panel.Height);
     }
 
     [Fact]

@@ -1,0 +1,41 @@
+/* Columns are sized and hidden from the table width, so the table adapts when its panel is resized.
+   ::deep because the cells are rendered by MudBlazor components. */
+.whm-signatures {
+    container-type: inline-size;
+}
+
+.whm-signatures ::deep .whm-signatures__group {
+    width: 130px;
+}
+
+.whm-signatures ::deep .whm-signatures__type {
+    width: 165px;
+}
+
+.whm-signatures ::deep :is(.whm-signatures__created, .whm-signatures__updated) {
+    width: 130px;
+    white-space: nowrap;
+}
+
+.whm-signatures ::deep :is(.whm-signatures__creator, .whm-signatures__updater) {
+    width: 150px;
+}
+
+/* Least useful columns go first: authors, then the update time, then the creation time. */
+@container (max-width: 959px) {
+    .whm-signatures ::deep :is(.whm-signatures__creator, .whm-signatures__updater) {
+        display: none;
+    }
+}
+
+@container (max-width: 759px) {
+    .whm-signatures ::deep .whm-signatures__updated {
+        display: none;
+    }
+}
+
+@container (max-width: 599px) {
+    .whm-signatures ::deep .whm-signatures__created {
+        display: none;
+    }
+}

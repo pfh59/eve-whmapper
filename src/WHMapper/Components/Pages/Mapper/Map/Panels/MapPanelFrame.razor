@@ -1,6 +1,6 @@
 @using WHMapper.Models.DTO.MapLayout
 
-<MudPaper Class="whm-panel" Elevation="8" Outlined="true" Width="@Width" Style="@PositionStyle"
+<MudPaper Class="whm-panel" Elevation="8" Outlined="true" Width="@WidthStyle" Style="@PositionStyle"
           @onpointerdown="@(() => OnActivated.InvokeAsync(PanelId))">
     <MudToolBar Dense="true" Gutters="false" Class="whm-panel__titlebar px-1">
         @* Buttons stay outside the swipe area so pressing them never starts a move. *@
@@ -29,4 +29,13 @@
             <MudOverlay Visible="@IsMasked" Absolute="true" DarkBackground="false" Class="whm-panel__mask" />
         </div>
     </MudCollapse>
+
+    @if (IsResizable && !IsCollapsed)
+    {
+        <MudSwipeArea @ref="_resizeArea" Class="@ResizeGripClass"
+                      OnSwipeMove="@OnResizeSwipeMoveAsync"
+                      OnSwipeEnd="@(_ => EndResizeAsync())"
+                      OnSwipeCancel="@(_ => EndResizeAsync())"
+                      OnSwipeLeave="@(_ => EndResizeAsync())" />
+    }
 </MudPaper>

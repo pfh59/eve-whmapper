@@ -9,7 +9,7 @@ namespace WHMapper.Services.MapLayout;
 public interface IMapLayoutService
 {
     /// <summary>
-    /// Builds the default layout: every panel visible, expanded and at its default position.
+    /// Builds the default layout: every panel visible, expanded and at its default position and size.
     /// </summary>
     IReadOnlyList<MapPanelLayout> CreateDefaultLayout(double containerWidth, double containerHeight);
 
@@ -20,7 +20,7 @@ public interface IMapLayoutService
     Task<IReadOnlyList<MapPanelLayout>> LoadAsync(int mapId, double containerWidth, double containerHeight);
 
     /// <summary>
-    /// Merges a stored layout over the defaults, ignoring unknown panels and clamping positions into the map.
+    /// Merges a stored layout over the defaults, ignoring unknown panels and clamping positions and sizes into the map.
     /// </summary>
     /// <returns>The defaults when <paramref name="stored"/> is null or its version is unsupported.</returns>
     IReadOnlyList<MapPanelLayout> Merge(MapLayoutDto? stored, double containerWidth, double containerHeight);
@@ -32,6 +32,14 @@ public interface IMapLayoutService
     IReadOnlyList<MapPanelLayout> MoveBy(
         IReadOnlyList<MapPanelLayout> panels, MapPanelId panelId,
         double deltaX, double deltaY, double containerWidth, double containerHeight);
+
+    /// <summary>
+    /// Resizes a resizable panel by an offset, clamped between the minimum size and the map size.
+    /// </summary>
+    /// <returns>The panels unchanged when the panel is unknown or not resizable, or the offset is not finite.</returns>
+    IReadOnlyList<MapPanelLayout> ResizeBy(
+        IReadOnlyList<MapPanelLayout> panels, MapPanelId panelId,
+        double deltaWidth, double deltaHeight, double containerWidth, double containerHeight);
 
     /// <summary>
     /// Raises a panel above all the others.

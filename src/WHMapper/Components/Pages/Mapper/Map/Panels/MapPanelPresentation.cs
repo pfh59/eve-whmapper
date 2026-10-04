@@ -1,10 +1,11 @@
+using System.Globalization;
 using MudBlazor;
 using WHMapper.Models.DTO.MapLayout;
 
 namespace WHMapper.Components.Pages.Mapper.Map.Panels;
 
 /// <summary>
-/// Title, icon and unavailability hint of the map panels; kept here so the layout model stays free of MudBlazor.
+/// Title, icon, unavailability hint and CSS lengths of the map panels; kept here so the layout model stays free of MudBlazor.
 /// </summary>
 public static class MapPanelPresentation
 {
@@ -42,4 +43,10 @@ public static class MapPanelPresentation
         MapPanelId.LinkInfos => "Select a connection",
         _ => "Select a system"
     };
+
+    /// <summary>
+    /// Formats a pixel length for CSS, independently of the current culture.
+    /// </summary>
+    public static string ToCssPixels(double pixels) =>
+        string.Create(CultureInfo.InvariantCulture, $"{pixels}px");
 }

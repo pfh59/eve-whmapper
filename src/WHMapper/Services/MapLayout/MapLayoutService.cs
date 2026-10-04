@@ -35,6 +35,11 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
             .Select((panelId, index) =>
             {
                 var panel = new MapPanelLayout { Id = panelId, ZOrder = MIN_PANEL_Z_ORDER + index };
+                if (MapPanelDefaults.GetDefaultSize(panelId) is { } size)
+                {
+                    panel.Size = ClampSize(size, containerWidth, containerHeight);
+                }
+
                 var (x, y) = MapPanelDefaults.GetPosition(panelId, containerWidth, containerHeight);
                 ApplyClampedPosition(panel, x, y, containerWidth, containerHeight);
                 return panel;
@@ -68,6 +73,14 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
                 continue;
             }
 
+            // Sized first: the position bounds depend on the width.
+            if (panel.Size is not null
+                && storedPanel is { Width: { } width, Height: { } height }
+                && double.IsFinite(width) && double.IsFinite(height))
+            {
+                panel.Size = ClampSize(new MapPanelSize(width, height), containerWidth, containerHeight);
+            }
+
             if (double.IsFinite(storedPanel.X) && double.IsFinite(storedPanel.Y))
             {
                 ApplyClampedPosition(panel, storedPanel.X, storedPanel.Y, containerWidth, containerHeight);
@@ -92,6 +105,25 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
         }
 
         ApplyClampedPosition(panel, panel.X + deltaX, panel.Y + deltaY, containerWidth, containerHeight);
+        return panels;
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<MapPanelLayout> ResizeBy(
+        IReadOnlyList<MapPanelLayout> panels, MapPanelId panelId,
+        double deltaWidth, double deltaHeight, double containerWidth, double containerHeight)
+    {
+        var panel = panels.FirstOrDefault(p => p.Id == panelId);
+        if (panel?.Size is not { } size || !double.IsFinite(deltaWidth) || !double.IsFinite(deltaHeight))
+        {
+            return panels;
+        }
+
+        panel.Size = ClampSize(
+            new MapPanelSize(size.Width + deltaWidth, size.Height + deltaHeight), containerWidth, containerHeight);
+
+        // A narrower panel raises the left bound that keeps it grabbable.
+        ApplyClampedPosition(panel, panel.X, panel.Y, containerWidth, containerHeight);
         return panels;
     }
 
@@ -200,14 +232,31 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
     private static void ApplyClampedPosition(
         MapPanelLayout panel, double x, double y, double containerWidth, double containerHeight)
     {
-        var width = containerWidth > 0 ? containerWidth : MapPanelDefaults.FALLBACK_CONTAINER_WIDTH;
-        var height = containerHeight > 0 ? containerHeight : MapPanelDefaults.FALLBACK_CONTAINER_HEIGHT;
+        var (width, height) = ResolveContainerSize(containerWidth, containerHeight);
 
-        var minX = MapPanelDefaults.MIN_VISIBLE_WIDTH - MapPanelDefaults.GetWidth(panel.Id);
+        var minX = MapPanelDefaults.MIN_VISIBLE_WIDTH - panel.Width;
         var maxX = width - MapPanelDefaults.MIN_VISIBLE_WIDTH;
         panel.X = Math.Clamp(x, Math.Min(minX, maxX), Math.Max(minX, maxX));
         panel.Y = Math.Clamp(y, 0, Math.Max(0, height - MapPanelDefaults.TITLE_BAR_HEIGHT));
     }
+
+    /// <summary>
+    /// Keeps a size between the minimum and the map size, the title bar included.
+    /// </summary>
+    private static MapPanelSize ClampSize(MapPanelSize size, double containerWidth, double containerHeight)
+    {
+        var (width, height) = ResolveContainerSize(containerWidth, containerHeight);
+
+        var maxWidth = Math.Max(MapPanelDefaults.MIN_RESIZABLE_WIDTH, width);
+        var maxHeight = Math.Max(MapPanelDefaults.MIN_RESIZABLE_HEIGHT, height - MapPanelDefaults.TITLE_BAR_HEIGHT);
+        return new MapPanelSize(
+            Math.Clamp(size.Width, MapPanelDefaults.MIN_RESIZABLE_WIDTH, maxWidth),
+            Math.Clamp(size.Height, MapPanelDefaults.MIN_RESIZABLE_HEIGHT, maxHeight));
+    }
+
+    private static (double Width, double Height) ResolveContainerSize(double containerWidth, double containerHeight) =>
+        (containerWidth > 0 ? containerWidth : MapPanelDefaults.FALLBACK_CONTAINER_WIDTH,
+         containerHeight > 0 ? containerHeight : MapPanelDefaults.FALLBACK_CONTAINER_HEIGHT);
 
     private static MapLayoutDto ToDto(IReadOnlyList<MapPanelLayout> panels) =>
         new(CURRENT_LAYOUT_VERSION,
@@ -216,7 +265,9 @@ public sealed class MapLayoutService : IMapLayoutService, IAsyncDisposable
                 panel.X,
                 panel.Y,
                 panel.IsUserVisible,
-                panel.IsCollapsed)).ToList());
+                panel.IsCollapsed,
+                panel.Size?.Width,
+                panel.Size?.Height)).ToList());
 
     private static IReadOnlyList<MapPanelLayout> Mutate(
         IReadOnlyList<MapPanelLayout> panels, MapPanelId panelId, Action<MapPanelLayout> mutation)

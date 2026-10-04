@@ -25,7 +25,8 @@
     case MapPanelId.Signatures:
         <WHMapper.Components.Pages.Mapper.Signatures.Overview CurrentMapId="@MapId"
                                                              CurrentSystemNodeId="@node?.IdWH"
-                                                             CurrentPrimaryUserId="@PrimaryUserId" />
+                                                             CurrentPrimaryUserId="@PrimaryUserId"
+                                                             Height="@BodyHeightStyle" />
         break;
 
     case MapPanelId.RoutePlanner when node is not null && Links is not null:

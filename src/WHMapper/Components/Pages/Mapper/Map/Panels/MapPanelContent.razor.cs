@@ -27,6 +27,10 @@ public partial class MapPanelContent
     [Parameter]
     public EveSystemLinkModel? SelectedSystemLink { get; set; }
 
+    /// <summary>Body height chosen by the user, in pixels; <c>null</c> when the panel sizes to its content.</summary>
+    [Parameter]
+    public double? BodyHeight { get; set; }
+
     /// <summary>Primary account id, resolved once by the map to keep the render path non-blocking.</summary>
     [Parameter]
     public int? PrimaryUserId { get; set; }
@@ -37,10 +41,13 @@ public partial class MapPanelContent
 
     private PanelInputs? _renderedInputs;
 
+    private string? BodyHeightStyle => BodyHeight is { } height ? MapPanelPresentation.ToCssPixels(height) : null;
+
     /// <inheritdoc />
     protected override bool ShouldRender()
     {
-        var inputs = new PanelInputs(PanelId, MapId, SelectedSystemNode, SelectedSystemLink, PrimaryUserId, Links);
+        var inputs = new PanelInputs(
+            PanelId, MapId, SelectedSystemNode, SelectedSystemLink, BodyHeight, PrimaryUserId, Links);
         if (inputs == _renderedInputs)
         {
             return false;
@@ -56,6 +63,7 @@ public partial class MapPanelContent
         int? MapId,
         EveSystemNodeModel? Node,
         EveSystemLinkModel? Link,
+        double? BodyHeight,
         int? PrimaryUserId,
         LinkLayer? Links);
 }

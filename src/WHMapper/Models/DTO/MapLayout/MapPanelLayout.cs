@@ -20,6 +20,12 @@ public sealed class MapPanelLayout
     /// <summary>Whether only the title bar is shown.</summary>
     public bool IsCollapsed { get; set; }
 
+    /// <summary>Size chosen by the user; <c>null</c> for panels that cannot be resized.</summary>
+    public MapPanelSize? Size { get; set; }
+
+    /// <summary>Current width in pixels: the chosen one, else the default.</summary>
+    public double Width => Size?.Width ?? MapPanelDefaults.GetWidth(Id);
+
     /// <summary>Stacking order, raised when the panel is activated. Not persisted.</summary>
     public int ZOrder { get; set; }
 }

@@ -8,15 +8,19 @@
     {
         <MapPanelFrame @key="panel.Id" PanelId="@panel.Id" Subtitle="@GetSubtitle(panel.Id)"
                        IsMasked="@IsMasked(panel.Id)" X="@panel.X" Y="@panel.Y"
+                       Width="@panel.Width" IsResizable="@(panel.Size is not null)"
                        ZOrder="@panel.ZOrder" IsCollapsed="@panel.IsCollapsed"
                        OnClose="@ClosePanelAsync"
                        OnToggleCollapse="@ToggleCollapseAsync"
                        OnActivated="@BringPanelToFront"
                        OnMove="@MovePanel"
-                       OnMoveEnded="@PersistLayoutAsync">
+                       OnMoveEnded="@PersistLayoutAsync"
+                       OnResize="@ResizePanel"
+                       OnResizeEnded="@PersistLayoutAsync">
             <MapPanelContent PanelId="@panel.Id" MapId="@MapId"
                              SelectedSystemNode="@DisplayedNode"
                              SelectedSystemLink="@DisplayedLink"
+                             BodyHeight="@panel.Size?.Height"
                              PrimaryUserId="@PrimaryUserId"
                              Links="@Links" />
         </MapPanelFrame>

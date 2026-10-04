@@ -6,9 +6,9 @@ using WHMapper.Models.DTO.MapLayout;
 namespace WHMapper.Components.Pages.Mapper.Map.Panels;
 
 /// <summary>
-/// Chrome of a map panel: title bar used to move it, collapse and close buttons.
+/// Chrome of a map panel: title bar used to move it, collapse and close buttons, resize grip.
 /// </summary>
-/// <remarks>Only reports pointer offsets; the overlay owns and clamps the position.</remarks>
+/// <remarks>Only reports pointer offsets; the overlay owns and clamps the position and size.</remarks>
 public partial class MapPanelFrame
 {
     /// <summary>Panel being rendered.</summary>
@@ -22,6 +22,14 @@ public partial class MapPanelFrame
     /// <summary>Distance in pixels from the top edge of the map.</summary>
     [Parameter]
     public double Y { get; set; }
+
+    /// <summary>Width of the panel, in pixels.</summary>
+    [Parameter]
+    public double Width { get; set; }
+
+    /// <summary>Whether a grip lets the user resize the panel.</summary>
+    [Parameter]
+    public bool IsResizable { get; set; }
 
     /// <summary>Stacking order of the panel.</summary>
     [Parameter]
@@ -63,8 +71,18 @@ public partial class MapPanelFrame
     [Parameter]
     public EventCallback<MapPanelId> OnMoveEnded { get; set; }
 
+    /// <summary>Raised for each pointer move while the grip is dragged, with the size offset in pixels.</summary>
+    [Parameter]
+    public EventCallback<(MapPanelId PanelId, double DeltaWidth, double DeltaHeight)> OnResize { get; set; }
+
+    /// <summary>Raised once when a resize ends.</summary>
+    [Parameter]
+    public EventCallback<MapPanelId> OnResizeEnded { get; set; }
+
     private MudSwipeArea? _swipeArea;
+    private MudSwipeArea? _resizeArea;
     private bool _isMoving;
+    private bool _isResizing;
 
     private string Title => string.IsNullOrEmpty(Subtitle)
         ? MapPanelPresentation.GetTitle(PanelId)
@@ -72,12 +90,14 @@ public partial class MapPanelFrame
 
     private string Icon => MapPanelPresentation.GetIcon(PanelId);
 
-    private string Width => string.Create(CultureInfo.InvariantCulture, $"{MapPanelDefaults.GetWidth(PanelId)}px");
+    private string WidthStyle => MapPanelPresentation.ToCssPixels(Width);
 
     private string PositionStyle => string.Create(
         CultureInfo.InvariantCulture, $"position:absolute;left:{X}px;top:{Y}px;z-index:{ZOrder};");
 
     private string DragAreaClass => _isMoving ? "whm-panel__drag whm-panel__drag--moving" : "whm-panel__drag";
+
+    private string ResizeGripClass => _isResizing ? "whm-panel__resize whm-panel__resize--active" : "whm-panel__resize";
 
     private async Task OnSwipeMoveAsync(MultiDimensionSwipeEventArgs args)
     {
@@ -103,5 +123,29 @@ public partial class MapPanelFrame
 
         _isMoving = false;
         await OnMoveEnded.InvokeAsync(PanelId);
+    }
+
+    private async Task OnResizeSwipeMoveAsync(MultiDimensionSwipeEventArgs args)
+    {
+        if (!_isResizing)
+        {
+            _isResizing = true;
+            await OnActivated.InvokeAsync(PanelId);
+        }
+
+        await OnResize.InvokeAsync((PanelId, -(args.SwipeDeltas[0] ?? 0), -(args.SwipeDeltas[1] ?? 0)));
+    }
+
+    private async Task EndResizeAsync()
+    {
+        _resizeArea?.Cancel();
+
+        if (!_isResizing)
+        {
+            return;
+        }
+
+        _isResizing = false;
+        await OnResizeEnded.InvokeAsync(PanelId);
     }
 }

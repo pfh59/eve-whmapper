@@ -154,6 +154,10 @@ public partial class MapPanelOverlay : IAsyncDisposable
         _panels = MapLayoutService.MoveBy(
             _panels, move.PanelId, move.DeltaX, move.DeltaY, _containerWidth, _containerHeight);
 
+    private void ResizePanel((MapPanelId PanelId, double DeltaWidth, double DeltaHeight) resize) =>
+        _panels = MapLayoutService.ResizeBy(
+            _panels, resize.PanelId, resize.DeltaWidth, resize.DeltaHeight, _containerWidth, _containerHeight);
+
     private void BringPanelToFront(MapPanelId panelId) =>
         _panels = MapLayoutService.BringToFront(_panels, panelId);
 

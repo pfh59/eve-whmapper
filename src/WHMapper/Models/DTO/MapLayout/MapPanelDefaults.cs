@@ -3,7 +3,7 @@ using System.Collections.Frozen;
 namespace WHMapper.Models.DTO.MapLayout;
 
 /// <summary>
-/// Fixed width and default position of each map panel, and the bounds a panel must respect.
+/// Default width, size and position of each map panel, and the bounds a panel must respect.
 /// </summary>
 public static class MapPanelDefaults
 {
@@ -16,6 +16,10 @@ public static class MapPanelDefaults
     /// <summary>Map size assumed until the browser size is known.</summary>
     public const double FALLBACK_CONTAINER_WIDTH = 1600;
     public const double FALLBACK_CONTAINER_HEIGHT = 900;
+
+    /// <summary>Smallest size a resizable panel can be shrunk to.</summary>
+    public const double MIN_RESIZABLE_WIDTH = 480;
+    public const double MIN_RESIZABLE_HEIGHT = 120;
 
     private const double EDGE_MARGIN = 8;
     private const double DEFAULT_WIDTH = 320;
@@ -31,6 +35,12 @@ public static class MapPanelDefaults
         [MapPanelId.LinkInfos] = 780
     }.ToFrozenDictionary();
 
+    /// <summary>Default body heights of the panels the user may resize; the others size to their content.</summary>
+    private static readonly FrozenDictionary<MapPanelId, double> RESIZABLE_BODY_HEIGHTS = new Dictionary<MapPanelId, double>
+    {
+        [MapPanelId.Signatures] = 325
+    }.ToFrozenDictionary();
+
     /// <summary>Approximate rendered heights, only used to anchor default positions to the bottom edge.</summary>
     private static readonly FrozenDictionary<MapPanelId, double> NOMINAL_HEIGHTS = new Dictionary<MapPanelId, double>
     {
@@ -42,10 +52,17 @@ public static class MapPanelDefaults
     }.ToFrozenDictionary();
 
     /// <summary>
-    /// Gets the width of a panel, in pixels.
+    /// Gets the default width of a panel, in pixels.
     /// </summary>
     public static double GetWidth(MapPanelId panelId) =>
         WIDTHS.TryGetValue(panelId, out var width) ? width : DEFAULT_WIDTH;
+
+    /// <summary>
+    /// Gets the default size of a resizable panel.
+    /// </summary>
+    /// <returns><c>null</c> when the panel cannot be resized.</returns>
+    public static MapPanelSize? GetDefaultSize(MapPanelId panelId) =>
+        RESIZABLE_BODY_HEIGHTS.TryGetValue(panelId, out var height) ? new MapPanelSize(GetWidth(panelId), height) : null;
 
     /// <summary>
     /// Gets the default top-left position of a panel within a map of the given size.
