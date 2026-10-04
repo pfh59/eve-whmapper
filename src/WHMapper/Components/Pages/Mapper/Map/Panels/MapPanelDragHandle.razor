@@ -1,0 +1,11 @@
+<MudSwipeArea @ref="_swipeArea" Class="@AreaClass"
+              OnSwipeMove="@OnSwipeMoveAsync"
+              OnSwipeEnd="@(_ => EndDragAsync())"
+              OnSwipeCancel="@(_ => EndDragAsync())"
+              OnSwipeLeave="@OnSwipeLeaveAsync">
+    @* MudSwipeArea stops pointerdown propagation, so the press is detected on this child. *@
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="whm-panel__handle-target"
+              @onpointerdown="@BeginDragAsync">
+        @ChildContent
+    </MudStack>
+</MudSwipeArea>

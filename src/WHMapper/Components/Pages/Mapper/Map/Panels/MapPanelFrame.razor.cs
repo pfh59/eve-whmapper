@@ -1,6 +1,5 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
 using WHMapper.Models.DTO.MapLayout;
 
 namespace WHMapper.Components.Pages.Mapper.Map.Panels;
@@ -79,11 +78,6 @@ public partial class MapPanelFrame
     [Parameter]
     public EventCallback<MapPanelId> OnResizeEnded { get; set; }
 
-    private MudSwipeArea? _swipeArea;
-    private MudSwipeArea? _resizeArea;
-    private bool _isMoving;
-    private bool _isResizing;
-
     private string Title => string.IsNullOrEmpty(Subtitle)
         ? MapPanelPresentation.GetTitle(PanelId)
         : $"{MapPanelPresentation.GetTitle(PanelId)} - {Subtitle}";
@@ -94,58 +88,4 @@ public partial class MapPanelFrame
 
     private string PositionStyle => string.Create(
         CultureInfo.InvariantCulture, $"position:absolute;left:{X}px;top:{Y}px;z-index:{ZOrder};");
-
-    private string DragAreaClass => _isMoving ? "whm-panel__drag whm-panel__drag--moving" : "whm-panel__drag";
-
-    private string ResizeGripClass => _isResizing ? "whm-panel__resize whm-panel__resize--active" : "whm-panel__resize";
-
-    private async Task OnSwipeMoveAsync(MultiDimensionSwipeEventArgs args)
-    {
-        if (!_isMoving)
-        {
-            _isMoving = true;
-            await OnActivated.InvokeAsync(PanelId);
-        }
-
-        // Deltas are "previous minus current" pointer position, hence the sign flip.
-        await OnMove.InvokeAsync((PanelId, -(args.SwipeDeltas[0] ?? 0), -(args.SwipeDeltas[1] ?? 0)));
-    }
-
-    private async Task EndMoveAsync()
-    {
-        // A pointer released outside the area never reaches it, so the swipe is reset explicitly.
-        _swipeArea?.Cancel();
-
-        if (!_isMoving)
-        {
-            return;
-        }
-
-        _isMoving = false;
-        await OnMoveEnded.InvokeAsync(PanelId);
-    }
-
-    private async Task OnResizeSwipeMoveAsync(MultiDimensionSwipeEventArgs args)
-    {
-        if (!_isResizing)
-        {
-            _isResizing = true;
-            await OnActivated.InvokeAsync(PanelId);
-        }
-
-        await OnResize.InvokeAsync((PanelId, -(args.SwipeDeltas[0] ?? 0), -(args.SwipeDeltas[1] ?? 0)));
-    }
-
-    private async Task EndResizeAsync()
-    {
-        _resizeArea?.Cancel();
-
-        if (!_isResizing)
-        {
-            return;
-        }
-
-        _isResizing = false;
-        await OnResizeEnded.InvokeAsync(PanelId);
-    }
 }

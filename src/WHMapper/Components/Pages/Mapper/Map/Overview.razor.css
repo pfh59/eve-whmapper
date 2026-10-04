@@ -84,6 +84,12 @@
     touch-action: none; /* otherwise touch devices turn the drag into a scroll */
 }
 
+/* Press target of a drag handle; fills the title area and the grip. */
+.whm-map-root ::deep .whm-panel__handle-target {
+    flex: 1 1 auto;
+    align-self: stretch;
+}
+
 .whm-map-root ::deep .whm-panel__resize {
     position: absolute;
     right: 0;
@@ -91,6 +97,7 @@
     width: 14px;
     height: 14px;
     z-index: 6; /* above the body mask (MudOverlay, 5) */
+    display: flex;
     cursor: nwse-resize;
     touch-action: none;
     background: linear-gradient(135deg,
@@ -99,8 +106,8 @@
         transparent 82%);
 }
 
-/* MudSwipeArea has no pointer capture: while moving or resizing, a viewport-wide layer of the area
-   keeps receiving the pointer when it outruns the title bar or the grip. */
+/* MudSwipeArea has no pointer capture: from the press until the drag ends, a viewport-wide layer of the
+   area keeps receiving the pointer when it outruns the title bar or the grip. */
 .whm-map-root ::deep :is(.whm-panel__drag--moving, .whm-panel__resize--active)::before {
     content: "";
     position: fixed;

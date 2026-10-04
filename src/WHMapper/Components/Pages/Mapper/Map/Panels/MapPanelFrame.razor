@@ -3,15 +3,14 @@
 <MudPaper Class="whm-panel" Elevation="8" Outlined="true" Width="@WidthStyle" Style="@PositionStyle"
           @onpointerdown="@(() => OnActivated.InvokeAsync(PanelId))">
     <MudToolBar Dense="true" Gutters="false" Class="whm-panel__titlebar px-1">
-        @* Buttons stay outside the swipe area so pressing them never starts a move. *@
-        <MudSwipeArea @ref="_swipeArea" Class="@DragAreaClass"
-                      OnSwipeMove="@OnSwipeMoveAsync"
-                      OnSwipeEnd="@(_ => EndMoveAsync())"
-                      OnSwipeCancel="@(_ => EndMoveAsync())"
-                      OnSwipeLeave="@(_ => EndMoveAsync())">
+        @* Buttons stay outside the drag handle so pressing them never starts a move. *@
+        <MapPanelDragHandle Class="whm-panel__drag" ActiveClass="whm-panel__drag--moving"
+                            OnDragStarted="@(() => OnActivated.InvokeAsync(PanelId))"
+                            OnDrag="@(delta => OnMove.InvokeAsync((PanelId, delta.DeltaX, delta.DeltaY)))"
+                            OnDragEnded="@(() => OnMoveEnded.InvokeAsync(PanelId))">
             <MudIcon Icon="@Icon" Size="Size.Small" Class="mr-1" />
             <MudText Typo="Typo.body2">@Title</MudText>
-        </MudSwipeArea>
+        </MapPanelDragHandle>
         <MudTooltip Text="@(IsCollapsed ? "Expand" : "Collapse")">
             <MudIconButton Size="Size.Small"
                            Icon="@(IsCollapsed ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ExpandLess)"
@@ -32,10 +31,9 @@
 
     @if (IsResizable && !IsCollapsed)
     {
-        <MudSwipeArea @ref="_resizeArea" Class="@ResizeGripClass"
-                      OnSwipeMove="@OnResizeSwipeMoveAsync"
-                      OnSwipeEnd="@(_ => EndResizeAsync())"
-                      OnSwipeCancel="@(_ => EndResizeAsync())"
-                      OnSwipeLeave="@(_ => EndResizeAsync())" />
+        <MapPanelDragHandle Class="whm-panel__resize" ActiveClass="whm-panel__resize--active"
+                            OnDragStarted="@(() => OnActivated.InvokeAsync(PanelId))"
+                            OnDrag="@(delta => OnResize.InvokeAsync((PanelId, delta.DeltaX, delta.DeltaY)))"
+                            OnDragEnded="@(() => OnResizeEnded.InvokeAsync(PanelId))" />
     }
 </MudPaper>
