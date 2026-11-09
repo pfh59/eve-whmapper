@@ -7,7 +7,7 @@
     </TitleContent>
     <DialogContent>
         <MudForm @bind-IsValid="_formIsValid">
-            @* Immediate: sync on each keystroke so Save never reads stale values (#478) *@
+            @* Immediate: re-evaluate HasChanges on each keystroke so Save enables while typing *@
             <MudTextField @bind-Value="_name" 
                           Immediate="true"
                           Label="Instance Name" 

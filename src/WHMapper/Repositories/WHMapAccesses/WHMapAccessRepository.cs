@@ -45,7 +45,8 @@ namespace WHMapper.Repositories.WHMapAccesses
             using var context = await _contextFactory.CreateDbContextAsync();
             try
             {
-                var existing = await context.DbWHMapAccesses.FindAsync(id);
+                // Explicit tracking: the context defaults to NoTracking, so changes would not be saved
+                var existing = await context.DbWHMapAccesses.AsTracking().FirstOrDefaultAsync(x => x.Id == id);
                 if (existing == null)
                     return null;
 
