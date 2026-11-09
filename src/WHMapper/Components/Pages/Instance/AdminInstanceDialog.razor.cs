@@ -106,7 +106,8 @@ public partial class AdminInstanceDialog
     {
         var parameters = new DialogParameters<EditInstanceDialog>
         {
-            { x => x.Instance, _instance! }
+            { x => x.Instance, _instance! },
+            { x => x.RequestingCharacterId, _characterId }
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };

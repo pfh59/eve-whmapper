@@ -43,9 +43,10 @@ namespace WHMapper.Services.EveMapper
         Task<IEnumerable<WHInstance>?> GetAccessibleInstancesAsync(int characterId, int? corporationId, int? allianceId);
 
         /// <summary>
-        /// Updates instance details
+        /// Updates instance name and description (only an instance admin can do this).
         /// </summary>
-        Task<WHInstance?> UpdateInstanceAsync(int instanceId, string name, string? description);
+        /// <returns>The updated instance; null if not found, the requester is not an admin, or the update failed.</returns>
+        Task<WHInstance?> UpdateInstanceAsync(int instanceId, string name, string? description, int requestingCharacterId);
 
         /// <summary>
         /// Deletes an instance (only owner can do this)

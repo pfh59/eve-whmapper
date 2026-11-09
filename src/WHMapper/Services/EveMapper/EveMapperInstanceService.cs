@@ -126,8 +126,15 @@ namespace WHMapper.Services.EveMapper
             return await _instanceRepository.GetAccessibleInstancesAsync(characterId, corporationId, allianceId);
         }
 
-        public async Task<WHInstance?> UpdateInstanceAsync(int instanceId, string name, string? description)
+        public async Task<WHInstance?> UpdateInstanceAsync(int instanceId, string name, string? description, int requestingCharacterId)
         {
+            if (!await IsAdminAsync(instanceId, requestingCharacterId))
+            {
+                _logger.LogWarning("Character {CharacterId} attempted to update instance {InstanceId} but is not admin",
+                    requestingCharacterId, instanceId);
+                return null;
+            }
+
             var instance = await _instanceRepository.GetById(instanceId);
             if (instance == null)
                 return null;
