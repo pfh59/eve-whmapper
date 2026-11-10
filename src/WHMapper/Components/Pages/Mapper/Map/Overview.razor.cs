@@ -32,6 +32,10 @@ public partial class Overview : IAsyncDisposable
     private const float EPSILON = 0.0001f; // or some other small value
     private const string UidNullOrEmptyMessage = "UID is null or empty";
 
+    // Position of a system added without a source system: just below the panel dock (top-left, ~48px tall), so it is never hidden under it (#481).
+    private const double DEFAULT_NODE_POSITION_X = 8;
+    private const double DEFAULT_NODE_POSITION_Y = 56;
+
     private BlazorDiagram _blazorDiagram = null!;
     private MudMenu _contextMenu = null!;
     private int? _selectedWHMapId = null;
@@ -1149,7 +1153,7 @@ public partial class Overview : IAsyncDisposable
 
         // Default position if no source node
         if (srcNode?.Position == null || srcNode.Size == null)
-            return (0, 0);
+            return (DEFAULT_NODE_POSITION_X, DEFAULT_NODE_POSITION_Y);
 
         double srcWidth = srcNode.Size.Width;
         double srcHeight = srcNode.Size.Height;
@@ -1572,8 +1576,8 @@ public partial class Overview : IAsyncDisposable
                 if (oldLocation != null)
                     extension = await GetTargetExtension(oldLocation, newLocation);
 
-                double nodePositionX = 0;
-                double nodePositionY = 0;
+                double nodePositionX = DEFAULT_NODE_POSITION_X;
+                double nodePositionY = DEFAULT_NODE_POSITION_Y;
                 if (srcNode != null)
                 {
                     var newPosition = CalculateNewNodePosition(srcNode);
