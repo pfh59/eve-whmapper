@@ -216,12 +216,14 @@ namespace WHMapper.Tests.Services.EveMapper
         {
             // Arrange
             var instanceId = 4;
+            var requestingCharacterId = 203;
             var instance = new WHInstance("Old", 103, "Owner", WHAccessEntity.Character, 203, "Creator") { Id = instanceId };
+            _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _instanceRepoMock.Setup(r => r.GetById(instanceId)).ReturnsAsync(instance);
             _instanceRepoMock.Setup(r => r.Update(instanceId, instance)).ReturnsAsync(instance);
 
             // Act
-            var result = await _service.UpdateInstanceAsync(instanceId, "Updated", "NewDesc");
+            var result = await _service.UpdateInstanceAsync(instanceId, "Updated", "NewDesc", requestingCharacterId);
 
             Assert.NotNull(result);
             Assert.Equal("Updated", result.Name);
@@ -234,12 +236,30 @@ namespace WHMapper.Tests.Services.EveMapper
         {
             // Arrange
             var instanceId = 5;
+            var requestingCharacterId = 204;
+            _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(true);
             _instanceRepoMock.Setup(r => r.GetById(instanceId)).ReturnsAsync((WHInstance?)null);
 
             // Act
-            var result = await _service.UpdateInstanceAsync(instanceId, "Name", "Desc");
+            var result = await _service.UpdateInstanceAsync(instanceId, "Name", "Desc", requestingCharacterId);
 
             Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task UpdateInstanceAsync_ReturnsNull_WhenNotAdmin()
+        {
+            // Arrange
+            var instanceId = 10;
+            var requestingCharacterId = 205;
+            _instanceRepoMock.Setup(r => r.IsInstanceAdminAsync(instanceId, requestingCharacterId)).ReturnsAsync(false);
+
+            // Act
+            var result = await _service.UpdateInstanceAsync(instanceId, "Name", "Desc", requestingCharacterId);
+
+            Assert.Null(result);
+            _instanceRepoMock.Verify(r => r.GetById(It.IsAny<int>()), Times.Never);
+            _instanceRepoMock.Verify(r => r.Update(It.IsAny<int>(), It.IsAny<WHInstance>()), Times.Never);
         }
 
         [Fact]

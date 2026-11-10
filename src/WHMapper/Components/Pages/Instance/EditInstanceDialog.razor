@@ -7,7 +7,9 @@
     </TitleContent>
     <DialogContent>
         <MudForm @bind-IsValid="_formIsValid">
+            @* Immediate: re-evaluate HasChanges on each keystroke so Save enables while typing *@
             <MudTextField @bind-Value="_name" 
+                          Immediate="true"
                           Label="Instance Name" 
                           Required="true" 
                           RequiredError="Name is required"
@@ -15,6 +17,7 @@
                           Class="mb-4" />
             
             <MudTextField @bind-Value="_description" 
+                          Immediate="true"
                           Label="Description" 
                           Lines="3"
                           MaxLength="1000" />
@@ -22,7 +25,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="@(!_formIsValid || _saving)">
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="@(!_formIsValid || _saving || !HasChanges)">
             @if (_saving)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />

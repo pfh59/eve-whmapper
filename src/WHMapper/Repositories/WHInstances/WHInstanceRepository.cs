@@ -52,7 +52,8 @@ namespace WHMapper.Repositories.WHInstances
             using var context = await _contextFactory.CreateDbContextAsync();
             try
             {
-                var existing = await context.DbWHInstances.FindAsync(id);
+                // Explicit tracking: the context defaults to NoTracking, so changes would not be saved
+                var existing = await context.DbWHInstances.AsTracking().FirstOrDefaultAsync(x => x.Id == id);
                 if (existing == null)
                     return null;
 

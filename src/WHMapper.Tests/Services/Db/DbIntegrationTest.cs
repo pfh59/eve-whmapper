@@ -57,8 +57,10 @@ public class DbIntegrationTest
             .Build();
 
         var services = new ServiceCollection();
+        // Mirror production (DatabaseExtensions): no tracking by default, so updates must attach explicitly.
         services.AddDbContextFactory<WHMapperContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("DatabaseConnection"))
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
 
         var provider = services.BuildServiceProvider();
         if(provider!=null)
@@ -869,10 +871,17 @@ public class DbIntegrationTest
         var badById = await repo.GetById(-10);
         Assert.Null(badById);
 
+        instance1.Name = "Instance1 Updated";
         instance1.Description = "UPDATED";
         var updated = await repo.Update(instance1.Id, instance1);
         Assert.NotNull(updated);
         Assert.Equal("UPDATED", updated.Description);
+
+        // Re-read: the returned entity alone does not prove the row was persisted (#478)
+        var reloaded = await repo.GetById(instance1.Id);
+        Assert.NotNull(reloaded);
+        Assert.Equal("Instance1 Updated", reloaded.Name);
+        Assert.Equal("UPDATED", reloaded.Description);
 
         // Duplicate update (same OwnerEveEntityId and OwnerType)
         instance2.OwnerEveEntityId = 1;

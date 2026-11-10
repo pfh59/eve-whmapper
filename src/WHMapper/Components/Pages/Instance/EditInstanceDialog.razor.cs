@@ -10,7 +10,7 @@ public partial class EditInstanceDialog : ComponentBase
     private bool _formIsValid = false;
     private bool _saving = false;
     
-    private string _name = string.Empty;
+    private string? _name;
     private string? _description;
 
     [CascadingParameter]
@@ -18,6 +18,12 @@ public partial class EditInstanceDialog : ComponentBase
 
     [Parameter]
     public WHInstance Instance { get; set; } = null!;
+
+    /// <summary>
+    /// Character performing the edit; must be an administrator of the instance.
+    /// </summary>
+    [Parameter]
+    public int RequestingCharacterId { get; set; }
 
     [Inject]
     private IEveMapperInstanceService InstanceService { get; set; } = null!;
@@ -31,18 +37,26 @@ public partial class EditInstanceDialog : ComponentBase
         _description = Instance.Description;
     }
 
+    private string NormalizedName => _name?.Trim() ?? string.Empty;
+
+    private string? NormalizedDescription => string.IsNullOrWhiteSpace(_description) ? null : _description.Trim();
+
+    private bool HasChanges =>
+        NormalizedName != Instance.Name || NormalizedDescription != Instance.Description;
+
     private void Cancel() => MudDialog.Cancel();
 
     private async Task Save()
     {
-        if (!_formIsValid || _saving)
+        if (!_formIsValid || _saving || !HasChanges)
             return;
 
         _saving = true;
 
         try
         {
-            var result = await InstanceService.UpdateInstanceAsync(Instance.Id, _name, _description);
+            var result = await InstanceService.UpdateInstanceAsync(
+                Instance.Id, NormalizedName, NormalizedDescription, RequestingCharacterId);
             if (result != null)
             {
                 Snackbar.Add("Instance updated successfully", Severity.Success);

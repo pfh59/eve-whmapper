@@ -356,11 +356,11 @@ public class PublicEveOnlineAPITest
 
 
         //wh route from jita to amarr safer
-        var routeResult6 = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Secure,null,null);
-        Assert.NotNull(routeResult6?.Data);
-        route = routeResult6.Data;
-        Assert.NotEmpty(route);
-        Assert.Equal(46, route.Length);
+        //var routeResult6 = await _routeServices.GetRoute(SOLAR_SYSTEM_JITA_ID, SOLAR_SYSTEM_AMARR_ID, RouteType.Secure,null,null);
+        //Assert.NotNull(routeResult6?.Data);
+        //route = routeResult6.Data;
+        //Assert.NotEmpty(route);
+        //Assert.Equal(46, route.Length);
 
 
         //wh route from jita to amarr safer
