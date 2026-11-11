@@ -12,11 +12,11 @@ namespace WHMapper.Components.Pages.Mapper.Notes;
 [Authorize(Policy = "Access")]
 public partial class Overview : IDisposable
 {
-    private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_SUCCESS = "Solar system comment autosave successfull";
+    private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_SUCCESS = "Solar system comment autosave successful";
     private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOSAVE_ERROR = "Solar system comment autosave error";
-    private const string MSG_SOLAR_SYSTEM_COMMENT_AUTODEL_SUCCESS = "Solar system comment autodelete successfull";
+    private const string MSG_SOLAR_SYSTEM_COMMENT_AUTODEL_SUCCESS = "Solar system comment autodelete successful";
     private const string MSG_SOLAR_SYSTEM_COMMENT_AUTODEL_ERROR = "Solar system comment autodelete error";
-    private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_SUCCESS = "Solar system comment autoupdate successfull";
+    private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_SUCCESS = "Solar system comment autoupdate successful";
     private const string MSG_SOLAR_SYSTEM_COMMENT_AUTOUPDATE_ERROR = "Solar system comment autoupdate error";
     private const string MSG_AUTOSAVE_OR_UPDATE_ERROR = "Solar system autosave or update error";
 

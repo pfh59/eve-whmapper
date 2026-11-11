@@ -13,7 +13,7 @@
                       Content=@Node.NameExtension
                       Visible=@(Node.NameExtension!=null)
                       Bordered="true" Color="Color.Dark">
-                <MudAvatar Style="@($"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;")"
+                <MudAvatar Style="@BadgeStyle"
                            Size="Size.Small" Variant="Variant.Outlined" Class="mt-1">
                     @Node.SystemType.ToDescriptionString()
                 </MudAvatar>
