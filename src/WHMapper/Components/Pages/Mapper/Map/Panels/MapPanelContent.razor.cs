@@ -1,6 +1,7 @@
 using Blazor.Diagrams.Core.Layers;
 using Microsoft.AspNetCore.Components;
 using WHMapper.Models.Custom.Node;
+using WHMapper.Models.Db.Enums;
 using WHMapper.Models.DTO.MapLayout;
 
 namespace WHMapper.Components.Pages.Mapper.Map.Panels;
@@ -47,7 +48,8 @@ public partial class MapPanelContent
     protected override bool ShouldRender()
     {
         var inputs = new PanelInputs(
-            PanelId, MapId, SelectedSystemNode, SelectedSystemLink, BodyHeight, PrimaryUserId, Links);
+            PanelId, MapId, SelectedSystemNode, SelectedSystemLink, LinkState.From(SelectedSystemLink),
+            BodyHeight, PrimaryUserId, Links);
         if (inputs == _renderedInputs)
         {
             return false;
@@ -63,7 +65,15 @@ public partial class MapPanelContent
         int? MapId,
         EveSystemNodeModel? Node,
         EveSystemLinkModel? Link,
+        LinkState? LinkState,
         double? BodyHeight,
         int? PrimaryUserId,
         LinkLayer? Links);
+
+    /// <summary>Displayed connection values, snapshotted because the map updates the link model in place.</summary>
+    private sealed record LinkState(SystemLinkSize Size, SystemLinkMassStatus MassStatus, SystemLinkEolStatus EndOfLifeStatus)
+    {
+        public static LinkState? From(EveSystemLinkModel? link) =>
+            link is null ? null : new LinkState(link.Size, link.MassStatus, link.EndOfLifeStatus);
+    }
 }

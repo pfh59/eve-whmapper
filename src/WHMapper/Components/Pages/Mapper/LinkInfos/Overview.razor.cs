@@ -37,6 +37,13 @@ public partial class Overview
         private DateTime? LastJumpLogDate { get; set; } = null;
 
         private const string NO_SHIP_USED_LABEL = "No ship used";
+        private const string NO_JUMP_RECORDED_LABEL = "No jump recorded yet";
+        private const string EMPTY_VALUE_PLACEHOLDER = "—";
+
+        /// <summary>Scroll height of a non-empty jump table; an empty one sizes to its content.</summary>
+        private const string JUMP_TABLE_HEIGHT = "325px";
+
+        private string? JumpTableHeight => SystemLink?.JumpHistory.Count > 0 ? JUMP_TABLE_HEIGHT : null;
 
         /// <summary>Keeps date and time columns on one line.</summary>
         private const string NO_WRAP_STYLE = "white-space: nowrap;";
@@ -45,7 +52,6 @@ public partial class Overview
         private const string TRUNCATED_NAME_STYLE = "max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
 
         private bool _isLoading = true;
-        private bool _showing = false;
 
         /// <summary>
         /// Character names of the whole jump history, resolved once per restore.
@@ -61,9 +67,16 @@ public partial class Overview
         /// </summary>
         private IReadOnlyDictionary<int, string> _shipNames = new Dictionary<int, string>();
 
+        /// <summary>Connection whose jump log is loaded; size and statuses are read from the model on each render.</summary>
+        private int? _restoredLinkId;
+
         override protected Task OnParametersSetAsync()
         {
-            Task.WhenAll(Task.Run(() => Restore()));
+            if (CurrentSystemLink?.Id != _restoredLinkId)
+            {
+                _restoredLinkId = CurrentSystemLink?.Id;
+                Task.WhenAll(Task.Run(() => Restore()));
+            }
             return base.OnParametersSetAsync();
         }
 
@@ -72,7 +85,6 @@ public partial class Overview
                 try
                 {       
                         _isLoading=true; 
-                        _showing=false;
                         FirstJumpLogCharacterName = string.Empty;
                         FirstJumpLogShipName = string.Empty;
                         FirstJumpLogDate = null;
@@ -94,7 +106,6 @@ public partial class Overview
                                         var firstJump = JumpHistory.FirstOrDefault();
                                         if(firstJump!=null)
                                         {
-                                                _showing=true;
                                                 FirstJumpLogCharacterName = GetJumpLogCharacterName(firstJump);
                                                 FirstJumpLogDate = firstJump.JumpDate;
                                                 FirstJumpLogShipName = GetJumpLogShipName(firstJump);
@@ -103,7 +114,6 @@ public partial class Overview
                                         var lastJump = JumpHistory.LastOrDefault();
                                         if(lastJump!=null)
                                         {
-                                                _showing=true;
                                                 LastJumpLogCharacterName = GetJumpLogCharacterName(lastJump);
                                                 LastJumpLogDate = lastJump.JumpDate;
                                                 LastJumpLogShipName = GetJumpLogShipName(lastJump);

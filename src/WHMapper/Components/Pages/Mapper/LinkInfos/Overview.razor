@@ -1,7 +1,7 @@
 ﻿@using WHMapper.Models.Db.Enums
 @using WHMapper.Services.WHColor
 
-    <MudPaper Elevation="0" hidden="@(_showing==false)" Class="d-flex flex-row">
+    <MudPaper Elevation="0" Class="d-flex flex-row">
         <MudStack Class="pa-2 flex-shrink-0" Spacing="1" Justify="Justify.FlexStart">
             <MudStack Row=true Justify="Justify.SpaceBetween">
                 <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">Size:</MudText>
@@ -22,30 +22,29 @@
                 {
                     <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@($"font-weight:bold;color:{WHColorHelper?.GetLinkEOLColor(CurrentSystemLink.EndOfLifeStatus)}")" Color="Color.Error">@GetEOLStatusLabel(CurrentSystemLink.EndOfLifeStatus)</MudText>
                 }  
-            </MudStack> 
-                           
-                                
+            </MudStack>
+
             <MudDivider DividerType="DividerType.Middle" Class="my-2"/>
             <MudStack Justify="Justify.SpaceBetween">
                 <MudText Class="pointer-events-none" Typo="Typo.body2" Style="font-weight:bold;">First Jump:</MudText>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small"/>
-                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(FirstJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
+                        @JumpValue(FirstJumpLogDate?.ToString("dd/MM/yyyy"))
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small"/>
-                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(FirstJumpLogDate?.ToString("HH:mm:ss"))</MudText>
+                        @JumpValue(FirstJumpLogDate?.ToString("HH:mm:ss"))
                     </MudStack>
                 </MudStack>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"/>
-                        <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@TRUNCATED_NAME_STYLE">@(FirstJumpLogCharacterName)</MudText>
+                        @JumpValue(FirstJumpLogCharacterName, TRUNCATED_NAME_STYLE)
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Rocket" Size="Size.Small"/>
-                        <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@TRUNCATED_NAME_STYLE">@(FirstJumpLogShipName)</MudText>
+                        @JumpValue(FirstJumpLogShipName, TRUNCATED_NAME_STYLE)
                     </MudStack>
                 </MudStack>
             </MudStack>
@@ -55,26 +54,26 @@
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small"/>
-                        <MudText Class="pointer-events-none" Typo="Typo.body2">@(LastJumpLogDate?.ToString("dd/MM/yyyy"))</MudText>
+                        @JumpValue(LastJumpLogDate?.ToString("dd/MM/yyyy"))
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small"/>
-                        <MudText  Class="pointer-events-none"Typo="Typo.body2">@(LastJumpLogDate?.ToString("HH:mm:ss"))</MudText>
+                        @JumpValue(LastJumpLogDate?.ToString("HH:mm:ss"))
                     </MudStack>
                 </MudStack>
                 <MudStack Row=true Justify="Justify.SpaceBetween">
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"/>
-                        <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@TRUNCATED_NAME_STYLE">@(LastJumpLogCharacterName)</MudText>
+                        @JumpValue(LastJumpLogCharacterName, TRUNCATED_NAME_STYLE)
                     </MudStack>
                     <MudStack Row=true Justify="Justify.SpaceBetween">
                         <MudIcon Icon="@Icons.Material.Filled.Rocket" Size="Size.Small"/>
-                        <MudText Class="pointer-events-none" Typo="Typo.body2" Style="@TRUNCATED_NAME_STYLE">@(LastJumpLogShipName)</MudText>
+                        @JumpValue(LastJumpLogShipName, TRUNCATED_NAME_STYLE)
                     </MudStack>
                 </MudStack>
             </MudStack>
         </MudStack>
-        <MudTable Class="flex-grow-1" Items="@SystemLink?.JumpHistory.OrderBy(x=>x.JumpDate)" Height="325px" Outlined="true" Dense="true" Hover="false" Bordered=true Striped=true
+        <MudTable Class="flex-grow-1" Items="@SystemLink?.JumpHistory.OrderBy(x=>x.JumpDate)" Height="@JumpTableHeight" Outlined="true" Dense="true" Hover="false" Bordered=true Striped=true
             AllowUnsorted=false SortLabel="Sort By"
             Virtualize="true" Loading=@_isLoading LoadingProgressColor="Color.Info">
             <HeaderContent>
@@ -93,6 +92,17 @@
                 <MudTd><MudText Typo="Typo.body2" Style="@TRUNCATED_NAME_STYLE" title="@characterName">@characterName</MudText></MudTd>
                 <MudTd><MudText Typo="Typo.body2" Style="@TRUNCATED_NAME_STYLE" title="@shipName">@shipName</MudText></MudTd>
             </RowTemplate>
+            <NoRecordsContent>
+                <MudStack AlignItems="AlignItems.Center" Spacing="1" Class="py-6 mud-text-secondary">
+                    <MudIcon Icon="@Icons.Material.Outlined.History" Size="Size.Large"/>
+                    <MudText Typo="Typo.body2">@NO_JUMP_RECORDED_LABEL</MudText>
+                </MudStack>
+            </NoRecordsContent>
         </MudTable>
 </MudPaper>
 
+@code {
+    /// <summary>One first/last jump value; a muted placeholder while the value is unknown.</summary>
+    private RenderFragment JumpValue(string? value, string? style = null) =>
+        @<MudText Class="@(string.IsNullOrEmpty(value) ? "pointer-events-none mud-text-secondary" : "pointer-events-none")" Typo="Typo.body2" Style="@style">@(string.IsNullOrEmpty(value) ? EMPTY_VALUE_PLACEHOLDER : value)</MudText>;
+}

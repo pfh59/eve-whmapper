@@ -2301,6 +2301,8 @@ public partial class Overview : IAsyncDisposable
                         linkToChange.Size = size;
                         linkToChange.MassStatus = massStatus;
                         linkToChange.Refresh();
+                        // The link is updated in place: re-render so the Connection panel picks it up.
+                        await InvokeAsync(StateHasChanged);
                     }
                 }
             }
