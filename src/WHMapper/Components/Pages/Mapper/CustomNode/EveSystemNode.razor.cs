@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using WHMapper.Models.Custom.Node;
+using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.WHColor;
 
 
@@ -8,6 +9,9 @@ namespace WHMapper.Components.Pages.Mapper.CustomNode;
 
 public partial class EveSystemNode
 {
+    private const int MAX_BADGE_LABEL_LENGTH = 3;
+    private const string LONG_BADGE_LABEL_FONT_SIZE = "0.5rem";
+
     private string _systemColor = IWHColorHelper.DEFAULT_COLOR;
     private string _whEffectColor = IWHColorHelper.DEFAULT_COLOR;
 
@@ -39,6 +43,20 @@ public partial class EveSystemNode
                 Node.Locked = value;
                 StateHasChanged();
             }
+        }
+    }
+
+    // Labels longer than the usual class codes (e.g. "Thera") need a smaller font to fit the small badge.
+    private string BadgeStyle
+    {
+        get
+        {
+            string style = $"color:{_systemColor}; border-color:{_systemColor}; font-weight:bold;";
+
+            if (Node.SystemType.ToDescriptionString().Length > MAX_BADGE_LABEL_LENGTH)
+                style += $" font-size:{LONG_BADGE_LABEL_FONT_SIZE};";
+
+            return style;
         }
     }
 

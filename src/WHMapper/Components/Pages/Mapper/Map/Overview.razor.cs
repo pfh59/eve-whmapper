@@ -886,7 +886,7 @@ public partial class Overview : IAsyncDisposable
         {
             if (node.Locked)
             {
-                Snackbar?.Add($"{node.Name} wormhole is locked. You can't remove it.", Severity.Warning);
+                Snackbar?.Add($"{node.Name} is locked. You can't remove it.", Severity.Warning);
             }
             else
             {
