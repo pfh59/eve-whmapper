@@ -115,50 +115,48 @@ public partial class Overview : IAsyncDisposable
 
     private async Task<bool> RestoreMaps()
     {
+        WHMaps.Clear();
+        _selectedWHMap = null;
+
         var allMaps = await DbWHMaps.GetAll();
-        if (allMaps == null || !allMaps.Any())
+        if (allMaps == null)
         {
-            _selectedWHMap = await DbWHMaps.Create(new WHMap("Default Maps"));
-            if (_selectedWHMap != null)
-            {
-                await RestoreMaps();
-            }
-        }
-        else
-        {
-            WHMaps.Clear();
-            
-            // Load maps based on primary account's access, not the authenticated user
-            if (PrimaryAccount == null && !string.IsNullOrEmpty(UID.ClientId))
-            {
-                PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
-            }
-            
-            if (PrimaryAccount == null)
-            {
-                Logger.LogWarning("No primary account found, cannot load maps");
-                return false;
-            }
-            
-            Logger.LogInformation("Loading maps for primary account {AccountId}", PrimaryAccount.Id);
-    
-            foreach (var map in allMaps)
-            {
-                if (await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id))
-                {
-                    WHMaps.Add(map);
-                }
-            }
-            
-            Logger.LogInformation("Loaded {MapCount} maps for primary account {AccountId}", WHMaps.Count, PrimaryAccount.Id);
-
-            _selectedWHMap = WHMaps.FirstOrDefault();
+            Logger.LogError("Failed to load maps");
+            return false;
         }
 
-        if(allMaps!=null && allMaps.Any() && _selectedWHMap==null)
+        // Maps are created from Instance Administration only: no map is a valid state.
+        if (!allMaps.Any())
+        {
             return true;
-        else
-            return _selectedWHMap != null;
+        }
+
+        // Load maps based on primary account's access, not the authenticated user
+        if (PrimaryAccount == null && !string.IsNullOrEmpty(UID.ClientId))
+        {
+            PrimaryAccount = await UserManagement.GetPrimaryAccountAsync(UID.ClientId);
+        }
+
+        if (PrimaryAccount == null)
+        {
+            Logger.LogWarning("No primary account found, cannot load maps");
+            return false;
+        }
+
+        Logger.LogInformation("Loading maps for primary account {AccountId}", PrimaryAccount.Id);
+
+        foreach (var map in allMaps)
+        {
+            if (await AccessHelper.IsEveMapperMapAccessAuthorized(PrimaryAccount.Id, map.Id))
+            {
+                WHMaps.Add(map);
+            }
+        }
+
+        Logger.LogInformation("Loaded {MapCount} maps for primary account {AccountId}", WHMaps.Count, PrimaryAccount.Id);
+
+        _selectedWHMap = WHMaps.FirstOrDefault();
+        return true;
     }
 
     /// <summary>
