@@ -33,7 +33,6 @@
                         break;
 
                     default:
-                        @RenderAiReport(_report)
                         @RenderReport(_report)
                         break;
                 }
@@ -47,55 +46,6 @@
 </MudDialog>
 
 @code {
-    private RenderFragment RenderAiReport(WHIntelReport report) => __builder =>
-    {
-        if (!IntelService.IsAiEnabled)
-            return;
-
-        <MudPaper Outlined="true" Class="pa-3 mb-3">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
-                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" Color="Color.Secondary" />
-                <MudText Typo="Typo.subtitle2">AI report</MudText>
-                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary">AI-generated</MudChip>
-                @if (_aiReport?.GeneratedAtUtc is DateTime generatedAt)
-                {
-                    <MudText Typo="Typo.caption">@generatedAt.ToString("yyyy-MM-dd HH:mm") UTC</MudText>
-                }
-            </MudStack>
-            @if (_aiLoading)
-            {
-                <MudProgressLinear Indeterminate="true" Color="Color.Secondary" />
-                <MudText Typo="Typo.caption">Writing the report…</MudText>
-            }
-            else
-            {
-                switch (_aiReport?.Status)
-                {
-                    case WHIntelAiStatus.Generated:
-                        foreach (var section in _aiReport.GetSections())
-                        {
-                            <MudText Typo="Typo.body2" Class="mb-1">
-                                @if (section.Heading != null)
-                                {
-                                    <b>@section.Heading: </b>
-                                }
-                                @section.Text
-                            </MudText>
-                        }
-                        break;
-
-                    case WHIntelAiStatus.NotEnoughData:
-                        <MudText Typo="Typo.body2">Not enough data for an AI report.</MudText>
-                        break;
-
-                    default:
-                        <MudText Typo="Typo.body2">AI report unavailable.</MudText>
-                        break;
-                }
-            }
-        </MudPaper>
-    };
-
     private RenderFragment RenderReport(WHIntelReport report) => __builder =>
     {
         <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true">

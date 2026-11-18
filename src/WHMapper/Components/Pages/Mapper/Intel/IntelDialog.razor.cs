@@ -10,7 +10,7 @@ using WHMapper.Services.WHIntel;
 namespace WHMapper.Components.Pages.Mapper.Intel;
 
 /// <summary>
-/// Dialog showing the zKillboard activity of a system, its analysis and, when configured, an AI assessment.
+/// Dialog showing the zKillboard activity of a system and its analysis.
 /// </summary>
 /// <remarks>
 /// This component is not routed, so the <see cref="AuthorizeAttribute"/> is not evaluated: authorization is
@@ -65,9 +65,7 @@ public partial class IntelDialog : IDisposable
     };
 
     private bool _loading = true;
-    private bool _aiLoading;
     private WHIntelReport? _report;
-    private WHIntelAiReport? _aiReport;
     private List<ChartSeries<double>> _hourlySeries = new();
 
     private string ZKillboardSystemUrl => string.Format(CultureInfo.InvariantCulture, ZKILLBOARD_SYSTEM_URL, SolarSystemId);
@@ -85,14 +83,6 @@ public partial class IntelDialog : IDisposable
             }
 
             ShowReport(await IntelService.GetIntelAsync(primaryAccount.Id, MapId, SolarSystemId, SystemName, _cancellation.Token));
-
-            // The zKillboard data is shown first; the AI report never blocks it.
-            if (!IntelService.IsAiEnabled || _report!.Status != WHIntelStatus.Available)
-                return;
-
-            _aiLoading = true;
-            StateHasChanged();
-            _aiReport = await IntelService.GetAiReportAsync(primaryAccount.Id, MapId, _report, _cancellation.Token);
         }
         catch (OperationCanceledException) when (_cancellation.IsCancellationRequested)
         {
@@ -102,12 +92,10 @@ public partial class IntelDialog : IDisposable
         {
             Logger.LogError(ex, "Error while loading the intel of system {SolarSystemId}", SolarSystemId);
             _report ??= WHIntelReport.Empty(WHIntelStatus.Unavailable, SolarSystemId, SystemName);
-            _aiReport = WHIntelAiReport.WithStatus(WHIntelAiStatus.Unavailable);
         }
         finally
         {
             _loading = false;
-            _aiLoading = false;
         }
     }
 

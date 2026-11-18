@@ -20,17 +20,14 @@ public class WHIntelService : IWHIntelService
     // Durations follow zKillboard's caching guidance: killmail search 1 hour, statistics 10 minutes.
     public static readonly TimeSpan KILLMAILS_CACHE_DURATION = TimeSpan.FromHours(1);
     public static readonly TimeSpan STATS_CACHE_DURATION = TimeSpan.FromMinutes(10);
-    public static readonly TimeSpan AI_REPORT_CACHE_DURATION = TimeSpan.FromHours(1);
     private static readonly TimeSpan SHIP_GROUP_CACHE_DURATION = TimeSpan.FromDays(7);
 
     private const string KILLMAILS_CACHE_KEY = "WHMapper:Intel:Killmails:{0}";
     private const string STATS_CACHE_KEY = "WHMapper:Intel:Stats:{0}";
-    private const string AI_REPORT_CACHE_KEY = "WHMapper:Intel:AiReport:{0}";
     private const string SHIP_GROUP_CACHE_KEY = "WHMapper:Intel:ShipGroup:{0}";
 
     private readonly IZKillboardAPIServices _zKillboard;
     private readonly IWHIntelAnalyzer _analyzer;
-    private readonly IWHIntelAiReporter _aiReporter;
     private readonly IEveMapperAccessHelper _accessHelper;
     private readonly IEveAPIServices _eveApi;
     private readonly IEveMapperService _eveMapperService;
@@ -40,7 +37,6 @@ public class WHIntelService : IWHIntelService
     public WHIntelService(
         IZKillboardAPIServices zKillboard,
         IWHIntelAnalyzer analyzer,
-        IWHIntelAiReporter aiReporter,
         IEveMapperAccessHelper accessHelper,
         IEveAPIServices eveApi,
         IEveMapperService eveMapperService,
@@ -49,15 +45,12 @@ public class WHIntelService : IWHIntelService
     {
         _zKillboard = zKillboard;
         _analyzer = analyzer;
-        _aiReporter = aiReporter;
         _accessHelper = accessHelper;
         _eveApi = eveApi;
         _eveMapperService = eveMapperService;
         _cache = cache;
         _logger = logger;
     }
-
-    public bool IsAiEnabled => _aiReporter.IsEnabled;
 
     public async Task<WHIntelReport> GetIntelAsync(int viewerCharacterId, int mapId, int solarSystemId, string systemName, CancellationToken cancellationToken = default)
     {
@@ -85,34 +78,6 @@ public class WHIntelService : IWHIntelService
             _analyzer.Analyze(killData.Killmails),
             killData.Names,
             killData.ShipGroupNames);
-    }
-
-    public async Task<WHIntelAiReport> GetAiReportAsync(int viewerCharacterId, int mapId, WHIntelReport report, CancellationToken cancellationToken = default)
-    {
-        if (!_aiReporter.IsEnabled)
-            return WHIntelAiReport.WithStatus(WHIntelAiStatus.NotConfigured);
-
-        if (report.Status != WHIntelStatus.Available || report.Analysis == null)
-            return WHIntelAiReport.WithStatus(WHIntelAiStatus.NotEnoughData);
-
-        if (!await _accessHelper.IsEveMapperMapAccessAuthorized(viewerCharacterId, mapId))
-        {
-            _logger.LogWarning("Character {CharacterId} is not allowed to read the intel of map {MapId}", viewerCharacterId, mapId);
-            return WHIntelAiReport.WithStatus(WHIntelAiStatus.Unavailable);
-        }
-
-        string cacheKey = FormatKey(AI_REPORT_CACHE_KEY, report.SolarSystemId);
-        var cached = await _cache.Get<WHIntelAiReport>(cacheKey);
-        if (cached != null)
-            return cached;
-
-        string? text = await _aiReporter.GenerateAsync(report, cancellationToken);
-        if (text == null)
-            return WHIntelAiReport.WithStatus(WHIntelAiStatus.Unavailable);
-
-        var aiReport = new WHIntelAiReport(WHIntelAiStatus.Generated, text, DateTime.UtcNow);
-        await _cache.Set(cacheKey, aiReport, AI_REPORT_CACHE_DURATION);
-        return aiReport;
     }
 
     /// <summary>
@@ -169,7 +134,7 @@ public class WHIntelService : IWHIntelService
             .ToList();
 
     /// <summary>
-    /// Ids displayed by the dialog and sent to the AI: the recent kills, the residents and the fleet hulls.
+    /// Ids displayed by the dialog: the recent kills, the residents and the fleet hulls.
     /// </summary>
     private static HashSet<int> CollectReferencedIds(IReadOnlyList<ZKillmail> killmails, WHIntelAnalysis? analysis)
     {
