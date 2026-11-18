@@ -1,0 +1,6 @@
+/* Keeps the dialog usable on small screens; the kills table scrolls on its own. */
+.whm-intel {
+    min-height: 200px;
+    max-height: 75vh;
+    overflow-y: auto;
+}

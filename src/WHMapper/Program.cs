@@ -25,6 +25,7 @@ builder.Services.AddDatabaseServices(builder.Configuration);
 builder.Services.AddEveAuthentication(builder.Configuration);
 builder.Services.AddExternalApiClients(builder.Configuration);
 builder.Services.AddMapperServices();
+builder.Services.AddIntelServices(builder.Configuration);
 builder.Services.AddWHMapperTelemetry(builder.Configuration, builder.Environment.ApplicationName);
 
 // SignalR & Blazor

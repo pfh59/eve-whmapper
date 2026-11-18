@@ -1,0 +1,272 @@
+@using WHMapper.Models.DTO.Intel
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Radar" />
+            <MudText Typo="Typo.h6">Intel — @SystemName</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <div class="whm-intel">
+            @if (_loading || _report == null)
+            {
+                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Class="pa-6">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                    <MudText Typo="Typo.body2">Loading zKillboard activity…</MudText>
+                </MudStack>
+            }
+            else
+            {
+                @switch (_report.Status)
+                {
+                    case WHIntelStatus.Unauthorized:
+                        <MudAlert Severity="Severity.Error">You are not allowed to view the intel of this map.</MudAlert>
+                        break;
+
+                    case WHIntelStatus.Unavailable:
+                        <MudAlert Severity="Severity.Warning">zKillboard is unavailable or rate limited the request. Try again later.</MudAlert>
+                        break;
+
+                    case WHIntelStatus.NoActivity:
+                        <MudAlert Severity="Severity.Info">No recorded activity on zKillboard.</MudAlert>
+                        break;
+
+                    default:
+                        @RenderAiReport(_report)
+                        @RenderReport(_report)
+                        break;
+                }
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Href="@ZKillboardSystemUrl" Target="_blank" StartIcon="@Icons.Material.Filled.OpenInNew">zKillboard</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private RenderFragment RenderAiReport(WHIntelReport report) => __builder =>
+    {
+        if (!IntelService.IsAiEnabled)
+            return;
+
+        <MudPaper Outlined="true" Class="pa-3 mb-3">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" Color="Color.Secondary" />
+                <MudText Typo="Typo.subtitle2">AI report</MudText>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary">AI-generated</MudChip>
+                @if (_aiReport?.GeneratedAtUtc is DateTime generatedAt)
+                {
+                    <MudText Typo="Typo.caption">@generatedAt.ToString("yyyy-MM-dd HH:mm") UTC</MudText>
+                }
+            </MudStack>
+            @if (_aiLoading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Secondary" />
+                <MudText Typo="Typo.caption">Writing the report…</MudText>
+            }
+            else
+            {
+                switch (_aiReport?.Status)
+                {
+                    case WHIntelAiStatus.Generated:
+                        foreach (var section in _aiReport.GetSections())
+                        {
+                            <MudText Typo="Typo.body2" Class="mb-1">
+                                @if (section.Heading != null)
+                                {
+                                    <b>@section.Heading: </b>
+                                }
+                                @section.Text
+                            </MudText>
+                        }
+                        break;
+
+                    case WHIntelAiStatus.NotEnoughData:
+                        <MudText Typo="Typo.body2">Not enough data for an AI report.</MudText>
+                        break;
+
+                    default:
+                        <MudText Typo="Typo.body2">AI report unavailable.</MudText>
+                        break;
+                }
+            }
+        </MudPaper>
+    };
+
+    private RenderFragment RenderReport(WHIntelReport report) => __builder =>
+    {
+        <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true">
+            <MudTabPanel Text="Analysis">
+                @RenderAnalysis(report)
+            </MudTabPanel>
+            <MudTabPanel Text="@($"Recent kills ({report.RecentKills.Count})")">
+                @RenderRecentKills(report)
+            </MudTabPanel>
+            <MudTabPanel Text="Top 10">
+                <MudGrid Spacing="2" Class="mt-1">
+                    <MudItem xs="12" md="4">@RenderTopList("Characters", report.TopLists.Characters)</MudItem>
+                    <MudItem xs="12" md="4">@RenderTopList("Corporations", report.TopLists.Corporations)</MudItem>
+                    <MudItem xs="12" md="4">@RenderTopList("Alliances", report.TopLists.Alliances)</MudItem>
+                </MudGrid>
+            </MudTabPanel>
+        </MudTabs>
+    };
+
+    private RenderFragment RenderAnalysis(WHIntelReport report) => __builder =>
+    {
+        var analysis = report.Analysis;
+        if (analysis == null)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-2">Not enough data: at least @MIN_KILLS_FOR_ANALYSIS kills are needed for an analysis.</MudAlert>
+            return;
+        }
+
+        <MudGrid Spacing="2" Class="mt-1">
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Activity profile</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudChip T="string" Color="@GetProfileColor(analysis.Profile)">@analysis.Profile</MudChip>
+                    <MudText Typo="Typo.body2">
+                        NPC kills @FormatPercent(analysis.NpcKillShare) · Solo kills @FormatPercent(analysis.SoloKillShare) · @analysis.KillCount kills analysed
+                    </MudText>
+                </MudStack>
+
+                <MudText Typo="Typo.subtitle2" Class="mt-3">Active timezone</MudText>
+                <MudChip T="string" Color="Color.Info">@FormatTimezone(analysis.Timezone)</MudChip>
+                <MudChart T="double" ChartType="ChartType.Bar" ChartLabels="@HOUR_LABELS" ChartSeries="@_hourlySeries"
+                          ChartOptions="@_hourlyChartOptions" Width="100%" Height="200px" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Probable residents</MudText>
+                <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                    <thead>
+                        <tr><th>Corporation</th><th>Structures lost</th><th>Ships lost</th><th>Kills</th><th>Days</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var resident in analysis.Residents)
+                        {
+                            <tr>
+                                <td>
+                                    @report.GetName(resident.CorporationId)
+                                    @if (resident.AllianceId.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption" Class="d-block">@report.GetName(resident.AllianceId)</MudText>
+                                    }
+                                </td>
+                                <td>@resident.StructureLosses</td>
+                                <td>@resident.ShipLosses</td>
+                                <td>@resident.Kills</td>
+                                <td>@resident.ActiveDays</td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+
+                <MudText Typo="Typo.subtitle2" Class="mt-3">
+                    Likely fleet composition (@(analysis.FleetFromResidents ? "residents" : "all player attackers"))
+                </MudText>
+                @if (analysis.FleetHulls.Count == 0)
+                {
+                    <MudText Typo="Typo.body2">No player attacker recorded.</MudText>
+                }
+                else
+                {
+                    <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                        <thead>
+                            <tr><th>Hull</th><th>Group</th><th>Pilots</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var hull in analysis.FleetHulls)
+                            {
+                                <tr>
+                                    <td>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudImage Src="@GetShipIconUrl(hull.ShipTypeId)" Width="24" Height="24" />
+                                            @report.GetName(hull.ShipTypeId)
+                                        </MudStack>
+                                    </td>
+                                    <td>@report.GetShipGroupName(hull.ShipTypeId)</td>
+                                    <td>@hull.Count</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                    <MudText Typo="Typo.caption">Average gang size: @analysis.AverageGangSize.ToString("0.#")</MudText>
+                }
+            </MudItem>
+        </MudGrid>
+    };
+
+    private RenderFragment RenderRecentKills(WHIntelReport report) => __builder =>
+    {
+        <MudTable T="WHIntelKill" Items="@report.RecentKills" Dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="420px">
+            <HeaderContent>
+                <MudTh>Date (UTC)</MudTh>
+                <MudTh>Ship</MudTh>
+                <MudTh>Victim</MudTh>
+                <MudTh>Attackers</MudTh>
+                <MudTh>Final blow</MudTh>
+                <MudTh>Value</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.KillTimeUtc.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                <MudTd>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudImage Src="@GetShipIconUrl(context.VictimShipTypeId)" Width="24" Height="24" />
+                        @report.GetName(context.VictimShipTypeId)
+                    </MudStack>
+                </MudTd>
+                <MudTd>
+                    @report.GetName(context.VictimCharacterId)
+                    <MudText Typo="Typo.caption" Class="d-block">
+                        @report.GetName(context.VictimCorporationId)@(context.VictimAllianceId.HasValue ? $" / {report.GetName(context.VictimAllianceId)}" : string.Empty)
+                    </MudText>
+                </MudTd>
+                <MudTd>@context.AttackerCount</MudTd>
+                <MudTd>@report.GetName(context.FinalBlowCorporationId)</MudTd>
+                <MudTd>@FormatIsk(context.TotalValue)</MudTd>
+                <MudTd>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        @if (context.IsNpc)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success">NPC</MudChip>
+                        }
+                        @if (context.IsSolo)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">Solo</MudChip>
+                        }
+                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Href="@context.ZKillboardUrl" Target="_blank" aria-label="Open on zKillboard" />
+                    </MudStack>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    };
+
+    private RenderFragment RenderTopList(string title, IReadOnlyList<WHIntelTopEntry> entries) => __builder =>
+    {
+        <MudText Typo="Typo.subtitle2">Top @title</MudText>
+        @if (entries.Count == 0)
+        {
+            <MudText Typo="Typo.body2">No data.</MudText>
+        }
+        else
+        {
+            <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                <thead>
+                    <tr><th>#</th><th>Name</th><th>Kills</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in entries)
+                    {
+                        <tr><td>@entry.Rank</td><td>@entry.Name</td><td>@entry.Kills</td></tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+    };
+}

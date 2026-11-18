@@ -5,6 +5,11 @@ namespace WHMapper.Services.EveAPI.Universe
 {
     public class UniverseServices : EveApiServiceBase, IUniverseServices
     {
+        /// <summary>
+        /// Maximum number of ids accepted by ESI <c>POST /universe/names/</c>.
+        /// </summary>
+        public const int MAX_NAMES_PER_REQUEST = 1000;
+
         public UniverseServices(HttpClient httpClient) : base(httpClient)
         {
         }
@@ -77,6 +82,14 @@ namespace WHMapper.Services.EveAPI.Universe
         public async Task<Result<Region>> GetRegion(int region_id)
         {
             return await base.Execute<Region>(RequestSecurity.Public, RequestMethod.Get, string.Format("/universe/regions/{0}/?datasource=tranquility", region_id));
+        }
+
+        public async Task<Result<UniverseName[]>> GetNames(IReadOnlyCollection<int> ids)
+        {
+            if (ids.Count > MAX_NAMES_PER_REQUEST)
+                return Result<UniverseName[]>.Failure($"At most {MAX_NAMES_PER_REQUEST} ids can be resolved per request");
+
+            return await base.Execute<UniverseName[]>(RequestSecurity.Public, RequestMethod.Post, "/universe/names/?datasource=tranquility", ids);
         }
     }
 }
