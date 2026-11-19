@@ -5,6 +5,7 @@ using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveScoutAPI;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.SDE;
+using WHMapper.Services.WHIntel;
 using WHMapper.Services.ZKillboardAPI;
 
 namespace WHMapper.Extensions;
@@ -61,6 +62,10 @@ public static class HttpClientExtensions
             options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(20);
             options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(45);
         });
+
+        // Optional AI model of the intel report: any OpenAI-compatible endpoint, cloud or local container.
+        var intelAiOptions = configuration.GetSection(WHIntelAiOptions.SECTION_NAME).Get<WHIntelAiOptions>() ?? new WHIntelAiOptions();
+        services.AddSingleton(sp => WHIntelAiReporterFactory.Create(intelAiOptions, sp.GetRequiredService<ILoggerFactory>()));
 
         services.AddScoped<IAnoikDataSupplier>(sp =>
         {
