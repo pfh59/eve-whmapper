@@ -90,16 +90,15 @@
     <DialogActions>
         @if (_alreadyHasInstance)
         {
-            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="ManageExistingInstance">
+            <MudButton Color="Color.Success" OnClick="ManageExistingInstance">
                 <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-1" />
                 Manage Existing Instance
             </MudButton>
         }
         else if (_isAuthenticated && !_loading)
         {
-            <MudButton Variant="Variant.Filled" 
-                       Color="Color.Success" 
-                       OnClick="RegisterInstance" 
+            <MudButton Color="Color.Success"
+                       OnClick="RegisterInstance"
                        Disabled="@(!_formIsValid || _registering)">
                 @if (_registering)
                 {
@@ -114,6 +113,6 @@
             </MudButton>
         }
         <MudSpacer />
-        <MudButton Variant="Variant.Text" OnClick="Close" Color="Color.Error">Close</MudButton>
+        <MudButton Color="Color.Error" OnClick="Close">Close</MudButton>
     </DialogActions>
 </MudDialog>
