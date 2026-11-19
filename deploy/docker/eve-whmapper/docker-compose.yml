@@ -43,50 +43,8 @@ services:
     volumes:
      - ./Logs:/app/Logs
 
-  # Local AI model, started only with the "ai" profile:
-  #   INTEL_AI_ENDPOINT=http://ollama:11434/v1 INTEL_AI_MODEL=qwen3:8b docker compose --profile ai up -d
-  # (or put both variables in a .env file next to this file).
-  ollama:
-    image: ollama/ollama:latest
-    restart: unless-stopped
-    profiles: [ "ai" ]
-    environment:
-      # The intel prompt (50 kills as JSON) exceeds Ollama's default context window.
-      - OLLAMA_CONTEXT_LENGTH=16384
-    volumes:
-      - ollama:/root/.ollama
-    healthcheck:
-      test: [ "CMD", "ollama", "list" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - net
-    # Uncomment to use an NVIDIA GPU (requires the NVIDIA Container Toolkit).
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [ gpu ]
-
-  # Downloads the model once; the volume keeps it across restarts.
-  ollama-pull:
-    image: ollama/ollama:latest
-    profiles: [ "ai" ]
-    environment:
-      - OLLAMA_HOST=ollama:11434
-    entrypoint: [ "ollama", "pull", "${INTEL_AI_MODEL:-qwen3:8b}" ]
-    depends_on:
-      ollama:
-        condition: service_healthy
-    networks:
-      - net
-
 networks:
   net:
 
 volumes:
     postgres:
-    ollama:
