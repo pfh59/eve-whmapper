@@ -16,8 +16,8 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Create" Disabled="@(!_formIsValid || _creating)">
+        <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" OnClick="Create" Disabled="@(!_formIsValid || _creating)">
             @if (_creating)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
