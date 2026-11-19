@@ -1,4 +1,5 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿<CascadingValue Name="@BROWSER_LANGUAGE_CASCADE" Value="@BrowserLanguage" IsFixed="true">
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
             <NotAuthorized>
@@ -8,3 +9,14 @@
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
+</CascadingValue>
+
+@code {
+    /// <summary>
+    /// Name of the cascading value holding the viewer's browser language (BCP 47 tag).
+    /// </summary>
+    public const string BROWSER_LANGUAGE_CASCADE = "BrowserLanguage";
+
+    [Parameter]
+    public string BrowserLanguage { get; set; } = WHMapper.Services.WHIntel.WHIntelLanguage.DEFAULT_LANGUAGE_TAG;
+}

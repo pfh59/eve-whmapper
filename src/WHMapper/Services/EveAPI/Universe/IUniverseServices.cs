@@ -19,5 +19,11 @@ namespace WHMapper.Services.EveAPI.Universe
         Task<Result<Constellation>> GetConstellation(int constellatio_id);
         Task<Result<int[]>> GetRegions();
         Task<Result<Region>> GetRegion(int region_id);
+
+        /// <summary>
+        /// Resolves the names of up to <see cref="UniverseServices.MAX_NAMES_PER_REQUEST"/> ids in one request.
+        /// </summary>
+        /// <remarks>ESI fails the whole request when one id is invalid.</remarks>
+        Task<Result<UniverseName[]>> GetNames(IReadOnlyCollection<int> ids);
     }
 }

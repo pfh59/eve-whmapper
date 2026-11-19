@@ -15,6 +15,7 @@ using WHMapper.Services.EveMapper;
 using WHMapper.Services.MapLayout;
 using WHMapper.Services.WHActivityLogs;
 using WHMapper.Services.WHColor;
+using WHMapper.Services.WHIntel;
 using WHMapper.Services.WHSignature;
 using WHMapper.Services.WHSignatures;
 using WHMapper.Services.WHStatistics;
@@ -61,6 +62,8 @@ public static class MapperServiceExtensions
         services.AddScoped<IMapLayoutService, MapLayoutService>();
         services.AddScoped<IWHActivityLogService, WHActivityLogService>();
         services.AddScoped<IWHStatisticsService, WHStatisticsService>();
+        services.AddSingleton<IWHIntelAnalyzer, WHIntelAnalyzer>();
+        services.AddScoped<IWHIntelService, WHIntelService>();
 
         return services;
     }

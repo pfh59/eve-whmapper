@@ -1,0 +1,36 @@
+/* The app palette renders text at 70 % / 50 % white; dense tables need more contrast. */
+.whm-intel {
+    --mud-palette-text-primary: rgba(255, 255, 255, 0.92);
+    --mud-palette-text-secondary: rgba(255, 255, 255, 0.75);
+    --mud-palette-table-lines: rgba(255, 255, 255, 0.18);
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    max-height: 75vh;
+}
+
+/* The AI report stays visible; only a long report scrolls inside its own box. */
+.whm-intel ::deep .whm-intel-ai {
+    flex: 0 0 auto;
+    max-height: 35vh;
+    overflow-y: auto;
+}
+
+/* Tab headers stay fixed under the AI report; only the active panel scrolls. */
+.whm-intel ::deep .whm-intel-tabs {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.whm-intel ::deep .whm-intel-panels {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.whm-intel ::deep .whm-intel-section,
+.whm-intel ::deep th {
+    font-weight: 600;
+}

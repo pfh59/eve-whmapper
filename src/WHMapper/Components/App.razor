@@ -2,6 +2,8 @@
 <html lang="en">
 @{
     var nonce = HttpContextAccessor.HttpContext?.Items["CspNonce"]?.ToString() ?? "";
+    // Captured here: interactive components have no HttpContext.
+    var browserLanguage = WHIntelLanguage.FromAcceptLanguage(HttpContextAccessor.HttpContext?.Request.Headers.AcceptLanguage.ToString());
 }
 <head>
     <meta charset="utf-8" />
@@ -33,7 +35,7 @@
 </head>
 
 <body>
-    <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" BrowserLanguage="@browserLanguage" />
     
     <!-- Reconnection modal -->
     <div id="components-reconnect-modal" class="components-reconnect-dialog" role="dialog" aria-labelledby="reconnect-title" aria-describedby="reconnect-message">
@@ -63,4 +65,5 @@
 
 </html>
 
+@using WHMapper.Services.WHIntel
 @inject IHttpContextAccessor HttpContextAccessor

@@ -1,9 +1,12 @@
+using System.Net;
 using Microsoft.Extensions.Http.Resilience;
 using WHMapper.Services.EveAPI;
 using WHMapper.Services.EveAPI.Characters;
 using WHMapper.Services.EveScoutAPI;
 using WHMapper.Services.Anoik;
 using WHMapper.Services.SDE;
+using WHMapper.Services.WHIntel;
+using WHMapper.Services.ZKillboardAPI;
 
 namespace WHMapper.Extensions;
 
@@ -38,6 +41,31 @@ public static class HttpClientExtensions
             options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(10);
             options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
         });
+
+        services.AddHttpClient<IZKillboardAPIServices, ZKillboardAPIServices>(client =>
+        {
+            client.BaseAddress = new Uri(ZKillboardAPIServiceConstants.ZKillboardUrl);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(ZKillboardAPIServiceConstants.USER_AGENT);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        // zKillboard requires compressed responses; automatic decompression sends Accept-Encoding.
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        })
+        .AddStandardResilienceHandler(options =>
+        {
+            // One retry only: zKillboard asks clients to avoid bursts; Retry-After is honoured by the handler.
+            options.Retry.MaxRetryAttempts = 1;
+            options.Retry.UseJitter = true;
+            options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
+            options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(20);
+            options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(45);
+        });
+
+        // Optional AI model of the intel report: any OpenAI-compatible endpoint, cloud or local container.
+        var intelAiOptions = configuration.GetSection(WHIntelAiOptions.SECTION_NAME).Get<WHIntelAiOptions>() ?? new WHIntelAiOptions();
+        services.AddSingleton(sp => WHIntelAiReporterFactory.Create(intelAiOptions, sp.GetRequiredService<ILoggerFactory>()));
 
         services.AddScoped<IAnoikDataSupplier>(sp =>
         {

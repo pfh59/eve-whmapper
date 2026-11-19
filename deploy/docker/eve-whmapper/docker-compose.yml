@@ -28,6 +28,10 @@ services:
      - ConnectionStrings__RedisConnection=redis:6379
      - Serilog__MinimumLevel__Default=Warning
      - Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore.Database.Command=Warning
+     # Optional AI report of the Intel dialog: any OpenAI-compatible endpoint, empty = disabled.
+     - Intel__Ai__Endpoint=${INTEL_AI_ENDPOINT:-}
+     - Intel__Ai__Model=${INTEL_AI_MODEL:-}
+     - Intel__Ai__ApiKey=${INTEL_AI_API_KEY:-}
     links:
       - db
       - redis

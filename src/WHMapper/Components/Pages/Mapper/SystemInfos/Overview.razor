@@ -14,6 +14,13 @@
                 </MudStack>
             </MudLink>
             
+            <MudLink OnClick="OpenIntelAsync" Disabled="@(CurrentSystemNode == null || !CurrentMapId.HasValue)" Class="cursor-pointer">
+                <MudStack Row="true" Spacing=1 AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Radar" Style="font-size:16px;" />
+                    Intel
+                </MudStack>
+            </MudLink>
+
             @if(CurrentSystemNode != null && CurrentSystemNode.SystemType!=Models.DTO.EveMapper.Enums.EveSystemType.HS 
             && CurrentSystemNode.SystemType!=Models.DTO.EveMapper.Enums.EveSystemType.LS
             && CurrentSystemNode.SystemType!=Models.DTO.EveMapper.Enums.EveSystemType.NS

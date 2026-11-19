@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using WHMapper.Components.Pages.Mapper.Intel;
 using WHMapper.Models.Custom.Node;
 using WHMapper.Models.DTO.EveMapper.Enums;
 using WHMapper.Services.WHColor;
@@ -37,6 +38,9 @@ public partial class Overview : ComponentBase
 
     [Inject]
     public ILogger<Overview> Logger { get; set; } = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
 
 
     [Parameter]
@@ -81,6 +85,29 @@ public partial class Overview : ComponentBase
 
         }
         return base.OnParametersSetAsync();
+    }
+
+    private async Task OpenIntelAsync()
+    {
+        if (CurrentSystemNode == null || !CurrentMapId.HasValue)
+            return;
+
+        var parameters = new DialogParameters<IntelDialog>
+        {
+            { x => x.MapId, CurrentMapId.Value },
+            { x => x.SolarSystemId, CurrentSystemNode.SolarSystemId },
+            { x => x.SystemName, CurrentSystemNode.Name }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        await DialogService.ShowAsync<IntelDialog>($"Intel — {CurrentSystemNode.Name}", parameters, options);
     }
 }
 
