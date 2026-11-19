@@ -40,8 +40,8 @@
         </div>
     </DialogContent>
     <DialogActions>
-        <MudButton Href="@ZKillboardSystemUrl" Target="_blank" StartIcon="@Icons.Material.Filled.OpenInNew">zKillboard</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Error" OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Success" Href="@ZKillboardSystemUrl" Target="_blank" StartIcon="@Icons.Material.Filled.OpenInNew">zKillboard</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -49,13 +49,13 @@
     private RenderFragment RenderReport(WHIntelReport report) => __builder =>
     {
         <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true">
-            <MudTabPanel Text="Analysis">
+            <MudTabPanel Text="Analysis" Icon="@Icons.Material.Filled.Insights">
                 @RenderAnalysis(report)
             </MudTabPanel>
-            <MudTabPanel Text="@($"Recent kills ({report.RecentKills.Count})")">
+            <MudTabPanel Text="@($"Recent kills ({report.RecentKills.Count})")" Icon="@Icons.Material.Filled.FormatListBulleted">
                 @RenderRecentKills(report)
             </MudTabPanel>
-            <MudTabPanel Text="Top 10">
+            <MudTabPanel Text="Top 10" Icon="@Icons.Material.Filled.Leaderboard">
                 <MudGrid Spacing="2" Class="mt-1">
                     <MudItem xs="12" md="4">@RenderTopList("Characters", report.TopLists.Characters)</MudItem>
                     <MudItem xs="12" md="4">@RenderTopList("Corporations", report.TopLists.Corporations)</MudItem>
@@ -76,7 +76,7 @@
 
         <MudGrid Spacing="2" Class="mt-1">
             <MudItem xs="12" md="6">
-                <MudText Typo="Typo.subtitle2">Activity profile</MudText>
+                <MudText Typo="Typo.subtitle1" Class="whm-intel-section">Activity profile</MudText>
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                     <MudChip T="string" Color="@GetProfileColor(analysis.Profile)">@analysis.Profile</MudChip>
                     <MudText Typo="Typo.body2">
@@ -84,14 +84,22 @@
                     </MudText>
                 </MudStack>
 
-                <MudText Typo="Typo.subtitle2" Class="mt-3">Active timezone</MudText>
-                <MudChip T="string" Color="Color.Info">@FormatTimezone(analysis.Timezone)</MudChip>
+                <MudText Typo="Typo.subtitle1" Class="mt-4 whm-intel-section">Active timezone</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudChip T="string" Color="Color.Info">@FormatTimezone(analysis.Timezone)</MudChip>
+                    <MudText Typo="Typo.body2">@TIMEZONE_WINDOWS_HINT</MudText>
+                </MudStack>
+
+                <MudText Typo="Typo.subtitle1" Class="mt-4 whm-intel-section">Kills per hour (UTC)</MudText>
+                <MudText Typo="Typo.body2">
+                    Number of kills recorded at each hour of the day, over the @analysis.KillCount kills analysed. The highest bars show when the system is most active.
+                </MudText>
                 <MudChart T="double" ChartType="ChartType.Bar" ChartLabels="@HOUR_LABELS" ChartSeries="@_hourlySeries"
-                          ChartOptions="@_hourlyChartOptions" Width="100%" Height="200px" />
+                          ChartOptions="@_hourlyChartOptions" Width="100%" Height="260px" />
             </MudItem>
 
             <MudItem xs="12" md="6">
-                <MudText Typo="Typo.subtitle2">Probable residents</MudText>
+                <MudText Typo="Typo.subtitle1" Class="whm-intel-section">Probable residents</MudText>
                 <MudSimpleTable Dense="true" Hover="true" Elevation="0">
                     <thead>
                         <tr><th>Corporation</th><th>Structures lost</th><th>Ships lost</th><th>Kills</th><th>Days</th></tr>
@@ -116,7 +124,7 @@
                     </tbody>
                 </MudSimpleTable>
 
-                <MudText Typo="Typo.subtitle2" Class="mt-3">
+                <MudText Typo="Typo.subtitle1" Class="mt-4 whm-intel-section">
                     Likely fleet composition (@(analysis.FleetFromResidents ? "residents" : "all player attackers"))
                 </MudText>
                 @if (analysis.FleetHulls.Count == 0)
@@ -190,7 +198,7 @@
                         {
                             <MudChip T="string" Size="Size.Small" Color="Color.Warning">Solo</MudChip>
                         }
-                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Href="@context.ZKillboardUrl" Target="_blank" aria-label="Open on zKillboard" />
+                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Success" Href="@context.ZKillboardUrl" Target="_blank" aria-label="Open on zKillboard" />
                     </MudStack>
                 </MudTd>
             </RowTemplate>
@@ -199,7 +207,7 @@
 
     private RenderFragment RenderTopList(string title, IReadOnlyList<WHIntelTopEntry> entries) => __builder =>
     {
-        <MudText Typo="Typo.subtitle2">Top @title</MudText>
+        <MudText Typo="Typo.subtitle1" Class="whm-intel-section">Top @title</MudText>
         @if (entries.Count == 0)
         {
             <MudText Typo="Typo.body2">No data.</MudText>

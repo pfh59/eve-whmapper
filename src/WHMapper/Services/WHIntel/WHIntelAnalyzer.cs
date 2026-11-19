@@ -38,11 +38,11 @@ public class WHIntelAnalyzer : IWHIntelAnalyzer
     private const int CAPSULE_TYPE_ID = 670;
     private const int GENOLUTION_CAPSULE_TYPE_ID = 33328;
 
-    // Prime-time windows in UTC hours: EU 14:00-22:59, US 23:00-05:59, AU/CN 06:00-13:59.
-    private const int EU_FIRST_HOUR = 14;
-    private const int EU_LAST_HOUR = 22;
-    private const int AUCN_FIRST_HOUR = 6;
-    private const int AUCN_LAST_HOUR = 13;
+    // Prime-time windows in UTC hours: EU 14:00-22:59, AU/CN 06:00-13:59, US the remaining hours.
+    public const int EU_FIRST_HOUR = 14;
+    public const int EU_LAST_HOUR = 22;
+    public const int AUCN_FIRST_HOUR = 6;
+    public const int AUCN_LAST_HOUR = 13;
 
     private const int HOURS_PER_DAY = 24;
 

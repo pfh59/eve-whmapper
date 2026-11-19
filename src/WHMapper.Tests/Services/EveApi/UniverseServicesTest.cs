@@ -39,7 +39,9 @@ public class UniverseServicesTest
         Assert.Equal(["Pilot", "Corp"], result.Data!.Select(x => x.Name));
         Assert.Equal(HttpMethod.Post, request!.Method);
         Assert.Equal("/universe/names/", request.RequestUri!.AbsolutePath);
-        Assert.Equal([1, 2], JsonSerializer.Deserialize<int[]>(body!));
+        var postedIds = JsonSerializer.Deserialize<int[]>(body!);
+        Assert.NotNull(postedIds);
+        Assert.Equal([1, 2], postedIds);
     }
 
     [Fact]

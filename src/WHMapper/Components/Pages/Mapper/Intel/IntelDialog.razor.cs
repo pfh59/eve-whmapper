@@ -32,6 +32,15 @@ public partial class IntelDialog : IDisposable
 
     private const int MIN_KILLS_FOR_ANALYSIS = WHIntelAnalyzer.MIN_KILLS_FOR_ANALYSIS;
 
+    /// <summary>
+    /// Explains the timezone chip with the windows used by <see cref="WHIntelAnalyzer"/>.
+    /// </summary>
+    private static readonly string TIMEZONE_WINDOWS_HINT = string.Format(CultureInfo.InvariantCulture,
+        "Window with the most kills: EU {0:00}:00–{1:00}:59, AU/CN {2:00}:00–{3:00}:59, US {4:00}:00–{5:00}:59 (UTC).",
+        WHIntelAnalyzer.EU_FIRST_HOUR, WHIntelAnalyzer.EU_LAST_HOUR,
+        WHIntelAnalyzer.AUCN_FIRST_HOUR, WHIntelAnalyzer.AUCN_LAST_HOUR,
+        WHIntelAnalyzer.EU_LAST_HOUR + 1, WHIntelAnalyzer.AUCN_FIRST_HOUR - 1);
+
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -61,6 +70,7 @@ public partial class IntelDialog : IDisposable
     {
         YAxisFormat = "0",
         YAxisTitle = "Kills",
+        XAxisTitle = "Hour of day (UTC)",
         ShowLegend = false
     };
 

@@ -1,6 +1,14 @@
-/* Keeps the dialog usable on small screens; the kills table scrolls on its own. */
+/* The app palette renders text at 70 % / 50 % white; dense tables need more contrast. */
 .whm-intel {
+    --mud-palette-text-primary: rgba(255, 255, 255, 0.92);
+    --mud-palette-text-secondary: rgba(255, 255, 255, 0.75);
+    --mud-palette-table-lines: rgba(255, 255, 255, 0.18);
     min-height: 200px;
     max-height: 75vh;
     overflow-y: auto;
+}
+
+.whm-intel ::deep .whm-intel-section,
+.whm-intel ::deep th {
+    font-weight: 600;
 }
