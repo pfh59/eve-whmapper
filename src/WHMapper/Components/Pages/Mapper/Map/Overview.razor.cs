@@ -1,5 +1,6 @@
 using Blazor.Diagrams;
 using Blazor.Diagrams.Core.Behaviors;
+using Blazor.Diagrams.Core.Geometry;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WHMapper.Models.Custom.Node;
@@ -36,8 +37,13 @@ public partial class Overview : IAsyncDisposable
     private const double DEFAULT_NODE_POSITION_X = 8;
     private const double DEFAULT_NODE_POSITION_Y = 56;
 
+    private const long LEFT_MOUSE_BUTTON = 0;
+    private const long RIGHT_MOUSE_BUTTON = 2;
+
     private BlazorDiagram _blazorDiagram = null!;
     private MudMenu _contextMenu = null!;
+    // Diagram position of the last right-click: where "Add System" places the new node.
+    private Point _contextMenuDiagramPosition = new(DEFAULT_NODE_POSITION_X, DEFAULT_NODE_POSITION_Y);
     private int? _selectedWHMapId = null;
 
     private bool _loading = true;
@@ -594,9 +600,13 @@ public partial class Overview : IAsyncDisposable
         _blazorDiagram.KeyDown += async (kbevent) => await OnDiagramKeyDown(kbevent);
         _blazorDiagram.PointerDown += async (item, pointerEvent) =>
         {
-            if (pointerEvent.Button == 0)
+            if (pointerEvent.Button == LEFT_MOUSE_BUTTON)
             {
                 await _contextMenu.CloseMenuAsync();
+            }
+            else if (pointerEvent.Button == RIGHT_MOUSE_BUTTON)
+            {
+                _contextMenuDiagramPosition = _blazorDiagram.GetRelativeMousePoint(pointerEvent.ClientX, pointerEvent.ClientY);
             }
         };
         _blazorDiagram.PointerUp += async (item, pointerEvent) => await OnDiagramPointerUp(item, pointerEvent);
@@ -1958,7 +1968,7 @@ public partial class Overview : IAsyncDisposable
         }
     }
 
-    private async Task<bool> OpenSearchAndAddDialog(MouseEventArgs e)
+    private async Task<bool> OpenSearchAndAddDialog()
     {
         DialogOptions disableBackdropClick = new DialogOptions()
         {
@@ -1981,7 +1991,7 @@ public partial class Overview : IAsyncDisposable
                 WHMapperUser? primaryAccount = await GetPrimaryAccountAsync();
                 if (primaryAccount != null)
                 {
-                    if (await AddSystemNode(MapId.Value, solarSystem, primaryAccount.Id, null, e.ClientX, e.ClientY))
+                    if (await AddSystemNode(MapId.Value, solarSystem, primaryAccount.Id, null, _contextMenuDiagramPosition.X, _contextMenuDiagramPosition.Y))
                     {
                         Snackbar?.Add(String.Format("{0} solar system successfully added", solarSystem.Name), Severity.Success);
                     }
