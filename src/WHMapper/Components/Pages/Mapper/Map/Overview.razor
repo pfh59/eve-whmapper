@@ -29,7 +29,7 @@
             <ChildContent>
                 @if (SelectedSystemLink == null && SelectedSystemNode == null)
                 {
-                    <MudMenuItem Label="Add System" OnClick="@((e) => OpenSearchAndAddDialog(e))" />
+                    <MudMenuItem Label="Add System" OnClick="@(() => OpenSearchAndAddDialog())" />
                 }
 
                 @if(SelectedSystemNode !=null)
